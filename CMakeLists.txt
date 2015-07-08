@@ -98,6 +98,8 @@ if(QTONLY)
   # add a flag to be able to distinguish between qt
   # and kde mode in the sources
   add_definitions(-DQTONLY)
+  add_definitions(-DSUBSURFACE)
+  add_definitions(-DQT_NO_PRINTER)
 
   # Use M_PI under Windows
   if( WIN32 )
