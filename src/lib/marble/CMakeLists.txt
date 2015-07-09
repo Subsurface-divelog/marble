@@ -118,7 +118,7 @@ set(marblewidget_SRCS
     MarbleAboutDialog.cpp
     MarbleInputHandler.cpp
     MarbleWidgetInputHandler.cpp
-    MarbleWidgetPopupMenu.cpp
+    # MarbleWidgetPopupMenu.cpp
     MarblePlacemarkModel.cpp
     GeoDataTreeModel.cpp
     GeoUriParser.cpp
@@ -143,7 +143,7 @@ set(marblewidget_SRCS
     PluginManager.cpp
     TimeControlWidget.cpp
     AbstractFloatItem.cpp
-    PopupItem.cpp
+    # PopupItem.cpp
     MarbleGlobal.cpp
     MarbleDirs.cpp
     MarbleLocale.cpp
@@ -339,7 +339,7 @@ set (marblewidget_UI
     routing/RoutingProfileSettingsDialog.ui
     MapWizard.ui
     MapThemeDownloadDialog.ui
-    WebPopupWidget.ui
+    # WebPopupWidget.ui
     cloudsync/CloudRoutesDialog.ui
     MarbleCloudSyncSettingsWidget.ui
     MovieCaptureDialog.ui
@@ -471,7 +471,7 @@ install( FILES
     MarbleAboutDialog.h
     MarbleInputHandler.h
     MarbleWidgetInputHandler.h
-    MarbleWidgetPopupMenu.h
+    # MarbleWidgetPopupMenu.h
     TileId.h
     TileCoordsPyramid.h
     TileLevelRangeWidget.h

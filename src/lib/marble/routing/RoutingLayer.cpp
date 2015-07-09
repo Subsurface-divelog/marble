@@ -15,7 +15,9 @@
 #include "GeoPainter.h"
 #include "MarblePlacemarkModel.h"
 #include "MarbleWidget.h"
+#ifndef SUBSURFACE
 #include "MarbleWidgetPopupMenu.h"
+#endif
 #include "RoutingModel.h"
 #include "Route.h"
 #include "RouteRequest.h"
@@ -91,7 +93,9 @@ public:
 
     RouteRequest *const m_routeRequest;
 
+#ifndef SUBSURFACE
     MarbleWidgetPopupMenu *m_contextMenu;
+#endif
 
     QAction *m_removeViaPointAction;
 
@@ -175,6 +179,7 @@ RoutingLayerPrivate::RoutingLayerPrivate( RoutingLayer *parent, MarbleWidget *wi
         m_viewportChanged( true ),
         m_isInteractive( true )
 {
+#ifndef SUBSURFACE
     m_contextMenu = new MarbleWidgetPopupMenu( m_marbleWidget, m_marbleWidget->model() );
     m_removeViaPointAction = new QAction( QObject::tr( "&Remove this destination" ), q );
     QObject::connect( m_removeViaPointAction, SIGNAL(triggered()), q, SLOT(removeViaPoint()) );
@@ -185,6 +190,7 @@ RoutingLayerPrivate::RoutingLayerPrivate( RoutingLayer *parent, MarbleWidget *wi
     if ( MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen ) {
         m_pixmapSize = QSize( 38, 38 );
     }
+#endif
 
 }
 
@@ -419,7 +425,9 @@ bool RoutingLayerPrivate::handleMouseButtonPress( QMouseEvent *e )
             } else if ( e->button() == Qt::RightButton ) {
                 m_removeViaPointAction->setEnabled( true );
                 m_activeMenuIndex = region.index;
+#ifndef SUBSURFACE
                 m_contextMenu->showRmbMenu( e->x(), e->y() );
+#endif
                 return true;
             } else
                 return false;
@@ -441,7 +449,9 @@ bool RoutingLayerPrivate::handleMouseButtonPress( QMouseEvent *e )
                 return true;
             } else if ( e->button() == Qt::RightButton ) {
                 m_removeViaPointAction->setEnabled( false );
+#ifndef SUBSURFACE
                 m_contextMenu->showRmbMenu( e->x(), e->y() );
+#endif
                 return true;
             } else
                 return false;
@@ -456,7 +466,9 @@ bool RoutingLayerPrivate::handleMouseButtonPress( QMouseEvent *e )
             return true;
         } else if ( e->button() == Qt::RightButton ) {
             m_removeViaPointAction->setEnabled( false );
+#ifndef SUBSURFACE
             m_contextMenu->showRmbMenu( e->x(), e->y() );
+#endif
             return true;
         } else
             return false;

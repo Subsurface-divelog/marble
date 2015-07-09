@@ -47,7 +47,9 @@ class GeoPainter;
 class GeoSceneDocument;
 class LayerInterface;
 class MarbleModel;
+#ifndef SUBSURFACE
 class MarbleWidgetPopupMenu;
+#endif
 class MarbleWidgetInputHandler;
 class MarbleWidgetPrivate;
 class RenderPlugin;
@@ -170,7 +172,9 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
     ViewportParams *viewport();
     const ViewportParams *viewport() const;
 
+#ifndef SUBSURFACE
     MarbleWidgetPopupMenu *popupMenu();
+#endif
 
     /**
      * Returns the current input handler

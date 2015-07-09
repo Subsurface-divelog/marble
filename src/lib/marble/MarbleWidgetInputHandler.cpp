@@ -125,23 +125,28 @@ MarbleWidgetInputHandler::MarbleWidgetInputHandler(MarbleAbstractPresenter *marb
 //FIXME - these should be moved to superclass and popupMenu should be abstracted in MarbleAbstractPresenter
 void MarbleWidgetInputHandler::showLmbMenu(int x, int y)
 {
+#ifndef SUBSURFACE
     if (isMouseButtonPopupEnabled(Qt::LeftButton))
     {
         d->m_marbleWidget->popupMenu()->showLmbMenu(x, y);
         toolTipTimer()->stop();
     }
+#endif
 }
 
 void MarbleWidgetInputHandler::showRmbMenu(int x, int y)
 {
+#ifndef SUBSURFACE
     if (isMouseButtonPopupEnabled(Qt::RightButton))
     {
         d->m_marbleWidget->popupMenu()->showRmbMenu(x, y);
     }
+#endif
 }
 
 void MarbleWidgetInputHandler::openItemToolTip()
 {
+#ifndef SUBSURFACE
     if (!lastToolTipItem().isNull())
     {
         QToolTip::showText(d->m_marbleWidget->mapToGlobal(toolTipPosition()),
@@ -149,6 +154,7 @@ void MarbleWidgetInputHandler::openItemToolTip()
                             d->m_marbleWidget,
                             lastToolTipItem()->containsRect(toolTipPosition()).toRect());
     }
+#endif
 }
 
 }

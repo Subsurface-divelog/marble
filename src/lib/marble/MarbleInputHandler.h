@@ -35,7 +35,9 @@ namespace Marble
 
 class MarbleModel;
 class MarbleAbstractPresenter;
+#ifndef SUBSURFACE
 class MarbleWidgetPopupMenu;
+#endif
 class AbstractDataPluginItem;
 class RenderPlugin;
 
