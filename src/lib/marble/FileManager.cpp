@@ -147,6 +147,9 @@ void FileManager::saveFile( const QString &fileName, const GeoDataDocument *docu
     GeoWriter writer;
     writer.setDocumentType( kml::kmlTag_nameSpaceOgc22 );
 
+    if (fileName.isEmpty())
+        return;
+
     QFile file( fileName );
     if ( !file.open( QIODevice::WriteOnly | QIODevice::Truncate ) ) {
         return;
