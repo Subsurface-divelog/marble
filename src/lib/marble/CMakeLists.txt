@@ -25,7 +25,7 @@ INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}/graphicsview
  ${CMAKE_CURRENT_SOURCE_DIR}/layers
  ${CMAKE_CURRENT_SOURCE_DIR}/cloudsync
- ${CMAKE_SOURCE_DIR}/src/lib/astro
+ #${CMAKE_SOURCE_DIR}/src/lib/astro
  ${QT_INCLUDE_DIR}
 )
 
@@ -358,7 +358,8 @@ marble_qt4_automoc(${marblewidget_SRCS})
 ADD_LIBRARY(ssrfmarblewidget SHARED ${marblewidget_SRCS} ${SOURCES_UI_HDRS})
 
 # link with libastro
-TARGET_LINK_LIBRARIES (ssrfmarblewidget astro)
+#TARGET_LINK_LIBRARIES (ssrfmarblewidget astro)
+TARGET_LINK_LIBRARIES (ssrfmarblewidget)
 
 # link with release version of Qt libs
 if( QT4_FOUND )
