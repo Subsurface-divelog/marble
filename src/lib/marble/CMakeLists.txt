@@ -423,7 +423,7 @@ if(WIN32 AND QTONLY)
 else(WIN32 AND QTONLY)
   if(APPLE AND QTONLY)
     install (TARGETS ssrfmarblewidget LIBRARY DESTINATION
-      ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/lib)
+      ${CMAKE_INSTALL_PREFIX}/lib)
 
   else(APPLE AND QTONLY)
     if(QTONLY)
