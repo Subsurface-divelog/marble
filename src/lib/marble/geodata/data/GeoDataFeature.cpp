@@ -417,6 +417,7 @@ void GeoDataFeaturePrivate::initializeDefaultStyles()
                                                                                    Qt::SolidPattern, Qt::CustomDashLine, Qt::FlatCap, 
                                                                                    false, QVector< qreal >() << 0.2 << 0.2 );
 
+#ifndef SUBSURFACE
     s_defaultStyle[GeoDataFeature::HighwayUnknown]           = GeoDataFeaturePrivate::createHighwayStyle( "highway_unclassified", "#808080" );
     s_defaultStyle[GeoDataFeature::HighwayPath]              = GeoDataFeaturePrivate::createHighwayStyle( "highway_path", "#F98072", 1.0, 2, Qt::DashLine );
     s_defaultStyle[GeoDataFeature::HighwayTrack]             = GeoDataFeaturePrivate::createHighwayStyle( "highway_track", "#986600", 1.0, 3, Qt::DashLine );
@@ -434,6 +435,7 @@ void GeoDataFeaturePrivate::initializeDefaultStyles()
     s_defaultStyle[GeoDataFeature::HighwayPrimaryLink]       = GeoDataFeaturePrivate::createHighwayStyle( "highway_primary", "#EB989A", 2.0, 13 );
     s_defaultStyle[GeoDataFeature::HighwayTrunkLink]         = GeoDataFeaturePrivate::createHighwayStyle( "highway_trunk", "#A9DAA9", 3.0, 15 );
     s_defaultStyle[GeoDataFeature::HighwayMotorwayLink]      = GeoDataFeaturePrivate::createHighwayStyle( "highway_motorway", "#809BC0", 3.0, 18 );
+#endif
     
     s_defaultStyle[GeoDataFeature::NaturalWater]             = GeoDataFeaturePrivate::createStyle( 2, 10, "#B5D0D0", "#B5D0D0",
                                                                                    true, true, Qt::SolidPattern, Qt::SolidLine, Qt::RoundCap, false );

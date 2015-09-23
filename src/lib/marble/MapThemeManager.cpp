@@ -221,7 +221,9 @@ GeoSceneDocument* MapThemeManager::Private::loadMapThemeFile( const QString& map
     // Check whether file exists
     QFile file( dgmlPath );
     if ( !file.exists() ) {
+#ifndef SUBSURFACE
         qWarning() << "Map theme file does not exist:" << dgmlPath;
+#endif
         return 0;
     }
 
