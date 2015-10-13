@@ -182,6 +182,10 @@ bool appendPlugin( QObject * obj, QPluginLoader* &loader, QList<const T*> &plugi
 
 void PluginManagerPrivate::loadPlugins()
 {
+#ifdef SUBSURFACE
+	// we don't use any plugins and this tries to read random files
+	return;
+#endif
     if (m_pluginsLoaded)
     {
         return;
