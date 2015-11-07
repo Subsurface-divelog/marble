@@ -261,9 +261,13 @@ QStringList MapThemeManager::Private::pathsToWatch()
     }
 
     result << localMapPathName;
-    result << systemMapPathName;
     addMapThemePaths( localMapPathName, result );
-    addMapThemePaths( systemMapPathName, result );
+
+    if( QDir().exists( systemMapPathName ) ) {
+        result << systemMapPathName;
+        addMapThemePaths( systemMapPathName, result );
+    }
+
     return result;
 }
 
