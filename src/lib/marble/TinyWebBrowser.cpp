@@ -20,8 +20,10 @@
 #include <QAction>
 #include <QDesktopServices>
 #include <QPainter>
+#ifndef QT_NO_PRINTER
 #include <QPrintDialog>
 #include <QPrinter>
+#endif
 #include <QTextFrame>
 
 // Marble

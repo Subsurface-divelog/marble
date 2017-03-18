@@ -12,6 +12,7 @@
 
 namespace Marble
 {
+// bool MarbleDebug::m_enabled = true;
 bool MarbleDebug::m_enabled = false;
 
 class NullDevice : public QIODevice
