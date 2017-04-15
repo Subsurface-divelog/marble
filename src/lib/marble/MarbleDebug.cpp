@@ -10,29 +10,13 @@
 
 #include "MarbleDebug.h"
 
+#include <QFile>
+#include <QProcess>
+
 namespace Marble
 {
 // bool MarbleDebug::m_enabled = true;
 bool MarbleDebug::m_enabled = false;
-
-class NullDevice : public QIODevice
-{
-public:
-    NullDevice()
-    {
-        open( QIODevice::WriteOnly );
-    }
-
-    qint64 readData( char * /*data*/, qint64 /*maxSize*/ )
-    {
-        return -1;
-    }
-
-    qint64 writeData( const char * /*data*/, qint64 maxSize )
-    {
-        return maxSize;
-    }
-};
 
 QDebug mDebug()
 {
@@ -40,8 +24,10 @@ QDebug mDebug()
         return QDebug( QtDebugMsg );
     }
     else {
-        static QIODevice *device = new NullDevice;
-        return QDebug( device );
+        static QFile *nullDevice = new QFile(QProcess::nullDevice());
+        if ( !nullDevice->isOpen() )
+             nullDevice->open(QIODevice::WriteOnly);
+         return QDebug( nullDevice );
     }
 }
 
