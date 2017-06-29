@@ -91,6 +91,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Android)
    add_definitions(-DANDROID)
 endif()
 
+if(QTONLY)
+  # add a flag to be able to distinguish between qt
+  # and kde mode in the sources
+  add_definitions(-DQTONLY)
+  add_definitions(-DSUBSURFACE)
+  add_definitions(-DQT_NO_PRINTER)
+endif()
 
 #######################################################
 # Find Qt dependencies

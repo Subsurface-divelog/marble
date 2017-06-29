@@ -1,5 +1,9 @@
 project(MarbleThumbnailer)
 
+if (QTONLY)
+    return()
+endif()
+
 find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
 if(NOT ECM_FOUND)
     return()

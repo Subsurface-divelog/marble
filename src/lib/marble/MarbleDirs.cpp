@@ -62,7 +62,17 @@ QString MarbleDirs::path( const QString& relativePath )
     if ( QFile::exists( localpath ) ) {
         fullpath = localpath;
     }
-    return QDir( fullpath ).canonicalPath(); 
+    QString result = QDir( fullpath ).canonicalPath();
+    if (result.isEmpty()) {
+	    if (relativePath.contains("bitmaps") && relativePath != "bitmaps/empty.png")
+		    return path("bitmaps/empty.png");
+#if defined(DEBUG)
+	    // the other callers appear to check and not just try to open an empty file
+	    else
+		    fprintf(stderr, "tried to open nonexistent file %s\n", qPrintable(relativePath));
+#endif
+    }
+    return result;
 }
 
 

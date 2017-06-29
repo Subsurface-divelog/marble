@@ -1,4 +1,4 @@
-PROJECT(marblewidget)
+PROJECT(ssrfmarblewidget)
 
 macro_optional_find_package(Phonon4Qt5 QUIET)
 marble_set_package_properties( Phonon4Qt5 PROPERTIES
@@ -30,9 +30,9 @@ INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}/layers
  ${CMAKE_CURRENT_SOURCE_DIR}/osm
  ${CMAKE_CURRENT_SOURCE_DIR}/cloudsync
- ${CMAKE_SOURCE_DIR}/src/lib/astro
  ${ZLIB_INCLUDE_DIRS}
 )
+
 
 INCLUDE(geodata/CMakeLists.txt)
 INCLUDE(graphicsview/CMakeLists.txt)
@@ -45,6 +45,29 @@ set(MARBLE_LIB_VERSION_PATCH "0")
 set(MARBLE_LIB_VERSION "${MARBLE_LIB_VERSION_MAJOR}.${MARBLE_LIB_VERSION_MINOR}.${MARBLE_LIB_VERSION_PATCH}")
 set(MARBLE_ABI_VERSION "28")
 
+set(GENERIC_LIB_VERSION "0.21.3")
+set(GENERIC_LIB_SOVERSION "21")
+
+if (QTONLY)
+  # ce: don't know why this is needed here - on win32 'O2' is activated by default in release mode
+  if(NOT WIN32)
+    add_definitions (${QT_DEFINITIONS} -O3)
+  endif(NOT WIN32)
+
+  include_directories(
+    ${QT_INCLUDE_DIR}
+  )
+else (QTONLY)
+  if(NOT WIN32)
+    add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS} -O3)
+  endif(NOT WIN32)
+
+  include_directories(
+    ${KDE4_INCLUDES}
+  )
+endif (QTONLY)
+
+# link_directories (${QT_LIBRARY_DIR})
 ########### next target ###############
 
 if(MARBLE_NO_WEBKITWIDGETS)
@@ -96,7 +119,7 @@ set(marblewidget_SRCS
     MarbleAboutDialog.cpp
     MarbleInputHandler.cpp
     MarbleWidgetInputHandler.cpp
-    MarbleWidgetPopupMenu.cpp
+    # MarbleWidgetPopupMenu.cpp
     MarblePlacemarkModel.cpp
     GeoDataTreeModel.cpp
     GeoUriParser.cpp
@@ -121,7 +144,7 @@ set(marblewidget_SRCS
     PluginManager.cpp
     TimeControlWidget.cpp
     AbstractFloatItem.cpp
-    PopupItem.cpp
+    # PopupItem.cpp
     MarbleGlobal.cpp
     MarbleDirs.cpp
     MarbleLocale.cpp
@@ -365,22 +388,19 @@ qt_add_resources(marblewidget_SRCS libmarble.qrc ../../apps/marble-ui/marble.qrc
 
 qt_wrap_ui(marblewidget_SRCS ${marblewidget_UI})
 
-add_library(marblewidget SHARED ${marblewidget_SRCS} ${SOURCES_UI_HDRS})
+add_library(ssrfmarblewidget SHARED ${marblewidget_SRCS} ${SOURCES_UI_HDRS})
 
-generate_export_header(marblewidget BASE_NAME marble)
+generate_export_header(ssrfmarblewidget BASE_NAME marble)
 
 
 # TODO: use PUBLIC/PRIVATE everywhere instead of LINK_PUBLIC/LINK_PRIVATE
 # once SailfishOS has cmake >= 2.8.12
 
-# link with libastro
-target_link_libraries(marblewidget LINK_PRIVATE astro)
-
 # link against zlib
-target_link_libraries(marblewidget LINK_PRIVATE ${ZLIB_LIBRARIES})
+target_link_libraries(ssrfmarblewidget LINK_PRIVATE ${ZLIB_LIBRARIES})
 
 # link with release version of Qt libs
-target_link_libraries(marblewidget
+target_link_libraries(ssrfmarblewidget
     LINK_PUBLIC
         Qt5::Xml
         Qt5::Gui
@@ -392,63 +412,51 @@ target_link_libraries(marblewidget
         Qt5::Concurrent
 )
 if (NOT MARBLE_NO_WEBKITWIDGETS)
-    target_link_libraries(marblewidget
+    target_link_libraries(ssrfmarblewidget
         LINK_PUBLIC
             Qt5::WebKitWidgets
     )
 endif ()
 if (NOT MARBLE_NO_DBUS)
-    target_link_libraries(marblewidget
+    target_link_libraries(ssrfmarblewidget
         LINK_PRIVATE
             Qt5::DBus
     )
 endif ()
 if (Phonon4Qt5_FOUND)
-    target_link_libraries(marblewidget
+    target_link_libraries(ssrfmarblewidget
         LINK_PRIVATE
             Phonon::phonon4qt5
     )
 endif()
 
+# link with release version of Qt libs
 if (APPLE)
   # TODO: PUBLIC or can be PRIVATE?
   #defined in top level makefile
-  target_link_libraries(marblewidget LINK_PUBLIC ${MAC_EXTRA_LIBS} )
+  TARGET_LINK_LIBRARIES(ssrfmarblewidget LINK_PUBLIC ${MAC_EXTRA_LIBS} )
 endif (APPLE)
 
 # TODO: still supported?
 if (CMAKE_SYSTEM_NAME MATCHES "SunOS")
-  target_link_libraries(marblewidget LINK_PUBLIC m)
+  target_link_libraries(ssrfmarblewidget LINK_PUBLIC m)
 endif (CMAKE_SYSTEM_NAME MATCHES "SunOS")
 
 if(WIN32)
-  # TODO: PUBLIC or can be PRIVATE?
-  target_link_libraries(marblewidget LINK_PUBLIC ws2_32 imm32 winmm)
+  target_link_libraries(ssrfmarblewidget LINK_PUBLIC ws2_32 imm32 winmm)
 endif(WIN32)
 
-set_target_properties(marblewidget  PROPERTIES
-    EXPORT_NAME "Marble"
-    OUTPUT_NAME marblewidget-qt5
+set_target_properties(ssrfmarblewidget  PROPERTIES
+    EXPORT_NAME "SsrfMarble"
+    OUTPUT_NAME ssrfmarblewidget
     VERSION ${MARBLE_LIB_VERSION}
     SOVERSION ${MARBLE_ABI_VERSION}
     COMPILE_FLAGS "-DKML_LAZY_IMP"
 )
 
-target_include_directories(marblewidget
+target_include_directories(ssrfmarblewidget
     INTERFACE "$<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>"
 )
-
-# choose the correct target install library path
-if(WIN32)
-  install(TARGETS marblewidget RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} ARCHIVE DESTINATION lib)
-elseif(APPLE)
-  install(TARGETS marblewidget LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/lib)
-else()
-  install(TARGETS marblewidget
-    EXPORT MarbleTargets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-endif()
-
 
 ########### install headers & cmake config files ###############
 
@@ -469,6 +477,33 @@ else()
         )
 endif()
 
+set_target_properties(ssrfmarblewidget  PROPERTIES
+                                    VERSION ${GENERIC_LIB_VERSION}
+                                    SOVERSION ${GENERIC_LIB_SOVERSION}
+                                    COMPILE_FLAGS "-DKML_LAZY_IMP")
+# needed for marble_export.h
+set_target_properties(ssrfmarblewidget PROPERTIES
+  DEFINE_SYMBOL MAKE_MARBLE_LIB
+)
+
+# choose the correct target install library path
+if(WIN32 AND QTONLY)
+  install(TARGETS ssrfmarblewidget RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} ARCHIVE DESTINATION lib)
+else()
+  if(APPLE AND QTONLY)
+    install (TARGETS ssrfmarblewidget LIBRARY DESTINATION
+      ${CMAKE_INSTALL_PREFIX}/lib)
+
+  else()
+    if(QTONLY)
+      install(TARGETS ssrfmarblewidget LIBRARY DESTINATION ${EXEC_INSTALL_PREFIX}/lib${LIB_SUFFIX})
+    else()
+        install(TARGETS ssrfmarblewidget  ${INSTALL_TARGETS_DEFAULT_ARGS})
+    endif()
+  endif()
+endif()
+
+########### install files ###############
 install( FILES
     ${CMAKE_CURRENT_BINARY_DIR}/marble_export.h
     ${graphicsview_HDRS}
@@ -501,7 +536,7 @@ install( FILES
     MarbleAboutDialog.h
     MarbleInputHandler.h
     MarbleWidgetInputHandler.h
-    MarbleWidgetPopupMenu.h
+    # MarbleWidgetPopupMenu.h
     TileId.h
     TileCoordsPyramid.h
     TileLevelRangeWidget.h
@@ -650,11 +685,11 @@ install(FILES
     DESTINATION ${MARBLE_INSTALL_CMAKECONFIGDIR}
 )
 
-install(
-    EXPORT MarbleTargets
-    FILE ${MARBLE_CMAKECONFIGNAME}Targets.cmake
-    DESTINATION ${MARBLE_INSTALL_CMAKECONFIGDIR}
-)
+#install(
+#    EXPORT MarbleTargets
+#    FILE ${MARBLE_CMAKECONFIGNAME}Targets.cmake
+#    DESTINATION ${MARBLE_INSTALL_CMAKECONFIGDIR}
+#)
 
 
 ########### Qt Pri file ###############
@@ -669,7 +704,7 @@ install(
 # * otherwise:
 #   pri file will be installed in mkspecs/modules in the installation prefix
 
-get_target_property(PRI_LIB_NAME marblewidget OUTPUT_NAME)
+get_target_property(PRI_LIB_NAME ssrfmarblewidget OUTPUT_NAME)
 
 set(PRI_ABS_INCLUDE_INSTALL_DIR "${INCLUDE_INSTALL_DIR}")
 if(NOT IS_ABSOLUTE "${PRI_ABS_INCLUDE_INSTALL_DIR}")

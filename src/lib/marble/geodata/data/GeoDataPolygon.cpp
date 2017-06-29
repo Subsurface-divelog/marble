@@ -16,7 +16,6 @@
 #include "GeoDataTypes.h"
 #include "MarbleDebug.h"
 
-#include <algorithm>
 #include <QDataStream>
 
 

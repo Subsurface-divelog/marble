@@ -17,7 +17,6 @@
 
 #include <QFile>
 #include <QDataStream>
-#include <QSet>
 
 namespace Marble
 {

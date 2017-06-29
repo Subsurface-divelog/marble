@@ -16,6 +16,8 @@
 #include <QDataStream>
 #include <QImage>
 
+#include <QDataStream>
+
 namespace Marble
 {
 

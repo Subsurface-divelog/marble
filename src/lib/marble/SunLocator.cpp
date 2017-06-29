@@ -22,7 +22,9 @@
  
 #include "MarbleDebug.h"
 
+#ifndef SUBSURFACE
 #include "src/lib/astro/solarsystem.h"
+#endif
 
 #include <QDateTime>
 
@@ -73,6 +75,7 @@ SunLocator::~SunLocator()
 
 void SunLocator::updatePosition()
 {
+#ifndef SUBSURFACE
     QString planetId = d->m_planet->id();
     SolarSystem sys;
 
@@ -93,6 +96,7 @@ void SunLocator::updatePosition()
     sys.getPlanetographic (ra, decl, lon, lat);
     d->m_lon = lon * DEG2RAD;
     d->m_lat = lat * DEG2RAD;
+#endif
 }
 
 void SunLocator::updateTwilightZone()

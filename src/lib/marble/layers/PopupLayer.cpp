@@ -16,7 +16,9 @@
 #include "GeoDataCoordinates.h"
 #include "GeoPainter.h"
 #include "MarbleWidget.h"
+#ifndef SUBSURFACE
 #include "PopupItem.h"
+#endif
 #include "ViewportParams.h"
 #include "RenderPlugin.h"
 #include "RenderState.h"
@@ -44,7 +46,9 @@ public:
     void setupDialogGeoPlaces( const GeoDataPlacemark *index );
     void setupDialogSkyPlaces( const GeoDataPlacemark *index );
 
+#ifndef SUBSURFACE
     PopupItem *const m_popupItem;
+#endif
     MarbleWidget *const m_widget;
     QSizeF m_requestedSize;
     bool m_hasCrosshairsPlugin;
@@ -52,10 +56,12 @@ public:
 };
 
 PopupLayer::Private::Private( MarbleWidget *marbleWidget, PopupLayer *q ) :
+#ifndef SUBSURFACE
     m_popupItem( new PopupItem( q ) ),
-    m_widget( marbleWidget ),
     m_hasCrosshairsPlugin( false ),
     m_crosshairsVisible( true )
+#endif
+    m_widget( marbleWidget)
 {
 }
 
@@ -63,6 +69,7 @@ PopupLayer::PopupLayer( MarbleWidget *marbleWidget, QObject *parent ) :
     QObject( parent ),
     d( new Private( marbleWidget, this ) )
 {
+#ifndef SUBSURFACE
     for (const RenderPlugin *renderPlugin: d->m_widget->renderPlugins()) {
         if (renderPlugin->nameId() == QLatin1String("crosshairs")) {
             d->m_hasCrosshairsPlugin = true;
@@ -72,6 +79,7 @@ PopupLayer::PopupLayer( MarbleWidget *marbleWidget, QObject *parent ) :
 
     connect( d->m_popupItem, SIGNAL(repaintNeeded()), this, SIGNAL(repaintNeeded()) );
     connect( d->m_popupItem, SIGNAL(hide()), this, SLOT(hidePopupItem()) );
+#endif
 }
 
 PopupLayer::~PopupLayer()
@@ -89,7 +97,9 @@ bool PopupLayer::render( GeoPainter *painter, ViewportParams *viewport,
 {
     if ( visible() ) {
         d->setAppropriateSize( viewport );
+#ifndef SUBSURFACE
         d->m_popupItem->paintEvent( painter, viewport );
+#endif
     }
 
     return true;
@@ -97,7 +107,11 @@ bool PopupLayer::render( GeoPainter *painter, ViewportParams *viewport,
 
 bool PopupLayer::eventFilter( QObject *object, QEvent *e )
 {
+#ifndef SUBSURFACE
     return visible() && d->m_popupItem->eventFilter( object, e );
+#else
+    return false;
+#endif
 }
 
 qreal PopupLayer::zValue() const
@@ -112,11 +126,16 @@ RenderState PopupLayer::renderState() const
 
 bool PopupLayer::visible() const
 {
+#ifndef SUBSURFACE
     return d->m_popupItem->visible();
+#else
+    return false;
+#endif
 }
 
 void PopupLayer::setVisible( bool visible )
 {
+#ifndef SUBSURFACE
     d->m_popupItem->setVisible( visible );
     if ( !visible ) {
         disconnect( d->m_popupItem, SIGNAL(repaintNeeded()), this, SIGNAL(repaintNeeded()) );
@@ -126,10 +145,12 @@ void PopupLayer::setVisible( bool visible )
     else {
         connect( d->m_popupItem, SIGNAL(repaintNeeded()), this, SIGNAL(repaintNeeded()) );
     }
+#endif
 }
 
 void PopupLayer::popup()
 {
+#ifndef SUBSURFACE
     GeoDataCoordinates coords = d->m_popupItem->coordinate();
     ViewportParams viewport( d->m_widget->viewport()->projection(),
                              coords.longitude(), coords.latitude(), d->m_widget->viewport()->radius(),
@@ -151,36 +172,47 @@ void PopupLayer::popup()
     }
 
     setVisible( true );
+#endif
 }
 
 void PopupLayer::setCoordinates( const GeoDataCoordinates &coordinates , Qt::Alignment alignment )
 {
+#ifndef SUBSURFACE
     d->m_popupItem->setCoordinate( coordinates );
     d->m_popupItem->setAlignment( alignment );
+#endif
 }
 
 void PopupLayer::setUrl( const QUrl &url )
 {
+#ifndef SUBSURFACE
     d->m_popupItem->setUrl( url );
+#endif
 }
 
 void PopupLayer::setContent( const QString &html, const QUrl &baseUrl )
 {
+#ifndef SUBSURFACE
     d->m_popupItem->setContent( html, baseUrl );
+#endif
 }
 
 void PopupLayer::setBackgroundColor(const QColor &color)
 {
+#ifndef SUBSURFACE
     if(color.isValid()) {
         d->m_popupItem->setBackgroundColor(color);
     }
+#endif
 }
 
 void PopupLayer::setTextColor(const QColor &color)
 {
+#ifndef SUBSURFACE
     if(color.isValid()) {
         d->m_popupItem->setTextColor(color);
     }
+#endif
 }
 
 void PopupLayer::setSize( const QSizeF &size )
@@ -190,6 +222,7 @@ void PopupLayer::setSize( const QSizeF &size )
 
 void PopupLayer::Private::setAppropriateSize( const ViewportParams *viewport )
 {
+#ifndef SUBSURFACE
     qreal margin = 15.0;
 
     QSizeF maximumSize;
@@ -199,6 +232,7 @@ void PopupLayer::Private::setAppropriateSize( const ViewportParams *viewport )
     QSizeF minimumSize( 100.0, 100.0 );
 
     m_popupItem->setSize( m_requestedSize.boundedTo( maximumSize ).expandedTo( minimumSize ) );
+#endif
 }
 
 void PopupLayer::hidePopupItem()

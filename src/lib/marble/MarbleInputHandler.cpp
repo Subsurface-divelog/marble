@@ -92,11 +92,13 @@ bool MarbleInputHandler::isPositionSignalConnected() const
 
 void MarbleInputHandler::setMouseButtonPopupEnabled(Qt::MouseButton mouseButton, bool enabled)
 {
+#ifndef SUBSURFACE
     if (enabled)
     {
         d->m_disabledMouseButtons &= ~Qt::MouseButtons(mouseButton);
     }
     else
+#endif
     {
         d->m_disabledMouseButtons |= mouseButton;
     }
@@ -109,7 +111,11 @@ bool MarbleInputHandler::isMouseButtonPopupEnabled(Qt::MouseButton mouseButton) 
 
 void MarbleInputHandler::setPanViaArrowsEnabled(bool enabled)
 {
+#ifndef SUBSURFACE
     d->m_panViaArrowsEnabled = enabled;
+#else
+    d->m_panViaArrowsEnabled = false;
+#endif
 }
 
 bool MarbleInputHandler::panViaArrowsEnabled() const

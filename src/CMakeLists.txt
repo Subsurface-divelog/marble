@@ -57,15 +57,14 @@ add_subdirectory( lib/marble )
 add_subdirectory( lib/astro )
 add_subdirectory( lib/marble/declarative )
 
-add_subdirectory( plugins )
-
 option(BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications" ON)
 add_feature_info("Marble Desktop/Mobile applications" BUILD_MARBLE_APPS "Build Marble Desktop/Mobile applications. Toggle with BUILD_MARBLE_APPS=YES/NO.")
 if(BUILD_MARBLE_APPS)
   add_subdirectory( apps )
 endif()
 
-add_subdirectory( bindings )
+#add_subdirectory( plugins )
+#add_subdirectory( bindings )
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/config-marble.h.cmake

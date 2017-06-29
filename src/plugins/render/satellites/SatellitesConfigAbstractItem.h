@@ -11,10 +11,10 @@
 #ifndef MARBLE_SATELLITESCONFIGABSTRACTITEM_H
 #define MARBLE_SATELLITESCONFIGABSTRACTITEM_H
 
+#include <QVector>
+#include <QStringList>
 #include <QHash>
-#include <QString>
-
-class QVariant;
+#include <QVariant>
 
 namespace Marble
 {

@@ -141,8 +141,8 @@ void FileManagerPrivate::closeFile( const QString& key )
 
 void FileManager::closeFile( const GeoDataDocument *document )
 {
-    QHash < QString, GeoDataDocument* >::iterator itpoint = d->m_fileItemHash.begin();
-    QHash < QString, GeoDataDocument* >::iterator const endpoint = d->m_fileItemHash.end();
+    auto itpoint = d->m_fileItemHash.begin();
+    auto const endpoint = d->m_fileItemHash.end();
     for (; itpoint != endpoint; ++itpoint ) {
         if( d->m_fileItemHash.value( itpoint.key() ) == document ) {
             d->closeFile( itpoint.key() );

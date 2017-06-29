@@ -19,9 +19,14 @@
 #include "LonLatParser_p.h"
 
 #include <qmath.h>
+#include <QRegExp>
+#include <QLocale>
+#include <QString>
+#include <QStringList>
+#include <QCoreApplication>
+#include <QAtomicInt>
 #include <QDataStream>
 #include <QPointF>
-
 #include "MarbleGlobal.h"
 #include "MarbleDebug.h"
 

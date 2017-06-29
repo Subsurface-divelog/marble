@@ -40,8 +40,9 @@ marble_add_project_resources(qmldir)
 
 target_link_libraries( marbledeclarative
     LINK_PUBLIC
-        marblewidget
+        ssrfmarblewidget
         Qt5::Quick
+        Qt5::Widgets
 )
 if(Qt5Positioning_FOUND)
     target_link_libraries( marbledeclarative
