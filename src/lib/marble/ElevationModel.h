@@ -12,15 +12,15 @@
 #ifndef MARBLE_ELEVATIONMODEL_H
 #define MARBLE_ELEVATIONMODEL_H
 
-#include "GeoDataCoordinates.h"
 #include "marble_export.h"
 
 #include <QObject>
-#include <QCache>
-#include <QImage>
+
+class QImage;
 
 namespace Marble
 {
+class GeoDataCoordinates;
 
 namespace {
     unsigned int const invalidElevationData = 32768;
@@ -29,15 +29,17 @@ namespace {
 class TileId;
 class ElevationModelPrivate;
 class HttpDownloadManager;
+class PluginManager;
 
 class MARBLE_EXPORT ElevationModel : public QObject
 {
     Q_OBJECT
 public:
-    explicit ElevationModel( HttpDownloadManager *downloadManager, QObject *parent = 0 );
+    explicit ElevationModel( HttpDownloadManager *downloadManager, PluginManager* pluginManager, QObject *parent = 0 );
+    ~ElevationModel() override;
 
     qreal height( qreal lon, qreal lat ) const;
-    QList<GeoDataCoordinates> heightProfile( qreal fromLon, qreal fromLat, qreal toLon, qreal toLat ) const;
+    QVector<GeoDataCoordinates> heightProfile( qreal fromLon, qreal fromLat, qreal toLon, qreal toLat ) const;
 
 Q_SIGNALS:
     /**
@@ -47,7 +49,7 @@ Q_SIGNALS:
     void updateAvailable();
 
 private:
-    Q_PRIVATE_SLOT( d, void tileCompleted( TileId, QImage ) )
+    Q_PRIVATE_SLOT( d, void tileCompleted( const TileId&, const QImage& ) )
 
 private:
     friend class ElevationModelPrivate;

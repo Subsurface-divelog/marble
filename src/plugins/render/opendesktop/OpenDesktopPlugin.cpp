@@ -53,12 +53,12 @@ QString OpenDesktopPlugin::guiString() const
 
 QString OpenDesktopPlugin::nameId() const
 {
-    return "opendesktop";
+    return QStringLiteral("opendesktop");
 }
 
 QString OpenDesktopPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString OpenDesktopPlugin::description() const
@@ -68,18 +68,18 @@ QString OpenDesktopPlugin::description() const
 
 QString OpenDesktopPlugin::copyrightYears() const
 {
-    return "2010";
+    return QStringLiteral("2010");
 }
 
-QList<PluginAuthor> OpenDesktopPlugin::pluginAuthors() const
+QVector<PluginAuthor> OpenDesktopPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Utku Aydin" ), "utkuaydin34@gmail.com" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Utku Aydin"), QStringLiteral("utkuaydin34@gmail.com"));
 }
 
 QIcon OpenDesktopPlugin::icon() const
 {
-    return QIcon(":/icons/social.png");
+    return QIcon(QStringLiteral(":/icons/social.png"));
 }
 
 QDialog *OpenDesktopPlugin::configDialog()
@@ -107,7 +107,7 @@ QHash<QString,QVariant> OpenDesktopPlugin::settings() const
 {
     QHash<QString, QVariant> settings = AbstractDataPlugin::settings();
 
-    settings.insert( "itemsOnScreen", numberOfItems() );
+    settings.insert(QStringLiteral("itemsOnScreen"), numberOfItems());
 
     return settings;
 }
@@ -130,7 +130,7 @@ void OpenDesktopPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractDataPlugin::setSettings( settings );
 
-    setNumberOfItems( settings.value( "itemsOnScreen", defaultItemsOnScreen ).toInt() );
+    setNumberOfItems(settings.value(QStringLiteral("itemsOnScreen"), defaultItemsOnScreen).toInt());
 
     emit settingsChanged( nameId() );
 }
@@ -151,7 +151,4 @@ void OpenDesktopPlugin::writeSettings()
     emit settingsChanged( nameId() );
 }
 
-// Because we want to create a plugin, we have to do the following line.
-Q_EXPORT_PLUGIN2( OpenDesktopPlugin, Marble::OpenDesktopPlugin )
-
-#include "OpenDesktopPlugin.moc"
+#include "moc_OpenDesktopPlugin.cpp"

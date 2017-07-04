@@ -13,13 +13,12 @@
 
 #include "MarbleModel.h"
 #include "MarblePlacemarkModel.h"
-#include "GeoDataFeature.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataCoordinates.h"
+#include "GeoDataLatLonAltBox.h"
 
 #include "MarbleDebug.h"
 #include <QString>
-#include <QStringList>
 #include <QVector>
 
 #include <QtDebug>
@@ -51,15 +50,15 @@ void LocalDatabaseRunner::search( const QString &searchTerm, const GeoDataLatLon
                                     Qt::DisplayRole, searchTerm, -1,
                                     Qt::MatchStartsWith );
 
-            foreach ( const QModelIndex& index, resultList )
-            {
+            bool const searchEverywhere = preferred.isEmpty();
+            for ( const QModelIndex& index: resultList ) {
                 if( !index.isValid() ) {
                     mDebug() << "invalid index!!!";
                     continue;
                 }
                 GeoDataPlacemark *placemark = dynamic_cast<GeoDataPlacemark*>(qvariant_cast<GeoDataObject*>( index.data( MarblePlacemarkModel::ObjectPointerRole )));
                 if ( placemark &&
-                     ( preferred.isEmpty() || preferred.contains( placemark->coordinate() ) ) ) {
+                     ( searchEverywhere || preferred.contains( placemark->coordinate() ) ) ) {
                     vector.append( new GeoDataPlacemark( *placemark ));
                 }
             }
@@ -71,4 +70,4 @@ void LocalDatabaseRunner::search( const QString &searchTerm, const GeoDataLatLon
 
 }
 
-#include "LocalDatabaseRunner.moc"
+#include "moc_LocalDatabaseRunner.cpp"

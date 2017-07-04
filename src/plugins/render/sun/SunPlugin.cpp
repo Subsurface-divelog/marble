@@ -17,6 +17,8 @@
 #include "GeoPainter.h"
 #include "SunLocator.h"
 
+#include <QIcon>
+
 namespace Marble
 {
 
@@ -33,18 +35,17 @@ SunPlugin::SunPlugin( const MarbleModel *marbleModel )
 
 QStringList SunPlugin::backendTypes() const
 {
-    return QStringList( "stars" );
+    return QStringList(QStringLiteral("stars"));
 }
 
 QString SunPlugin::renderPolicy() const
 {
-    return QString( "SPECIFIED_ALWAYS" );
+    return QStringLiteral("SPECIFIED_ALWAYS");
 }
 
 QStringList SunPlugin::renderPosition() const
 {
-    QStringList layers = QStringList() << "ALWAYS_ON_TOP";
-    return layers;
+    return QStringList(QStringLiteral("ALWAYS_ON_TOP"));
 }
 
 QString SunPlugin::name() const
@@ -59,12 +60,12 @@ QString SunPlugin::guiString() const
 
 QString SunPlugin::nameId() const
 {
-    return QString( "sun" );
+    return QStringLiteral("sun");
 }
 
 QString SunPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString SunPlugin::description() const
@@ -74,26 +75,26 @@ QString SunPlugin::description() const
 
 QString SunPlugin::copyrightYears() const
 {
-    return "2011";
+    return QStringLiteral("2011");
 }
 
-QList<PluginAuthor> SunPlugin::pluginAuthors() const
+QVector<PluginAuthor> SunPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( "Torsten Rahn", "tackat@kde.org" )
-            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de")
-            << PluginAuthor( "Harshit Jain", "hjain.itbhu@gmail.com" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"))
+            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"))
+            << PluginAuthor(QStringLiteral("Harshit Jain"), QStringLiteral("hjain.itbhu@gmail.com"));
 }
 
 QIcon SunPlugin::icon () const
 {
-    return QIcon( MarbleDirs::path( "svg/sunshine.png" ) );
+    return QIcon(MarbleDirs::path(QStringLiteral("svg/sunshine.png")));
 }
 
 
 void SunPlugin::initialize ()
 {
-    m_pixmap = QPixmap( MarbleDirs::path( "svg/sunshine.png" ) ).scaled( QSize(22,22) );
+    m_pixmap = QPixmap(MarbleDirs::path(QStringLiteral("svg/sunshine.png"))).scaled(QSize(22,22));
 }
 
 bool SunPlugin::isInitialized () const
@@ -121,6 +122,4 @@ bool SunPlugin::render( GeoPainter *painter, ViewportParams *viewport,
 
 }
 
-Q_EXPORT_PLUGIN2( SunPlugin, Marble::SunPlugin )
-
-#include "SunPlugin.moc"
+#include "moc_SunPlugin.cpp"

@@ -25,16 +25,18 @@
 namespace Marble
 {
 
+class StackedTileLoader;
+
 class MercatorScanlineTextureMapper : public TextureMapperInterface
 {
  public:
     explicit MercatorScanlineTextureMapper( StackedTileLoader *tileLoader );
 
-    virtual void mapTexture( GeoPainter *painter,
+    void mapTexture( GeoPainter *painter,
                              const ViewportParams *viewport,
                              int tileZoomLevel,
                              const QRect &dirtyRect,
-                             TextureColorizer *texColorizer );
+                             TextureColorizer *texColorizer ) override;
 
  private:
     void mapTexture( const ViewportParams *viewport, int tileZoomLevel, MapQuality mapQuality );

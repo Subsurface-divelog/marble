@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "TravelingSalesmanRunner.h"
@@ -122,12 +122,12 @@ GeoDataDocument* TravelingSalesmanRunnerPrivate::createDocument( GeoDataLineStri
 
     GeoDataDocument* result = new GeoDataDocument();
     GeoDataPlacemark* routePlacemark = new GeoDataPlacemark;
-    routePlacemark->setName( "Route" );
+    routePlacemark->setName(QStringLiteral("Route"));
     routePlacemark->setGeometry( routeWaypoints );
     result->append( routePlacemark );
 
     QString name = "%1 %2 (Traveling Salesman)";
-    QString unit = 'm';
+    QString unit = QStringLiteral("m");
     qreal length = routeWaypoints->length( EARTH_RADIUS );
     if ( length >= 1000 ) {
         length /= 1000.0;
@@ -142,7 +142,7 @@ TravelingSalesmanRunner::TravelingSalesmanRunner( QObject *parent ) :
         d( new TravelingSalesmanRunnerPrivate )
 {
     // Check installation
-    QDir mapDir( MarbleDirs::localPath() + "/maps/earth/traveling-salesman/" );
+    QDir mapDir(MarbleDirs::localPath() + QLatin1String("/maps/earth/traveling-salesman/"));
     d->m_travelingsalesmanJar = QFileInfo ( mapDir, "traveling-salesman.jar" );
 }
 

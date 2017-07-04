@@ -36,7 +36,7 @@ KML_DEFINE_TAG_HANDLER( hotSpot )
 
 GeoNode* KmlhotSpotTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_hotSpot ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_hotSpot)));
 
     GeoStackItem parentItem = parser.parentElement();
     
@@ -48,14 +48,23 @@ GeoNode* KmlhotSpotTagHandler::parse( GeoParser& parser ) const
 
         GeoDataHotSpot::Units xunits;
         GeoDataHotSpot::Units yunits;
-        
-        if( xu == QString( "pixels" ) ) xunits = GeoDataHotSpot::Pixels;
-        else if( xu == QString( "insetPixels" ) ) xunits = GeoDataHotSpot::InsetPixels;
-        else xunits = GeoDataHotSpot::Fraction;
-        if( yu == QString( "pixels" ) ) yunits = GeoDataHotSpot::Pixels;
-        else if( yu == QString( "insetPixels" ) ) yunits = GeoDataHotSpot::InsetPixels;
-        else yunits = GeoDataHotSpot::Fraction;
-        
+
+        if (xu == QLatin1String("pixels")) {
+            xunits = GeoDataHotSpot::Pixels;
+        } else if (xu == QLatin1String("insetPixels")) {
+            xunits = GeoDataHotSpot::InsetPixels;
+        } else {
+            xunits = GeoDataHotSpot::Fraction;
+        }
+
+        if (yu == QLatin1String("pixels")) {
+            yunits = GeoDataHotSpot::Pixels;
+        } else if (yu == QLatin1String("insetPixels")) {
+            yunits = GeoDataHotSpot::InsetPixels;
+        } else {
+            yunits = GeoDataHotSpot::Fraction;
+        }
+
         parentItem.nodeAs<GeoDataIconStyle>()->setHotSpot( pf, xunits, yunits );
     }
     return 0;

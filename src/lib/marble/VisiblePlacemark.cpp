@@ -16,24 +16,28 @@
 
 #include "GeoDataPlacemark.h"
 #include "GeoDataStyle.h"
+#include "GeoDataIconStyle.h"
+#include "GeoDataLabelStyle.h"
 #include "PlacemarkLayer.h"
 
 #include <QApplication>
 #include <QPainter>
 #include <QPalette>
+#include <QPixmapCache>
 
 using namespace Marble;
 
-VisiblePlacemark::VisiblePlacemark( const GeoDataPlacemark *placemark )
+VisiblePlacemark::VisiblePlacemark( const GeoDataPlacemark *placemark, const GeoDataCoordinates &coordinates, const GeoDataStyle::ConstPtr &style )
     : m_placemark( placemark ),
-      m_selected( false )
+      m_selected( false ),
+      m_labelDirty(true),
+      m_style(style),
+      m_coordinates(coordinates)
 {
-    const GeoDataStyle *style = m_placemark->style();
     const RemoteIconLoader *remoteLoader = style->iconStyle().remoteIconLoader();
     QObject::connect( remoteLoader, SIGNAL(iconReady()),
                      this, SLOT(setSymbolPixmap()) );
 
-    drawLabelPixmap();
     setSymbolPixmap();
 }
 
@@ -44,7 +48,18 @@ const GeoDataPlacemark* VisiblePlacemark::placemark() const
 
 const QPixmap& VisiblePlacemark::symbolPixmap() const
 {
+    if (!m_symbolId.isEmpty() && m_symbolPixmap.isNull()) {
+        if ( !QPixmapCache::find( m_symbolId, &m_symbolPixmap ) ) {
+            m_symbolPixmap = QPixmap::fromImage(m_style->iconStyle().scaledIcon());
+            QPixmapCache::insert( m_symbolId, m_symbolPixmap);
+        }
+    }
     return m_symbolPixmap;
+}
+
+const QString& VisiblePlacemark::symbolId() const
+{
+    return m_symbolId;
 }
 
 bool VisiblePlacemark::selected() const
@@ -54,22 +69,24 @@ bool VisiblePlacemark::selected() const
 
 void VisiblePlacemark::setSelected( bool selected )
 {
-    m_selected = selected;
-    drawLabelPixmap();
+    if (selected != m_selected) {
+        m_selected = selected;
+        m_labelDirty = true;
+    }
 }
 
-const QPoint& VisiblePlacemark::symbolPosition() const
+const QPointF& VisiblePlacemark::symbolPosition() const
 {
     return m_symbolPosition;
 }
 
 const QPointF VisiblePlacemark::hotSpot() const
 {
-    const QSize iconSize = m_placemark->style()->iconStyle().icon().size();
+    const QSize iconSize = m_style->iconStyle().scaledIcon().size();
 
     GeoDataHotSpot::Units xunits;
     GeoDataHotSpot::Units yunits;
-    QPointF pixelHotSpot = m_placemark->style()->iconStyle().hotSpot( xunits, yunits );
+    QPointF pixelHotSpot = m_style->iconStyle().hotSpot( xunits, yunits );
 
     switch ( xunits ) {
     case GeoDataHotSpot::Fraction:
@@ -98,21 +115,28 @@ const QPointF VisiblePlacemark::hotSpot() const
     return pixelHotSpot;
 }
 
-void VisiblePlacemark::setSymbolPosition( const QPoint& position )
+void VisiblePlacemark::setSymbolPosition( const QPointF& position )
 {
     m_symbolPosition = position;
 }
 
-const QPixmap& VisiblePlacemark::labelPixmap() const
+const QPixmap& VisiblePlacemark::labelPixmap()
 {
+    if (m_labelDirty) {
+        drawLabelPixmap();
+    }
+
     return m_labelPixmap;
 }
 
 void VisiblePlacemark::setSymbolPixmap()
 {
-    const GeoDataStyle *style = m_placemark->style();
-    if ( style ) {
-        m_symbolPixmap = QPixmap::fromImage( style->iconStyle().icon() );
+    if (m_style) {
+        m_symbolId = m_style->iconStyle().iconPath() + QString::number(m_style->iconStyle().scale());
+        if (m_style->iconStyle().iconPath().isEmpty()) {
+            m_symbolId.clear();
+            m_symbolPixmap = QPixmap::fromImage(m_style->iconStyle().scaledIcon());
+        }
         emit updateNeeded();
     }
     else {
@@ -130,30 +154,56 @@ void VisiblePlacemark::setLabelRect( const QRectF& labelRect )
     m_labelRect = labelRect;
 }
 
+void VisiblePlacemark::setStyle(const GeoDataStyle::ConstPtr &style)
+{
+    m_style = style;
+    m_labelDirty = true;
+    setSymbolPixmap();
+}
+
+GeoDataStyle::ConstPtr VisiblePlacemark::style() const
+{
+    return m_style;
+}
+
+QRectF VisiblePlacemark::symbolRect() const
+{
+    return QRectF(m_symbolPosition, m_symbolPixmap.size());
+}
+
+QRectF VisiblePlacemark::boundingBox() const
+{
+    return m_labelRect.isEmpty() ? symbolRect() : m_labelRect.united(symbolRect());
+}
+
+const GeoDataCoordinates &VisiblePlacemark::coordinates() const
+{
+    return m_coordinates;
+}
+
 void VisiblePlacemark::drawLabelPixmap()
 {
-    const GeoDataStyle* style = m_placemark->style();
-
-    QString labelName = m_placemark->name();
-    if ( labelName.isEmpty() ) {
+    m_labelDirty = false;
+    QString labelName = m_placemark->displayName();
+    if ( labelName.isEmpty() || m_style->labelStyle().color() == QColor(Qt::transparent) ) {
         m_labelPixmap = QPixmap();
         return;
     }
 
-    QFont  labelFont  = style->labelStyle().font();
-    QColor labelColor = style->labelStyle().color();
+    QFont  labelFont  = m_style->labelStyle().scaledFont();
+    QColor labelColor = m_style->labelStyle().color();
 
     LabelStyle labelStyle = Normal;
     if ( m_selected ) {
         labelStyle = Selected;
-    } else if ( style->labelStyle().glow() ) {
+    } else if ( m_style->labelStyle().glow() ) {
         labelStyle = Glow;
     }
 
     int textHeight = QFontMetrics( labelFont ).height();
 
     int textWidth;
-    if ( style->labelStyle().glow() ) {
+    if ( m_style->labelStyle().glow() ) {
         labelFont.setWeight( 75 ); // Needed to calculate the correct pixmap size;
         textWidth = ( QFontMetrics( labelFont ).width( labelName )
             + qRound( 2 * s_labelOutlineWidth ) );
@@ -232,4 +282,4 @@ void VisiblePlacemark::drawLabelText(QPainter &labelPainter, const QString &text
     }
 }
 
-#include "VisiblePlacemark.moc"
+#include "moc_VisiblePlacemark.cpp"

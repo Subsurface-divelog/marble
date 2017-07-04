@@ -15,8 +15,11 @@
 
 // Marble
 #include "ViewportParams.h"
+#include "GeoDataLatLonAltBox.h"
 
 #include "MarbleDebug.h"
+
+#include <QIcon>
 
 using namespace Marble;
 
@@ -44,7 +47,7 @@ QString EquirectProjection::description() const
 
 QIcon EquirectProjection::icon() const
 {
-    return QIcon(":/icons/map-flat.png");
+    return QIcon(QStringLiteral(":/icons/map-flat.png"));
 }
 
 qreal EquirectProjection::maxValidLat() const
@@ -276,8 +279,5 @@ bool EquirectProjection::mapCoversViewport( const ViewportParams *viewport ) con
     int yTop          = halfImageHeight - radius + yCenterOffset;
     int yBottom       = yTop + 2 * radius;
 
-    if ( yTop >= 0 || yBottom < height )
-        return false;
-
-    return true;
+    return !(yTop >= 0 || yBottom < height);
 }

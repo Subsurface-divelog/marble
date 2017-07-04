@@ -23,14 +23,11 @@
 #include <ViewportParams.h>
 #include <RenderPlugin.h>
 #include <GeoDataTreeModel.h>
-#include <GeoDataTypes.h>
+
 // Qt
-#include <QTimer>
 #include <QPainter>
 
 static const int timeoutTime = 5000; // in msec
-
-#include <KDebug>
 
 namespace Marble {
 
@@ -38,11 +35,11 @@ GeoDataThumbnailer::GeoDataThumbnailer()
   : ThumbCreator()
   , m_marbleMap()
 {
-    m_marbleMap.setMapThemeId(QLatin1String("earth/openstreetmap/openstreetmap.dgml"));
+    m_marbleMap.setMapThemeId(QStringLiteral("earth/openstreetmap/openstreetmap.dgml"));
     m_marbleMap.setProjection(Equirectangular);
     m_marbleMap.setMapQualityForViewContext( PrintQuality, Still );
     m_marbleMap.setViewContext( Still );
-    foreach( RenderPlugin* plugin, m_marbleMap.renderPlugins() ) {
+    for( RenderPlugin* plugin: m_marbleMap.renderPlugins() ) {
         plugin->setEnabled( false );
     }
 
@@ -103,11 +100,12 @@ static qreal radius(qreal zoom)
 
 void GeoDataThumbnailer::onGeoDataObjectAdded( GeoDataObject* object )
 {
-    if ( object->nodeType() != GeoDataTypes::GeoDataDocumentType ) {
+    const auto document = geodata_cast<GeoDataDocument>(object);
+
+    if (!document) {
         return;
     }
 
-    const GeoDataDocument *document = static_cast<GeoDataDocument*>(object);
     if (document->fileName() != m_currentFilename) {
         return;
     }

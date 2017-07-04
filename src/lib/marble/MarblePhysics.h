@@ -11,15 +11,16 @@
 #ifndef MARBLE_MARBLEPHYSICS_H
 #define MARBLE_MARBLEPHYSICS_H
 
-#include "GeoDataLookAt.h"
-
 #include <QObject>
+
+#include "MarbleGlobal.h"
 
 namespace Marble
 {
 
 class MarblePhysicsPrivate;
 class MarbleAbstractPresenter;
+class GeoDataLookAt;
 
 class MarblePhysics : public QObject
 {
@@ -35,7 +36,7 @@ class MarblePhysics : public QObject
     /**
       * @brief Destructor
       */
-    ~MarblePhysics();
+    ~MarblePhysics() override;
 
     /**
       * @brief Initiate an animation to the target according to the given mode.

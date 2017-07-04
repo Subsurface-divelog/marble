@@ -22,18 +22,18 @@ KML_DEFINE_TAG_HANDLER( gridOrigin )
 
 GeoNode* KmlgridOriginTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_gridOrigin ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_gridOrigin)));
 
     GeoStackItem parentItem = parser.parentElement();
 
     if (parentItem.represents( kmlTag_ImagePyramid ))
     {
-        GeoDataImagePyramid::GridOrigin gridOrigin;
+        GeoDataImagePyramid::GridOrigin gridOrigin = GeoDataImagePyramid::UpperLeft;
         QString gridOriginText = parser.readElementText();
 
-        if ( gridOriginText == "lowerLeft" ) {
+        if (gridOriginText == QLatin1String("lowerLeft")) {
             gridOrigin = GeoDataImagePyramid::LowerLeft;
-        } else if ( gridOriginText == "upperLeft" ) {
+        } else if (gridOriginText == QLatin1String("upperLeft")) {
             gridOrigin = GeoDataImagePyramid::UpperLeft;
         }
 

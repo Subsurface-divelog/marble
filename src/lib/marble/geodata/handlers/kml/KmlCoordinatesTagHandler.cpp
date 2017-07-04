@@ -33,7 +33,6 @@
 #include "GeoDataLineString.h"
 #include "GeoDataLinearRing.h"
 #include "GeoDataMultiGeometry.h"
-#include "GeoDataPhotoOverlay.h"
 #include "GeoDataLatLonQuad.h"
 #include "GeoParser.h"
 #include "MarbleGlobal.h"
@@ -48,14 +47,14 @@ static const bool kmlStrictSpecs = false;
 
 // We can't use KML_DEFINE_TAG_HANDLER_GX22 because the name of the tag ("coord")
 // and the TagHandler ("KmlcoordinatesTagHandler") don't match
-static GeoTagHandlerRegistrar s_handlercoordkmlTag_nameSpaceGx22(GeoParser::QualifiedName(kmlTag_coord, kmlTag_nameSpaceGx22 ),
+static GeoTagHandlerRegistrar s_handlercoordkmlTag_nameSpaceGx22(GeoParser::QualifiedName(QLatin1String(kmlTag_coord), QLatin1String(kmlTag_nameSpaceGx22)),
                                                                  new KmlcoordinatesTagHandler());
 
 GeoNode* KmlcoordinatesTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement()
-             && ( parser.isValidElement( kmlTag_coordinates )
-                  || parser.isValidElement( kmlTag_coord ) ) );
+    Q_ASSERT(parser.isStartElement()
+             && (parser.isValidElement(QLatin1String(kmlTag_coordinates))
+                 || parser.isValidElement(QLatin1String(kmlTag_coord))));
 
     GeoStackItem parentItem = parser.parentElement();
 
@@ -71,7 +70,7 @@ GeoNode* KmlcoordinatesTagHandler::parse( GeoParser& parser ) const
         if ( !kmlStrictSpecs ) {
             // Removing spaces before and after commas
             for ( int i = 1; i < text.size() - 1; ++i ) {
-                if ( text[i] == ',' ) {
+                if (text[i] == QLatin1Char(',')) {
                     // Before
                     int l = i - 1;
                     while ( l > 0 && text[l].isSpace() ) {
@@ -84,7 +83,7 @@ GeoNode* KmlcoordinatesTagHandler::parse( GeoParser& parser ) const
                         ++r;
                     }
 
-                    text.remove( l + 1, r - l - 1 ).insert( l + 1, ',' );
+                    text.remove(l + 1, r - l - 1).insert(l + 1, QLatin1Char(','));
                 }
             }
         }
@@ -105,8 +104,8 @@ GeoNode* KmlcoordinatesTagHandler::parse( GeoParser& parser ) const
         }
         coordinatesLines.append( text.mid( index ) );
         int coordinatesIndex = 0;
-        Q_FOREACH( const QString& line, coordinatesLines ) {
-            QStringList coordinates = line.trimmed().split( ',' );
+        for( const QString& line: coordinatesLines ) {
+            const QStringList coordinates = line.trimmed().split(QLatin1Char(','));
             if ( parentItem.represents( kmlTag_Point ) && parentItem.is<GeoDataFeature>() ) {
                 GeoDataCoordinates coord;
                 if ( coordinates.size() == 2 ) {
@@ -175,9 +174,9 @@ GeoNode* KmlcoordinatesTagHandler::parse( GeoParser& parser ) const
     if( parentItem.represents( kmlTag_Track ) ) {
         QString input = parser.readElementText().trimmed();
         if ( !kmlStrictSpecs ) {
-            input = input.replace( QRegExp( "\\s*,\\s*" ), "," );
+            input.replace(QRegExp(QStringLiteral("\\s*,\\s*")), QStringLiteral(","));
         }
-        QStringList coordinates = input.split( ' ' );
+        const QStringList coordinates = input.split(QLatin1Char(' '));
 
         GeoDataCoordinates coord;
         if ( coordinates.size() == 2 ) {

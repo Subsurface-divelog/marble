@@ -13,8 +13,6 @@
 #include "NewBookmarkFolderDialog.h"
 #include "MarbleDebug.h"
 
-#include <QLineEdit>
-
 namespace Marble {
 
 NewBookmarkFolderDialog::NewBookmarkFolderDialog( QWidget *parent )
@@ -40,4 +38,4 @@ void NewBookmarkFolderDialog::setFolderName( const QString &name )
 
 }
 
-#include "NewBookmarkFolderDialog.moc"
+#include "moc_NewBookmarkFolderDialog.cpp"

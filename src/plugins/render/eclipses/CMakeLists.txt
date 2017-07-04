@@ -2,14 +2,9 @@ PROJECT(EclipsesPlugin)
 
 INCLUDE_DIRECTORIES(
  ${CMAKE_SOURCE_DIR}/src/lib/astro
- ${CMAKE_CURRENT_SOURCE_DIR}/src/plugins/render/eclipses
- ${CMAKE_BINARY_DIR}/src/plugins/render/eclipses
- ${QT_INCLUDE_DIR}
+ ${CMAKE_CURRENT_SOURCE_DIR}
+ ${CMAKE_CURRENT_BINARY_DIR}
 )
-
-if( QT4_FOUND )
-  INCLUDE(${QT_USE_FILE})
-endif()
 
 set( eclipses_SRCS
     EclipsesModel.cpp

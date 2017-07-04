@@ -38,11 +38,6 @@ bool MapThemeSortFilterProxyModel::lessThan ( const QModelIndex & left, const QM
             return false;
         }
     }
-    if( isFavorite( left ) && isFavorite( right ) ) {
-        if( favoriteDateTime( left ) != favoriteDateTime( right ) ) {
-            return favoriteDateTime( left ) > favoriteDateTime( right );
-        }
-    }
     return sourceModel()->data( left ).toString() < sourceModel()->data( right ).toString();;
 }
 
@@ -56,7 +51,7 @@ bool MapThemeSortFilterProxyModel::isFavorite( const QModelIndex& index )
 {
     const QAbstractItemModel *model = index.model();
     QModelIndex columnIndex = model->index( index.row(), 0, QModelIndex() );
-    QString const key = "Favorites/" + model->data( columnIndex ).toString();
+    QString const key = QLatin1String("Favorites/") + model->data(columnIndex).toString();
     return QSettings().contains( key );
 }
 
@@ -64,10 +59,10 @@ QDateTime MapThemeSortFilterProxyModel::favoriteDateTime( const QModelIndex& ind
 {
     const QAbstractItemModel *model = index.model();
     QModelIndex columnIndex = model->index( index.row(), 0, QModelIndex() );
-    QString const key = "Favorites/" + model->data( columnIndex ).toString();
+    QString const key = QLatin1String("Favorites/") + model->data(columnIndex).toString();
     return QSettings().value( key ).toDateTime();
 }
 
 }
 
-#include "MapThemeSortFilterProxyModel.moc"
+#include "moc_MapThemeSortFilterProxyModel.cpp"

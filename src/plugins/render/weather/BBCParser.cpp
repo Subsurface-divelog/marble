@@ -18,7 +18,6 @@
 #include "MarbleDebug.h"
 
 // Qt
-#include <QByteArray>
 #include <QDateTime>
 #include <QFile>
 #include <QMutexLocker>
@@ -224,10 +223,10 @@ void BBCParser::work()
     QList<WeatherData> data = read( &file );
 
     if( !data.isEmpty() && !entry.item.isNull() ) {
-        if ( entry.type == "bbcobservation" ) {
+        if (entry.type == QLatin1String("bbcobservation")) {
             entry.item->setCurrentWeather( data.at( 0 ) );
         }
-        else if ( entry.type == "bbcforecast" ) {
+        else if (entry.type == QLatin1String("bbcforecast")) {
             entry.item->addForecastWeather( data );
         }
 
@@ -244,7 +243,7 @@ QList<WeatherData> BBCParser::read( QIODevice *device )
         readNext();
 
         if ( isStartElement() ) {
-            if ( name() == "rss" )
+            if (name() == QLatin1String("rss"))
                 readBBC();
             else
                 raiseError( QObject::tr("The file is not a valid BBC answer.") );
@@ -272,7 +271,7 @@ void BBCParser::readUnknownElement()
 void BBCParser::readBBC()
 {
     Q_ASSERT( isStartElement()
-              && name() == "rss" );
+              && name() == QLatin1String("rss"));
               
     while( !atEnd() ) {
         readNext();
@@ -281,7 +280,7 @@ void BBCParser::readBBC()
             break;
         
         if( isStartElement() ) {
-            if( name() == "channel" )
+            if (name() == QLatin1String("channel"))
                 readChannel();
             else
                 readUnknownElement();
@@ -292,7 +291,7 @@ void BBCParser::readBBC()
 void BBCParser::readChannel()
 {
     Q_ASSERT( isStartElement()
-              && name() == "channel" );
+              && name() == QLatin1String("channel"));
 
     while( !atEnd() ) {
         readNext();
@@ -301,7 +300,7 @@ void BBCParser::readChannel()
             break;
         
         if( isStartElement() ) {
-            if( name() == "item" )
+            if (name() == QLatin1String("item"))
                 readItem();
             else
                 readUnknownElement();
@@ -312,7 +311,7 @@ void BBCParser::readChannel()
 void BBCParser::readItem()
 {
     Q_ASSERT( isStartElement()
-              && name() == "item" );
+              && name() == QLatin1String("item"));
     
     WeatherData item;
     
@@ -323,11 +322,11 @@ void BBCParser::readItem()
             break;
         
         if( isStartElement() ) {
-            if( name() == "description" )
+            if (name() == QLatin1String("description"))
                 readDescription( &item );
-            else if( name() == "title" )
+            else if(name() == QLatin1String("title"))
                 readTitle( &item );
-            else if( name() == "pubDate" )
+            else if (name() == QLatin1String("pubDate"))
                 readPubDate( &item );
             else
                 readUnknownElement();
@@ -340,7 +339,7 @@ void BBCParser::readItem()
 void BBCParser::readDescription( WeatherData *data )
 {
     Q_ASSERT( isStartElement()
-              && name() == "description" );
+              && name() == QLatin1String("description"));
         
     while( !atEnd() ) {
         readNext();
@@ -415,7 +414,7 @@ void BBCParser::readDescription( WeatherData *data )
             pos = regExp.indexIn( description );
             if ( pos > -1 ) {
                 QString pressure = regExp.cap( 2 );
-                if ( pressure != "N/A" ) {
+                if (pressure != QLatin1String("N/A")) {
                     pressure.chop( 2 );
                     data->setPressure( pressure.toFloat()/1000, WeatherData::Bar );
                 }
@@ -451,7 +450,7 @@ void BBCParser::readDescription( WeatherData *data )
 void BBCParser::readTitle( WeatherData *data )
 {
     Q_ASSERT( isStartElement()
-              && name() == "title" );
+              && name() == QLatin1String("title"));
     
     while( !atEnd() ) {
         readNext();
@@ -483,20 +482,21 @@ void BBCParser::readTitle( WeatherData *data )
 
                 QString dayString = regExp.cap( 1 );
                 Qt::DayOfWeek dayOfWeek = (Qt::DayOfWeek) 0;
-                if ( dayString.contains( "Monday" ) )
+                if (dayString.contains(QLatin1String("Monday"))) {
                     dayOfWeek = Qt::Monday;
-                else if ( dayString.contains( "Tuesday" ) )
+                } else if (dayString.contains(QLatin1String("Tuesday"))) {
                     dayOfWeek = Qt::Tuesday;
-                else if ( dayString.contains( "Wednesday" ) )
+                } else if (dayString.contains(QLatin1String("Wednesday"))) {
                     dayOfWeek = Qt::Wednesday;
-                else if ( dayString.contains( "Thursday" ) )
+                } else if (dayString.contains(QLatin1String("Thursday"))) {
                     dayOfWeek = Qt::Thursday;
-                else if ( dayString.contains( "Friday" ) )
+                } else if (dayString.contains(QLatin1String("Friday"))) {
                     dayOfWeek = Qt::Friday;
-                else if ( dayString.contains( "Saturday" ) )
+                } else if (dayString.contains(QLatin1String("Saturday"))) {
                     dayOfWeek = Qt::Saturday;
-                else if ( dayString.contains( "Sunday" ) )
+                } else if (dayString.contains(QLatin1String("Sunday"))) {
                     dayOfWeek = Qt::Sunday;
+                }
                 QDate date = QDate::currentDate();
                 date = date.addDays( -1 );
 
@@ -514,7 +514,7 @@ void BBCParser::readTitle( WeatherData *data )
 void BBCParser::readPubDate( WeatherData *data )
 {
     Q_ASSERT( isStartElement()
-              && name() == "pubDate" );
+              && name() == QLatin1String("pubDate"));
 
     while( !atEnd() ) {
         readNext();
@@ -549,7 +549,7 @@ void BBCParser::readPubDate( WeatherData *data )
                 dateTime.setTime( time );
 
                 // Timezone
-                if( regExp.cap( 14 ) == "-" ) {
+                if (regExp.cap(14) == QLatin1String("-")) {
                     dateTime = dateTime.addSecs( 60*60*regExp.cap( 15 ).toInt() );
                     dateTime = dateTime.addSecs( 60   *regExp.cap( 16 ).toInt() );
                 }
@@ -564,4 +564,4 @@ void BBCParser::readPubDate( WeatherData *data )
     }
 }
 
-#include "BBCParser.moc"
+#include "moc_BBCParser.cpp"

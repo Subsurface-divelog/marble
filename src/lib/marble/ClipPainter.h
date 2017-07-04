@@ -12,14 +12,13 @@
 #ifndef MARBLE_CLIPPAINTER_H
 #define MARBLE_CLIPPAINTER_H
 
-
-#include <QPointF>
 #include <QPainter>
 #include "marble_export.h"
 #include "MarbleGlobal.h"
 
 class QPaintDevice;
 class QPolygonF;
+class QPointF;
 
 namespace Marble
 {
@@ -65,6 +64,17 @@ class MARBLE_EXPORT ClipPainter : public QPainter
     void drawPolyline( const QPolygonF & );
     void drawPolyline( const QPolygonF &, QVector<QPointF>& labelNodes, 
                        LabelPositionFlags labelPositionFlag = LineCenter );
+
+    void labelPosition(const QPolygonF & polygon, QVector<QPointF>& labelNodes,
+                       LabelPositionFlags labelPositionFlags);
+
+    void setPen(const QColor &);
+    void setPen(const QPen & pen);
+    void setPen(Qt::PenStyle style);
+    void setBrush(const QBrush & brush);
+
+    void setDebugPolygonsLevel( int );
+    void setDebugBatchRender( bool );
 
     //	void clearNodeCount(){ m_debugNodeCount = 0; }
     //	int nodeCount(){ return m_debugNodeCount; }

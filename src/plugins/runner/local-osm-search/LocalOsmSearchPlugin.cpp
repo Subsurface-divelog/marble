@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2013      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -22,10 +22,10 @@ LocalOsmSearchPlugin::LocalOsmSearchPlugin( QObject *parent ) :
     SearchRunnerPlugin( parent ),
     m_databaseFiles()
 {
-    setSupportedCelestialBodies( QStringList() << "earth" );
+    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
     setCanWorkOffline( true );
 
-    QString const path = MarbleDirs::localPath() + "/maps/earth/placemarks/";
+    QString const path = MarbleDirs::localPath() + QLatin1String("/maps/earth/placemarks/");
     QFileInfo pathInfo( path );
     if ( !pathInfo.exists() ) {
         QDir("/").mkpath( pathInfo.absolutePath() );
@@ -52,12 +52,12 @@ QString LocalOsmSearchPlugin::guiString() const
 
 QString LocalOsmSearchPlugin::nameId() const
 {
-    return "local-osm-search";
+    return QStringLiteral("local-osm-search");
 }
 
 QString LocalOsmSearchPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString LocalOsmSearchPlugin::description() const
@@ -67,13 +67,13 @@ QString LocalOsmSearchPlugin::description() const
 
 QString LocalOsmSearchPlugin::copyrightYears() const
 {
-    return "2011";
+    return QStringLiteral("2011");
 }
 
-QList<PluginAuthor> LocalOsmSearchPlugin::pluginAuthors() const
+QVector<PluginAuthor> LocalOsmSearchPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
 }
 
 SearchRunner* LocalOsmSearchPlugin::newRunner() const
@@ -86,7 +86,7 @@ void LocalOsmSearchPlugin::addDatabaseDirectory( const QString &path )
     QDir directory( path );
     QStringList const nameFilters = QStringList() << "*.sqlite";
     QStringList const files( directory.entryList( nameFilters, QDir::Files ) );
-    foreach( const QString &file, files ) {
+    for( const QString &file: files ) {
         m_databaseFiles << directory.filePath( file );
     }
 }
@@ -107,8 +107,8 @@ void LocalOsmSearchPlugin::updateDatabase()
 {
     m_databaseFiles.clear();
     QStringList const baseDirs = QStringList() << MarbleDirs::systemPath() << MarbleDirs::localPath();
-    foreach ( const QString &baseDir, baseDirs ) {
-        QString base = baseDir + "/maps/earth/placemarks/";
+    for ( const QString &baseDir: baseDirs ) {
+        const QString base = baseDir + QLatin1String("/maps/earth/placemarks/");
         addDatabaseDirectory( base );
         QDir::Filters filters = QDir::AllDirs | QDir::Readable | QDir::NoDotAndDotDot;
         QDirIterator::IteratorFlags flags = QDirIterator::Subdirectories | QDirIterator::FollowSymlinks;
@@ -122,6 +122,4 @@ void LocalOsmSearchPlugin::updateDatabase()
 
 }
 
-Q_EXPORT_PLUGIN2( LocalOsmSearchPlugin, Marble::LocalOsmSearchPlugin )
-
-#include "LocalOsmSearchPlugin.moc"
+#include "moc_LocalOsmSearchPlugin.cpp"

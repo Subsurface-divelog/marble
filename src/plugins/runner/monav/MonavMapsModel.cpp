@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "MonavMapsModel.h"
@@ -25,7 +25,7 @@ void MonavMapsModel::deleteMapFiles( int row )
     }
 }
 
-void MonavMapsModel::setInstallableVersions( const QMap<QString, QString> remoteMaps )
+void MonavMapsModel::setInstallableVersions( const QMap<QString, QString> &remoteMaps )
 {
     m_remoteMaps = remoteMaps;
     beginResetModel();
@@ -35,7 +35,7 @@ void MonavMapsModel::setInstallableVersions( const QMap<QString, QString> remote
 MonavMapsModel::MonavMapsModel( const QVector<MonavMap> &data, QObject * parent ) :
     QAbstractTableModel( parent ), m_data( data )
 {
-    qSort( m_data.begin(), m_data.end(), &MonavMap::nameLessThan );
+    std::sort( m_data.begin(), m_data.end(), &MonavMap::nameLessThan );
 }
 
 QVariant MonavMapsModel::headerData ( int section, Qt::Orientation orientation, int role ) const
@@ -74,7 +74,7 @@ QVariant MonavMapsModel::data ( const QModelIndex & index, int role ) const
                 return QString( "%1 MB" ).arg( 1 + m_data.at( row ).size() / 1024 / 1024 );
             case 3: {
                 QString payload = m_data.at( row ).payload();
-                payload = payload.mid( payload.lastIndexOf( "/" ) + 1 );
+                payload = payload.mid(payload.lastIndexOf(QLatin1Char('/')) + 1);
                 if ( m_remoteMaps.contains( payload ) ) {
                     QDate remote = QDate::fromString( m_remoteMaps[payload], "MM/dd/yy" );
                     QDate local = QDate::fromString( m_data.at( row ).date(), "MM/dd/yy" );
@@ -121,4 +121,4 @@ QString MonavMapsModel::payload( int index ) const
 
 }
 
-#include "MonavMapsModel.moc"
+#include "moc_MonavMapsModel.cpp"

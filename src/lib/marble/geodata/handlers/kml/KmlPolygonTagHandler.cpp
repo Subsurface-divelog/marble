@@ -27,6 +27,7 @@
 #include "KmlObjectTagHandler.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataMultiGeometry.h"
+#include "GeoDataPolygon.h"
 
 #include "GeoParser.h"
 
@@ -38,7 +39,7 @@ KML_DEFINE_TAG_HANDLER( Polygon )
 
 GeoNode* KmlPolygonTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_Polygon ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Polygon)));
 
     GeoStackItem parentItem = parser.parentElement();
     

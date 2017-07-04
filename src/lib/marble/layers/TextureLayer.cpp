@@ -25,6 +25,7 @@
 #include "GeoDataGroundOverlay.h"
 #include "GeoPainter.h"
 #include "GeoSceneGroup.h"
+#include "GeoSceneTextureTileDataset.h"
 #include "GeoSceneTypes.h"
 #include "MergedLayerDecorator.h"
 #include "MarbleDebug.h"
@@ -42,10 +43,11 @@ namespace Marble
 
 const int REPAINT_SCHEDULING_INTERVAL = 1000;
 
-class TextureLayer::Private
+class Q_DECL_HIDDEN TextureLayer::Private
 {
 public:
     Private( HttpDownloadManager *downloadManager,
+             PluginManager* pluginManager,
              const SunLocator *sunLocator,
              QAbstractItemModel *groundOverlayModel,
              TextureLayer *parent );
@@ -54,11 +56,12 @@ public:
     void updateTextureLayers();
     void updateTile( const TileId &tileId, const QImage &tileImage );
 
-    void addGroundOverlays( QModelIndex parent, int first, int last );
-    void removeGroundOverlays( QModelIndex parent, int first, int last );
+    void addGroundOverlays( const QModelIndex& parent, int first, int last );
+    void removeGroundOverlays( const QModelIndex& parent, int first, int last );
     void resetGroundOverlaysCache();
 
     void updateGroundOverlays();
+    void addCustomTextures();
 
     static bool drawOrderLessThan( const GeoDataGroundOverlay* o1, const GeoDataGroundOverlay* o2 );
 
@@ -72,23 +75,25 @@ public:
     int m_tileZoomLevel;
     TextureMapperInterface *m_texmapper;
     TextureColorizer *m_texcolorizer;
-    QVector<const GeoSceneTextureTile *> m_textures;
+    QVector<const GeoSceneTextureTileDataset *> m_textures;
     const GeoSceneGroup *m_textureLayerSettings;
     QString m_runtimeTrace;
     QSortFilterProxyModel m_groundOverlayModel;
     QList<const GeoDataGroundOverlay *> m_groundOverlayCache;
+    QMap<QString, GeoSceneTextureTileDataset *> m_customTextures;
     // For scheduling repaints
     QTimer           m_repaintTimer;
     RenderState m_renderState;
 };
 
 TextureLayer::Private::Private( HttpDownloadManager *downloadManager,
+                                PluginManager* pluginManager,
                                 const SunLocator *sunLocator,
                                 QAbstractItemModel *groundOverlayModel,
                                 TextureLayer *parent )
     : m_parent( parent )
     , m_sunLocator( sunLocator )
-    , m_loader( downloadManager, 0 )
+    , m_loader( downloadManager, pluginManager )
     , m_layerDecorator( &m_loader, sunLocator )
     , m_tileLoader( &m_layerDecorator )
     , m_centerCoordinates()
@@ -131,9 +136,9 @@ void TextureLayer::Private::requestDelayedRepaint()
 
 void TextureLayer::Private::updateTextureLayers()
 {
-    QVector<GeoSceneTextureTile const *> result;
+    QVector<GeoSceneTextureTileDataset const *> result;
 
-    foreach ( const GeoSceneTextureTile *candidate, m_textures ) {
+    for ( const GeoSceneTextureTileDataset *candidate: m_textures ) {
         bool enabled = true;
         if ( m_textureLayerSettings ) {
             const bool propertyExists = m_textureLayerSettings->propertyValue( candidate->name(), enabled );
@@ -152,6 +157,7 @@ void TextureLayer::Private::updateTextureLayers()
     m_layerDecorator.setTextureLayers( result );
     m_tileLoader.clear();
 
+    m_tileZoomLevel = -1;
     m_parent->setNeedsUpdate();
 }
 
@@ -170,7 +176,7 @@ bool TextureLayer::Private::drawOrderLessThan( const GeoDataGroundOverlay* o1, c
     return o1->drawOrder() < o2->drawOrder();
 }
 
-void TextureLayer::Private::addGroundOverlays( QModelIndex parent, int first, int last )
+void TextureLayer::Private::addGroundOverlays( const QModelIndex& parent, int first, int last )
 {
     for ( int i = first; i <= last; ++i ) {
         QModelIndex index = m_groundOverlayModel.index( i, 0, parent );
@@ -180,7 +186,7 @@ void TextureLayer::Private::addGroundOverlays( QModelIndex parent, int first, in
             continue;
         }
 
-        int pos = qLowerBound( m_groundOverlayCache.begin(), m_groundOverlayCache.end(), overlay, drawOrderLessThan ) - m_groundOverlayCache.begin();
+        int pos = std::lower_bound( m_groundOverlayCache.begin(), m_groundOverlayCache.end(), overlay, drawOrderLessThan ) - m_groundOverlayCache.begin();
         m_groundOverlayCache.insert( pos, overlay );
     }
 
@@ -189,13 +195,13 @@ void TextureLayer::Private::addGroundOverlays( QModelIndex parent, int first, in
     m_parent->reset();
 }
 
-void TextureLayer::Private::removeGroundOverlays( QModelIndex parent, int first, int last )
+void TextureLayer::Private::removeGroundOverlays( const QModelIndex& parent, int first, int last )
 {
     for ( int i = first; i <= last; ++i ) {
         QModelIndex index = m_groundOverlayModel.index( i, 0, parent );
         const GeoDataGroundOverlay *overlay = static_cast<GeoDataGroundOverlay *>( qvariant_cast<GeoDataObject *>( index.data( MarblePlacemarkModel::ObjectPointerRole ) ) );
 
-        int pos = qLowerBound( m_groundOverlayCache.begin(), m_groundOverlayCache.end(), overlay, drawOrderLessThan ) - m_groundOverlayCache.begin();
+        int pos = std::lower_bound( m_groundOverlayCache.begin(), m_groundOverlayCache.end(), overlay, drawOrderLessThan ) - m_groundOverlayCache.begin();
         if (pos >= 0 && pos < m_groundOverlayCache.size() ) {
             m_groundOverlayCache.removeAt( pos );
         }
@@ -225,12 +231,21 @@ void TextureLayer::Private::updateGroundOverlays()
     }
 }
 
+void TextureLayer::Private::addCustomTextures()
+{
+    m_textures.reserve(m_textures.size() + m_customTextures.size());
+    for (GeoSceneTextureTileDataset *t: m_customTextures)
+    {
+        m_textures.append(t);
+    }
+}
 
 TextureLayer::TextureLayer( HttpDownloadManager *downloadManager,
+                            PluginManager* pluginManager,
                             const SunLocator *sunLocator,
                             QAbstractItemModel *groundOverlayModel )
     : QObject()
-    , d( new Private( downloadManager, sunLocator, groundOverlayModel, this ) )
+    , d( new Private( downloadManager, pluginManager, sunLocator, groundOverlayModel, this ) )
 {
     connect( &d->m_loader, SIGNAL(tileCompleted(TileId,QImage)),
              this, SLOT(updateTile(TileId,QImage)) );
@@ -244,6 +259,7 @@ TextureLayer::TextureLayer( HttpDownloadManager *downloadManager,
 
 TextureLayer::~TextureLayer()
 {
+    qDeleteAll(d->m_customTextures);
     delete d->m_texmapper;
     delete d->m_texcolorizer;
     delete d;
@@ -251,7 +267,7 @@ TextureLayer::~TextureLayer()
 
 QStringList TextureLayer::renderPosition() const
 {
-    return QStringList() << "SURFACE";
+    return QStringList(QStringLiteral("SURFACE"));
 }
 
 void TextureLayer::addSeaDocument( const GeoDataDocument *seaDocument )
@@ -270,6 +286,11 @@ void TextureLayer::addLandDocument( const GeoDataDocument *landDocument )
     }
 }
 
+int TextureLayer::textureLayerCount() const
+{
+    return d->m_layerDecorator.textureLayersSize();
+}
+
 bool TextureLayer::showSunShading() const
 {
     return d->m_layerDecorator.showSunShading();
@@ -285,7 +306,8 @@ bool TextureLayer::render( GeoPainter *painter, ViewportParams *viewport,
 {
     Q_UNUSED( renderPos );
     Q_UNUSED( layer );
-    d->m_renderState = RenderState( "Texture Tiles" );
+    d->m_runtimeTrace = QStringLiteral("Texture Cache: %1 ").arg(d->m_tileLoader.tileCount());
+    d->m_renderState = RenderState(QStringLiteral("Texture Tiles"));
 
     // Stop repaint timer if it is already running
     d->m_repaintTimer.stop();
@@ -330,7 +352,6 @@ bool TextureLayer::render( GeoPainter *painter, ViewportParams *viewport,
     const QRect dirtyRect = QRect( QPoint( 0, 0), viewport->size() );
     d->m_texmapper->mapTexture( painter, viewport, d->m_tileZoomLevel, dirtyRect, d->m_texcolorizer );
     d->m_renderState.addChild( d->m_tileLoader.renderState() );
-    d->m_runtimeTrace = QString("Texture Cache: %1 ").arg(d->m_tileLoader.tileCount());
     return true;
 }
 
@@ -392,7 +413,7 @@ void TextureLayer::setProjection( Projection projection )
             d->m_texmapper = new EquirectScanlineTextureMapper( &d->m_tileLoader );
             break;
         case Mercator:
-            if ( d->m_tileLoader.tileProjection() == GeoSceneTiled::Mercator ) {
+            if (d->m_textures.at(0)->tileProjectionType() == GeoSceneAbstractTileProjection::Mercator) {
                 d->m_texmapper = new TileScalingTextureMapper( &d->m_tileLoader );
             } else {
                 d->m_texmapper = new MercatorScanlineTextureMapper( &d->m_tileLoader );
@@ -427,15 +448,13 @@ void TextureLayer::setVolatileCacheLimit( quint64 kilobytes )
 
 void TextureLayer::reset()
 {
-    mDebug() << Q_FUNC_INFO;
-
     d->m_tileLoader.clear();
     setNeedsUpdate();
 }
 
 void TextureLayer::reload()
 {
-    foreach ( const TileId &id, d->m_tileLoader.visibleTiles() ) {
+    for ( const TileId &id: d->m_tileLoader.visibleTiles() ) {
         // it's debatable here, whether DownloadBulk or DownloadBrowse should be used
         // but since "reload" or "refresh" seems to be a common action of a browser and it
         // allows for more connections (in our model), use "DownloadBrowse"
@@ -448,7 +467,7 @@ void TextureLayer::downloadStackedTile( const TileId &stackedTileId )
     d->m_layerDecorator.downloadStackedTile( stackedTileId, DownloadBulk );
 }
 
-void TextureLayer::setMapTheme( const QVector<const GeoSceneTextureTile *> &textures, const GeoSceneGroup *textureLayerSettings, const QString &seaFile, const QString &landFile )
+void TextureLayer::setMapTheme( const QVector<const GeoSceneTextureTileDataset *> &textures, const GeoSceneGroup *textureLayerSettings, const QString &seaFile, const QString &landFile )
 {
     delete d->m_texcolorizer;
     d->m_texcolorizer = 0;
@@ -458,6 +477,7 @@ void TextureLayer::setMapTheme( const QVector<const GeoSceneTextureTile *> &text
     }
 
     d->m_textures = textures;
+    d->addCustomTextures();
     d->m_textureLayerSettings = textureLayerSettings;
 
     if ( d->m_textureLayerSettings ) {
@@ -478,7 +498,7 @@ QSize TextureLayer::tileSize() const
     return d->m_layerDecorator.tileSize();
 }
 
-GeoSceneTiled::Projection TextureLayer::tileProjection() const
+const GeoSceneAbstractTileProjection *TextureLayer::tileProjection() const
 {
     return d->m_layerDecorator.tileProjection();
 }
@@ -493,13 +513,16 @@ int TextureLayer::tileRowCount( int level ) const
     return d->m_layerDecorator.tileRowCount( level );
 }
 
-qint64 TextureLayer::volatileCacheLimit() const
+quint64 TextureLayer::volatileCacheLimit() const
 {
     return d->m_tileLoader.volatileCacheLimit();
 }
 
 int TextureLayer::preferredRadiusCeil( int radius ) const
 {
+    if (!d->m_layerDecorator.hasTextureLayer()) {
+        return radius;
+    }
     const int tileWidth = d->m_layerDecorator.tileSize().width();
     const int levelZeroColumns = d->m_layerDecorator.tileColumnCount( 0 );
     const qreal linearLevel = 4.0 * (qreal)( radius ) / (qreal)( tileWidth * levelZeroColumns );
@@ -514,6 +537,9 @@ int TextureLayer::preferredRadiusCeil( int radius ) const
 
 int TextureLayer::preferredRadiusFloor( int radius ) const
 {
+    if (!d->m_layerDecorator.hasTextureLayer()) {
+        return radius;
+    }
     const int tileWidth = d->m_layerDecorator.tileSize().width();
     const int levelZeroColumns = d->m_layerDecorator.tileColumnCount( 0 );
     const qreal linearLevel = 4.0 * (qreal)( radius ) / (qreal)( tileWidth * levelZeroColumns );
@@ -531,6 +557,33 @@ RenderState TextureLayer::renderState() const
     return d->m_renderState;
 }
 
+QString TextureLayer::addTextureLayer(GeoSceneTextureTileDataset* texture)
+{
+    if (!texture)
+        return QString(); //Not a sane call
+
+    QString sourceDir = texture->sourceDir();
+    if (!d->m_customTextures.contains(sourceDir))
+    {   // Add if not present. For update, remove the old texture first.
+        d->m_customTextures.insert(sourceDir, texture);
+        d->m_textures.append(texture);
+        d->updateTextureLayers();
+    }
+    return sourceDir;
 }
 
-#include "TextureLayer.moc"
+void TextureLayer::removeTextureLayer(const QString &key)
+{
+    if (d->m_customTextures.contains(key))
+    {
+        GeoSceneTextureTileDataset *texture = d->m_customTextures.value(key);
+        d->m_customTextures.remove(key);
+        d->m_textures.remove(d->m_textures.indexOf(texture));
+        delete texture;
+        d->updateTextureLayers();
+    }
+}
+
+}
+
+#include "moc_TextureLayer.cpp"

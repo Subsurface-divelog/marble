@@ -17,10 +17,15 @@
 #include <QMessageBox>
 #include <QPushButton>
 
+//Marble
+#include "FormattedTextWidget.h"
+#include "GeoDataGroundOverlay.h"
+#include "TextureLayer.h"
+
 namespace Marble
 {
 
-class EditGroundOverlayDialog::Private : public Ui::UiEditGroundOverlayDialog
+class Q_DECL_HIDDEN EditGroundOverlayDialog::Private : public Ui::UiEditGroundOverlayDialog
 {
 
 public:
@@ -57,7 +62,7 @@ EditGroundOverlayDialog::EditGroundOverlayDialog( GeoDataGroundOverlay *overlay,
     d->m_header->setName( overlay->name() );
     d->m_header->setIconLink( overlay->absoluteIconFile() );
     d->m_header->setPositionVisible(false);
-    d->m_description->setText( overlay->description() );
+    d->m_formattedTextWidget->setText( overlay->description() );
 
     d->m_north->setRange( -90, 90 );
     d->m_south->setRange( -90, 90 );
@@ -73,9 +78,6 @@ EditGroundOverlayDialog::EditGroundOverlayDialog( GeoDataGroundOverlay *overlay,
     d->m_rotation->setValue( latLonBox.rotation( GeoDataCoordinates::Degree ) );
 
     connect( d->buttonBox->button( QDialogButtonBox::Ok ), SIGNAL(pressed()), this, SLOT(checkFields()) );
-    connect( d->buttonBox->button( QDialogButtonBox::Ok ), SIGNAL(clicked()), this, SLOT(updateGroundOverlay()) );
-    connect( d->buttonBox->button( QDialogButtonBox::Ok ), SIGNAL(clicked()), this, SLOT(setGroundOverlayUpdated()) );
-    connect( d->buttonBox->button( QDialogButtonBox::Ok ), SIGNAL(clicked()), d->m_textureLayer, SLOT(reset()) );
 }
 
 EditGroundOverlayDialog::~EditGroundOverlayDialog()
@@ -87,7 +89,7 @@ void EditGroundOverlayDialog::updateGroundOverlay()
 {
     d->m_overlay->setName( d->m_header->name() );
     d->m_overlay->setIconFile( d->m_header->iconLink() );
-    d->m_overlay->setDescription( d->m_description->toPlainText() );
+    d->m_overlay->setDescription( d->m_formattedTextWidget->text() );
 
     d->m_overlay->latLonBox().setBoundaries( d->m_north->value(),
                                              d->m_south->value(),
@@ -118,10 +120,13 @@ void EditGroundOverlayDialog::checkFields()
                               tr( "Invalid image path" ),
                               tr( "Please specify a valid path for the image file." ) );
     } else {
+        this->updateGroundOverlay();
+        this->setGroundOverlayUpdated();
+        d->m_textureLayer->reset();
         accept();
     }
 }
 
 }
 
-#include "EditGroundOverlayDialog.moc"
+#include "moc_EditGroundOverlayDialog.cpp"

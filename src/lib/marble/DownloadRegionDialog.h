@@ -17,17 +17,14 @@
 #include <QDialog>
 #include <QVector>
 
-#include "TileCoordsPyramid.h"
 #include "marble_export.h"
-
-class QHideEvent;
-class QShowEvent;
 
 namespace Marble
 {
 class GeoDataLatLonAltBox;
+class TileCoordsPyramid;
 class MarbleWidget;
-class ViewportParams;
+
 class MARBLE_EXPORT DownloadRegionDialog: public QDialog
 {
     Q_OBJECT
@@ -37,7 +34,7 @@ class MARBLE_EXPORT DownloadRegionDialog: public QDialog
 
     explicit DownloadRegionDialog( MarbleWidget *const widget, QWidget * const parent = 0,
                                    Qt::WindowFlags const f = 0 );
-    ~DownloadRegionDialog();
+    ~DownloadRegionDialog() override;
     void setAllowedTileLevelRange( int const minimumTileLevel,
                                    int const maximumTileLevel );
     void setVisibleTileLevel( int const tileLevel );
@@ -59,8 +56,8 @@ class MARBLE_EXPORT DownloadRegionDialog: public QDialog
     void shown();
 
  protected:
-    virtual void hideEvent( QHideEvent * event );
-    virtual void showEvent( QShowEvent * event );
+    void hideEvent( QHideEvent * event ) override;
+    void showEvent( QShowEvent * event ) override;
 
  private Q_SLOTS:
     void toggleSelectionMethod();

@@ -14,21 +14,16 @@
 
 #include "marble_export.h"
 
-#include <QSize>
-#include <QRegion>
-
 // Marble
 #include "MarbleGlobal.h"
 #include "ClipPainter.h"
 
+#include <QSizeF>
 
 class QImage;
 class QPaintDevice;
-class QPolygonF;
-class QRect;
-class QRectF;
+class QRegion;
 class QString;
-
 
 namespace Marble
 {
@@ -98,7 +93,13 @@ class GeoDataPolygon;
 class MARBLE_EXPORT GeoPainter : public ClipPainter
 {
  public:
-     
+    enum Frame {
+        NoOptions = 0x0,
+        RoundFrame = 0x1
+    };
+
+    Q_DECLARE_FLAGS(Frames, Frame)
+
 /*!
     \brief Creates a new geo painter.
 
@@ -133,7 +134,7 @@ class MARBLE_EXPORT GeoPainter : public ClipPainter
     chosen for the painter is used to paint the background of the bubble
 
     The optional parameters which describe the layout of the bubble are
-    similar to those used by QPainter::drawRoundRect().
+    similar to those used by QPainter::drawRoundedRect().
     Unlike in QPainter the rounded corners are not specified in percentage
     but in pixels to provide for optimal aesthetics.
     By choosing a positive or negative bubbleOffset it's possible to
@@ -226,8 +227,8 @@ class MARBLE_EXPORT GeoPainter : public ClipPainter
     further influenced.
 */
     void drawText ( const GeoDataCoordinates & position, const QString & text,
-                    int xOffset = 0, int yOffset = 0,
-                    int width = 0, int height = 0,
+                    qreal xOffset = 0.0, qreal yOffset = 0.0,
+                    qreal width = 0.0, qreal height = 0.0,
                     const QTextOption & option = QTextOption() );
 
     
@@ -294,9 +295,37 @@ class MARBLE_EXPORT GeoPainter : public ClipPainter
     void drawPixmap ( const GeoDataCoordinates & centerPosition,
                       const QPixmap & pixmap /*, bool isGeoProjected = false */ );
 
+/*!
+    \brief Creates a region for a rectangle for a pixmap at a given position.
+
+    A QRegion object is created that represents the area covered by
+    GeoPainter::drawPixmap(). This can be used e.g. for input event handling
+    for objects that have been painted using GeoPainter::drawPixmap().
+
+    The \a margin allows to extrude the QRegion by "margin" pixels on every side.
+
+    \see GeoDataCoordinates
+*/
+    QRegion regionFromPixmapRect(const GeoDataCoordinates &centerCoordinates,
+                                 int width, int height,
+                                 int margin = 0) const;
 
 /*!
-    \brief Draws a given line string (a "polyline").
+    \brief Helper method for safe and quick linestring conversion.
+
+    In general drawPolyline() should be used instead. However
+    in situations where the same linestring is supposed to be
+    drawn multiple times it's a good idea to cache the
+    screen polygons using this method.
+
+    \see GeoDataLineString
+*/
+    void polygonsFromLineString( const GeoDataLineString &lineString,
+                                       QVector<QPolygonF*> &polygons );
+
+
+/*!
+    \brief Draws a given line string (a "polyline") with a label.
 
     The \a lineString is drawn using the current pen. It's possible to
     provide a \a labelText for the \a lineString. The text is rendered using
@@ -307,9 +336,31 @@ class MARBLE_EXPORT GeoPainter : public ClipPainter
     \see GeoDataLineString
 */
     void drawPolyline ( const GeoDataLineString & lineString,
-                        const QString& labelText = QString(),
-                        LabelPositionFlags labelPositionFlags = LineCenter );
+                        const QString& labelText,
+                        LabelPositionFlags labelPositionFlags = LineCenter,
+                        const QColor& labelcolor = Qt::black);
 
+/*!
+    \brief Draws Labels for a given set of screen polygons.
+
+    In common cases the drawPolyline overload can be used instead.
+    However in certain more complex cases this particular method
+    might be helpful for further optimization.
+*/
+
+    void drawLabelsForPolygons( const QVector<QPolygonF*> &polygons,
+                                const QString& labelText,
+                                LabelPositionFlags labelPositionFlags,
+                                const QColor& labelColor );
+
+/*!
+    \brief Draws a given line string (a "polyline").
+
+    The \a lineString is drawn using the current pen.
+
+    \see GeoDataLineString
+*/
+    void drawPolyline(const GeoDataLineString & lineString);
 
 /*!
     \brief Creates a region for a given line string (a "polyline").
@@ -380,6 +431,9 @@ class MARBLE_EXPORT GeoPainter : public ClipPainter
     void drawPolygon ( const GeoDataPolygon & polygon,
                        Qt::FillRule fillRule = Qt::OddEvenFill );
 
+
+    QVector<QPolygonF*> createFillPolygons( const QVector<QPolygonF*> & outerPolygons,
+                                            const QVector<QPolygonF*> & innerPolygons ) const;
     
 /*!
     \brief Draws a rectangle at the given position.
@@ -445,10 +499,14 @@ class MARBLE_EXPORT GeoPainter : public ClipPainter
 
     \see GeoDataCoordinates
 */
-    void drawRoundRect ( const GeoDataCoordinates & centerPosition,
-                         int width, int height,
-                         int xRnd = 25, int yRnd = 25 );
+    void drawRoundedRect(const GeoDataCoordinates &centerPosition,
+                         qreal width, qreal height,
+                         qreal xRnd = 25.0, qreal yRnd = 25.0);
 
+
+    void drawTextFragment(const QPoint &position, const QString &text,
+                          const qreal fontSize, const QColor &color = Qt::black,
+                          const Frames &flags = 0);
 
 
     // Reenabling QPainter+ClipPainter methods.

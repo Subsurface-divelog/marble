@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "AudioOutput.h"
@@ -13,8 +13,8 @@
 #include "MarbleDirs.h"
 #include "MarbleDebug.h"
 #include "routing/VoiceNavigationModel.h"
+#include "routing/Route.h"
 
-#include <QDirIterator>
 #include <QUrl>
 #include <phonon/MediaObject>
 #include <phonon/MediaSource>
@@ -137,4 +137,4 @@ bool AudioOutput::isSoundEnabled() const
 
 }
 
-#include "AudioOutput.moc"
+#include "moc_AudioOutput.cpp"

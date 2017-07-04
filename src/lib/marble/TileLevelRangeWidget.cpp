@@ -18,7 +18,7 @@
 namespace Marble
 {
 
-class TileLevelRangeWidget::Private
+class Q_DECL_HIDDEN TileLevelRangeWidget::Private
 {
 public:
     explicit Private( QWidget * const parent );
@@ -88,4 +88,4 @@ void TileLevelRangeWidget::setMinimumBottomLevel( int const level )
 
 }
 
-#include "TileLevelRangeWidget.moc"
+#include "moc_TileLevelRangeWidget.cpp"

@@ -21,8 +21,6 @@
 // Qt
 #include <QWidget>
 
-class QStandardItemModel;
-
 namespace Marble
 {
 
@@ -34,7 +32,7 @@ class MARBLE_EXPORT MapViewWidget : public QWidget
     Q_OBJECT
  public:
     explicit MapViewWidget( QWidget *parent = 0, Qt::WindowFlags f = 0 );
-    ~MapViewWidget();
+    ~MapViewWidget() override;
 
     /**
      * @brief Set a MarbleWidget associated to this widget.
@@ -43,7 +41,7 @@ class MARBLE_EXPORT MapViewWidget : public QWidget
     void setMarbleWidget( MarbleWidget *widget, MapThemeManager *mapThemeManager );
 
 protected:
-    void resizeEvent(QResizeEvent *event);
+    void resizeEvent(QResizeEvent *event) override;
 
  public Q_SLOTS:
     void setMapThemeId( const QString & );

@@ -11,9 +11,10 @@
 #include "FlightGearPositionProviderPlugin.h"
 
 #include "MarbleDebug.h"
-#include <math.h>
+#include <cmath>
 
 #include <QUdpSocket>
+#include <QIcon>
 
 using namespace Marble;
 /* TRANSLATOR Marble::FlightGearPositionProviderPlugin */
@@ -37,7 +38,7 @@ QString FlightGearPositionProviderPlugin::name() const
 
 QString FlightGearPositionProviderPlugin::nameId() const
 {
-    return QString::fromLatin1( "flightgear" );
+    return QStringLiteral("flightgear");
 }
 
 QString FlightGearPositionProviderPlugin::guiString() const
@@ -47,7 +48,7 @@ QString FlightGearPositionProviderPlugin::guiString() const
 
 QString FlightGearPositionProviderPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString FlightGearPositionProviderPlugin::description() const
@@ -57,13 +58,13 @@ QString FlightGearPositionProviderPlugin::description() const
 
 QString FlightGearPositionProviderPlugin::copyrightYears() const
 {
-    return "2012";
+    return QStringLiteral("2012");
 }
 
-QList<PluginAuthor> FlightGearPositionProviderPlugin::pluginAuthors() const
+QVector<PluginAuthor> FlightGearPositionProviderPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Ralf Habacker" ), "ralf.habacker@freenet.de" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Ralf Habacker"), QStringLiteral("ralf.habacker@freenet.de"));
 
 }
 
@@ -92,10 +93,10 @@ bool fixBadGPRMC(QByteArray &line)
     if (!line.startsWith("$GPRMC"))
         return false;
 
-    QStringList parts = QString(line).split(',');
+    QStringList parts = QString(line).split(QLatin1Char(','));
     if (parts[9].size() == 7) {
         parts[9].remove(4,1);
-        line = parts.join(",").toLatin1();
+        line = parts.join(QLatin1Char(',')).toLatin1();
         // update crc
         int crc = 0;
         for(int i=1; i < line.size()-3; i++) {
@@ -103,7 +104,7 @@ bool fixBadGPRMC(QByteArray &line)
         }
         parts[11] = parts[11][0] + parts[11][1] +  QString::number(crc, 16).toUpper();
 
-        line = parts.join(",").toLatin1();
+        line = parts.join(QLatin1Char(',')).toLatin1();
         return true;
     }
     return false;
@@ -134,12 +135,12 @@ void FlightGearPositionProviderPlugin::parseNmeaSentence( const QString &sentenc
     GeoDataCoordinates oldPosition = m_position;
 
     if ( sentence.startsWith( QLatin1String( "$GPRMC" ) ) ) {
-        QStringList const values = sentence.split( ',' );
+        QStringList const values = sentence.split(QLatin1Char(','));
         if ( values.size() > 9 ) {
-            if ( values[2] == "A" ) {
+            if (values[2] == QLatin1String("A")) {
                 m_speed = values[7].toDouble() * 0.514444; // knots => m/s
                 m_track = values[8].toDouble();
-                QString const date = values[9] + ' ' + values[1];
+                QString const date = values[9] + QLatin1Char(' ') + values[1];
                 m_timestamp = QDateTime::fromString( date, "ddMMyy HHmmss" );
                 if (m_timestamp.date().year() <= 1930 && m_timestamp.date().year() >= 1900 ) {
                     m_timestamp = m_timestamp.addYears( 100 ); // Qt range is 1900-1999 for two-digits
@@ -149,14 +150,14 @@ void FlightGearPositionProviderPlugin::parseNmeaSentence( const QString &sentenc
             // in GPRMC and once in GPGGA. Parsing one is sufficient
         }
     } else if ( sentence.startsWith( QLatin1String( "$GPGGA" ) ) ) {
-        QStringList const values = sentence.split( ',' );
+        QStringList const values = sentence.split(QLatin1Char(','));
         if ( values.size() > 10 ) {
             if ( values[6] == 0 ) {
                 m_status = PositionProviderStatusAcquiring; // no fix
             } else {
-                double const lat = parsePosition( values[2], values[3] == "S" );
-                double const lon = parsePosition( values[4], values[5] == "W" );
-                double const unitFactor = values[10] == "F" ? FT2M : 1.0;
+                double const lat = parsePosition(values[2], values[3] == QLatin1String("S"));
+                double const lon = parsePosition(values[4], values[5] == QLatin1String("W"));
+                double const unitFactor = values[10] == QLatin1String("F") ? FT2M : 1.0;
                 double const alt = unitFactor * values[9].toDouble();
                 m_position.set( lon, lat, alt, GeoDataCoordinates::Degree );
                 m_accuracy.level = GeoDataAccuracy::Detailed;
@@ -227,6 +228,4 @@ QString FlightGearPositionProviderPlugin::error() const
     return QString();
 }
 
-Q_EXPORT_PLUGIN2( FlightGearPositionProviderPlugin, Marble::FlightGearPositionProviderPlugin )
-
-#include "FlightGearPositionProviderPlugin.moc"
+#include "moc_FlightGearPositionProviderPlugin.cpp"

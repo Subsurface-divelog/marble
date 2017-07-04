@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_OSMPLACEMARK_H
@@ -62,6 +62,10 @@ public:
         TouristZoo,
         TransportAirport,
         TransportAirportTerminal,
+        TransportAirportGate,
+        TransportAirportRunway,
+        TransportAirportApron,
+        TransportAirportTaxiway,
         TransportBusStation,
         TransportBusStop,
         TransportCarShare,
@@ -82,7 +86,8 @@ public:
         PlacesIsolatedDwelling,
         PlacesSuburb,
         PlacesLocality,
-        PlacesIsland
+        PlacesIsland,
+        HistoricMemorial
     };
 
     OsmPlacemark();

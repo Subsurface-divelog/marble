@@ -14,9 +14,9 @@
 #include "RenderPlugin.h"
 #include "DialogConfigurationInterface.h"
 
-#include <QtCore/QObject>
-#include <QMenu>
-#include <QActionGroup>
+#include <QHash>
+
+class QMenu;
 
 namespace Ui {
     class EclipsesConfigDialog;
@@ -41,7 +41,7 @@ class EclipsesPlugin : public RenderPlugin,
                        public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.EclipsesPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.EclipsesPlugin")
 
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
@@ -50,39 +50,39 @@ class EclipsesPlugin : public RenderPlugin,
 public:
     EclipsesPlugin();
     explicit EclipsesPlugin( const MarbleModel *marbleModel );
-    virtual ~EclipsesPlugin();
+    ~EclipsesPlugin() override;
 
     // this is the implementation of the RenderPlugin interface
     // see RenderPlugin.h for a description
 
-    QStringList backendTypes() const;
-    QString renderPolicy() const;
-    QStringList renderPosition() const;
-    QString name() const;
-    QString nameId() const;
-    QString guiString() const;
-    QString version() const;
-    QString description() const;
-    QString copyrightYears() const;
-    QList<PluginAuthor> pluginAuthors() const;
-    QIcon icon() const;
-    RenderPlugin::RenderType renderType() const;
-    QList<QActionGroup*>* actionGroups() const;
-    QDialog *configDialog();
+    QStringList backendTypes() const override;
+    QString renderPolicy() const override;
+    QStringList renderPosition() const override;
+    QString name() const override;
+    QString nameId() const override;
+    QString guiString() const override;
+    QString version() const override;
+    QString description() const override;
+    QString copyrightYears() const override;
+    QVector<PluginAuthor> pluginAuthors() const override;
+    QIcon icon() const override;
+    RenderPlugin::RenderType renderType() const override;
+    QList<QActionGroup*>* actionGroups() const override;
+    QDialog *configDialog() override;
 
-    void initialize();
-    bool isInitialized() const;
+    void initialize() override;
+    bool isInitialized() const override;
 
     bool render( GeoPainter *painter,
                  ViewportParams *viewport,
                  const QString &renderPos,
-                 GeoSceneLayer *layer );
+                 GeoSceneLayer *layer ) override;
 
-    QHash<QString, QVariant> settings() const;
-    void setSettings( const QHash<QString, QVariant> &settings );
+    QHash<QString, QVariant> settings() const override;
+    void setSettings( const QHash<QString, QVariant> &settings ) override;
 
 protected:
-    bool eventFilter( QObject *object, QEvent *e );
+    bool eventFilter( QObject *object, QEvent *e ) override;
 
 private Q_SLOTS:
     void readSettings();

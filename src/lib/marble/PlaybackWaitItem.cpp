@@ -10,6 +10,8 @@
 
 #include "PlaybackWaitItem.h"
 
+#include "GeoDataWait.h"
+
 #include <QTimer>
 
 namespace Marble
@@ -56,7 +58,7 @@ void PlaybackWaitItem::playNext()
     if( t <= 1 ){
         if( m_isPlaying ){
             emit progressChanged( progress );
-            QTimer::singleShot( 20, this, SLOT( playNext() ) );
+            QTimer::singleShot( 20, this, SLOT(playNext()) );
         }
     } else {
         stop();
@@ -85,4 +87,4 @@ void PlaybackWaitItem::stop()
 
 }
 
-#include "PlaybackWaitItem.moc"
+#include "moc_PlaybackWaitItem.cpp"

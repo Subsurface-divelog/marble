@@ -11,9 +11,9 @@
 #ifndef ROUTEITEM_H
 #define ROUTEITEM_H
 
-#include <QUrl>
-#include <QIcon>
-#include <QString>
+class QString;
+class QUrl;
+class QIcon;
 
 namespace Marble {
 

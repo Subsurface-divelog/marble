@@ -24,15 +24,13 @@
 
 // Qt
 #include <QUrl>
-#if QT_VERSION >= 0x050000
 #include <QUrlQuery>
-#endif
 
 // Marble
 #include "DgmlAttributeDictionary.h"
 #include "DgmlElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoSceneTiled.h"
+#include "GeoSceneTileDataset.h"
 
 namespace Marble
 {
@@ -43,7 +41,7 @@ DGML_DEFINE_TAG_HANDLER(DownloadUrl)
 GeoNode* DgmlDownloadUrlTagHandler::parse( GeoParser& parser ) const
 {
     // Check whether the tag is valid
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( dgmlTag_DownloadUrl ));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(dgmlTag_DownloadUrl)));
 
     // Checking for parent item
     GeoStackItem parentItem = parser.parentElement();
@@ -85,16 +83,12 @@ GeoNode* DgmlDownloadUrlTagHandler::parse( GeoParser& parser ) const
     // Attribute query, optional
     const QString queryStr = parser.attribute( dgmlAttr_query ).trimmed();
     if ( !queryStr.isEmpty() ) {
-#if QT_VERSION < 0x050000
-        url.setEncodedQuery( queryStr.toLatin1() );
-#else
         QUrlQuery query;
         query.setQuery( queryStr.toLatin1() );
         url.setQuery(query);
-#endif
     }
 
-    parentItem.nodeAs<GeoSceneTiled>()->addDownloadUrl( url );
+    parentItem.nodeAs<GeoSceneTileDataset>()->addDownloadUrl( url );
     return 0;
 }
 

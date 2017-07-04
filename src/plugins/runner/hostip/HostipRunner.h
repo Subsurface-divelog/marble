@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 
 #ifndef MARBLE_HOSTIPRUNNER_H
 #define MARBLE_HOSTIPRUNNER_H
@@ -28,7 +28,7 @@ class HostipRunner : public SearchRunner
 public:
     explicit HostipRunner(QObject *parent = 0);
 
-    ~HostipRunner();
+    ~HostipRunner() override;
 
 private Q_SLOTS:
     void get();
@@ -42,7 +42,7 @@ private Q_SLOTS:
     // No results (or an error)
     void slotNoResults();
 
-    void search( const QString &searchTerm, const GeoDataLatLonBox &preferred );
+    void search( const QString &searchTerm, const GeoDataLatLonBox &preferred ) override;
 
 private:
     QHostInfo m_hostInfo;

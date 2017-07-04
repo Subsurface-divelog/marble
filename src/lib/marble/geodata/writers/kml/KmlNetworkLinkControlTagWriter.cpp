@@ -12,8 +12,11 @@
 
 #include "GeoDataNetworkLinkControl.h"
 #include "GeoDataTypes.h"
+#include "GeoDataUpdate.h"
 #include "GeoWriter.h"
 #include "KmlElementDictionary.h"
+
+#include <QDateTime>
 
 namespace Marble
 {

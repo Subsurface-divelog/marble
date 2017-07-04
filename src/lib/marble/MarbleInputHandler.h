@@ -14,8 +14,6 @@
 #define MARBLE_MARBLEINPUTHANDLER_H
 
 #include <QObject>
-#include <QString>
-#include <QRect>
 
 #include "marble_export.h"
 #include "GeoDataCoordinates.h"
@@ -26,18 +24,15 @@ class QMouseEvent;
 class QTouchEvent;
 class QWheelEvent;
 class QGestureEvent;
-class QRubberBand;
 class QCursor;
 class QTimer;
+class QString;
+class QRect;
 
 namespace Marble
 {
 
-class MarbleModel;
 class MarbleAbstractPresenter;
-#ifndef SUBSURFACE
-class MarbleWidgetPopupMenu;
-#endif
 class AbstractDataPluginItem;
 class RenderPlugin;
 
@@ -47,7 +42,7 @@ class MARBLE_EXPORT MarbleInputHandler  : public QObject
 
  public:
     explicit MarbleInputHandler( MarbleAbstractPresenter* );
-    virtual ~MarbleInputHandler();
+    ~MarbleInputHandler() override;
 
     void setPositionSignalConnected( bool connected );
     bool isPositionSignalConnected() const;
@@ -88,7 +83,7 @@ class MARBLE_EXPORT MarbleInputHandler  : public QObject
 
     //Gps coordinates
     void mouseClickScreenPosition( int, int );
-    void mouseMoveGeoPosition( QString );
+    void mouseMoveGeoPosition( const QString& );
 
     /*
      * To detect mouse click followed by mouse move
@@ -127,22 +122,26 @@ class MARBLE_EXPORT MarbleDefaultInputHandler  : public MarbleInputHandler
 
  public:
     explicit MarbleDefaultInputHandler( MarbleAbstractPresenter* marblePresenter);
-    virtual ~MarbleDefaultInputHandler();
+    ~MarbleDefaultInputHandler() override;
 
  protected:
-    bool eventFilter( QObject *, QEvent * );
+    bool eventFilter( QObject *, QEvent * ) override;
     bool handleMouseEvent(QMouseEvent *e);
-    bool handlePinch(QPointF center, qreal scaleFactor, Qt::GestureState state);
+    bool handlePinch(const QPointF &center, qreal scaleFactor, Qt::GestureState state);
 
     //FIXME - refactor (abstraction & composition)
     QPointer<AbstractDataPluginItem> lastToolTipItem();
     QTimer* toolTipTimer();
     QPoint toolTipPosition();
 
+    virtual bool handleKeyPress(QKeyEvent *e);
+    virtual void handleMouseButtonPressAndHold(const QPoint &position);
+
  private Q_SLOTS:
-    virtual void installPluginEventFilter( RenderPlugin *renderPlugin ) = 0;
+    void installPluginEventFilter( RenderPlugin *renderPlugin ) override = 0;
     virtual void showLmbMenu( int, int ) = 0;
     virtual void showRmbMenu( int, int ) = 0;
+    void handlePressAndHold();
 
     virtual void openItemToolTip() = 0;
     virtual void setCursor(const QCursor &) = 0;
@@ -154,7 +153,6 @@ class MARBLE_EXPORT MarbleDefaultInputHandler  : public MarbleInputHandler
     virtual bool layersEventFilter(QObject *, QEvent *) = 0;
 
     virtual bool handleTouch(QTouchEvent *e);
-    virtual bool handleKeyPress(QKeyEvent *e);
     virtual bool handleDoubleClick(QMouseEvent *e);
     virtual bool handleWheel(QWheelEvent *e);
     virtual bool handleGesture(QGestureEvent *e);

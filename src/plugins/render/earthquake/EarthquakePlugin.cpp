@@ -34,6 +34,9 @@ EarthquakePlugin::EarthquakePlugin( const MarbleModel *marbleModel )
       m_minMagnitude( 0.0 ),
       m_startDate( QDateTime::fromString( "2006-02-04", "yyyy-MM-dd" ) ),
       m_endDate( marbleModel->clockDateTime() ),
+      m_pastDays( 30 ),
+      m_timeRangeNPastDays( true ),
+      m_numResults( 20 ),
       m_maximumNumberOfItems( 100 )
 {
     setEnabled( true ); // Plugin is enabled by default
@@ -46,7 +49,9 @@ void EarthquakePlugin::initialize()
 {
     EarthquakeModel *model = new EarthquakeModel( marbleModel(), this );
     setModel( model );
-    setNumberOfItems( 20 );
+    setNumberOfItems( m_numResults );
+    
+    updateModel();
 }
 
 QString EarthquakePlugin::name() const
@@ -61,12 +66,12 @@ QString EarthquakePlugin::guiString() const
 
 QString EarthquakePlugin::nameId() const
 {
-    return "earthquake";
+    return QStringLiteral("earthquake");
 }
 
 QString EarthquakePlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString EarthquakePlugin::description() const
@@ -76,19 +81,19 @@ QString EarthquakePlugin::description() const
 
 QString EarthquakePlugin::copyrightYears() const
 {
-    return "2010, 2011";
+    return QStringLiteral("2010, 2011");
 }
 
-QList<PluginAuthor> EarthquakePlugin::pluginAuthors() const
+QVector<PluginAuthor> EarthquakePlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Utku Aydın" ), "utkuaydin34@gmail.com" )
-            << PluginAuthor( QString::fromUtf8( "Daniel Marth" ), "danielmarth@gmx.at" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Utku Aydın"), QStringLiteral("utkuaydin34@gmail.com"))
+            << PluginAuthor(QStringLiteral("Daniel Marth"), QStringLiteral("danielmarth@gmx.at"));
 }
 
 QIcon EarthquakePlugin::icon() const
 {
-    return QIcon(":/icons/earthquake.png");
+    return QIcon(QStringLiteral(":/icons/earthquake.png"));
 }
 
 QDialog *EarthquakePlugin::configDialog()
@@ -109,6 +114,8 @@ QDialog *EarthquakePlugin::configDialog()
         QPushButton *applyButton = m_ui->m_buttonBox->button( QDialogButtonBox::Apply );
         connect( applyButton, SIGNAL(clicked()),
                  SLOT(writeSettings()) );
+        connect( m_ui->m_startDate, SIGNAL(dateTimeChanged(QDateTime)),
+                 SLOT(validateDateRange()) );
         connect( m_ui->m_endDate, SIGNAL(dateTimeChanged(QDateTime)),
                  SLOT(validateDateRange()) );
         connect( this, SIGNAL(settingsChanged(QString)),
@@ -121,11 +128,13 @@ QHash<QString,QVariant> EarthquakePlugin::settings() const
 {
     QHash<QString, QVariant> settings = AbstractDataPlugin::settings();
 
-    settings.insert( "numResults", numberOfItems() );
-    settings.insert( "minMagnitude", m_minMagnitude );
-    settings.insert( "startDate", m_startDate );
-    settings.insert( "endDate", m_endDate );
-    settings.insert( "maximumNumberOfItems", m_maximumNumberOfItems );
+    settings.insert(QStringLiteral("numResults"), m_numResults);
+    settings.insert(QStringLiteral("minMagnitude"), m_minMagnitude);
+    settings.insert(QStringLiteral("startDate"), m_startDate);
+    settings.insert(QStringLiteral("endDate"), m_endDate);
+    settings.insert(QStringLiteral("pastDays"), m_pastDays);
+    settings.insert(QStringLiteral("timeRangeNPastDays"), m_timeRangeNPastDays);
+    settings.insert(QStringLiteral("maximumNumberOfItems"), m_maximumNumberOfItems);
 
     return settings;
 }
@@ -134,12 +143,14 @@ void EarthquakePlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractDataPlugin::setSettings( settings );
 
-    setNumberOfItems( settings.value( "numResults", 20 ).toInt() );
-    m_minMagnitude = settings.value( "minMagnitude", 0.0 ).toReal();
-    m_startDate = settings.value( "startDate", QDateTime::fromString( "2006-02-04", "yyyy-MM-dd" ) ).toDateTime();
-    m_endDate = settings.value( "endDate", marbleModel()->clockDateTime() ).toDateTime();
-    m_maximumNumberOfItems = settings.value( "maximumNumberOfItems", m_maximumNumberOfItems ).toInt();
-
+    m_numResults = settings.value(QStringLiteral("numResults"), 20).toInt();
+    m_minMagnitude = settings.value(QStringLiteral("minMagnitude"), 0.0).toReal();
+    m_startDate = settings.value(QStringLiteral("startDate"), QDateTime::fromString(QStringLiteral("2006-02-04"), QStringLiteral("yyyy-MM-dd"))).toDateTime();
+    m_endDate = settings.value(QStringLiteral("endDate"), marbleModel()->clockDateTime()).toDateTime();
+    m_pastDays = settings.value(QStringLiteral("pastDays"), 30).toInt();
+    m_timeRangeNPastDays = settings.value(QStringLiteral("timeRangeNPastDays"), true).toBool();
+    m_maximumNumberOfItems = settings.value(QStringLiteral("maximumNumberOfItems"), m_maximumNumberOfItems).toInt();
+    
     emit settingsChanged( nameId() );
 }
 
@@ -147,22 +158,31 @@ void EarthquakePlugin::readSettings()
 {
     Q_ASSERT( m_configDialog );
 
-    m_ui->m_numResults->setValue( numberOfItems() );
+    m_ui->m_numResults->setValue( m_numResults );
     m_ui->m_minMagnitude->setValue( m_minMagnitude );
     m_ui->m_startDate->setDateTime( m_startDate );
     m_ui->m_endDate->setDateTime( m_endDate );
     m_ui->m_startDate->setMaximumDateTime( m_ui->m_endDate->dateTime() );
+    m_ui->m_pastDays->setValue(m_pastDays);
+    if ( m_timeRangeNPastDays ) {
+        m_ui->m_timeRangeNPastDaysRadioButton->setChecked(true);
+    } else {
+        m_ui->m_timeRangeFromToRadioButton->setChecked(true);
+    }
 }
 
 void EarthquakePlugin::writeSettings()
 {
     Q_ASSERT( m_configDialog );
 
-    setNumberOfItems( m_ui->m_numResults->value() );
+    m_numResults = m_ui->m_numResults->value();
+    setNumberOfItems( m_numResults );
     m_minMagnitude = m_ui->m_minMagnitude->value();
     m_startDate = m_ui->m_startDate->dateTime();
     m_endDate = m_ui->m_endDate->dateTime();
-
+    m_pastDays = m_ui->m_pastDays->value();
+    m_timeRangeNPastDays = m_ui->m_timeRangeNPastDaysRadioButton->isChecked();
+        
     emit settingsChanged( nameId() );
 }
 
@@ -171,8 +191,17 @@ void EarthquakePlugin::updateModel()
     if( model() ) {
         EarthquakeModel *const earthquakeModel = static_cast<EarthquakeModel *>( model() );
         earthquakeModel->setMinMagnitude( m_minMagnitude );
-        earthquakeModel->setStartDate( m_startDate );
-        earthquakeModel->setEndDate( m_endDate );
+        if ( m_timeRangeNPastDays ) {
+            QDateTime startdate, enddate;
+            
+            enddate = marbleModel()->clockDateTime();
+            startdate = enddate.addDays(-m_pastDays + 1);
+            earthquakeModel->setStartDate( startdate );
+            earthquakeModel->setEndDate( enddate );
+        } else {
+            earthquakeModel->setStartDate( m_startDate );
+            earthquakeModel->setEndDate( m_endDate );
+        }
         earthquakeModel->clear();
     }
 }
@@ -180,14 +209,13 @@ void EarthquakePlugin::updateModel()
 void EarthquakePlugin::validateDateRange()
 {
     Q_ASSERT( m_configDialog );
-    if( m_ui->m_startDate->dateTime() > m_ui->m_endDate->dateTime() ) {
-        m_ui->m_startDate->setDateTime( m_ui->m_endDate->dateTime() );
+    if( m_ui->m_startDate->dateTime() >= m_ui->m_endDate->dateTime() ) {
+        
+        m_ui->m_startDate->setDateTime( m_ui->m_endDate->dateTime().addDays(-1) );
     }
-    m_ui->m_startDate->setMaximumDateTime( m_ui->m_endDate->dateTime() );
+    m_ui->m_startDate->setMaximumDateTime( m_ui->m_endDate->dateTime().addDays(-1) );
 }
 
 }
 
-Q_EXPORT_PLUGIN2( EarthquakePlugin, Marble::EarthquakePlugin )
-
-#include "EarthquakePlugin.moc"
+#include "moc_EarthquakePlugin.cpp"

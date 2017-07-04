@@ -5,14 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "RoutingInstruction.h"
-#include "MarbleLocale.h"
 
 #include <QCoreApplication>
 #include <QStringList>
+#include <QTextStream>
 
 #include <cmath>
 
@@ -30,13 +30,17 @@ RoutingInstruction::RoutingInstruction( const RoutingWaypoint &item ) :
 
 bool RoutingInstruction::append( const RoutingWaypoint &item, int angle )
 {
-    if ( m_points.size() && m_points.last().roadType() != "roundabout" && item.roadType() == "roundabout" ) {
+    if (m_points.size() &&
+        m_points.last().roadType() != QLatin1String("roundabout") &&
+        item.roadType() == QLatin1String("roundabout")) {
         // Entering a roundabout. Merge with previous segment to avoid 'Enter the roundabout' instructions
         m_points.push_back( item );
         return true;
     }
 
-    if ( m_points.size() && m_points.last().roadType() == "roundabout" && item.roadType() != "roundabout" ) {
+    if (m_points.size() &&
+        m_points.last().roadType() == QLatin1String("roundabout") &&
+        item.roadType() != QLatin1String("roundabout")) {
         // Exiting a roundabout
         m_points.push_back( item );
         return false;
@@ -57,7 +61,7 @@ bool RoutingInstruction::append( const RoutingWaypoint &item, int angle )
 
         return angle >= 150 && angle <= 210;
     } else {
-        return item.roadType() == "roundabout" || item.roadName() == roadName();
+        return item.roadType() == QLatin1String("roundabout") || item.roadName() == roadName();
     }
 }
 
@@ -246,11 +250,11 @@ qreal RoutingInstruction::distanceToEnd() const
 
 QString RoutingInstruction::nextRoadInstruction() const
 {
-    if ( roadType() == "roundabout" ) {
+    if (roadType() == QLatin1String("roundabout")) {
         return QObject::tr( "Enter the roundabout." );
     }
 
-    if ( roadType() == "motorway_link" ) {
+    if (roadType() == QLatin1String("motorway_link")) {
         QStringList motorways = QStringList() << "motorway" << "motorway_link";
         bool const leaving = predecessor() && motorways.contains( predecessor()->roadType() );
         if ( leaving ) {
@@ -336,7 +340,7 @@ QString RoutingInstruction::totalDurationRemaining() const
     }
     if ( duration >= 60.0 ) {
         duration /= 60.0;
-        durationUnit = 'h';
+        durationUnit = QStringLiteral("h");
         precision = 1;
     }
 
@@ -347,9 +351,9 @@ QString RoutingInstruction::totalDurationRemaining() const
 QString RoutingInstruction::instructionText() const
 {
     QString text = nextRoadInstruction();
-    text += ' ' + nextDistanceInstruction();
-    if ( QCoreApplication::instance()->arguments().contains( "--remaining-duration" ) ) {
-        text += ' ' + totalDurationRemaining();
+    text += QLatin1Char(' ') + nextDistanceInstruction();
+    if (QCoreApplication::instance()->arguments().contains(QStringLiteral("--remaining-duration"))) {
+        text += QLatin1Char(' ') + totalDurationRemaining();
     }
     return text;
 }
@@ -465,7 +469,7 @@ QTextStream& operator<<( QTextStream& stream, const RoutingInstruction &i )
         return stream;
     }
 
-    if ( QCoreApplication::instance()->arguments().contains( "--dense" ) ) {
+    if (QCoreApplication::instance()->arguments().contains(QStringLiteral("--dense"))) {
         QVector<RoutingWaypoint> points = i.points();
         int maxElement = points.size() - ( i.successor() ? 1 : 0 );
         for ( int j = 0; j < maxElement; ++j ) {
@@ -485,7 +489,7 @@ QTextStream& operator<<( QTextStream& stream, const RoutingInstruction &i )
         return stream;
     }
 
-    if ( QCoreApplication::instance()->arguments().contains( "--csv" ) ) {
+    if (QCoreApplication::instance()->arguments().contains(QStringLiteral("--csv"))) {
         stream << i.points().first().point().lat() << ',';
         stream << i.points().first().point().lon() << ',';
     } else {
@@ -504,8 +508,9 @@ QTextStream& operator<<( QTextStream& stream, const RoutingInstruction &i )
 
     stream << i.instructionText();
 
-    if ( QCoreApplication::instance()->arguments().contains( "--csv" ) && QCoreApplication::instance()->arguments().contains( "--intersection-points" ) ) {
-        foreach( const RoutingPoint &point, i.intersectionPoints() ) {
+    if (QCoreApplication::instance()->arguments().contains(QStringLiteral("--csv")) &&
+        QCoreApplication::instance()->arguments().contains(QStringLiteral("--intersection-points"))) {
+        for ( const RoutingPoint &point: i.intersectionPoints() ) {
             stream << ',' << point.lat() << ',' << point.lon();
         }
     }

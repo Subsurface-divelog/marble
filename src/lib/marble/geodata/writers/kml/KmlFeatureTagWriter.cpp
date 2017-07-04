@@ -5,12 +5,11 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "KmlFeatureTagWriter.h"
 
-#include "GeoDataTypes.h"
 #include "GeoDataOverlay.h"
 #include "GeoDataTimeStamp.h"
 #include "GeoDataTimeSpan.h"
@@ -19,11 +18,17 @@
 #include "GeoDataStyleMap.h"
 #include "GeoDataExtendedData.h"
 #include "GeoDataLookAt.h"
+#include "GeoDataPlacemark.h"
 #include "GeoDataCamera.h"
 #include "GeoWriter.h"
 #include "GeoDataRegion.h"
+#include "GeoDataLatLonAltBox.h"
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagWriter.h"
+#include "KmlOsmPlacemarkDataTagWriter.h"
+#include "OsmPlacemarkData.h"
+
+#include <QDateTime>
 
 namespace Marble
 {
@@ -36,9 +41,7 @@ KmlFeatureTagWriter::KmlFeatureTagWriter(const QString &elementName)
 
 bool KmlFeatureTagWriter::write( const Marble::GeoNode *node, GeoWriter &writer ) const
 {
-    if ( node->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
-        const GeoDataDocument *document = static_cast<const GeoDataDocument*>(node);
-
+    if (const GeoDataDocument *document = geodata_cast<GeoDataDocument>(node)) {
         // when a document has only one feature and no styling
         // the document tag is excused
         if( (document->id().isEmpty())
@@ -89,15 +92,20 @@ bool KmlFeatureTagWriter::write( const Marble::GeoNode *node, GeoWriter &writer 
         writeElement( &feature->timeSpan(), writer );
     }
 
-    if( !feature->extendedData().isEmpty() ) {
-        writeElement( &feature->extendedData(), writer );
-    }
-
     if ( !feature->region().latLonAltBox().isNull() ) {
         writeElement( &feature->region(), writer );
     }
 
     bool const result = writeMid( node, writer );
+
+    if (geodata_cast<GeoDataPlacemark>(feature)) {
+        KmlOsmPlacemarkDataTagWriter::write(feature, writer);
+    }
+
+    if( !feature->extendedData().isEmpty() ) {
+        writeElement( &feature->extendedData(), writer );
+    }
+
     writer.writeEndElement();
     return result;
 }

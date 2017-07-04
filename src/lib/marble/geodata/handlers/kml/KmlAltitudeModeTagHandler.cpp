@@ -27,6 +27,7 @@
 #include "KmlElementDictionary.h"
 
 #include "GeoDataGeometry.h"
+#include "GeoDataLatLonAltBox.h"
 #include "GeoDataGroundOverlay.h"
 #include "GeoDataPoint.h"
 #include "GeoDataPlacemark.h"
@@ -44,14 +45,14 @@ KML_DEFINE_TAG_HANDLER( altitudeMode )
 
 GeoNode* KmlaltitudeModeTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_altitudeMode ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_altitudeMode)));
 
     QString content = parser.readElementText().trimmed();
 
     AltitudeMode mode;
-    if( content == QString( "relativeToGround" ) ) {
+    if (content == QLatin1String("relativeToGround")) {
         mode = RelativeToGround;
-    } else if( content == QString( "absolute" ) ) {
+    } else if (content == QLatin1String("absolute")) {
         mode = Absolute;
     } else { // clampToGround is Standard
         mode = ClampToGround;

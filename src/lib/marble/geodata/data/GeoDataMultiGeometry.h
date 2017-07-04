@@ -21,6 +21,8 @@
 namespace Marble
 {
 
+class GeoDataMultiGeometryPrivate;
+
 /**
  * @short A class that can contain other GeoDataGeometry objects
  *
@@ -28,17 +30,24 @@ namespace Marble
  * As one can add GeoDataMultiGeometry to itself, you can make up a collection
  * of different objects to form one Placemark.
  */
-class GeoDataMultiGeometryPrivate;
-
 class GEODATA_EXPORT GeoDataMultiGeometry : public GeoDataGeometry
 {
  public:
     GeoDataMultiGeometry();
     explicit GeoDataMultiGeometry( const GeoDataGeometry& other );
 
-    virtual ~GeoDataMultiGeometry();
+    ~GeoDataMultiGeometry() override;
 
-    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
+    const char *nodeType() const override;
+
+    EnumGeometryId geometryId() const override;
+
+    GeoDataGeometry *copy() const override;
+
+    bool operator==(const GeoDataMultiGeometry &other) const;
+    bool operator!=(const GeoDataMultiGeometry &other) const { return !(*this == other); }
+
+    const GeoDataLatLonAltBox& latLonAltBox() const override;
 
     int size() const;
     GeoDataGeometry& at( int pos );
@@ -78,19 +87,19 @@ class GEODATA_EXPORT GeoDataMultiGeometry : public GeoDataGeometry
     QVector<GeoDataGeometry*>::ConstIterator constBegin() const;
     QVector<GeoDataGeometry*>::ConstIterator constEnd() const;
     void clear();
-    QVector<GeoDataGeometry> vector() const;
+    QVector<GeoDataGeometry *> vector();
 
     QVector<GeoDataGeometry*>::Iterator erase ( QVector<GeoDataGeometry*>::Iterator pos );
     QVector<GeoDataGeometry*>::Iterator erase ( QVector<GeoDataGeometry*>::Iterator begin,
                                                   QVector<GeoDataGeometry*>::Iterator end );
 
     // Serialize the Placemark to @p stream
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
     // Unserialize the Placemark from @p stream
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
+
  private:
-    GeoDataMultiGeometryPrivate *p();
-    const GeoDataMultiGeometryPrivate *p() const;
+    Q_DECLARE_PRIVATE(GeoDataMultiGeometry)
 };
 
 }

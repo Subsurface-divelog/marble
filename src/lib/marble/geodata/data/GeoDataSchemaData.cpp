@@ -8,13 +8,15 @@
 // Copyright 2014 Abhinav Gangwar <abhgang@gmail.com>
 //
 
+#include "GeoDataSchemaData.h"
+
 // Qt
 #include <QDataStream>
 #include <QString>
 #include <QHash>
 
 // Marble
-#include "GeoDataSchemaData.h"
+#include "GeoDataSimpleData.h"
 #include "GeoDataTypes.h"
 
 namespace Marble
@@ -131,11 +133,11 @@ void GeoDataSchemaData::pack( QDataStream &stream ) const
     stream << d->m_schemaUrl;
     stream << d->m_simpleData.size();
 
-    QHash<QString, GeoDataSimpleData>::const_iterator begin = d->m_simpleData.constBegin();
+    QHash<QString, GeoDataSimpleData>::const_iterator iter = d->m_simpleData.constBegin();
     QHash<QString, GeoDataSimpleData>::const_iterator end = d->m_simpleData.constEnd();
 
-    for( ; begin != end; begin++ ) {
-        begin.value().pack( stream );
+    for( ; iter != end; ++iter ) {
+        iter.value().pack( stream );
     }
 }
 

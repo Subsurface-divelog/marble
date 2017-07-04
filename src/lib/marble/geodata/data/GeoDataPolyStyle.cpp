@@ -10,8 +10,11 @@
 
 
 #include "GeoDataPolyStyle.h"
-
 #include "GeoDataTypes.h"
+#include "MarbleDirs.h"
+
+#include <QDataStream>
+#include <QImage>
 
 #include <QDataStream>
 
@@ -22,7 +25,10 @@ class GeoDataPolyStylePrivate
 {
   public:
     GeoDataPolyStylePrivate()
-     : m_fill( true ), m_outline( true ), m_brushStyle( Qt::SolidPattern )
+        : m_fill(true)
+        , m_outline(true)
+        , m_brushStyle(Qt::SolidPattern)
+        , m_colorIndex(0)
     {
     }
 
@@ -38,6 +44,8 @@ class GeoDataPolyStylePrivate
     Qt::BrushStyle m_brushStyle;
     /// The value of colorIndex will be maped to a color for brush
     quint8 m_colorIndex;
+    QString m_texturePath;
+    QImage m_textureImage;
 };
 
 GeoDataPolyStyle::GeoDataPolyStyle()
@@ -89,7 +97,7 @@ const char* GeoDataPolyStyle::nodeType() const
     return d->nodeType();
 }
 
-void GeoDataPolyStyle::setFill( const bool &fill )
+void GeoDataPolyStyle::setFill(bool fill)
 {
     d->m_fill = fill;
 }
@@ -99,7 +107,7 @@ bool GeoDataPolyStyle::fill() const
     return d->m_fill;
 }
 
-void GeoDataPolyStyle::setOutline( const bool &outline )
+void GeoDataPolyStyle::setOutline(bool outline)
 {
     d->m_outline = outline;
 }
@@ -127,6 +135,28 @@ void GeoDataPolyStyle::setColorIndex( quint8 colorIndex )
 quint8 GeoDataPolyStyle::colorIndex() const
 {
     return d->m_colorIndex;
+}
+
+void GeoDataPolyStyle::setTexturePath( const QString& texturePath )
+{
+    d->m_texturePath = texturePath;
+    d->m_textureImage = QImage();
+}
+
+QString GeoDataPolyStyle::texturePath() const
+{
+    return d->m_texturePath;
+}
+
+QImage GeoDataPolyStyle::textureImage() const
+{
+    if ( !d->m_textureImage.isNull() ) {
+        return d->m_textureImage;
+    } else if ( !d->m_texturePath.isEmpty() ) {
+        d->m_textureImage = QImage( resolvePath( d->m_texturePath ) );
+    }
+
+    return d->m_textureImage;
 }
 
 void GeoDataPolyStyle::pack( QDataStream& stream ) const

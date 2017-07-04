@@ -12,6 +12,7 @@
 
 #include "Quaternion.h"
 #include "MarbleAbstractPresenter.h"
+#include "GeoDataLookAt.h"
 #include "MarbleDebug.h"
 #include "GeoDataLineString.h"
 #include "ViewportParams.h"
@@ -35,7 +36,7 @@ public:
 
     qreal m_planetRadius;
 
-    MarblePhysicsPrivate( MarbleAbstractPresenter *presenter )
+    explicit MarblePhysicsPrivate( MarbleAbstractPresenter *presenter )
         : m_presenter( presenter ),
           m_mode( Instant ),
           m_planetRadius( EARTH_RADIUS )
@@ -206,4 +207,4 @@ void MarblePhysics::startStillMode()
 
 }
 
-#include "MarblePhysics.moc"
+#include "moc_MarblePhysics.cpp"

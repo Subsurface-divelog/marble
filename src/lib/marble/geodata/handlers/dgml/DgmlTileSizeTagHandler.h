@@ -4,7 +4,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_DGML_TILESIZETAGHANDLER_H
@@ -20,7 +20,7 @@ namespace dgml
 class DgmlTileSizeTagHandler : public GeoTagHandler
 {
 public:
-    virtual GeoNode* parse( GeoParser& ) const;
+    GeoNode* parse( GeoParser& ) const override;
 };
 
 }

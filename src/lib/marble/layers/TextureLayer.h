@@ -15,14 +15,10 @@
 #include <QObject>
 
 #include "MarbleGlobal.h"
-#include "GeoSceneTiled.h"
-
-#include <QSize>
 
 class QAbstractItemModel;
 class QImage;
-class QRegion;
-class QRect;
+class QSize;
 
 namespace Marble
 {
@@ -30,10 +26,13 @@ namespace Marble
 class GeoPainter;
 class GeoDataDocument;
 class GeoSceneGroup;
-class GeoSceneTextureTile;
+class GeoSceneAbstractTileProjection;
+class GeoSceneTextureTileDataset;
 class HttpDownloadManager;
 class SunLocator;
+class TileId;
 class ViewportParams;
+class PluginManager;
 
 class MARBLE_EXPORT TextureLayer : public QObject, public LayerInterface
 {
@@ -41,16 +40,34 @@ class MARBLE_EXPORT TextureLayer : public QObject, public LayerInterface
 
  public:
     TextureLayer( HttpDownloadManager *downloadManager,
+                  PluginManager* pluginManager,
                   const SunLocator *sunLocator,
                   QAbstractItemModel *groundOverlayModel );
 
-    ~TextureLayer();
+    ~TextureLayer() override;
 
-    QStringList renderPosition() const;
+    QStringList renderPosition() const override;
 
     void addSeaDocument( const GeoDataDocument *seaDocument );
 
     void addLandDocument( const GeoDataDocument *landDocument );
+
+    int textureLayerCount() const;
+
+    /**
+     * @brief Adds texture sublayer, taking ownership of the object's memory
+     *        Does nothing if a texture with the same source directory was already
+     *        added with this method.
+     * @return returned string is the key for the texture that can be later used to remove it
+     */
+    QString addTextureLayer(GeoSceneTextureTileDataset *texture);
+
+    /**
+     * @brief Removes texture sublayer identified by a key.
+     *        Deletes the texture object. Does nothing if key is not found.
+     * @param A key to identify the texture, returned from addTextureLayer
+     */
+    void removeTextureLayer(const QString &key);
 
     bool showSunShading() const;
     bool showCityLights() const;
@@ -63,23 +80,23 @@ class MARBLE_EXPORT TextureLayer : public QObject, public LayerInterface
 
     QSize tileSize() const;
 
-    GeoSceneTiled::Projection tileProjection() const;
+    const GeoSceneAbstractTileProjection *tileProjection() const;
 
     int tileColumnCount( int level ) const;
     int tileRowCount( int level ) const;
 
-    qint64 volatileCacheLimit() const;
+    quint64 volatileCacheLimit() const;
 
     int preferredRadiusCeil( int radius ) const;
     int preferredRadiusFloor( int radius ) const;
 
-    RenderState renderState() const;
+    RenderState renderState() const override;
 
-    virtual QString runtimeTrace() const;
+    QString runtimeTrace() const override;
 
-    virtual bool render( GeoPainter *painter, ViewportParams *viewport,
+    bool render( GeoPainter *painter, ViewportParams *viewport,
                          const QString &renderPos = QLatin1String("NONE"),
-                         GeoSceneLayer *layer = 0 );
+                         GeoSceneLayer *layer = 0 ) override;
 
 public Q_SLOTS:
     void setShowRelief( bool show );
@@ -98,7 +115,7 @@ public Q_SLOTS:
 
     void setNeedsUpdate();
 
-    void setMapTheme( const QVector<const GeoSceneTextureTile *> &textures, const GeoSceneGroup *textureLayerSettings, const QString &seaFile, const QString &landFile );
+    void setMapTheme( const QVector<const GeoSceneTextureTileDataset *> &textures, const GeoSceneGroup *textureLayerSettings, const QString &seaFile, const QString &landFile );
 
     void setVolatileCacheLimit( quint64 kilobytes );
 
@@ -116,8 +133,8 @@ public Q_SLOTS:
     Q_PRIVATE_SLOT( d, void requestDelayedRepaint() )
     Q_PRIVATE_SLOT( d, void updateTextureLayers() )
     Q_PRIVATE_SLOT( d, void updateTile( const TileId &tileId, const QImage &tileImage ) )
-    Q_PRIVATE_SLOT( d, void addGroundOverlays( QModelIndex parent, int first, int last ) )
-    Q_PRIVATE_SLOT( d, void removeGroundOverlays( QModelIndex parent, int first, int last ) )
+    Q_PRIVATE_SLOT( d, void addGroundOverlays( const QModelIndex& parent, int first, int last ) )
+    Q_PRIVATE_SLOT( d, void removeGroundOverlays( const QModelIndex& parent, int first, int last ) )
     Q_PRIVATE_SLOT( d, void resetGroundOverlaysCache() )
 
  private:

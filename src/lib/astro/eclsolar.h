@@ -75,7 +75,7 @@ class ASTROLIB_EXPORT EclSolar     // Calculate Solar Eclipses
     void moonph();  // calculate phases of the Moon
     void eclStart();   // initialize detailed calcs for selected eclipse
     static double getlocmag(double jd, double ep2, double phi, double lamda,
-                     double height, Vec3 rs, Vec3 rm, int& totflg);
+                     double height, const Vec3& rs, const Vec3& rm, int& totflg);
     static int iscrs(double vrc0, double vrc1, double dpn,
                            double& vrx0, double& vrx1, double& vrx20, double& vrx21);
     void InitBound(); // initialize boundary calcs
@@ -118,7 +118,7 @@ class ASTROLIB_EXPORT EclSolar     // Calculate Solar Eclipses
       int eb_lastyear;   // last year for which moon phases were calculated
       double eb_lasttz;  // last used timezone
       double eb_lastdlt; // last delta-t used
-      int eb_cstep;   // step width in minutes used for central eclipse output
+      double eb_cstep;   // step width in minutes used for central eclipse output
       double eb_eclmjd [GBL_ECLBUF];  // the MJD's of the middle of the eclipses
       double eb_magnitude [GBL_ECLBUF];   // magnitude of respective eclipse
       int eb_phase [GBL_ECLBUF];    // phase of the eclipse. 0 if no eclipse,

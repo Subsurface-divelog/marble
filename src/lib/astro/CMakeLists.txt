@@ -3,11 +3,10 @@ PROJECT(astro)
 INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}
  ${CMAKE_CURRENT_BINARY_DIR}
- ${QT_INCLUDE_DIR}
 )
 
-SET(GENERIC_LIB_VERSION "0.17.20")
-SET(GENERIC_LIB_SOVERSION "1")
+set(ASTRO_LIB_VERSION "0.17.20")
+set(ASTRO_LIB_SOVERSION "1")
 
 ADD_DEFINITIONS(-O3)
 
@@ -21,6 +20,8 @@ SET(astrolib_SRCS
 )
 
 ADD_LIBRARY(astro SHARED ${astrolib_SRCS})
+generate_export_header(astro BASE_NAME astrolib)
+target_include_directories(astro PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if (APPLE)
   #defined in top level makefile
@@ -35,45 +36,74 @@ if(WIN32)
   TARGET_LINK_LIBRARIES(astro ws2_32 imm32 winmm)
 endif(WIN32)
 
+set_target_properties(astro PROPERTIES
+    EXPORT_NAME "Astro"
+    VERSION ${ASTRO_LIB_VERSION}
+    SOVERSION ${ASTRO_LIB_SOVERSION}
+)
 
-SET_TARGET_PROPERTIES(astro PROPERTIES
-  VERSION ${GENERIC_LIB_VERSION}
-  SOVERSION ${GENERIC_LIB_SOVERSION}
-  DEFINE_SYMBOL MAKE_ASTRO_LIB            # needed for astrolib_export.h
-  )
+target_include_directories(astro
+    INTERFACE "$<INSTALL_INTERFACE:${INCLUDE_INSTALL_DIR}>"
+)
 
 # choose the correct target install library path
-if(WIN32 AND QTONLY)
-  INSTALL(TARGETS astro RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX})
-else(WIN32 AND QTONLY)
-  if(APPLE AND QTONLY)
-    INSTALL(TARGETS astro LIBRARY DESTINATION
-      ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/lib)
+if(WIN32)
+  INSTALL(TARGETS astro RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX} ARCHIVE DESTINATION lib)
+elseif(APPLE)
+  INSTALL(TARGETS astro LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/lib)
+else()
+  install(TARGETS astro
+    EXPORT AstroTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+endif()
 
-  else(APPLE AND QTONLY)
-    if(QTONLY)
-      INSTALL(TARGETS astro LIBRARY DESTINATION
-        ${EXEC_INSTALL_PREFIX}/lib${LIB_SUFFIX})
-    else(QTONLY)
-      INSTALL(TARGETS astro ${INSTALL_TARGETS_DEFAULT_ARGS})
-    endif(QTONLY)
-  endif(APPLE AND QTONLY)
-endif(WIN32 AND QTONLY)
+########### install headers & cmake config files ###############
 
-########### install files ###############
+if (WIN32 OR APPLE)
+    # TODO: find how to install & deploy library, headers and config files as bundle for development
+    return()
+endif()
 
-if (APPLE AND QTONLY)
-  # do nothing because we don't put .h files in the bundle
-else (APPLE AND QTONLY)
-  INSTALL(FILES
+
+ INSTALL(FILES
     astrolib.h
     astr2lib.h
     attlib.h
     eclsolar.h
     planetarySats.h
     solarsystem.h
-    astrolib_export.h
+    ${CMAKE_CURRENT_BINARY_DIR}/astrolib_export.h
 
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/include/astro
+    DESTINATION ${INCLUDE_INSTALL_DIR}/astro
 )
-endif (APPLE AND QTONLY)
+
+########### CMake Config files ###############
+
+include(CMakePackageConfigHelpers)
+
+set(ASTRO_CMAKECONFIGNAME Astro)
+set(ASTRO_INSTALL_CMAKECONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${ASTRO_CMAKECONFIGNAME})
+
+configure_package_config_file(AstroConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${ASTRO_CMAKECONFIGNAME}Config.cmake
+    INSTALL_DESTINATION ${ASTRO_INSTALL_CMAKECONFIGDIR}
+)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${ASTRO_CMAKECONFIGNAME}ConfigVersion.cmake
+    VERSION ${ASTRO_LIB_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${ASTRO_CMAKECONFIGNAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${ASTRO_CMAKECONFIGNAME}ConfigVersion.cmake
+
+    DESTINATION ${ASTRO_INSTALL_CMAKECONFIGDIR}
+)
+
+install(
+    EXPORT AstroTargets
+    FILE ${ASTRO_CMAKECONFIGNAME}Targets.cmake
+    DESTINATION ${ASTRO_INSTALL_CMAKECONFIGDIR}
+)

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "KmlColorStyleTagWriter.h"
@@ -31,7 +31,7 @@ bool KmlColorStyleTagWriter::write( const Marble::GeoNode *node, GeoWriter &writ
 
     if ( colorStyle->id().isEmpty() &&
          colorStyle->targetId().isEmpty() &&
-         colorStyle->color() == QColor( Qt::white ) &&
+         colorStyle->color() == defaultColor() &&
          colorStyle->colorMode() == GeoDataColorStyle::Normal &&
          isEmpty( node ) ) {
         return true;
@@ -40,7 +40,7 @@ bool KmlColorStyleTagWriter::write( const Marble::GeoNode *node, GeoWriter &writ
     writer.writeStartElement( m_elementName );
 
     KmlObjectTagWriter::writeIdentifiers( writer, colorStyle);
-    writer.writeOptionalElement( kml::kmlTag_color, formatColor( colorStyle->color() ), "ffffffff" );
+    writer.writeOptionalElement( kml::kmlTag_color, formatColor( colorStyle->color() ), formatColor( defaultColor() ) );
     QString const colorMode = colorStyle->colorMode() == GeoDataColorStyle::Random ? "random" : "normal";
     writer.writeOptionalElement( kml::kmlTag_colorMode, colorMode, "normal" );
 
@@ -51,12 +51,17 @@ bool KmlColorStyleTagWriter::write( const Marble::GeoNode *node, GeoWriter &writ
 
 QString KmlColorStyleTagWriter::formatColor( const QColor &color )
 {
-    QChar const fill = QChar( '0' );
+    QChar const fill = QLatin1Char('0');
     return QString( "%1%2%3%4" )
                  .arg( color.alpha(), 2, 16, fill )
                  .arg( color.blue(), 2, 16, fill )
                  .arg( color.green(), 2, 16, fill )
                  .arg( color.red(), 2, 16, fill );
+}
+
+QColor KmlColorStyleTagWriter::defaultColor() const
+{
+    return QColor( Qt::white );
 }
 
 }

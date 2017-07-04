@@ -14,13 +14,14 @@
 #include "MarbleGraphicsItem.h"
 #include "marble_export.h"
 
-#include <QList>
-#include <QPointF>
+#include <Qt>
 
-#include "GeoDataCoordinates.h"
+class QPointF;
 
 namespace Marble
 {
+class GeoDataCoordinates;
+class BillboardGraphicsItemPrivate;
 
 /**
  * @brief Base class for all 2D labels (a.k.a. billboards) in 3D space.
@@ -47,13 +48,15 @@ class MARBLE_EXPORT BillboardGraphicsItem : public MarbleGraphicsItem
      * based on the viewport of the last paintEvent(). Note that the result list may contain
      * an unbound number of elements, including zero, depending on the item's visibility,
      * the projection and zoom level.
+     * @since 0.26.0
      */
-    QList<QPointF> positions() const;
+    QVector<QPointF> positions() const;
 
     /**
      * @brief Returns the absolute screen bounding boxes of the item.
+     * @since 0.26.0
      */
-    QList<QRectF> boundingRects() const;
+    QVector<QRectF> boundingRects() const;
 
     /**
      * Returns the rect of one representation of the object that is at the given position.
@@ -61,9 +64,7 @@ class MARBLE_EXPORT BillboardGraphicsItem : public MarbleGraphicsItem
     QRectF containsRect( const QPointF &point ) const;
 
  private:
-    class Private;
-    Private *p();
-    const Private *p() const;
+    Q_DECLARE_PRIVATE(BillboardGraphicsItem)
 };
 
 } // Marble namespace

@@ -17,7 +17,6 @@
 
 #include "WaitEditWidget.h"
 #include "MarblePlacemarkModel.h"
-#include "GeoDataTypes.h"
 #include "GeoDataTourControl.h"
 #include "geodata/data/GeoDataWait.h"
 
@@ -34,7 +33,7 @@ WaitEditWidget::WaitEditWidget( const QModelIndex &index, QWidget *parent ) :
     layout->setSpacing( 5 );
 
     QLabel* iconLabel = new QLabel;
-    iconLabel->setPixmap( QPixmap( ":/marble/audio-x-generic.png" ) );
+    iconLabel->setPixmap(QPixmap(QStringLiteral(":/marble/player-time.png")));
     layout->addWidget( iconLabel );
 
     QLabel *waitLabel = new QLabel;
@@ -45,7 +44,7 @@ WaitEditWidget::WaitEditWidget( const QModelIndex &index, QWidget *parent ) :
     m_spinBox->setValue( waitElement()->duration() );
     m_spinBox->setSuffix( tr(" s", "seconds") );
 
-    m_button->setIcon( QIcon( ":/marble/document-save.png" ) );
+    m_button->setIcon(QIcon(QStringLiteral(":/marble/document-save.png")));
     connect(m_button, SIGNAL(clicked()), this, SLOT(save()));
     layout->addWidget( m_button );
 
@@ -72,10 +71,11 @@ GeoDataWait* WaitEditWidget::waitElement()
 {
     GeoDataObject *object = qvariant_cast<GeoDataObject*>(m_index.data( MarblePlacemarkModel::ObjectPointerRole ) );
     Q_ASSERT( object );
-    Q_ASSERT( object->nodeType() == GeoDataTypes::GeoDataWaitType );
-    return static_cast<GeoDataWait*>( object );
+    auto wait = geodata_cast<GeoDataWait>(object);
+    Q_ASSERT(wait);
+    return wait;
 }
 
 } // namespace Marble
 
-#include "WaitEditWidget.moc"
+#include "moc_WaitEditWidget.cpp"

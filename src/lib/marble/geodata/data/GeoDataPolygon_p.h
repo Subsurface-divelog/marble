@@ -13,7 +13,7 @@
 
 #include "GeoDataGeometry_p.h"
 
-#include "GeoDataTypes.h"
+#include "GeoDataLinearRing.h"
 
 namespace Marble
 {
@@ -23,7 +23,8 @@ class GeoDataPolygonPrivate : public GeoDataGeometryPrivate
   public:
      explicit GeoDataPolygonPrivate( TessellationFlags f )
          : m_dirtyBox( true ),
-           m_tessellationFlags( f )
+           m_tessellationFlags(f),
+           m_renderOrder(0)
     {
     }
 
@@ -32,21 +33,11 @@ class GeoDataPolygonPrivate : public GeoDataGeometryPrivate
     {
     }
 
-    virtual GeoDataGeometryPrivate* copy()
+    GeoDataGeometryPrivate *copy() const override
     { 
          GeoDataPolygonPrivate* copy = new  GeoDataPolygonPrivate;
         *copy = *this;
         return copy;
-    }
-
-    virtual const char* nodeType() const
-    {
-        return GeoDataTypes::GeoDataPolygonType;
-    }
-
-    virtual EnumGeometryId geometryId() const
-    {
-        return GeoDataPolygonId;
     }
 
     GeoDataLinearRing           outer;
@@ -55,6 +46,7 @@ class GeoDataPolygonPrivate : public GeoDataGeometryPrivate
                                             // GeoDataPoints since the LatLonAltBox has 
                                             // been calculated. Saves performance. 
     TessellationFlags           m_tessellationFlags;
+    int                         m_renderOrder;
 };
 
 } // namespace Marble

@@ -16,25 +16,27 @@
 #ifndef MARBLE_MERGEDLAYERDECORATOR_H
 #define MARBLE_MERGEDLAYERDECORATOR_H
 
-#include <QSize>
 #include <QVector>
 #include <QList>
 
-#include "GeoSceneTextureTile.h"
-#include "RenderState.h"
+#include "MarbleGlobal.h"
 
 class QImage;
 class QString;
+class QSize;
 
 namespace Marble
 {
 
 class GeoDataGroundOverlay;
+class GeoSceneAbstractTileProjection;
+class GeoSceneTextureTileDataset;
 class SunLocator;
 class StackedTile;
 class Tile;
 class TileId;
 class TileLoader;
+class RenderState;
 
 class MergedLayerDecorator
 {
@@ -42,7 +44,7 @@ class MergedLayerDecorator
     MergedLayerDecorator( TileLoader * const tileLoader, const SunLocator* sunLocator );
     virtual ~MergedLayerDecorator();
 
-    void setTextureLayers( const QVector<const GeoSceneTextureTile *> &textureLayers );
+    void setTextureLayers( const QVector<const GeoSceneTextureTileDataset *> &textureLayers );
     void updateGroundOverlays( const QList<const GeoDataGroundOverlay *> &groundOverlays );
 
     int textureLayersSize() const;
@@ -57,7 +59,7 @@ class MergedLayerDecorator
 
     int tileRowCount( int level ) const;
 
-    GeoSceneTextureTile::Projection tileProjection() const;
+    const GeoSceneAbstractTileProjection *tileProjection() const;
 
     QSize tileSize() const;
 
@@ -76,6 +78,8 @@ class MergedLayerDecorator
     void setShowTileId(bool show);
 
     RenderState renderState( const TileId &stackedTileId ) const;
+
+    bool hasTextureLayer() const;
 
  protected:
     Q_DISABLE_COPY( MergedLayerDecorator )

@@ -16,20 +16,22 @@
 
 #include "LayerInterface.h"
 
+#include <QString>
+
 namespace Marble
 {
 
 class FogLayer : public LayerInterface
 {
 public:
-    virtual QStringList renderPosition() const;
+    QStringList renderPosition() const override;
 
-    virtual bool render( GeoPainter *painter, ViewportParams *viewport,
+    bool render( GeoPainter *painter, ViewportParams *viewport,
                          const QString& renderPos = QLatin1String("NONE"),
-                         GeoSceneLayer * layer = 0 );
+                         GeoSceneLayer * layer = 0 ) override;
 
-    RenderState renderState() const;
-    virtual QString runtimeTrace() const { return "FogLayer"; }
+    RenderState renderState() const override;
+    QString runtimeTrace() const override { return QStringLiteral("FogLayer"); }
 };
 
 }

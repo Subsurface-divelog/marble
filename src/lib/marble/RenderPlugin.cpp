@@ -19,6 +19,7 @@
 #include "MarbleModel.h"
 #include "MarbleDebug.h"
 #include "RenderPluginModel.h"
+#include "RenderState.h"
 
 // Qt
 #include <QAction>
@@ -28,7 +29,7 @@
 namespace Marble
 {
 
-class RenderPlugin::Private
+class Q_DECL_HIDDEN RenderPlugin::Private
 {
   public:
     Private( const MarbleModel *marbleModel )
@@ -60,14 +61,14 @@ class RenderPlugin::Private
 RenderPlugin::RenderPlugin( const MarbleModel *marbleModel )
     : d( new Private( marbleModel ) )
 {
-    connect( &d->m_action, SIGNAL( toggled( bool ) ),
-             this,         SLOT( setVisible( bool ) ) );
-    connect( this,         SIGNAL( visibilityChanged( bool, const QString & ) ),
-             &d->m_action, SLOT( setChecked( bool ) ) );
-    connect( this,         SIGNAL( enabledChanged( bool ) ),
-             &d->m_action, SLOT( setVisible( bool ) ) );
-    connect( this,         SIGNAL( enabledChanged( bool ) ),
-                           SIGNAL( actionGroupsChanged() ) );
+    connect( &d->m_action, SIGNAL(toggled(bool)),
+             this,         SLOT(setVisible(bool)) );
+    connect( this,         SIGNAL(visibilityChanged(bool,QString)),
+             &d->m_action, SLOT(setChecked(bool)) );
+    connect( this,         SIGNAL(enabledChanged(bool)),
+             &d->m_action, SLOT(setVisible(bool)) );
+    connect( this,         SIGNAL(enabledChanged(bool)),
+                           SIGNAL(actionGroupsChanged()) );
 
     connect( this, SIGNAL(visibilityChanged(bool,QString)),
              this, SIGNAL(repaintNeeded()) );
@@ -186,16 +187,16 @@ QHash<QString,QVariant> RenderPlugin::settings() const
 {
     QHash<QString,QVariant> result;
 
-    result.insert( "enabled", enabled() );
-    result.insert( "visible", visible() );
+    result.insert(QStringLiteral("enabled"), enabled());
+    result.insert(QStringLiteral("visible"), visible());
 
     return result;
 }
 
 void RenderPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
-    setEnabled( settings.value( "enabled", enabled() ).toBool() );
-    setVisible( settings.value( "visible", visible() ).toBool() );
+    setEnabled(settings.value(QStringLiteral("enabled"), enabled()).toBool());
+    setVisible(settings.value(QStringLiteral("visible"), visible()).toBool());
 }
 
 RenderPlugin::RenderType RenderPlugin::renderType() const
@@ -231,7 +232,7 @@ QStringList RenderPlugin::settingKeys() const
 bool RenderPlugin::setSetting( const QString & key, const QVariant & value )
 {
     QHash< QString, QVariant> settings = this->settings();
-    if( settings.contains( key ) && settings.value( key ).type() == value.type() )
+    if( settings.contains( key ) )
     {
         settings [ key ] = value;
         setSettings( settings );
@@ -248,4 +249,4 @@ QVariant RenderPlugin::setting( const QString & name ) const
 
 } // namespace Marble
 
-#include "RenderPlugin.moc"
+#include "moc_RenderPlugin.cpp"

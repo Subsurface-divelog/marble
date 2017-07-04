@@ -24,18 +24,19 @@ KML_DEFINE_TAG_HANDLER( displayMode )
 
 GeoNode* KmldisplayModeTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_displayMode ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_displayMode)));
 
     GeoStackItem parentItem = parser.parentElement();
 
     if ( parentItem.represents( kmlTag_BalloonStyle ) )
     {
         QString mode = parser.readElementText().trimmed();
-        GeoDataBalloonStyle::DisplayMode displayMode;
-        if ( mode == "default" )
+        GeoDataBalloonStyle::DisplayMode displayMode = GeoDataBalloonStyle::Default;
+        if (mode == QLatin1String("default")) {
                 displayMode = GeoDataBalloonStyle::Default;
-        else if ( mode == "hide" )
+        } else if (mode == QLatin1String("hide")) {
                 displayMode = GeoDataBalloonStyle::Hide;
+        }
 
         parentItem.nodeAs<GeoDataBalloonStyle>()->setDisplayMode( displayMode );
     }

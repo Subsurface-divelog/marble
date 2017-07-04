@@ -13,25 +13,25 @@
 //
 
 #include <MarbleAbstractPresenter.h>
-#if QT_VERSION >= 0x050000
-    #include <QtMath>
-#else
-    #include <qmath.h>
-#endif
+#include <QtMath>
 #include <Quaternion.h>
 #include <ViewportParams.h>
 #include <MarbleLocale.h>
+#include "MarbleMap.h"
+#include "MarbleModel.h"
 #include <Planet.h>
+#include "GeoDataGeometry.h"
+#include "GeoDataLatLonAltBox.h"
 #include <GeoDataPlacemark.h>
+#include <GeoDataLookAt.h>
 #include <MarbleClock.h>
 #include <MarbleDebug.h>
 
 namespace Marble
 {
-    MarbleAbstractPresenter::MarbleAbstractPresenter() :
-        QObject()
-        ,m_model()
-        ,m_map(&m_model)
+    MarbleAbstractPresenter::MarbleAbstractPresenter(MarbleMap *map, QObject *parent) :
+        QObject(parent)
+        ,m_map(map)
         ,m_physics(this)
         ,m_animationsEnabled(false)
         ,m_logzoom(0)
@@ -90,8 +90,6 @@ namespace Marble
 
                 emit zoomChanged(m_logzoom);
                 emit distanceChanged(distanceString());
-
-                emit updateRequired();
             }
         }
         else
@@ -111,7 +109,7 @@ namespace Marble
                                   convertedDistance, unit);
         QString unitString = locale->unitAbbreviation(unit);
 
-        return QString("%L1 %2").arg(convertedDistance, 8, 'f', 1, QChar(' '))
+        return QString("%L1 %2").arg(convertedDistance, 8, 'f', 1, QLatin1Char(' '))
                                 .arg(unitString);
     }
 
@@ -194,7 +192,6 @@ namespace Marble
 
             emit zoomChanged(m_logzoom);
             emit distanceChanged(distanceString());
-            emit updateRequired();
         }
         else
         {
@@ -222,8 +219,8 @@ namespace Marble
         }
         else
         {
-            int radiusVal = map()->preferredRadiusCeil(map()->radius() * 1.05);
-            radiusVal = qMax<int>(radius(minimumZoom()), qMin<int>(radiusVal, radius(maximumZoom())));
+            qreal radiusVal = map()->preferredRadiusCeil(map()->radius() / 0.95);
+            radiusVal = qBound( radius(minimumZoom()), radiusVal, radius(maximumZoom()) );
 
             GeoDataLookAt target = lookAt();
             target.setRange(KM2METER * distanceFromRadius(radiusVal));
@@ -240,8 +237,8 @@ namespace Marble
         }
         else
         {
-            int radiusVal = map()->preferredRadiusFloor(map()->radius() * 0.95);
-            radiusVal = qMax<int>(radius(minimumZoom()), qMin<int>(radiusVal, radius(maximumZoom())));
+            qreal radiusVal = map()->preferredRadiusFloor(map()->radius() * 0.95);
+            radiusVal = qBound( radius(minimumZoom()), radiusVal, radius(maximumZoom()) );
 
             GeoDataLookAt target = lookAt();
             target.setRange(KM2METER * distanceFromRadius(radiusVal));
@@ -249,6 +246,21 @@ namespace Marble
             flyTo(target, mode);
         }
     }
+
+    void MarbleAbstractPresenter::zoomAtBy(const QPoint &pos, int zoomStep)
+        {
+            qreal radiusVal;
+            if (map()->tileZoomLevel() <= 0) {
+                radiusVal = radius(zoom() + zoomStep);
+            } else {
+
+                radiusVal = zoomStep > 0 ? map()->preferredRadiusCeil(map()->radius() / 0.95) :
+                                           map()->preferredRadiusFloor(map()->radius() * 0.95);
+                radiusVal = qBound( radius(minimumZoom()), radiusVal, radius(maximumZoom()) );
+            }
+
+            zoomAt(pos, distanceFromRadius(radiusVal));
+        }
 
     qreal MarbleAbstractPresenter::distanceFromZoom(qreal zoom) const
     {
@@ -326,7 +338,6 @@ namespace Marble
 
             emit zoomChanged(m_logzoom);
             emit distanceChanged(distanceString());
-            emit updateRequired();
         }
     }
 
@@ -456,6 +467,11 @@ namespace Marble
         }
     }
 
+    void MarbleAbstractPresenter::headingOn(qreal heading)
+    {
+        map()->setHeading(heading);
+    }
+
     void MarbleAbstractPresenter::setCenterLatitude(qreal lat, FlyToMode mode)
     {
         centerOn(centerLongitude(), lat, mode);
@@ -483,19 +499,7 @@ namespace Marble
 
     void MarbleAbstractPresenter::setViewContext(ViewContext viewContext)
     {
-        if (map()->viewContext() != viewContext)
-        {
-            const MapQuality oldQuality = map()->mapQuality();
-            map()->setViewContext(viewContext);
-
-            //TODO - set view context for routing layer
-            //m_routingLayer->setViewContext( viewContext );
-
-            if (map()->mapQuality() != oldQuality)
-            {
-                emit updateRequired();
-            }
-        }
+        map()->setViewContext(viewContext);
     }
 
     bool MarbleAbstractPresenter::animationsEnabled() const
@@ -530,22 +534,22 @@ namespace Marble
 
     MarbleMap* MarbleAbstractPresenter::map()
     {
-        return &m_map;
+        return m_map;
     }
 
     const MarbleMap* MarbleAbstractPresenter::map() const
     {
-        return &m_map;
+        return m_map;
     }
 
     MarbleModel* MarbleAbstractPresenter::model()
     {
-        return &m_model;
+        return m_map->model();
     }
 
     const MarbleModel* MarbleAbstractPresenter::model() const
     {
-        return &m_model;
+        return m_map->model();
     }
 
     ViewportParams* MarbleAbstractPresenter::viewport()
@@ -595,5 +599,5 @@ namespace Marble
 
 }
 
-#include "MarbleAbstractPresenter.moc"
+#include "moc_MarbleAbstractPresenter.cpp"
 

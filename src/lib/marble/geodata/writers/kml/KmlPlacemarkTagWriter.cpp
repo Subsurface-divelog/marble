@@ -15,6 +15,7 @@
 #include "GeoDataExtendedData.h"
 #include "GeoDataTimeStamp.h"
 #include "GeoDataTypes.h"
+#include "GeoDataPolygon.h"
 #include "GeoWriter.h"
 #include "GeoDataStyle.h"
 
@@ -34,7 +35,7 @@ bool KmlPlacemarkTagWriter::writeMid( const GeoNode *node, GeoWriter& writer ) c
 
     writer.writeOptionalElement( kml::kmlTag_styleUrl, placemark->styleUrl() );
     if ( placemark->styleUrl().isEmpty() && placemark->customStyle() ) {
-        writeElement( placemark->customStyle(), writer );
+        writeElement( placemark->customStyle().data(), writer );
     }
 
     if( placemark->geometry() ) {

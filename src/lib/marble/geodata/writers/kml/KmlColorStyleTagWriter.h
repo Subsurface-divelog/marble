@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_KMLCOLORSTYLETAGWRITER_H
@@ -24,7 +24,7 @@ class KmlColorStyleTagWriter: public GeoTagWriter
 public:
     explicit KmlColorStyleTagWriter( const QString &elementName );
 
-    bool write( const GeoNode *node, GeoWriter& writer ) const;
+    bool write( const GeoNode *node, GeoWriter& writer ) const override;
 
     static QString formatColor( const QColor &color );
 
@@ -33,6 +33,9 @@ protected:
 
     /** Returns true iff all properties have a default value */
     virtual bool isEmpty( const GeoNode *node ) const = 0;
+
+    /** Returns the default color **/
+    virtual QColor defaultColor() const;
 
 private:
     QString const m_elementName;

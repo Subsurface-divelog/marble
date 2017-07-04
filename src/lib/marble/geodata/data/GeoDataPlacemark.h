@@ -15,24 +15,23 @@
 #define MARBLE_GEODATAPLACEMARK_H
 
 
-#include <QChar>
 #include <QDateTime>
-#include <QXmlStreamWriter>
 
-#include "GeoDataPoint.h"
-#include "GeoDataLineString.h"
-#include "GeoDataLinearRing.h"
-#include "GeoDataLookAt.h"
-#include "GeoDataPolygon.h"
-#include "GeoDataMultiGeometry.h"
+#include "GeoDataCoordinates.h"
 #include "GeoDataFeature.h"
 
 #include "geodata_export.h"
+
+class QXmlStreamWriter;
 
 namespace Marble
 {
 
 class GeoDataPlacemarkPrivate;
+class OsmPlacemarkData;
+class GeoDataLookAt;
+class GeoDataPolygon;
+class GeoDataGeometry;
 
 /**
  * @short a class representing a point of interest on the map
@@ -72,7 +71,7 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
     /**
     * Delete the placemark
     */
-    ~GeoDataPlacemark();
+    ~GeoDataPlacemark() override;
 
     GeoDataPlacemark &operator=( const GeoDataPlacemark &other );
 
@@ -81,6 +80,456 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
     */
     bool operator==( const GeoDataPlacemark& other ) const;
     bool operator!=( const GeoDataPlacemark& other ) const;
+
+    const char* nodeType() const override;
+
+    GeoDataFeature * clone() const override;
+
+    /**
+     * @brief  A categorization of a placemark as defined by ...FIXME.
+     * There is an additional osm tag mapping to GeoDataVisualCategory
+     * in OsmPlacemarkData
+     */
+    enum GeoDataVisualCategory {
+        None,
+        Default,
+        Unknown,
+
+        // The order of the cities needs to stay fixed as the
+        // algorithms rely on that.
+        SmallCity,
+        SmallCountyCapital,
+        SmallStateCapital,
+        SmallNationCapital,
+        MediumCity,
+        MediumCountyCapital,
+        MediumStateCapital,
+        MediumNationCapital,
+        BigCity,
+        BigCountyCapital,
+        BigStateCapital,
+        BigNationCapital,
+        LargeCity,
+        LargeCountyCapital,
+        LargeStateCapital,
+        LargeNationCapital,
+        Nation,
+
+        // Terrain
+        Mountain,
+        Volcano,
+        Mons,                    // m
+        Valley,                  // v
+        Continent,
+        Ocean,
+        OtherTerrain,            // o
+
+        // Space Terrain
+        Crater,                  // c
+        Mare,                    // a
+
+        // Places of Interest
+        GeographicPole,
+        MagneticPole,
+        ShipWreck,
+        AirPort,
+        Observatory,
+
+        // Military
+        MilitaryDangerArea,
+
+        // Runners
+        OsmSite,
+        Coordinate,
+
+        // Planets
+        MannedLandingSite,       // h
+        RoboticRover,            // r
+        UnmannedSoftLandingSite, // u
+        UnmannedHardLandingSite, // i
+
+        Bookmark,
+
+        Satellite,
+
+        /*
+         * Start of OpenStreetMap categories
+         */
+
+        PlaceCity, // please keep order (used in for loops)
+        PlaceCityCapital,
+        PlaceCityNationalCapital,
+        PlaceSuburb,
+        PlaceHamlet,
+        PlaceLocality,
+        PlaceTown,
+        PlaceTownCapital,
+        PlaceTownNationalCapital,
+        PlaceVillage,
+        PlaceVillageCapital,
+        PlaceVillageNationalCapital, // please keep order (used in for loops)
+
+        NaturalWater,
+        NaturalReef,
+        NaturalWood,
+        NaturalBeach,
+        NaturalWetland,
+        NaturalGlacier,
+        NaturalIceShelf,
+        NaturalScrub,
+        NaturalCliff,
+        NaturalHeath,
+
+        HighwayTrafficSignals,
+        HighwayElevator,
+
+        // OpenStreetMap highways
+        HighwaySteps, // please keep order (used in for loops)
+        HighwayUnknown,
+        HighwayPath,
+        HighwayFootway,
+        HighwayTrack,
+        HighwayPedestrian,
+        HighwayCorridor,
+        HighwayCycleway,
+        HighwayService,
+        HighwayRoad,
+        HighwayResidential,
+        HighwayLivingStreet,
+        HighwayUnclassified,
+        HighwayTertiaryLink,
+        HighwayTertiary,
+        HighwaySecondaryLink,
+        HighwaySecondary,
+        HighwayPrimaryLink,
+        HighwayPrimary,
+        HighwayRaceway,
+        HighwayTrunkLink,
+        HighwayTrunk,
+        HighwayMotorwayLink,
+        HighwayMotorway, // please keep order (used in for loops)
+
+        //OSM building
+        Building,
+
+        // OpenStreetMap category Accomodation
+        AccomodationCamping,
+        AccomodationHostel,
+        AccomodationHotel,
+        AccomodationMotel,
+        AccomodationYouthHostel,
+        AccomodationGuestHouse,
+
+        // OpenStreetMap category Education
+        EducationCollege,
+        EducationSchool,
+        EducationUniversity,
+
+        // OpenStreetMap category Food
+        FoodBar,
+        FoodBiergarten,
+        FoodCafe,
+        FoodFastFood,
+        FoodPub,
+        FoodRestaurant,
+
+        // OpenStreetMap category Health
+        HealthDentist,
+        HealthDoctors,
+        HealthHospital,
+        HealthPharmacy,
+        HealthVeterinary,
+
+        // OpenStreetMap category Money
+        MoneyAtm,
+        MoneyBank,
+
+        // OpenStreetMap category Amenity
+        AmenityLibrary,
+        AmenityKindergarten, ///< @since 0.26.0
+        AmenityEmbassy,
+        AmenityEmergencyPhone,
+        AmenityMountainRescue,
+        AmenityCommunityCentre,
+        AmenityCinema,
+        AmenityFountain,
+        AmenityNightClub,
+        AmenityBench,
+        AmenityCourtHouse,
+        AmenityFireStation,
+        AmenityHuntingStand,
+        AmenityPolice,
+        AmenityPostBox,
+        AmenityPostOffice,
+        AmenityPrison,
+        AmenityRecycling,
+        AmenityShelter, ///< @since 0.26.0
+        AmenityTelephone,
+        AmenityTheatre,
+        AmenityToilets,
+        AmenityTownHall,
+        AmenityWasteBasket,
+        AmenityDrinkingWater,
+        AmenityGraveyard,
+        AmenityChargingStation,
+        AmenityCarWash,
+        AmenitySocialFacility,
+
+        // OpenStreetMap category Barrier
+        BarrierCityWall,
+        BarrierGate,
+        BarrierLiftGate,
+        BarrierWall,
+
+        NaturalPeak,
+        NaturalVolcano,
+        NaturalTree,
+        NaturalCave,
+
+        // OpenStreetMap category Shopping
+        ShopBeverages, // please keep order (used in for loops)
+        ShopHifi,
+        ShopSupermarket,
+        ShopAlcohol,
+        ShopBakery,
+        ShopButcher,
+        ShopConfectionery,
+        ShopConvenience,
+        ShopGreengrocer,
+        ShopSeafood,
+        ShopDepartmentStore,
+        ShopKiosk,
+        ShopBag,
+        ShopClothes,
+        ShopFashion,
+        ShopJewelry,
+        ShopShoes,
+        ShopVarietyStore,
+        ShopBeauty,
+        ShopChemist,
+        ShopCosmetics,
+        ShopHairdresser,
+        ShopOptician,
+        ShopPerfumery,
+        ShopDoitYourself,
+        ShopFlorist,
+        ShopHardware,
+        ShopFurniture,
+        ShopElectronics,
+        ShopMobilePhone,
+        ShopBicycle,
+        ShopCar,
+        ShopCarRepair,
+        ShopCarParts,
+        ShopMotorcycle,
+        ShopOutdoor,
+        ShopSports,
+        ShopCopy,
+        ShopArt,
+        ShopMusicalInstrument,
+        ShopPhoto,
+        ShopBook,
+        ShopGift,
+        ShopStationery,
+        ShopLaundry,
+        ShopPet,
+        ShopToys,
+        ShopTravelAgency,
+        ShopDeli,
+        ShopTobacco,
+        ShopTea,
+        Shop, // please keep order (used in for loops)
+
+        ManmadeBridge,
+        ManmadeLighthouse,
+        ManmadePier,
+        ManmadeWaterTower,
+        ManmadeWindMill,
+
+        // OpenStreetMap category Tourist
+        TourismArtwork,
+        TourismAttraction,
+        TourismInformation,
+        TourismMuseum,
+        TourismThemePark,
+        TourismViewPoint,
+        TourismZoo,
+        TourismAlpineHut,
+        TourismWildernessHut,
+
+        // OpenStreetMap category Historic
+        HistoricArchaeologicalSite,
+        HistoricCastle,
+        HistoricMemorial,
+        HistoricMonument,
+        HistoricRuins,
+
+        // OpenStreetMap category Transport
+        TransportAerodrome,
+        TransportHelipad,
+        TransportAirportTerminal,
+        TransportAirportGate, ///< @since 0.26.0
+        TransportAirportRunway, ///< @since 0.26.0
+        TransportAirportTaxiway, ///< @since 0.26.0
+        TransportAirportApron, ///< @since 0.26.0
+        TransportBusStation,
+        TransportBusStop,
+        TransportCarShare,
+        TransportFuel,
+        TransportParking,
+        TransportParkingSpace,
+        TransportPlatform,
+        TransportRentalBicycle,
+        TransportRentalCar,
+        TransportRentalSki,
+        TransportTaxiRank,
+        TransportTrainStation,
+        TransportTramStop,
+        TransportBicycleParking,
+        TransportMotorcycleParking,
+        TransportSubwayEntrance,
+        TransportSpeedCamera,
+
+        // OpenStreetMap category religion
+        ReligionPlaceOfWorship,
+        ReligionBahai,
+        ReligionBuddhist,
+        ReligionChristian,
+        ReligionMuslim,
+        ReligionHindu,
+        ReligionJain,
+        ReligionJewish,
+        ReligionShinto,
+        ReligionSikh,
+
+        // OpenStreetMap category Leisure
+        LeisureGolfCourse,
+        LeisureMarina, ///< @since 0.26.0
+        LeisureWaterPark,
+        LeisurePark,
+        LeisurePlayground,
+        LeisurePitch,
+        LeisureSportsCentre,
+        LeisureStadium,
+        LeisureTrack,
+        LeisureSwimmingPool,
+        LeisureMinigolfCourse,
+
+        LanduseAllotments,
+        LanduseBasin,
+        LanduseCemetery,
+        LanduseCommercial,
+        LanduseConstruction,
+        LanduseFarmland,
+        LanduseFarmyard,
+        LanduseGarages,
+        LanduseGrass,
+        LanduseIndustrial,
+        LanduseLandfill,
+        LanduseMeadow,
+        LanduseMilitary,
+        LanduseQuarry,
+        LanduseRailway,
+        LanduseReservoir,
+        LanduseResidential,
+        LanduseRetail,
+        LanduseOrchard,
+        LanduseVineyard,
+
+        RailwayRail, // please keep order (used in for loops)
+        RailwayNarrowGauge,
+        RailwayTram,
+        RailwayLightRail,
+        RailwayAbandoned,
+        RailwaySubway,
+        RailwayPreserved,
+        RailwayMiniature,
+        RailwayConstruction,
+        RailwayMonorail,
+        RailwayFunicular, // please keep order (used in for loops)
+
+        // OpenStreetMap category Power
+        PowerTower,
+
+        // OpenStreetMap category Aerialway
+        AerialwayStation,
+        AerialwayPylon, // node only
+        // below please keep order (used in for loops)
+        AerialwayCableCar,
+        AerialwayGondola,
+        AerialwayChairLift,
+        AerialwayMixedLift,
+        AerialwayDragLift,
+        AerialwayTBar,
+        AerialwayJBar,
+        AerialwayPlatter,
+        AerialwayRopeTow,
+        AerialwayMagicCarpet,
+        AerialwayZipLine,
+        AerialwayGoods, // please keep order (used in for loops)
+
+        // OpenStreetMap category Piste
+        PisteDownhill,
+        PisteNordic,
+        PisteSkitour,
+        PisteSled,
+        PisteHike,
+        PisteSleigh,
+        PisteIceSkate,
+        PisteSnowPark,
+        PistePlayground,
+        PisteSkiJump,
+
+        // Waterways
+        WaterwayCanal, // please keep order (used in for loops)
+        WaterwayDitch,
+        WaterwayDrain,
+        WaterwayRiver,
+        WaterwayWeir,
+        WaterwayStream, // please keep order (used in for loops)
+
+        CrossingSignals, // pedestrian vs highway crossing with traffic signals
+        CrossingIsland, // pedestrian vs highway crossing with a traffic island
+        CrossingZebra, // pedestrian vs highway zebra crossing
+        CrossingRailway, // pedestrian or highway vs railway crossing
+
+        //Admin level tags for depicting boundary
+        AdminLevel1, // please keep order (used in for loops)
+        AdminLevel2,
+        AdminLevel3,
+        AdminLevel4,
+        AdminLevel5,
+        AdminLevel6,
+        AdminLevel7,
+        AdminLevel8,
+        AdminLevel9,
+        AdminLevel10,
+        AdminLevel11, // please keep order (used in for loops)
+
+        BoundaryMaritime,
+
+        //Custom OSM Tags
+        Landmass,
+        UrbanArea,
+        InternationalDateLine,
+        Bathymetry, ///< @since 0.26.0
+
+        // Important: Make sure that this is always the last
+        // item and just use it to specify the array size
+        LastIndex
+
+    };
+
+    /**
+     * Return the symbol index of the placemark.
+     */
+    GeoDataVisualCategory visualCategory() const;
+
+    /**
+     * Sets the symbol @p index of the placemark.
+     * @param  category  the new category to be used.
+     */
+    void setVisualCategory(GeoDataVisualCategory category);
 
     /**
      * Return the coordinates of the placemark at time @p dateTime as a GeoDataCoordinates
@@ -106,10 +555,35 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
     const GeoDataGeometry* geometry() const;
 
     /**
+     * @brief displays the name of a place in the locale language of the user
+     */
+    QString displayName() const;
+
+    /**
+     * @since 0.26.0
+     */
+    QString categoryName() const;
+
+    /**
      * Return the coordinates of the placemark as @p longitude,
      * @p latitude and @p altitude.
      */
     void coordinate( qreal &longitude, qreal &latitude, qreal &altitude ) const;
+
+    /**
+      * Quick, safe accessor to the placemark's OsmPlacemarkData stored within it's
+      * ExtendedData. If the extendedData does not contain osmData, the function
+      * inserts a default-constructed one, and returns a reference to it.
+      */
+    OsmPlacemarkData &osmData();
+    const OsmPlacemarkData &osmData() const;
+
+    void setOsmData( const OsmPlacemarkData &osmData );
+    bool hasOsmData() const;
+    /**
+     * @since 0.26.0
+     */
+    void clearOsmData();
 
     /**
      * Set the coordinate of the placemark in @p longitude and
@@ -122,8 +596,6 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
     * Set the coordinate of the placemark with an @p GeoDataPoint.
     */
     void setCoordinate( const GeoDataCoordinates &coordinate );
-
-    GEODATA_DEPRECATED( void setCoordinate( const GeoDataPoint &point ) );
 
     /**
      * Sets the current Geometry of this Placemark. @see geometry() and the class 
@@ -192,7 +664,7 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
      * and is deserialised using @see unpack()
      * @param stream the QDataStream to serialise object to.
      */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
     /**
      * Serialise this Placemark to a XML stream writer @see QXmlStreamWriter in
@@ -211,7 +683,7 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
      * from @see pack()
      * @param stream the QDataStream to deserialise from.
      */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
     /**
      * Returns GeoDataLookAt object if lookAt is setup earlier
@@ -222,9 +694,10 @@ class GEODATA_EXPORT GeoDataPlacemark: public GeoDataFeature
     const GeoDataLookAt *lookAt() const;
     GeoDataLookAt *lookAt();
 
+    static bool placemarkLayoutOrderCompare(const GeoDataPlacemark *a, const GeoDataPlacemark* b);
+
  private:
-    GeoDataPlacemarkPrivate *p();
-    const GeoDataPlacemarkPrivate *p() const;
+    Q_DECLARE_PRIVATE(GeoDataPlacemark)
 };
 
 }

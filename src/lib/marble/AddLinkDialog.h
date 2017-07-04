@@ -23,12 +23,12 @@ class MARBLE_EXPORT AddLinkDialog : public QDialog
     Q_OBJECT
 
 public:
-    AddLinkDialog(QWidget *parent = 0 );
-    ~AddLinkDialog();
+    explicit AddLinkDialog(QWidget *parent = 0 );
+    ~AddLinkDialog() override;
     QString name() const;
     QString url() const;
 
-private slots:
+private Q_SLOTS:
     void checkFields();
 
 private:

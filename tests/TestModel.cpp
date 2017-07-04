@@ -13,10 +13,12 @@
 
 #include <GeoDataDocument.h>
 #include <GeoDataPlacemark.h>
+#include <GeoDataOrientation.h>
+#include <GeoDataScale.h>
 #include <MarbleDebug.h>
-#include <GeoDataFolder.h>
 #include <GeoDataModel.h>
 #include <GeoDataLink.h>
+#include <GeoDataLocation.h>
 
 #include "TestUtils.h"
 
@@ -24,7 +26,7 @@ using namespace Marble ;
 class TestModel : public QObject
 {
     Q_OBJECT
-private slots:
+private Q_SLOTS:
     void initTestCase();
     void simpleParseTest();
 };

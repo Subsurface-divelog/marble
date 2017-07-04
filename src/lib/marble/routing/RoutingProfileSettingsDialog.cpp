@@ -28,12 +28,6 @@ RoutingProfileSettingsDialog::RoutingProfileSettingsDialog( const PluginManager 
     : QDialog( parent ),
     m_profilesModel ( profilesModel ), m_dialog( 0 ), m_dialogLayout( 0 )
 {
-#ifdef Q_WS_MAEMO_5
-    setAttribute( Qt::WA_Maemo5StackedWindow );
-    setWindowFlags( Qt::Window );
-    setWindowTitle( tr( "Routing Profile - Marble" ) );
-#endif // Q_WS_MAEMO_5
-
     m_ui = new Ui_RoutingProfileSettingsDialog();
     m_ui->setupUi( this );
     bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
@@ -44,7 +38,7 @@ RoutingProfileSettingsDialog::RoutingProfileSettingsDialog( const PluginManager 
     }
 
     QList<RoutingRunnerPlugin*> allPlugins = pluginManager->routingRunnerPlugins();
-    foreach( RoutingRunnerPlugin* plugin, allPlugins ) {
+    for( RoutingRunnerPlugin* plugin: allPlugins ) {
         m_plugins << plugin;
         RoutingRunnerPlugin::ConfigWidget* configWidget = plugin->configWidget();
         if ( configWidget ) {
@@ -102,7 +96,7 @@ void RoutingProfileSettingsDialog::editProfile( int profileIndex )
     m_ui->name->setText( profiles.at( profileIndex ).name() );
 
     m_servicesModel->clear();
-    foreach( RoutingRunnerPlugin *plugin,  m_plugins ) {
+    for( RoutingRunnerPlugin *plugin:  m_plugins ) {
         QStandardItem *item = new QStandardItem( plugin->guiString() );
         item->setCheckable( true );
         if ( profiles[ profileIndex ].pluginSettings().contains( plugin->nameId() ) ) {
@@ -171,4 +165,4 @@ void RoutingProfileSettingsDialog::openConfigDialog()
 
 }
 
-#include "RoutingProfileSettingsDialog.moc"
+#include "moc_RoutingProfileSettingsDialog.cpp"

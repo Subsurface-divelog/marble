@@ -13,8 +13,8 @@
 
 class QTimer;
 
-#include <GeoDataCoordinates.h>
-#include <GeoDataPlacemark.h>
+#include <marble/GeoDataCoordinates.h>
+#include <marble/GeoDataPlacemark.h>
 
 #include <QWidget>
 #include <QObject>
@@ -30,14 +30,14 @@ class CarWorker : public QObject
 public:
     CarWorker(const GeoDataCoordinates& city, qreal radius, qreal speed);
 
-signals:
+Q_SIGNALS:
     void coordinatesChanged(GeoDataCoordinates coord);
 
-public slots:
+public Q_SLOTS:
     void startWork();
     void finishWork();
 
-private slots:
+private Q_SLOTS:
     void iterate();
 
 private:
@@ -53,10 +53,10 @@ class Window : public QWidget
 {
     Q_OBJECT
 public:
-    Window(QWidget *parent = 0);
+    explicit Window(QWidget *parent = 0);
     void startCars();
 
-public slots:
+public Q_SLOTS:
     void setCarCoordinates(const GeoDataCoordinates &coord);
 
 private:

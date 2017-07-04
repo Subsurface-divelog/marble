@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -20,29 +20,29 @@ namespace Marble
 class HostipPlugin : public SearchRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.HostipPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.HostipPlugin")
     Q_INTERFACES( Marble::SearchRunnerPlugin )
 
 public:
     explicit HostipPlugin( QObject *parent = 0 );
 
-    QString name() const;
+    QString name() const override;
 
-    QString guiString() const;
+    QString guiString() const override;
 
-    QString nameId() const;
+    QString nameId() const override;
 
-    QString version() const;
+    QString version() const override;
 
-    QString description() const;
+    QString description() const override;
 
-    QString copyrightYears() const;
+    QString copyrightYears() const override;
 
-    QList<PluginAuthor> pluginAuthors() const;
+    QVector<PluginAuthor> pluginAuthors() const override;
 
-    virtual SearchRunner* newRunner() const;
+    SearchRunner* newRunner() const override;
 
-    bool canWork() const;
+    bool canWork() const override;
 };
 
 }

@@ -13,8 +13,7 @@
 
 #include <QFile>
 #include <QDebug>
-#include <QApplication>
-#include <QStringList>
+#include <QCoreApplication>
 #include <QFileInfo>
 #include <QDataStream>
 
@@ -58,7 +57,7 @@ void exportToDat()
 
             QString decString = line.mid( 83, 7 );
 
-            double deSign = ( decString.mid( 0, 1 ) == "-" ) ? -1.0 : 1.0;
+            double deSign = decString.startsWith(QLatin1Char('-')) ? -1.0 : 1.0;
             double deHH = decString.mid( 1, 2 ).toDouble();
             double deMM = decString.mid( 3, 2 ).toDouble();
             double deSS = decString.mid( 5, 2 ).toDouble();
@@ -72,7 +71,7 @@ void exportToDat()
             int     colorIdx = 2; // Default White
 
             // Find Index of Table Entry with Closest B-V value (Smallest Difference)
-            if(bvString != QString("      ")) {
+            if (bvString != QLatin1String("      ")) {
                 double bvValue = bvString.toDouble();
                 double bvMinDifference = fabs(colorTable.at(0)-bvValue);
                 for (int i = 1; i < colorTable.size(); ++i) {
@@ -569,7 +568,7 @@ void exportToKml()
             qreal longitude = ( raHH + raMM / 60.0 + raSS / 3600.0 ) * 15.0 - 180.0;
 
             QString decString = line.mid( 83, 7 );
-            double deSign = ( decString.mid( 0, 1 ) == "-" ) ? -1.0 : 1.0;
+            double deSign = decString.startsWith(QLatin1Char('-')) ? -1.0 : 1.0;
             double deHH = decString.mid( 1, 2 ).toDouble();
             double deMM = decString.mid( 3, 2 ).toDouble();
             double deSS = decString.mid( 5, 2 ).toDouble();
@@ -585,7 +584,7 @@ void exportToKml()
             int     colorIdx = 2; // Default White
 
             // Find Index of Table Entry with Closest B-V value (Smallest Difference)
-            if(bvString != QString("      ")) {
+            if (bvString != QLatin1String("      ")) {
                 double bvValue = bvString.toDouble();
                 double bvMinDifference = fabs(colorTable.at(0)-bvValue);
                 for (int i = 1; i < colorTable.size(); ++i) {
@@ -627,34 +626,34 @@ void exportToKml()
             }
 
             if ( colorIdx == 0 ) {
-                styleId += " blue";
+                styleId += QLatin1String(" blue");
             } else if ( colorIdx == 1 ) {
-                styleId += " bluewhite";
+                styleId += QLatin1String(" bluewhite");
             } else if ( colorIdx == 3 ) {
-                styleId += " yellow";
+                styleId += QLatin1String(" yellow");
             } else if ( colorIdx == 4 ) {
-                styleId += " orange";
+                styleId += QLatin1String(" orange");
             } else if ( colorIdx == 5 ) {
-                styleId += " red";
+                styleId += QLatin1String(" red");
             } else if ( colorIdx == 6 ) {
-                styleId += " garnetred";
+                styleId += QLatin1String(" garnetred");
             } else {
                 // white and no color ID
-                styleId += " white";
+                styleId += QLatin1String(" white");
             }
 
             out << "   <Placemark> \n";
 
             QString name = line.mid( 7, 3 );
-            if ( name == "Alp" ) {
+            if (name == QLatin1String("Alp")) {
                 out << "        <name>" << QString::fromUtf8( "α" ) << "</name> \n";
-            } else if ( name == "Bet" ) {
+            } else if (name == QLatin1String("Bet")) {
                 out << "        <name>" << QString::fromUtf8( "β" ) << "</name> \n";
-            } else if ( name == "Gam" ) {
+            } else if (name == QLatin1String("Gam")) {
                 out << "        <name>" << QString::fromUtf8( "γ" ) << "</name> \n";
-            } else if ( name == "Del" ) {
+            } else if (name == QLatin1String("Del")) {
                 out << "        <name>" << QString::fromUtf8( "δ" ) << "</name> \n";
-            } else if ( name == "Eps" ) {
+            } else if (name == QLatin1String("Eps")) {
                 out << "        <name>" << QString::fromUtf8( "ε" ) << "</name> \n";
             }
 

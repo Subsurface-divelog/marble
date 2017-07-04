@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -18,7 +18,9 @@
 #include "routing/instructions/InstructionTransformation.h"
 #include "GeoDataDocument.h"
 #include "GeoDataExtendedData.h"
+#include "GeoDataData.h"
 #include "GeoDataPlacemark.h"
+#include "GeoDataLineString.h"
 
 #include <QProcess>
 #include <QMap>
@@ -52,7 +54,7 @@ public:
 GosmoreRunnerPrivate::GosmoreRunnerPrivate()
 {
     m_parser.setLineSeparator("\r");
-    m_parser.setFieldSeparator(',');
+    m_parser.setFieldSeparator(QLatin1Char(','));
     m_parser.setFieldIndex( WaypointParser::RoadName, 4 );
     m_parser.addJunctionTypeMapping( "Jr", RoutingWaypoint::Roundabout );
 }
@@ -98,9 +100,9 @@ GeoDataLineString GosmoreRunnerPrivate::parseGosmoreOutput( const QByteArray &co
 {
     GeoDataLineString routeWaypoints;
 
-    QStringList lines = QString::fromLocal8Bit( content ).split( '\r' );
-    foreach( const QString &line, lines ) {
-        QStringList fields = line.split(',');
+    QStringList lines = QString::fromLocal8Bit( content ).split(QLatin1Char('\r'));
+    for( const QString &line: lines ) {
+        const QStringList fields = line.split(QLatin1Char(','));
         if (fields.size() >= 5) {
             qreal lon = fields.at(1).toDouble();
             qreal lat = fields.at(0).toDouble();
@@ -115,9 +117,9 @@ GeoDataLineString GosmoreRunnerPrivate::parseGosmoreOutput( const QByteArray &co
 QVector<GeoDataPlacemark*> GosmoreRunnerPrivate::parseGosmoreInstructions( const QByteArray &content )
 {
     // Determine gosmore version
-    QStringList lines = QString::fromUtf8( content ).split( '\r' );
+    QStringList lines = QString::fromUtf8(content).split(QLatin1Char('\r'));
     if ( lines.size() > 2 ) {
-        QStringList fields = lines.at( lines.size()-2 ).split(',');
+        const QStringList fields = lines.at(lines.size()-2).split(QLatin1Char(','));
         m_parser.setFieldIndex( WaypointParser::RoadName, fields.size()-1 );
         if ( fields.size() < 5 || fields.size() > 6 ) {
             // Can happen when gosmore changes the output format, returns garbage
@@ -136,11 +138,11 @@ QVector<GeoDataPlacemark*> GosmoreRunnerPrivate::parseGosmoreInstructions( const
         GeoDataPlacemark* placemark = new GeoDataPlacemark( directions[i].instructionText() );
         GeoDataExtendedData extendedData;
         GeoDataData turnType;
-        turnType.setName( "turnType" );
+        turnType.setName(QStringLiteral("turnType"));
         turnType.setValue( qVariantFromValue<int>( int( directions[i].turnType() ) ) );
         extendedData.addValue( turnType );
         GeoDataData roadName;
-        roadName.setName( "roadName" );
+        roadName.setName(QStringLiteral("roadName"));
         roadName.setValue( directions[i].roadName() );
         extendedData.addValue( roadName );
         placemark->setExtendedData( extendedData );
@@ -167,11 +169,11 @@ GeoDataDocument* GosmoreRunnerPrivate::createDocument( GeoDataLineString* routeW
 
     GeoDataDocument* result = new GeoDataDocument();
     GeoDataPlacemark* routePlacemark = new GeoDataPlacemark;
-    routePlacemark->setName( "Route" );
+    routePlacemark->setName(QStringLiteral("Route"));
     routePlacemark->setGeometry( routeWaypoints );
     result->append( routePlacemark );
 
-    QString name = "%1 %2 (Gosmore)";
+    QString name = QStringLiteral("%1 %2 (Gosmore)");
     QString unit = QLatin1String( "m" );
     qreal length = routeWaypoints->length( EARTH_RADIUS );
     if (length >= 1000) {
@@ -180,7 +182,7 @@ GeoDataDocument* GosmoreRunnerPrivate::createDocument( GeoDataLineString* routeW
     }
     result->setName( name.arg( length, 0, 'f', 1 ).arg( unit ) );
 
-    foreach( GeoDataPlacemark* placemark, instructions )
+    for( GeoDataPlacemark* placemark: instructions )
     {
         result->append( placemark );
     }
@@ -193,7 +195,7 @@ GosmoreRunner::GosmoreRunner( QObject *parent ) :
         d( new GosmoreRunnerPrivate )
 {
     // Check installation
-    QDir mapDir( MarbleDirs::localPath() + "/maps/earth/gosmore/" );
+    QDir mapDir(MarbleDirs::localPath() + QLatin1String("/maps/earth/gosmore/"));
     d->m_gosmoreMapFile = QFileInfo ( mapDir, "gosmore.pak" );
 }
 

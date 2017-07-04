@@ -17,11 +17,13 @@
 #include "GeoDataPlacemark.h"
 #include "GeoDataParser.h"
 #include "GeoDataStyle.h"
+#include "GeoDataLineStyle.h"
 #include "GeoDataStyleMap.h"
 #include "GeoDataTrack.h"
 #include "GeoDataTreeModel.h"
-#include "GeoDataTypes.h"
-#include "GeoWriter.h"
+#include "GeoDataLineString.h"
+#include "GeoDataAccuracy.h"
+#include "GeoDataDocumentWriter.h"
 #include "KmlElementDictionary.h"
 #include "FileManager.h"
 #include "MarbleMath.h"
@@ -139,10 +141,10 @@ PositionTracking::PositionTracking( GeoDataTreeModel *model )
        d( new PositionTrackingPrivate( model, this ) )
 {
     d->m_document.setDocumentRole( TrackingDocument );
-    d->m_document.setName("Position Tracking");
+    d->m_document.setName(QStringLiteral("Position Tracking"));
 
     // First point is current position
-    d->m_currentPositionPlacemark->setName("Current Position");
+    d->m_currentPositionPlacemark->setName(QStringLiteral("Current Position"));
     d->m_currentPositionPlacemark->setVisible(false);
     d->m_document.append( d->m_currentPositionPlacemark );
 
@@ -151,25 +153,25 @@ PositionTracking::PositionTracking( GeoDataTreeModel *model )
     d->m_trackSegments->append(d->m_currentTrack);
 
     d->m_currentTrackPlacemark->setGeometry(d->m_trackSegments);
-    d->m_currentTrackPlacemark->setName("Current Track");
+    d->m_currentTrackPlacemark->setName(QStringLiteral("Current Track"));
 
-    GeoDataStyle style;
+    GeoDataStyle::Ptr style(new GeoDataStyle);
     GeoDataLineStyle lineStyle;
     QColor transparentRed = Oxygen::brickRed4;
     transparentRed.setAlpha( 200 );
     lineStyle.setColor( transparentRed );
     lineStyle.setWidth( 4 );
-    style.setLineStyle(lineStyle);
-    style.setId("track");
+    style->setLineStyle(lineStyle);
+    style->setId(QStringLiteral("track"));
 
     GeoDataStyleMap styleMap;
-    styleMap.setId("map-track");
-    styleMap.insert("normal", QString("#").append(style.id()));
+    styleMap.setId(QStringLiteral("map-track"));
+    styleMap.insert(QStringLiteral("normal"), QLatin1Char('#') + style->id());
     d->m_document.addStyleMap(styleMap);
     d->m_document.addStyle(style);
     d->m_document.append( d->m_currentTrackPlacemark );
 
-    d->m_currentTrackPlacemark->setStyleUrl(QString("#").append(styleMap.id()));
+    d->m_currentTrackPlacemark->setStyleUrl(QLatin1Char('#') + styleMap.id());
 
     d->m_treeModel->addDocument( &d->m_document );
 }
@@ -259,28 +261,21 @@ bool PositionTracking::saveTrack( const QString& fileName )
         return false;
     }
 
-    GeoWriter writer;
-    //FIXME: a better way to do this?
-    writer.setDocumentType( kml::kmlTag_nameSpaceOgc22 );
-
     GeoDataDocument *document = new GeoDataDocument;
     QFileInfo fileInfo( fileName );
     QString name = fileInfo.baseName();
     document->setName( name );
-    foreach( const GeoDataStyle &style, d->m_document.styles() ) {
+    for( const GeoDataStyle::Ptr &style: d->m_document.styles() ) {
         document->addStyle( style );
     }
-    foreach( const GeoDataStyleMap &map, d->m_document.styleMaps() ) {
+    for( const GeoDataStyleMap &map: d->m_document.styleMaps() ) {
         document->addStyleMap( map );
     }
     GeoDataPlacemark *track = new GeoDataPlacemark( *d->m_currentTrackPlacemark );
-    track->setName( "Track " + name );
+    track->setName(QLatin1String("Track ") + name);
     document->append( track );
 
-    QFile file( fileName );
-    file.open( QIODevice::WriteOnly );
-    bool const result = writer.write( &file, document );
-    file.close();
+    bool const result = GeoDataDocumentWriter::write(fileName, *document);
     delete document;
     return result;
 }
@@ -350,7 +345,7 @@ void PositionTracking::readSettings()
     d->m_document.remove( 1 );
     delete d->m_currentTrackPlacemark;
     d->m_currentTrackPlacemark = track;
-    d->m_currentTrackPlacemark->setName("Current Track");
+    d->m_currentTrackPlacemark->setName(QStringLiteral("Current Track"));
     d->m_document.append( d->m_currentTrackPlacemark );
     d->m_currentTrackPlacemark->setStyleUrl( d->m_currentTrackPlacemark->styleUrl() );
 
@@ -401,4 +396,4 @@ PositionProviderStatus PositionTracking::status() const
 
 }
 
-#include "PositionTracking.moc"
+#include "moc_PositionTracking.cpp"

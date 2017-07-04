@@ -14,12 +14,12 @@
 #include <QThread>
 #include <QMap>
 #include <QString>
-#include <QAbstractSocket>
-#include <QMutex>
-#include <QIODevice>
 
 #include "AprsSource.h"
 #include "AprsObject.h"
+
+class QIODevice;
+class QMutex;
 
 namespace Marble {
         
@@ -38,7 +38,7 @@ namespace Marble {
                       QMutex *mutex,
                       QString *filter
             );
-        void run();
+        void run() override;
 
         void addObject( const QString &callSign,
                         qreal latitude, qreal longitude, bool canDoDirect,

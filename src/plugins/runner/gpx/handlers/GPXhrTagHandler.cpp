@@ -14,7 +14,6 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
 #include "GeoDataExtendedData.h"
 #include "GeoDataTrack.h"
 #include "GeoDataSimpleArrayData.h"
@@ -27,17 +26,18 @@ GPX_DEFINE_TAG_HANDLER_GARMIN_TRACKPOINTEXT1(hr)
 
 GeoNode* GPXhrTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( gpxTag_hr ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_hr)));
+
     GeoStackItem parentItem = parser.parentElement();
 
     if ( parentItem.is<GeoDataTrack>() )
     {
         GeoDataSimpleArrayData* arrayData = parentItem.nodeAs<GeoDataTrack>()
-                        ->extendedData().simpleArrayData( "heartrate" );
+                        ->extendedData().simpleArrayData(QStringLiteral("heartrate"));
         if (!arrayData) {
             arrayData = new GeoDataSimpleArrayData();
             QString name = parser.attribute( "name" ).trimmed();
-            parentItem.nodeAs<GeoDataTrack>()->extendedData().setSimpleArrayData( "heartrate", arrayData );
+            parentItem.nodeAs<GeoDataTrack>()->extendedData().setSimpleArrayData(QStringLiteral("heartrate"), arrayData);
         }
         QVariant value( parser.readElementText().toInt() );
         arrayData->append( value );

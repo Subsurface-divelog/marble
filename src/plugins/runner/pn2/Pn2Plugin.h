@@ -18,29 +18,29 @@ namespace Marble
 class Pn2Plugin : public ParseRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.Pn2Plugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.Pn2Plugin")
     Q_INTERFACES( Marble::ParseRunnerPlugin )
 
 public:
     explicit Pn2Plugin( QObject *parent = 0 );
 
-    QString name() const;
+    QString name() const override;
 
-    QString nameId() const;
+    QString nameId() const override;
 
-    QString version() const;
+    QString version() const override;
 
-    QString description() const;
+    QString description() const override;
 
-    QString copyrightYears() const;
+    QString copyrightYears() const override;
 
-    QList<PluginAuthor> pluginAuthors() const;
+    QVector<PluginAuthor> pluginAuthors() const override;
 
-    QString fileFormatDescription() const;
+    QString fileFormatDescription() const override;
 
-    QStringList fileExtensions() const;
+    QStringList fileExtensions() const override;
 
-    virtual ParsingRunner* newRunner() const;
+    ParsingRunner* newRunner() const override;
 };
 
 }

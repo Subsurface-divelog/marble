@@ -12,6 +12,10 @@
 
 #include "PositionProviderPlugin.h"
 
+#include "GeoDataAccuracy.h"
+#include "GeoDataCoordinates.h"
+#include <QDateTime>
+
 class QUdpSocket;
 
 namespace Marble
@@ -20,33 +24,33 @@ namespace Marble
 class FlightGearPositionProviderPlugin : public PositionProviderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.FlightGearPositionProviderPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.FlightGearPositionProviderPlugin")
     Q_INTERFACES( Marble::PositionProviderPluginInterface )
 
  public:
     FlightGearPositionProviderPlugin();
-    virtual ~FlightGearPositionProviderPlugin();
+    ~FlightGearPositionProviderPlugin() override;
 
-    virtual QString name() const;
-    virtual QString nameId() const;
-    virtual QString guiString() const;
-    virtual QString version() const;
-    virtual QString description() const;
-    virtual QString copyrightYears() const;
-    virtual QList<PluginAuthor> pluginAuthors() const;
-    virtual QIcon icon() const;
-    virtual void initialize();
-    virtual bool isInitialized() const;
+    QString name() const override;
+    QString nameId() const override;
+    QString guiString() const override;
+    QString version() const override;
+    QString description() const override;
+    QString copyrightYears() const override;
+    QVector<PluginAuthor> pluginAuthors() const override;
+    QIcon icon() const override;
+    void initialize() override;
+    bool isInitialized() const override;
 
-    virtual PositionProviderPlugin * newInstance() const;
+    PositionProviderPlugin * newInstance() const override;
 
-    virtual PositionProviderStatus status() const;
-    virtual GeoDataCoordinates position() const;
-    virtual GeoDataAccuracy accuracy() const;
-    virtual QString error() const;
-    virtual qreal speed() const;
-    virtual qreal direction() const;
-    virtual QDateTime timestamp() const;
+    PositionProviderStatus status() const override;
+    GeoDataCoordinates position() const override;
+    GeoDataAccuracy accuracy() const override;
+    QString error() const override;
+    qreal speed() const override;
+    qreal direction() const override;
+    QDateTime timestamp() const override;
 
 private Q_SLOTS:
    void readPendingDatagrams();

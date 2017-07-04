@@ -1,4 +1,3 @@
-//
 // This file is part of the Marble Virtual Globe.
 //
 // This program is free software licensed under the GNU LGPL. You can
@@ -15,6 +14,7 @@
 #include <QRubberBand>
 #include <QToolTip>
 #include <QTimer>
+#include <QKeyEvent>
 
 #include "MarbleGlobal.h"
 #include "MarbleDebug.h"
@@ -33,17 +33,17 @@ class MarbleWidgetInputHandlerPrivate
     class MarbleWidgetSelectionRubber : public AbstractSelectionRubber
     {
         public:
-            MarbleWidgetSelectionRubber(MarbleWidget *widget)
+            explicit MarbleWidgetSelectionRubber(MarbleWidget *widget)
                 : m_rubberBand(QRubberBand::Rectangle, widget)
             {
                 m_rubberBand.hide();
             }
 
-            void show() { m_rubberBand.show(); }
-            void hide() { m_rubberBand.hide(); }
-            bool isVisible() const { return m_rubberBand.isVisible(); }
-            const QRect &geometry() const { return m_rubberBand.geometry(); }
-            void setGeometry(const QRect &geometry) { m_rubberBand.setGeometry(geometry); }
+            void show() override { m_rubberBand.show(); }
+            void hide() override { m_rubberBand.hide(); }
+            bool isVisible() const override { return m_rubberBand.isVisible(); }
+            const QRect &geometry() const override { return m_rubberBand.geometry(); }
+            void setGeometry(const QRect &geometry) override { m_rubberBand.setGeometry(geometry); }
 
         private:
             QRubberBand m_rubberBand;
@@ -54,8 +54,9 @@ class MarbleWidgetInputHandlerPrivate
             : m_inputHandler(handler)
             ,m_marbleWidget(widget)
             ,m_selectionRubber(widget)
+            ,m_debugModeEnabled(false)
         {         
-            foreach(RenderPlugin *renderPlugin, widget->renderPlugins())
+            for(RenderPlugin *renderPlugin: widget->renderPlugins())
             {
                 if(renderPlugin->isInitialized())
                 {
@@ -93,12 +94,37 @@ class MarbleWidgetInputHandlerPrivate
         MarbleWidgetInputHandler *m_inputHandler;
         MarbleWidget *m_marbleWidget;
         MarbleWidgetSelectionRubber m_selectionRubber;
+        bool m_debugModeEnabled;
 };
 
 
 void MarbleWidgetInputHandler::setCursor(const QCursor &cursor)
 {
     d->setCursor(cursor);
+}
+
+bool MarbleWidgetInputHandler::handleKeyPress(QKeyEvent *event)
+{
+    if (d->m_debugModeEnabled) {
+        switch(event->key()) {
+        case Qt::Key_I:
+            MarbleDebug::setEnabled(!MarbleDebug::isEnabled());
+            break;
+        case Qt::Key_R:
+            d->m_marbleWidget->setShowRuntimeTrace(!d->m_marbleWidget->showRuntimeTrace());
+            break;
+        case Qt::Key_O:
+            d->m_marbleWidget->setShowDebugPlacemarks(!d->m_marbleWidget->showDebugPlacemarks());
+            break;
+        case Qt::Key_P:
+            d->m_marbleWidget->setShowDebugPolygons(!d->m_marbleWidget->showDebugPolygons());
+            break;
+        case Qt::Key_B:
+            d->m_marbleWidget->setShowDebugBatchRender(!d->m_marbleWidget->showDebugBatchRender());
+            break;
+        }
+    }
+    return MarbleDefaultInputHandler::handleKeyPress(event);
 }
 
 AbstractSelectionRubber *MarbleWidgetInputHandler::selectionRubber()
@@ -120,6 +146,11 @@ MarbleWidgetInputHandler::MarbleWidgetInputHandler(MarbleAbstractPresenter *marb
     : MarbleDefaultInputHandler(marblePresenter)
     ,d(new MarbleWidgetInputHandlerPrivate(this, widget))
 {
+}
+
+void MarbleWidgetInputHandler::setDebugModeEnabled(bool enabled)
+{
+    d->m_debugModeEnabled = enabled;
 }
 
 //FIXME - these should be moved to superclass and popupMenu should be abstracted in MarbleAbstractPresenter
@@ -159,4 +190,4 @@ void MarbleWidgetInputHandler::openItemToolTip()
 
 }
 
-#include "MarbleWidgetInputHandler.moc"
+#include "moc_MarbleWidgetInputHandler.cpp"

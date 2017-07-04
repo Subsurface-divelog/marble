@@ -22,8 +22,9 @@ class GeoDataLineStylePrivate
 {
   public:
     GeoDataLineStylePrivate() 
-        : m_width( 1.0 ), m_physicalWidth( 0.0 ), m_capStyle( Qt::FlatCap ),
-          m_penStyle( Qt::SolidLine ), m_background( false )
+        : m_width( 1.0 ), m_physicalWidth( 0.0 ),
+          m_capStyle( Qt::FlatCap ), m_penStyle( Qt::SolidLine ),
+          m_cosmeticOutline( false ), m_background( false )
     {
     }
 
@@ -38,6 +39,7 @@ class GeoDataLineStylePrivate
     float  m_physicalWidth;
     Qt::PenCapStyle m_capStyle;
     Qt::PenStyle m_penStyle;
+    bool m_cosmeticOutline;
     bool m_background;
     QVector< qreal > m_pattern;
 };
@@ -94,7 +96,7 @@ const char* GeoDataLineStyle::nodeType() const
     return d->nodeType();
 }
 
-void GeoDataLineStyle::setWidth( const float &width )
+void GeoDataLineStyle::setWidth(float width)
 {
     d->m_width = width;
 }
@@ -109,9 +111,19 @@ float GeoDataLineStyle::physicalWidth() const
     return d->m_physicalWidth;
 }
 
-void GeoDataLineStyle::setPhysicalWidth( const float& realWidth )
+void GeoDataLineStyle::setPhysicalWidth(float realWidth)
 {
     d->m_physicalWidth = realWidth;
+}
+
+bool GeoDataLineStyle::cosmeticOutline() const
+{
+    return d->m_cosmeticOutline;
+}
+
+void GeoDataLineStyle::setCosmeticOutline(bool enabled)
+{
+    d->m_cosmeticOutline = enabled;
 }
 
 Qt::PenCapStyle GeoDataLineStyle::capStyle() const

@@ -33,6 +33,8 @@
 namespace Marble
 {
 
+class GeoDataFolderPrivate;
+
 /**
  * @short A container that is used to arrange other GeoDataFeatures.
  *
@@ -44,21 +46,24 @@ namespace Marble
  * @see GeoDataFeature
  * @see GeoDataContainer
  */
-
-    class GeoDataFolderPrivate;
-
 class GEODATA_EXPORT GeoDataFolder : public GeoDataContainer
 {
  public:
     GeoDataFolder();
     GeoDataFolder( const GeoDataFolder& other );
-    ~GeoDataFolder();
+    ~GeoDataFolder() override;
+
+    GeoDataFolder& operator=(const GeoDataFolder& other);
 
     bool operator==( const GeoDataFolder &other ) const;
     bool operator!=( const GeoDataFolder &other ) const;
 
+    const char* nodeType() const override;
+
+    GeoDataFeature * clone() const override;
+
  private:
-    GeoDataFolderPrivate *p() const;
+    Q_DECLARE_PRIVATE(GeoDataFolder)
 };
 
 }

@@ -5,18 +5,16 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 // Copyright 2012,2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 
 #ifndef MARBLE_SEARCHRUNNER_H
 #define MARBLE_SEARCHRUNNER_H
 
-#include <QObject>
 #include "marble_export.h"
 
-#include "GeoDataDocument.h"
-
+#include <QObject>
 #include <QVector>
 
 namespace Marble
@@ -25,7 +23,6 @@ namespace Marble
 class GeoDataLatLonBox;
 class GeoDataPlacemark;
 class MarbleModel;
-class RouteRequest;
 
 class MARBLE_EXPORT SearchRunner : public QObject
 {
@@ -52,7 +49,7 @@ Q_SIGNALS:
      * This is emitted to indicate that the runner has finished the placemark search.
      * @param result the result of the search.
      */
-    void searchFinished( QVector<GeoDataPlacemark*> result );
+    void searchFinished( const QVector<GeoDataPlacemark*>& result );
 
 protected:
     /**

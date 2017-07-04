@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -15,26 +15,31 @@
 #include "GeoDataOverlay.h"
 #include "MarbleGlobal.h"
 #include "GeoDataLatLonBox.h"
-#include "GeoDataLatLonQuad.h"
 
 namespace Marble {
 
 class GeoDataGroundOverlayPrivate;
+class GeoDataLatLonQuad;
 
-class MARBLE_EXPORT GeoDataGroundOverlay: public GeoDataOverlay
+/**
+ */
+class GEODATA_EXPORT GeoDataGroundOverlay: public GeoDataOverlay
 {
 public:
     GeoDataGroundOverlay();
 
     GeoDataGroundOverlay( const GeoDataGroundOverlay &other );
 
+    ~GeoDataGroundOverlay() override;
+
     GeoDataGroundOverlay& operator=( const GeoDataGroundOverlay &other );
     bool operator==( const GeoDataGroundOverlay &other ) const;
     bool operator!=( const GeoDataGroundOverlay &other ) const;
-    ~GeoDataGroundOverlay();
+
+    GeoDataFeature * clone() const override;
 
     /** Provides type information for downcasting a GeoNode */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     double altitude() const;
 
@@ -44,7 +49,9 @@ public:
 
     void setAltitudeMode( const AltitudeMode altitudeMode );
 
-    GeoDataLatLonBox& latLonBox() const;
+    const GeoDataLatLonBox& latLonBox() const;
+
+    GeoDataLatLonBox& latLonBox();
 
     void setLatLonBox( const GeoDataLatLonBox &box );
 
@@ -55,7 +62,7 @@ public:
     void setLatLonQuad( const GeoDataLatLonQuad &quad );
 
 private:
-    GeoDataGroundOverlayPrivate* const d;
+    Q_DECLARE_PRIVATE(GeoDataGroundOverlay)
 };
 
 }

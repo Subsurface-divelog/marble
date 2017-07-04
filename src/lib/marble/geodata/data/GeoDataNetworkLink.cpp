@@ -9,7 +9,9 @@
 //
 
 #include "GeoDataNetworkLink.h"
+
 #include "GeoDataTypes.h"
+#include "GeoDataLink.h"
 
 namespace Marble {
 
@@ -66,6 +68,12 @@ GeoDataNetworkLink::~GeoDataNetworkLink()
 {
     delete d;
 }
+
+GeoDataFeature * GeoDataNetworkLink::clone() const
+{
+    return new GeoDataNetworkLink(*this);
+}
+
 
 const char *GeoDataNetworkLink::nodeType() const
 {

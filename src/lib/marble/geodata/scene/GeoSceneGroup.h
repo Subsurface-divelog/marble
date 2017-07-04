@@ -44,7 +44,7 @@ class GeoSceneGroup : public QObject,
 
  public:
     explicit GeoSceneGroup( const QString& name );
-    ~GeoSceneGroup();
+    ~GeoSceneGroup() override;
 
     /**
      * @brief  Get the availability of a property in this group
@@ -85,8 +85,10 @@ class GeoSceneGroup : public QObject,
 
     QString name() const;
 
+    const char *nodeType() const override;
+
  Q_SIGNALS:
-    void valueChanged( QString, bool );
+    void valueChanged( const QString&, bool );
 
  private:
     Q_DISABLE_COPY( GeoSceneGroup )

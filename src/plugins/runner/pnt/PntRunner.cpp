@@ -12,6 +12,7 @@
 
 #include "GeoDataDocument.h"
 #include "GeoDataLineString.h"
+#include "GeoDataLinearRing.h"
 #include "GeoDataPlacemark.h"
 #include "MarbleDebug.h"
 #include "MarbleGlobal.h"
@@ -36,19 +37,20 @@ PntRunner::~PntRunner()
 {
 }
 
-void PntRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
+GeoDataDocument *PntRunner::parseFile(const QString &fileName, DocumentRole role, QString &errorString)
 {
     QFileInfo fileinfo( fileName );
-    if( fileinfo.suffix().compare( "pnt", Qt::CaseInsensitive ) != 0 ) {
-        emit parsingFinished( 0 );
-        return;
+    if (fileinfo.suffix().compare(QLatin1String("pnt"), Qt::CaseInsensitive) != 0) {
+        errorString = QStringLiteral("File %1 does not have a pnt suffix").arg(fileName);
+        mDebug() << errorString;
+        return nullptr;
     }
 
     QFile  file( fileName );
     if ( !file.exists() ) {
-        qWarning( "File does not exist!" );
-        emit parsingFinished( 0 );
-        return;
+        errorString = QStringLiteral("File %1 does not exist").arg(fileName);
+        mDebug() << errorString;
+        return nullptr;
     }
 
     file.open( QIODevice::ReadOnly );
@@ -80,7 +82,7 @@ void PntRunner::parseFile( const QString &fileName, DocumentRole role = UnknownD
             error = true;
         }
 
-        if ( header >= 1000 && document->size() > 0 ) {
+        if (header >= 1000 && !document->isEmpty()) {
             GeoDataLineString *const polyline = static_cast<GeoDataLineString*>( placemark->geometry() );
             if ( polyline->size() == 1 ) {
                 mDebug() << Q_FUNC_INFO << fileName << "contains single-point polygon at" << count << ". Aborting.";
@@ -196,16 +198,15 @@ void PntRunner::parseFile( const QString &fileName, DocumentRole role = UnknownD
     }
 
     file.close();
-    if ( document->size() == 0 || error ) {
+    if (document->isEmpty() || error) {
         delete document;
         document = 0;
-        emit parsingFinished( 0 );
-        return;
+        return nullptr;
     }
     document->setFileName( fileName );
-    emit parsingFinished( document );
+    return document;
 }
 
 }
 
-#include "PntRunner.moc"
+#include "moc_PntRunner.cpp"

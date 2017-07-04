@@ -14,8 +14,7 @@
 #include "KmlElementDictionary.h"
 #include "GeoDataLookAt.h"
 #include "GeoParser.h"
-#include "GeoDataContainer.h"
-#include "GeoDataPlacemark.h"
+#include "GeoDataFeature.h"
 #include "GeoDataFlyTo.h"
 
 namespace Marble
@@ -27,8 +26,7 @@ KML_DEFINE_TAG_HANDLER( LookAt )
 
 GeoNode *KmlLookAtTagHandler::parse( GeoParser & parser ) const
 {
-    Q_ASSERT (parser.isStartElement()
-              && parser.isValidElement( kmlTag_LookAt ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_LookAt)));
 
     GeoDataLookAt *lookAt = new GeoDataLookAt();
     GeoStackItem parentItem = parser.parentElement();

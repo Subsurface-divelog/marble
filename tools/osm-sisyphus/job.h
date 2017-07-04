@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef JOB_H
@@ -51,7 +51,7 @@ public:
 
     bool operator==(const Job &other) const;
 
-    virtual void run();
+    void run() override;
 
 Q_SIGNALS:
     void finished(Job* job);

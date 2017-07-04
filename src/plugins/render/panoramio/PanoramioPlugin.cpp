@@ -24,7 +24,7 @@ PanoramioPlugin::PanoramioPlugin( const MarbleModel *marbleModel ) :
 
 QString Marble::PanoramioPlugin::nameId() const
 {
-    return "panoramio";
+    return QStringLiteral("panoramio");
 }
 
 void PanoramioPlugin::initialize()
@@ -50,23 +50,23 @@ QString PanoramioPlugin::description() const
 
 QIcon PanoramioPlugin::icon() const
 {
-    return QIcon( ":/icons/panoramio.png" );
+    return QIcon(QStringLiteral(":/icons/panoramio.png"));
 }
 
 
 QString Marble::PanoramioPlugin::version() const
 {
-    return "0.1";
+    return QStringLiteral("0.1");
 }
 
 QString PanoramioPlugin::copyrightYears() const
 {
-    return "2009, 2014";
+    return QStringLiteral("2009, 2014");
 }
 
-QList<PluginAuthor> PanoramioPlugin::pluginAuthors() const
+QVector<PluginAuthor> PanoramioPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>() << PluginAuthor( "Bastian Holst", "bastianholst@gmx.de" );
+    return QVector<PluginAuthor>() << PluginAuthor(QStringLiteral("Bastian Holst"), QStringLiteral("bastianholst@gmx.de"));
 }
 
 bool PanoramioPlugin::eventFilter(QObject *object, QEvent *event)
@@ -84,6 +84,4 @@ bool PanoramioPlugin::eventFilter(QObject *object, QEvent *event)
     return AbstractDataPlugin::eventFilter( object, event );
 }
 
-Q_EXPORT_PLUGIN2(PanoramioPlugin, Marble::PanoramioPlugin)
-
-#include "PanoramioPlugin.moc"
+#include "moc_PanoramioPlugin.cpp"

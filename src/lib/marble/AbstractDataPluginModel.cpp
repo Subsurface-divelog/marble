@@ -15,6 +15,7 @@
 #include <QUrl>
 #include <QTimer>
 #include <QPointF>
+#include <QRectF>
 #include <QtAlgorithms>
 #include <QVariant>
 #include <QAbstractListModel>
@@ -48,7 +49,7 @@ const int timeBetweenDownloads = 1500;
 const qreal boxComparisonFactor = 16.0;
 
 // Separator to separate the id of the item from the file type
-const char fileIdSeparator = '_';
+const QChar fileIdSeparator = QLatin1Char('_');
 
 class FavoritesModel;
 
@@ -98,18 +99,16 @@ public:
 
     explicit FavoritesModel( AbstractDataPluginModelPrivate* d, QObject* parent = 0 );
 
-    virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
+    int rowCount ( const QModelIndex & parent = QModelIndex() ) const override;
 
-    QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const;
+    QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const override;
 
     void reset();
 
-#if QT_VERSION >= 0x050000
-    QHash<int, QByteArray> roleNames() const;
+    QHash<int, QByteArray> roleNames() const override;
 
 private:
     QHash<int, QByteArray> m_roleNames;
-#endif
 };
 
 AbstractDataPluginModelPrivate::AbstractDataPluginModelPrivate( const QString& name,
@@ -127,7 +126,7 @@ AbstractDataPluginModelPrivate::AbstractDataPluginModelPrivate( const QString& n
       m_descriptionFileNumber( 0 ),
       m_itemSettings(),
       m_favoriteItemsOnly( false ),
-      m_storagePolicy( MarbleDirs::localPath() + "/cache/" + m_name + '/' ),
+      m_storagePolicy(MarbleDirs::localPath() + QLatin1String("/cache/") + m_name + QLatin1Char('/')),
       m_downloadManager( &m_storagePolicy ),
       m_favoritesModel( 0 ),
       m_hasMetaObject( false ),
@@ -154,7 +153,7 @@ AbstractDataPluginModelPrivate::~AbstractDataPluginModelPrivate() {
 void AbstractDataPluginModelPrivate::updateFavoriteItems()
 {
     if ( m_favoriteItemsOnly ) {
-        foreach( const QString &id, m_favoriteItems ) {
+        for( const QString &id: m_favoriteItems ) {
             if ( !m_parent->findItem( id ) ) {
                 m_parent->getItem( id );
             }
@@ -201,11 +200,7 @@ FavoritesModel::FavoritesModel( AbstractDataPluginModelPrivate *_d, QObject* par
     }
     roles[Qt::DisplayRole] = "display";
     roles[Qt::DecorationRole] = "decoration";
-#if QT_VERSION < 0x050000
-    setRoleNames( roles );
-#else
     m_roleNames = roles;
-#endif
 }
 
 int FavoritesModel::rowCount ( const QModelIndex &parent ) const
@@ -215,7 +210,7 @@ int FavoritesModel::rowCount ( const QModelIndex &parent ) const
     }
 
     int count = 0;
-    foreach( AbstractDataPluginItem* item, d->m_itemSet ) {
+    for( AbstractDataPluginItem* item: d->m_itemSet ) {
         if ( item->initialized() && item->isFavorite() ) {
             ++count;
         }
@@ -229,11 +224,11 @@ QVariant FavoritesModel::data( const QModelIndex &index, int role ) const
     int const row = index.row();
     if ( row >= 0 && row < rowCount() ) {
         int count = 0;
-        foreach( AbstractDataPluginItem* item, d->m_itemSet ) {
+        for( AbstractDataPluginItem* item: d->m_itemSet ) {
             if ( item->initialized() && item->isFavorite() ) {
                 if ( count == row ) {
                     QString const roleName = roleNames().value( role );
-                    return item->property( roleName.toLatin1() );
+                    return item->property(roleName.toLatin1().constData());
                 }
                 ++count;
             }
@@ -249,12 +244,10 @@ void FavoritesModel::reset()
     endResetModel();
 }
 
-#if QT_VERSION >= 0x050000
 QHash<int, QByteArray> FavoritesModel::roleNames() const
 {
     return m_roleNames;
 }
-#endif
 
 AbstractDataPluginModel::AbstractDataPluginModel( const QString &name, const MarbleModel *marbleModel, QObject *parent )
     : QObject(  parent ),
@@ -299,8 +292,8 @@ QList<AbstractDataPluginItem*> AbstractDataPluginModel::items( const ViewportPar
 
     if ( d->m_needsSorting ) {
         // Both the candidates list and the list of all items need to be sorted
-        qSort( candidates.begin(), candidates.end(), lessThanByPointer );
-        qSort( d->m_itemSet.begin(), d->m_itemSet.end(), lessThanByPointer );
+        std::sort( candidates.begin(), candidates.end(), lessThanByPointer );
+        std::sort( d->m_itemSet.begin(), d->m_itemSet.end(), lessThanByPointer );
         d->m_needsSorting =  false;
     }
 
@@ -335,8 +328,8 @@ QList<AbstractDataPluginItem*> AbstractDataPluginModel::items( const ViewportPar
             bool collides = false;
             int const length = list.length();
             for ( int j=0; !collides && j<length; ++j ) {
-                foreach( const QRectF &rect, list[j]->boundingRects() ) {
-                    foreach( const QRectF &itemRect, (*i)->boundingRects() ) {
+                for( const QRectF &rect: list[j]->boundingRects() ) {
+                    for( const QRectF &itemRect: (*i)->boundingRects() ) {
                         if ( rect.intersects( itemRect ) )
                             collides = true;
                     }
@@ -365,10 +358,12 @@ QList<AbstractDataPluginItem*> AbstractDataPluginModel::items( const ViewportPar
 QList<AbstractDataPluginItem *> AbstractDataPluginModel::whichItemAt( const QPoint& curpos )
 {
     QList<AbstractDataPluginItem *> itemsAt;
-    
-    foreach( AbstractDataPluginItem* item, d->m_displayedItems ) {
-        if( item && item->contains( QPointF( curpos ) ) )
+
+    const QPointF curposF(curpos);
+    for( AbstractDataPluginItem* item: d->m_displayedItems ) {
+        if (item && item->contains(curposF)) {
             itemsAt.append( item );
+        }
     }
     
     return itemsAt;
@@ -377,15 +372,6 @@ QList<AbstractDataPluginItem *> AbstractDataPluginModel::whichItemAt( const QPoi
 void AbstractDataPluginModel::parseFile( const QByteArray& file )
 {
     Q_UNUSED( file );
-}
-
-void AbstractDataPluginModel::downloadItemData( const QUrl& url,
-                                                const QString& type,
-                                                AbstractDataPluginItem *item )
-{
-    downloadItem( url, type, item );
-    connect( item, SIGNAL(destroyed(QObject*)), this, SLOT(removeItem(QObject*)) );
-    addItemToList( item );
 }
 
 void AbstractDataPluginModel::downloadItem( const QUrl& url,
@@ -422,7 +408,7 @@ void AbstractDataPluginModel::addItemsToList( const QList<AbstractDataPluginItem
 {
     bool needsUpdate = false;
     bool favoriteChanged = false;
-    foreach( AbstractDataPluginItem *item, items ) {
+    for( AbstractDataPluginItem *item: items ) {
         if( !item ) {
             continue;
         }
@@ -440,7 +426,7 @@ void AbstractDataPluginModel::addItemsToList( const QList<AbstractDataPluginItem
         mDebug() << "New item " << item->id();
 
         // This find the right position in the sorted to insert the new item
-        QList<AbstractDataPluginItem*>::iterator i = qLowerBound( d->m_itemSet.begin(),
+        QList<AbstractDataPluginItem*>::iterator i = std::lower_bound( d->m_itemSet.begin(),
                                                                   d->m_itemSet.end(),
                                                                   item,
                                                                   lessThanByPointer );
@@ -549,12 +535,12 @@ QString AbstractDataPluginModelPrivate::generateFilename( const QString& id, con
 
 QString AbstractDataPluginModelPrivate::generateFilepath( const QString& id, const QString& type ) const
 {
-    return MarbleDirs::localPath() + "/cache/" + m_name + '/' + generateFilename( id, type );
+    return MarbleDirs::localPath() + QLatin1String("/cache/") + m_name + QLatin1Char('/') + generateFilename(id, type);
 }
 
 AbstractDataPluginItem *AbstractDataPluginModel::findItem( const QString& id ) const
 {
-    foreach ( AbstractDataPluginItem *item, d->m_itemSet ) {
+    for ( AbstractDataPluginItem *item: d->m_itemSet ) {
         if( item->id() == id ) {
             return item;
         }
@@ -568,7 +554,7 @@ bool AbstractDataPluginModel::itemExists( const QString& id ) const
     return findItem( id );
 }
 
-void AbstractDataPluginModel::setItemSettings( QHash<QString,QVariant> itemSettings )
+void AbstractDataPluginModel::setItemSettings(const QHash<QString, QVariant> &itemSettings)
 {
     d->m_itemSettings = itemSettings;
 }
@@ -684,4 +670,4 @@ void AbstractDataPluginModel::registerItemProperties( const QMetaObject &item )
 
 } // namespace Marble
 
-#include "AbstractDataPluginModel.moc"
+#include "moc_AbstractDataPluginModel.cpp"

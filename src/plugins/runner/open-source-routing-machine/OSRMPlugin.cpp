@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "OSRMPlugin.h"
@@ -17,7 +17,7 @@ namespace Marble
 OSRMPlugin::OSRMPlugin( QObject *parent ) :
     RoutingRunnerPlugin( parent )
 {
-    setSupportedCelestialBodies( QStringList() << "earth" );
+    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
     setCanWorkOffline( false );
     setStatusMessage( tr ( "This service requires an Internet connection." ) );
 }
@@ -34,12 +34,12 @@ QString OSRMPlugin::guiString() const
 
 QString OSRMPlugin::nameId() const
 {
-    return "osrm";
+    return QStringLiteral("osrm");
 }
 
 QString OSRMPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString OSRMPlugin::description() const
@@ -49,13 +49,13 @@ QString OSRMPlugin::description() const
 
 QString OSRMPlugin::copyrightYears() const
 {
-    return "2012";
+    return QStringLiteral("2012");
 }
 
-QList<PluginAuthor> OSRMPlugin::pluginAuthors() const
+QVector<PluginAuthor> OSRMPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
 }
 
 RoutingRunner *OSRMPlugin::newRunner() const
@@ -70,6 +70,4 @@ bool OSRMPlugin::supportsTemplate( RoutingProfilesModel::ProfileTemplate profile
 
 }
 
-Q_EXPORT_PLUGIN2( OSRMPlugin, Marble::OSRMPlugin )
-
-#include "OSRMPlugin.moc"
+#include "moc_OSRMPlugin.cpp"

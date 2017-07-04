@@ -26,7 +26,6 @@
 #include "GeoDataLineString.h"
 #include "GeoDataCoordinates.h"
 #include "GeoDataPlacemark.h"
-#include "GeoDataFolder.h"
 #include "GeoDataStyle.h"
 
 namespace Marble
@@ -37,7 +36,7 @@ GPX_DEFINE_TAG_HANDLER(rtept)
 
 GeoNode* GPXrteptTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_rtept));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_rtept)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_rte))
@@ -50,12 +49,12 @@ GeoNode* GPXrteptTagHandler::parse(GeoParser& parser) const
         QStringRef tmp;
         qreal lat = 0;
         qreal lon = 0;
-        tmp = attributes.value(gpxTag_lat);
+        tmp = attributes.value(QLatin1String(gpxTag_lat));
         if ( !tmp.isEmpty() )
         {
             lat = tmp.toString().toFloat();
         }
-        tmp = attributes.value(gpxTag_lon);
+        tmp = attributes.value(QLatin1String(gpxTag_lon));
         if ( !tmp.isEmpty() )
         {
             lon = tmp.toString().toFloat();

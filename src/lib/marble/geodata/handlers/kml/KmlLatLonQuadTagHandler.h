@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_KML_KMLLATLONQUADTAGHANDLER_H
@@ -21,7 +21,7 @@ namespace kml
 class KmlLatLonQuadTagHandler : public GeoTagHandler
 {
  public:
-    virtual GeoNode* parse( GeoParser& ) const;
+    GeoNode* parse( GeoParser& ) const override;
 };
 
 }

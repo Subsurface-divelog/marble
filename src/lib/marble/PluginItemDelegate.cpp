@@ -24,7 +24,6 @@
 #include <QStandardItemModel>
 #include <QApplication>
 #include <QPainter>
-#include <QStandardItem>
 
 using namespace Marble;
 /* TRANSLATOR Marble::PluginItemDelegate */
@@ -125,7 +124,8 @@ QSize PluginItemDelegate::sizeHint( const QStyleOptionViewItem& option,
 
     QStyleOptionViewItem opt = option;
     opt.rect = QRect( 0, 0, 0, 0 );
-    QList<QSize> elementSize;
+    QVector<QSize> elementSize;
+    elementSize.reserve(4);
     QStyleOptionButton checkBox = checkboxOption( opt, index );
     elementSize.append( checkBox.rect.size() );
     QStyleOptionButton aboutButton = buttonOption( opt, index, PluginItemDelegate::About );
@@ -134,7 +134,7 @@ QSize PluginItemDelegate::sizeHint( const QStyleOptionViewItem& option,
     elementSize.append( configButton.rect.size() );
     elementSize.append( nameSize( index ) );
 
-    foreach( const QSize& buttonSize, elementSize ) {
+    for( const QSize& buttonSize: elementSize ) {
         if( buttonSize.height() > size.height() )
             size.setHeight( buttonSize.height() );
         size.setWidth( size.width() + buttonSize.width() );
@@ -394,8 +394,8 @@ QSize PluginItemDelegate::nameSize( const QModelIndex& index )
     return nameSize;
 }
 
-QRect PluginItemDelegate::alignRect( QRect object,
-                                     QRect frame,
+QRect PluginItemDelegate::alignRect( const QRect& object,
+                                     const QRect& frame,
                                      int position,
                                      Qt::AlignmentFlag alignment )
 {
@@ -418,4 +418,4 @@ QRect PluginItemDelegate::alignRect( QRect object,
 }
 
 
-#include "PluginItemDelegate.moc"
+#include "moc_PluginItemDelegate.cpp"

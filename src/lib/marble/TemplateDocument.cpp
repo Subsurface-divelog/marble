@@ -12,7 +12,7 @@
 
 #include <QMap>
 #include <QString>
-#include <QDir>
+#include <QFile>
 #include <QRegExp>
 
 #include "MarbleDebug.h"
@@ -43,10 +43,10 @@ void TemplateDocumentPrivate::processTemplateIncludes(QString &input)
         pos += rx.matchedLength();
     }
 
-    foreach (const QString &include, includes) {
-        QFile includeFile(":/htmlfeatures/includes/"+include+".inc");
+    for (const QString &include: includes) {
+        QFile includeFile(QLatin1String(":/htmlfeatures/includes/") + include + QLatin1String(".inc"));
         if (includeFile.open(QIODevice::ReadOnly)) {
-            input.replace("%!{" + include + "}%", includeFile.readAll());
+            input.replace(QLatin1String("%!{") + include + QLatin1String("}%"), includeFile.readAll());
         } else {
             mDebug() << "[WARNING] Can't process template include" << include;
         }
@@ -95,7 +95,7 @@ QString TemplateDocument::finalText() const
     typedef QMap<QString, QString>::ConstIterator ConstIterator;
     ConstIterator end = d->templateEntries.constEnd();
     for (ConstIterator i = d->templateEntries.constBegin(); i != end; i++) {
-        ready.replace("%" + i.key() + "%", i.value());
+        ready.replace(QLatin1Char('%') + i.key() + QLatin1Char('%'), i.value());
     }
     d->processTemplateIncludes(ready);
     return ready;

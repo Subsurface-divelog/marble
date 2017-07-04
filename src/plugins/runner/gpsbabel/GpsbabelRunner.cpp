@@ -11,6 +11,7 @@
 
 #include "GeoDataParser.h"
 #include "GeoDataDocument.h"
+#include "MarbleDebug.h"
 
 #include <QFile>
 #include <QProcess>
@@ -27,13 +28,13 @@ GpsbabelRunner::GpsbabelRunner( QObject *parent ) :
 {
 }
 
-void GpsbabelRunner::parseFile( const QString &fileName, DocumentRole role )
+GeoDataDocument *GpsbabelRunner::parseFile(const QString &fileName, DocumentRole role, QString &error)
 {
     // Check and see if the file exists
     if ( !QFileInfo( fileName ).exists() ) {
-        qWarning( "File does not exist!" );
-        emit parsingFinished( 0 );
-        return;
+        error = QStringLiteral("File %1 does not exist").arg(fileName);
+        mDebug() << error;
+        return nullptr;
     }
 
     // Inspect the filename suffix
@@ -50,39 +51,51 @@ void GpsbabelRunner::parseFile( const QString &fileName, DocumentRole role )
     fileTypes["csv"]      = "csv";
     QString const inputFileType = fileTypes[fileSuffix];
     if ( inputFileType.isEmpty() ) {
-        qWarning( "File type is not supported !" );
-        emit parsingFinished( 0 );
-        return;
+        error = QStringLiteral("Unsupported file extension for").arg(fileName);
+        mDebug() << error;
+        return nullptr;
     }
 
     // Set up temporary file to hold output KML from gpsbabel executable
-    QTemporaryFile tempKmlFile( QDir::tempPath() + "/marble-gpsbabel-XXXXXX.kml" );
+    QTemporaryFile tempKmlFile(QDir::tempPath() + QLatin1String("/marble-gpsbabel-XXXXXX.kml"));
     tempKmlFile.open();
     QFile kmlFile( tempKmlFile.fileName() );
 
     // Set up gpsbabel command line
-    QString command = "gpsbabel -i " + inputFileType;
-    command += " -f " + fileName + " -o kml -F ";
-    command += tempKmlFile.fileName();
+    const QString command = QLatin1String("gpsbabel");
+    const QStringList args = QStringList()
+        << QLatin1String("-i")
+        << inputFileType
+        << QLatin1String("-f")
+        << fileName
+        << QLatin1String("-o")
+        << QLatin1String("kml")
+        << QLatin1String("-F")
+        << tempKmlFile.fileName()
+    ;
 
     // Execute gpsbabel to parse the input file
-    if ( QProcess::execute( command ) == 0 ) {
+    int const exitStatus = QProcess::execute( command, args );
+    if ( exitStatus == 0 ) {
         kmlFile.open( QIODevice::ReadWrite );
         GeoDataParser parser( GeoData_KML );
         parser.read( &kmlFile );
         GeoDataDocument *document = dynamic_cast<GeoDataDocument*>( parser.releaseDocument() );
         if ( !document ) {
-            emit parsingFinished( 0, "Unable to open " + fileName );
-            return;
+            error = parser.errorString();
+            mDebug() << error;
+            return nullptr;
         }
 
         document->setDocumentRole( role );
-        emit parsingFinished( document );
+        return document;
     } else {
-        emit parsingFinished( 0, "GPSBabel failed to parse the input file." );
+        error = QStringLiteral("Gpsbabel returned error code %1").arg(exitStatus);
+        mDebug() << error;
+        return nullptr;
     }
 }
 
 }
 
-#include "GpsbabelRunner.moc"
+#include "moc_GpsbabelRunner.cpp"

@@ -15,7 +15,6 @@
 // Qt
 #include <QRect>
 #include <QColor>
-#include <QPixmap>
 #include <QSvgRenderer>
 
 // Marble
@@ -34,7 +33,7 @@ FITemplateFloatItem::FITemplateFloatItem ( const QPointF &point,
       m_compass(),
       m_polarity( 0 )
 {
-    m_svgobj = new QSvgRenderer( MarbleDirs::path( "svg/compass.svg" ),
+    m_svgobj = new QSvgRenderer(MarbleDirs::path(QStringLiteral("svg/compass.svg")),
                                  this );
 }
 
@@ -45,7 +44,7 @@ FITemplateFloatItem::~FITemplateFloatItem ()
 
 QStringList FITemplateFloatItem::backendTypes() const
 {
-    return QStringList( "FITemplate" );
+    return QStringList(QStringLiteral("FITemplate"));
 }
 
 QString FITemplateFloatItem::name() const
@@ -60,7 +59,7 @@ QString FITemplateFloatItem::guiString() const
 
 QString FITemplateFloatItem::nameId() const
 {
-    return QString( "compass" );
+    return QStringLiteral("floatitemtemplate");
 }
 
 QString FITemplateFloatItem::description() const
@@ -105,6 +104,4 @@ bool FITemplateFloatItem::renderFloatItem( GeoPainter     *painter,
 
 }
 
-Q_EXPORT_PLUGIN2(FITemplateFloatItem, Marble::FITemplateFloatItem )
-
-#include "FITemplateFloatItem.moc"
+#include "moc_FITemplateFloatItem.cpp"

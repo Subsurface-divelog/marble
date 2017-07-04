@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2008 Henry de Valence <hdevalence@gmail.com>
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2010-2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 
@@ -19,9 +19,9 @@
 
 #include <QObject>
 #include <QVector>
-#include <QString>
 
 class QAbstractItemModel;
+class QString;
 
 namespace Marble
 {
@@ -42,7 +42,7 @@ public:
      */
     explicit SearchRunnerManager( const MarbleModel *marbleModel, QObject *parent = 0 );
 
-    ~SearchRunnerManager();
+    ~SearchRunnerManager() override;
 
     /**
      * Search for placemarks matching the given search term.

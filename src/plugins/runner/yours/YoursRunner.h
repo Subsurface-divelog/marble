@@ -5,7 +5,8 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2016      Piotr Wójcik <chocimier@tlen.pl>
 //
 
 
@@ -17,8 +18,6 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
-class QNetworkAccessManager;
-
 namespace Marble
 {
 
@@ -29,10 +28,10 @@ class YoursRunner : public RoutingRunner
 public:
     explicit YoursRunner( QObject *parent = 0 );
 
-    ~YoursRunner();
+    ~YoursRunner() override;
 
     // Overriding MarbleAbstractRunner
-    virtual void retrieveRoute( const RouteRequest *request );
+    void retrieveRoute( const RouteRequest *request ) override;
 
 private Q_SLOTS:
     /** Route data was retrieved via http */

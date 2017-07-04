@@ -14,10 +14,8 @@
 #include "MarbleWidget.h"
 #include "TestUtils.h"
 
-#if QT_VERSION >= 0x050000
-  #include "qtest_widgets.h"
-  #include "qtestmouse.h"
-#endif
+#include "qtest_widgets.h"
+#include "qtestmouse.h"
 
 namespace Marble
 {
@@ -26,7 +24,7 @@ class MarbleWidgetTest: public QObject
 {
     Q_OBJECT
 
-private slots:
+private Q_SLOTS:
     void initTestCase();// will be called before the first testfunction is executed.
     void cleanupTestCase(){}// will be called after the last testfunction was executed.
     void init(){}// will be called before each testfunction is executed.

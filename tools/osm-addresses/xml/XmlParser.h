@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_XMLPARSER_H
@@ -18,14 +18,7 @@
 #include "OsmPlacemark.h"
 #include "OsmRegionTree.h"
 
-#include "GeoDataLineString.h"
-#include "GeoDataPolygon.h"
-
-#include <QObject>
 #include <QFileInfo>
-#include <QMap>
-#include <QList>
-#include <QPair>
 #include <QXmlDefaultHandler>
 
 namespace Marble
@@ -38,12 +31,12 @@ public:
     explicit XmlParser( QObject *parent = 0 );
 
 protected:
-    virtual bool parse( const QFileInfo &file, int pass, bool &needAnotherPass );
+    bool parse( const QFileInfo &file, int pass, bool &needAnotherPass ) override;
 
 private:
-    virtual bool startElement ( const QString & namespaceURI, const QString & localName, const QString & qName, const QXmlAttributes & atts );
+    bool startElement ( const QString & namespaceURI, const QString & localName, const QString & qName, const QXmlAttributes & atts ) override;
 
-    virtual bool endElement ( const QString & namespaceURI, const QString & localName, const QString & qName );
+    bool endElement ( const QString & namespaceURI, const QString & localName, const QString & qName ) override;
 
     Node m_node;
 

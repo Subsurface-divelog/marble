@@ -29,7 +29,6 @@ class GeoDataLineString;
 class GeoDataObject;
 class GeoDataTrack;
 class GeoDataTreeModel;
-class MarbleModel;
 class RoutingModel;
 
 class ElevationProfileDataSource : public QObject
@@ -37,7 +36,7 @@ class ElevationProfileDataSource : public QObject
     Q_OBJECT
 
 public:
-    ElevationProfileDataSource( QObject *parent = 0 );
+    explicit ElevationProfileDataSource( QObject *parent = 0 );
 
     /**
      * @brief isDataAvailable
@@ -50,10 +49,10 @@ public Q_SLOTS:
 
 Q_SIGNALS:
     void sourceCountChanged();
-    void dataUpdated( const GeoDataLineString &points, const QList<QPointF> &elevationData );
+    void dataUpdated(const GeoDataLineString &points, const QVector<QPointF> &elevationData);
 
 protected:
-    QList<QPointF> calculateElevationData(const GeoDataLineString &lineString) const;
+    QVector<QPointF> calculateElevationData(const GeoDataLineString &lineString) const;
     virtual qreal getElevation(const GeoDataCoordinates &coordinates) const = 0;
 };
 
@@ -67,7 +66,7 @@ class ElevationProfileTrackDataSource : public ElevationProfileDataSource
 public:
     explicit ElevationProfileTrackDataSource( const GeoDataTreeModel *treeModel, QObject *parent = 0 );
 
-    virtual bool isDataAvailable() const;
+    bool isDataAvailable() const override;
 
     QStringList sourceDescriptions() const;
 
@@ -76,10 +75,10 @@ public:
     int currentSourceIndex() const;
 
 public Q_SLOTS:
-    virtual void requestUpdate();
+    void requestUpdate() override;
 
 protected:
-    virtual qreal getElevation(const GeoDataCoordinates &coordinates) const;
+    qreal getElevation(const GeoDataCoordinates &coordinates) const override;
 
 private Q_SLOTS:
     void handleObjectAdded( GeoDataObject *object );
@@ -102,13 +101,13 @@ class ElevationProfileRouteDataSource : public ElevationProfileDataSource
 public:
     ElevationProfileRouteDataSource( const RoutingModel *routingModel, const ElevationModel *elevationModel, QObject *parent = 0 );
 
-    virtual bool isDataAvailable() const;
+    bool isDataAvailable() const override;
 
 public Q_SLOTS:
-    virtual void requestUpdate();
+    void requestUpdate() override;
 
 protected:
-    virtual qreal getElevation(const GeoDataCoordinates &coordinates) const;
+    qreal getElevation(const GeoDataCoordinates &coordinates) const override;
 
 private:
     const RoutingModel *const m_routingModel;

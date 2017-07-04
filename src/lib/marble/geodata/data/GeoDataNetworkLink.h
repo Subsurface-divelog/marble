@@ -13,13 +13,15 @@
 #define MARBLE_GEODATANETWORKLINK_H
 
 #include "GeoDataFeature.h"
-#include "GeoDataLink.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
+class GeoDataLink;
 class GeoDataNetworkLinkPrivate;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataNetworkLink: public GeoDataFeature
 {
 public:
@@ -32,10 +34,12 @@ public:
     bool operator==( const GeoDataNetworkLink &other ) const;
     bool operator!=( const GeoDataNetworkLink &other ) const;
 
-    ~GeoDataNetworkLink();
+    ~GeoDataNetworkLink() override;
+
+    GeoDataFeature * clone() const override;
 
     /** Provides type information for downcasting a GeoNode */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     bool refreshVisibility() const;
 

@@ -14,10 +14,8 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
-#include "GeoDataFolder.h"
 
 namespace Marble
 {
@@ -30,7 +28,7 @@ GPX_DEFINE_TAG_HANDLER(type)
 
 GeoNode* GPXtypeTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_type));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_type)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_wpt)

@@ -14,7 +14,6 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataData.h"
 #include "GeoDataExtendedData.h"
@@ -32,7 +31,7 @@ GPX_DEFINE_TAG_HANDLER_11(link)
 // there are text and type properties, type being ignored for now.
 GeoNode* GPXlinkTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_link));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_link)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_wpt))
@@ -40,20 +39,20 @@ GeoNode* GPXlinkTagHandler::parse(GeoParser& parser) const
         GeoDataPlacemark* placemark = parentItem.nodeAs<GeoDataPlacemark>();
 
         QXmlStreamAttributes attributes = parser.attributes();
-        QString href = attributes.value("href").toString();
+        QString href = attributes.value(QLatin1String("href")).toString();
         QString text = href;
         if (parser.readNextStartElement())
         {
             text = parser.readElementText();
         }
 
-        QString link = QString("Link: <a href=\"%1\">%2</a>")
+        const QString link = QStringLiteral("Link: <a href=\"%1\">%2</a>")
             .arg(href).arg(text);
 
         QString desc = placemark->description();
         if (!desc.isEmpty())
         {
-            desc.append("<br/>");
+            desc += QLatin1String("<br/>");
         }
 
         placemark->setDescription(desc.append(link));

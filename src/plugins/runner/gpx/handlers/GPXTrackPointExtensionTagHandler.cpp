@@ -14,8 +14,6 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
-#include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
 #include "GeoDataTrack.h"
 #include "GeoDataExtendedData.h"
@@ -28,7 +26,8 @@ GPX_DEFINE_TAG_HANDLER_GARMIN_TRACKPOINTEXT1(TrackPointExtension)
 
 GeoNode* GPXTrackPointExtensionTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( gpxTag_TrackPointExtension ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_TrackPointExtension)));
+
     GeoStackItem parentItem = parser.parentElement();
 
     if ( parentItem.is<GeoDataTrack>() )

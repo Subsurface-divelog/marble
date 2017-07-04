@@ -20,6 +20,7 @@
 #include "GeoDataLinearRing.h"
 #include "MarbleDebug.h"
 #include "MarbleMath.h"
+#include "MarbleWidgetPopupMenu.h"
 #include "MarbleModel.h"
 #include "MarbleLocale.h"
 #include "ViewportParams.h"
@@ -27,10 +28,6 @@
 
 #include <QDialog>
 #include <QColor>
-#include <QPen>
-#include <QPixmap>
-#include <QPushButton>
-#include <QCheckBox>
 #include <QTextDocument>
 #include <qmath.h>
 
@@ -40,13 +37,12 @@ namespace Marble
 MeasureToolPlugin::MeasureToolPlugin( const MarbleModel *marbleModel )
     : RenderPlugin( marbleModel ),
       m_measureLineString( GeoDataLineString( Tessellate ) ),
-      m_mark( ":/mark.png" ),
 #ifdef Q_OS_MACX
-      m_font_regular( QFont( "Sans Serif", 10, 50, false ) ),
+      m_font_regular( QFont( QStringLiteral( "Sans Serif" ), 10, 50, false ) ),
 #else
-      m_font_regular( QFont( "Sans Serif",  8, 50, false ) ),
+      m_font_regular( QFont( QStringLiteral( "Sans Serif" ),  8, 50, false ) ),
 #endif
-      m_fontascent( QFontMetrics( m_font_regular ).ascent() ),
+      m_fontascent(-1),
       m_pen( Qt::red ),
       m_addMeasurePointAction( 0 ),
       m_removeLastMeasurePointAction( 0 ),
@@ -67,24 +63,25 @@ MeasureToolPlugin::MeasureToolPlugin( const MarbleModel *marbleModel )
       m_circularArea(0.0),
       m_radius(0.0),
       m_perimeter(0.0),
-      m_circumference(0.0)
+      m_circumference(0.0),
+      m_paintMode(Polygon)
 {
     m_pen.setWidthF( 2.0 );
 }
 
 QStringList MeasureToolPlugin::backendTypes() const
 {
-    return QStringList( "measuretool" );
+    return QStringList(QStringLiteral("measuretool"));
 }
 
 QString MeasureToolPlugin::renderPolicy() const
 {
-    return QString( "ALWAYS" );
+    return QStringLiteral("ALWAYS");
 }
 
 QStringList MeasureToolPlugin::renderPosition() const
 {
-    return QStringList() << "ATMOSPHERE";
+    return QStringList(QStringLiteral("ATMOSPHERE"));
 }
 
 QString MeasureToolPlugin::name() const
@@ -99,12 +96,12 @@ QString MeasureToolPlugin::guiString() const
 
 QString MeasureToolPlugin::nameId() const
 {
-    return QString( "measure-tool" );
+    return QStringLiteral("measure-tool");
 }
 
 QString MeasureToolPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString MeasureToolPlugin::description() const
@@ -114,34 +111,35 @@ QString MeasureToolPlugin::description() const
 
 QString MeasureToolPlugin::copyrightYears() const
 {
-    return "2006-2008, 2011";
+    return QStringLiteral("2006-2008, 2011");
 }
 
-QList<PluginAuthor> MeasureToolPlugin::pluginAuthors() const
+QVector<PluginAuthor> MeasureToolPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
-            << PluginAuthor( "Torsten Rahn", "tackat@kde.org" )
-            << PluginAuthor( "Inge Wallin", "ingwa@kde.org" )
-            << PluginAuthor( "Carlos Licea", "carlos.licea@kdemail.net" )
-            << PluginAuthor( "Michael Henning", "mikehenning@eclipse.net" )
-            << PluginAuthor( "Valery Kharitonov", "kharvd@gmail.com" )
-            << PluginAuthor( "Mohammed Nafees", "nafees.technocool@gmail.com" )
-            << PluginAuthor( "Illya Kovalevskyy", "illya.kovalevskyy@gmail.com" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
+            << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"))
+            << PluginAuthor(QStringLiteral("Inge Wallin"), QStringLiteral("ingwa@kde.org"))
+            << PluginAuthor(QStringLiteral("Carlos Licea"), QStringLiteral("carlos.licea@kdemail.net"))
+            << PluginAuthor(QStringLiteral("Michael Henning"), QStringLiteral("mikehenning@eclipse.net"))
+            << PluginAuthor(QStringLiteral("Valery Kharitonov"), QStringLiteral("kharvd@gmail.com"))
+            << PluginAuthor(QStringLiteral("Mohammed Nafees"), QStringLiteral("nafees.technocool@gmail.com"))
+            << PluginAuthor(QStringLiteral("Illya Kovalevskyy"), QStringLiteral("illya.kovalevskyy@gmail.com"));
 }
 
 QIcon MeasureToolPlugin::icon () const
 {
-    return QIcon(":/icons/measure.png");
+    return QIcon(QStringLiteral(":/icons/measure.png"));
 }
 
 void MeasureToolPlugin::initialize ()
 {
+     m_fontascent = QFontMetrics( m_font_regular ).ascent();
 }
 
 bool MeasureToolPlugin::isInitialized () const
 {
-    return true;
+    return m_fontascent >= 0;
 }
 
 QDialog *MeasureToolPlugin::configDialog()
@@ -171,15 +169,15 @@ QHash<QString,QVariant> MeasureToolPlugin::settings() const
 {
     QHash<QString, QVariant> settings = RenderPlugin::settings();
 
-    settings.insert( "showDistanceLabel", m_showDistanceLabel );
-    settings.insert( "showBearingLabel", m_showBearingLabel );
-    settings.insert( "showBearingChangeLabel", m_showBearingChangeLabel );
-    settings.insert( "showPolygonArea", m_showPolygonArea );
-    settings.insert( "showCircularArea", m_showCircularArea );
-    settings.insert( "showRadius", m_showRadius );
-    settings.insert( "showPerimeter", m_showPerimeter );
-    settings.insert( "showCircumference", m_showCircumference );
-    settings.insert( "paintMode", (int)m_paintMode );
+    settings.insert(QStringLiteral("showDistanceLabel"), m_showDistanceLabel);
+    settings.insert(QStringLiteral("showBearingLabel"), m_showBearingLabel);
+    settings.insert(QStringLiteral("showBearingChangeLabel"), m_showBearingChangeLabel);
+    settings.insert(QStringLiteral("showPolygonArea"), m_showPolygonArea);
+    settings.insert(QStringLiteral("showCircularArea"), m_showCircularArea);
+    settings.insert(QStringLiteral("showRadius"), m_showRadius);
+    settings.insert(QStringLiteral("showPerimeter"), m_showPerimeter);
+    settings.insert(QStringLiteral("showCircumference"), m_showCircumference);
+    settings.insert(QStringLiteral("paintMode"), (int)m_paintMode);
 
     return settings;
 }
@@ -188,15 +186,15 @@ void MeasureToolPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     RenderPlugin::setSettings( settings );
 
-    m_showDistanceLabel = settings.value( "showDistanceLabel", true ).toBool();
-    m_showBearingLabel = settings.value( "showBearingLabel", true ).toBool();
-    m_showBearingChangeLabel = settings.value( "showBearingChangeLabel", true ).toBool();
-    m_showPolygonArea = settings.value( "showPolygonArea", false ).toBool();
-    m_showCircularArea = settings.value( "showCircularArea", true ).toBool();
-    m_showRadius = settings.value( "showRadius", true ).toBool();
-    m_showPerimeter = settings.value( "showPerimeter", true ).toBool();
-    m_showCircumference = settings.value( "showCircumference", true ).toBool();
-    m_paintMode = (PaintMode)settings.value( "paintMode", 0 ).toInt();
+    m_showDistanceLabel = settings.value(QStringLiteral("showDistanceLabel"), true).toBool();
+    m_showBearingLabel = settings.value(QStringLiteral("showBearingLabel"), true).toBool();
+    m_showBearingChangeLabel = settings.value(QStringLiteral("showBearingChangeLabel"), true).toBool();
+    m_showPolygonArea = settings.value(QStringLiteral("showPolygonArea"), false).toBool();
+    m_showCircularArea = settings.value(QStringLiteral("showCircularArea"), true).toBool();
+    m_showRadius = settings.value(QStringLiteral("showRadius"), true).toBool();
+    m_showPerimeter = settings.value(QStringLiteral("showPerimeter"), true).toBool();
+    m_showCircumference = settings.value(QStringLiteral("showCircumference"), true).toBool();
+    m_paintMode = (PaintMode)settings.value(QStringLiteral("paintMode"), 0).toInt();
 }
 
 void MeasureToolPlugin::writeSettings()
@@ -296,7 +294,7 @@ void MeasureToolPlugin::drawSegments( GeoPainter* painter )
             }
             QString bearingString = QString::fromUtf8( "%1°" ).arg( bearing, 0, 'f', 2 );
             if ( !infoString.isEmpty() ) {
-                infoString.append( "\n" );
+                infoString += QLatin1Char('\n');
             }
             infoString.append( bearingString );
         }
@@ -423,7 +421,7 @@ void MeasureToolPlugin::drawSegments( GeoPainter* painter )
     }
 
     if (m_paintMode == Polygon && m_measureLineString.size() > 2) {
-        GeoDataLinearRing measureRing = m_measureLineString;
+        GeoDataLinearRing measureRing(m_measureLineString);
 
         if (m_showPolygonArea || m_showPerimeter) {
             painter->setPen( Qt::NoPen );
@@ -536,15 +534,18 @@ QString MeasureToolPlugin::meterToPreferredUnit(qreal meters, bool isSquare) con
         unitString.append(QChar(0xB2));
     }
 
-    return QString("%L1 %2").arg(convertedMeters, 8, 'f', 1, QChar(' '))
+    return QString("%L1 %2").arg(convertedMeters, 8, 'f', 1, QLatin1Char(' '))
                             .arg(unitString);
 }
 
-void MeasureToolPlugin::drawMeasurePoints( GeoPainter *painter ) const
+void MeasureToolPlugin::drawMeasurePoints( GeoPainter *painter )
 {
     // Paint the marks.
     GeoDataLineString::const_iterator itpoint = m_measureLineString.constBegin();
     GeoDataLineString::const_iterator const endpoint = m_measureLineString.constEnd();
+    if (m_mark.isNull()) {
+        m_mark = QPixmap(QStringLiteral(":/mark.png"));
+    }
     for (; itpoint != endpoint; ++itpoint )
     {
         painter->drawPixmap( *itpoint, m_mark );
@@ -556,9 +557,9 @@ void MeasureToolPlugin::drawInfobox( GeoPainter *painter ) const
     QString boxContent;
 
     if (m_paintMode == Polygon) {
-        boxContent += "<strong>" + tr("Polygon Ruler") + ":</strong><br/>\n";
+        boxContent += QLatin1String("<strong>") + tr("Polygon Ruler") + QLatin1String(":</strong><br/>\n");
     } else /* Circular */ {
-        boxContent += "<strong>" + tr("Circle Ruler") + ":</strong><br/>\n";
+        boxContent += QLatin1String("<strong>") + tr("Circle Ruler") + QLatin1String(":</strong><br/>\n");
     }
     if (m_paintMode == Polygon) {
         boxContent += tr("Total Distance: %1<br/>\n").arg( meterToPreferredUnit(m_totalDistance) );
@@ -620,7 +621,7 @@ void MeasureToolPlugin::addContextItems()
     MarbleWidgetPopupMenu *menu = m_marbleWidget->popupMenu();
 
     // Connect the inputHandler and the measure tool to the popup menu
-    m_addMeasurePointAction = new QAction( QIcon(":/icons/measure.png"), tr( "Add &Measure Point" ), this );
+    m_addMeasurePointAction = new QAction(QIcon(QStringLiteral(":/icons/measure.png")), tr("Add &Measure Point"), this);
     m_removeLastMeasurePointAction = new QAction( tr( "Remove &Last Measure Point" ), this );
     m_removeLastMeasurePointAction->setEnabled( false );
     m_removeMeasurePointsAction = new QAction( tr( "&Remove Measure Points" ), this );
@@ -628,7 +629,8 @@ void MeasureToolPlugin::addContextItems()
     m_separator = new QAction( this );
     m_separator->setSeparator( true );
 
-    if ( ! MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen ) {
+    bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
+    if ( !smallScreen ) {
         menu->addAction( Qt::RightButton, m_addMeasurePointAction );
         menu->addAction( Qt::RightButton, m_removeLastMeasurePointAction );
         menu->addAction( Qt::RightButton, m_removeMeasurePointsAction );
@@ -700,7 +702,5 @@ bool MeasureToolPlugin::eventFilter( QObject *object, QEvent *e )
 
 }
 
-Q_EXPORT_PLUGIN2( MeasureToolPlugin, Marble::MeasureToolPlugin )
-
-#include "MeasureToolPlugin.moc"
+#include "moc_MeasureToolPlugin.cpp"
 

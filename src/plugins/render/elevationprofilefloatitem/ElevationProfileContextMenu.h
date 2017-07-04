@@ -13,8 +13,8 @@
 #ifndef ELEVATIONPROFILECONTEXTMENU_H
 #define ELEVATIONPROFILECONTEXTMENU_H
 
-#include <QtCore/QObject>
-#include <QtCore/QSignalMapper>
+#include <QObject>
+#include <QSignalMapper>
 #include <QMenu>
 
 
@@ -25,9 +25,9 @@ class ElevationProfileFloatItem;
 class ElevationProfileContextMenu : public QObject {
     Q_OBJECT
 public:
-    ElevationProfileContextMenu(ElevationProfileFloatItem* floatItem);
+    explicit ElevationProfileContextMenu(ElevationProfileFloatItem* floatItem);
     QMenu* getMenu();
-public slots:
+public Q_SLOTS:
     void updateContextMenuEntries();
 
 private:

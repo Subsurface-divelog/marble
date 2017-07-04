@@ -16,7 +16,6 @@
 
 
 #include "GeoDataObject.h"
-#include "Serializable.h"
 #include "MarbleGlobal.h"
 
 #include "geodata_export.h"
@@ -26,12 +25,9 @@ namespace Marble
 
 class GeoDataGeometryPrivate;
 
-class GeoDataPoint;
-class GeoDataPolygon;
 class GeoDataLatLonAltBox;
 class GeoDataLineString; // LinearRing is the same!
 class GeoDataMultiGeometry;
-class GeoDataOrientation;
 
 /**
  * @short A base class for all geodata features
@@ -47,15 +43,14 @@ class GeoDataOrientation;
 class GEODATA_EXPORT GeoDataGeometry : public GeoDataObject
 {
  public:
-    GeoDataGeometry();
-    GeoDataGeometry( const GeoDataGeometry& other );
-    GeoDataGeometry& operator=( const GeoDataGeometry& other );
-    
-    virtual ~GeoDataGeometry();
+    ~GeoDataGeometry() override;
 
-    /// Provides type information for downcasting a GeoData
-    virtual const char* nodeType() const;
-    virtual EnumGeometryId geometryId() const;
+    virtual EnumGeometryId geometryId() const = 0;
+
+    virtual GeoDataGeometry *copy() const = 0;
+
+    bool operator==(const GeoDataGeometry &other) const;
+    inline bool operator!=(const GeoDataGeometry &other) const { return !(*this == other); }
 
     bool extrude() const;
     void setExtrude( bool extrude );
@@ -66,21 +61,23 @@ class GEODATA_EXPORT GeoDataGeometry : public GeoDataObject
     virtual const GeoDataLatLonAltBox& latLonAltBox() const;
 
     /// Serialize the contents of the feature to @p stream.
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
     /// Unserialize the contents of the feature from @p stream.
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
     void detach();
 
  protected:
     explicit GeoDataGeometry( GeoDataGeometryPrivate* priv );
+    explicit GeoDataGeometry(const GeoDataGeometry &other);
+    GeoDataGeometry& operator=(const GeoDataGeometry &other);
 
     bool equals(const GeoDataGeometry &other) const;
 
     using GeoDataObject::equals;
 
  protected:
-    GeoDataGeometryPrivate *d;
+    GeoDataGeometryPrivate *d_ptr;
 };
 
 }

@@ -15,13 +15,13 @@
 #include <QTimer>
 
 #include "GeoDataCoordinates.h"
-#include "GeoDataLineString.h"
 
 
 namespace Marble
 {
 
 class PolylineAnnotation;
+class GeoDataLineString;
 
 class MergingPolylineNodesAnimation : public QObject
 {
@@ -29,16 +29,16 @@ class MergingPolylineNodesAnimation : public QObject
 
 public:
     explicit MergingPolylineNodesAnimation( PolylineAnnotation *polyline );
-    ~MergingPolylineNodesAnimation();
+    ~MergingPolylineNodesAnimation() override;
 
-public slots:
+public Q_SLOTS:
     void startAnimation();
 
-signals:
+Q_SIGNALS:
     void nodesMoved();
     void animationFinished();
 
-private slots:
+private Q_SLOTS:
     void updateNodes();
 
 private:

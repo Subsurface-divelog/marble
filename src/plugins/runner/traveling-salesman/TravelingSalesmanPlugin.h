@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -20,7 +20,7 @@ namespace Marble
 class TravelingSalesmanPlugin : public RunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.TravelingSalesmanPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.TravelingSalesmanPlugin")
     Q_INTERFACES( Marble::RunnerPlugin )
 
 public:

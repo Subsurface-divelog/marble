@@ -13,13 +13,13 @@
 #define MARBLE_TINYWEBBROWSER_H
 
 // Qt
-#include <QByteArray>
-#include <QString>
-#include <QUrl>
 #include <QWebView>
 
 // Marble
 #include "marble_export.h"
+
+class QString;
+class QUrl;
 
 namespace Marble
 {
@@ -38,22 +38,20 @@ class MARBLE_EXPORT TinyWebBrowser : public QWebView
 
  public:
     explicit TinyWebBrowser( QWidget* parent = 0 );
-    ~TinyWebBrowser();
-
-    static QByteArray userAgent(const QString &platform, const QString &plugin);
+    ~TinyWebBrowser() override;
 
  public Q_SLOTS:
     void setWikipediaPath( const QString& relativeUrl );
     void print();
 
  Q_SIGNALS:
-    void statusMessage( QString );
+    void statusMessage( const QString& );
 
  protected:
-    QWebView *createWindow( QWebPage::WebWindowType type );
+    QWebView *createWindow( QWebPage::WebWindowType type ) override;
 
  private Q_SLOTS:
-    void openExternalLink( QUrl );
+    void openExternalLink( const QUrl& );
 
  private:
     TinyWebBrowserPrivate * const d;

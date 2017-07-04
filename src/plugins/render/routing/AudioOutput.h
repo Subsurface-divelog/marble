@@ -5,17 +5,18 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_AUDIOOUTPUT_H
 #define MARBLE_AUDIOOUTPUT_H
 
-#include "routing/Route.h"
+#include <QObject>
 
 namespace Marble
 {
 
+class Route;
 class AudioOutputPrivate;
 
 /**
@@ -30,7 +31,7 @@ public:
     explicit AudioOutput( QObject* parent = 0 );
 
     /** Destructor */
-    ~AudioOutput();
+    ~AudioOutput() override;
 
     /**
       * Generate an audible notification (if needed) after the position on the route has changed.

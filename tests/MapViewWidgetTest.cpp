@@ -20,7 +20,7 @@ class MapViewWidgetTest : public QObject
 {
     Q_OBJECT
 
- private slots:
+private Q_SLOTS:
     void initTestCase();
 
     void setMapThemeId();
@@ -38,7 +38,7 @@ void MapViewWidgetTest::setMapThemeId()
     MapViewWidget widget;
     QSignalSpy spy( &widget, SIGNAL(mapThemeIdChanged(QString)) );
 
-    widget.setMapThemeId( "" );
+    widget.setMapThemeId(QString());
 
     QCOMPARE( spy.count(), 0 );
 

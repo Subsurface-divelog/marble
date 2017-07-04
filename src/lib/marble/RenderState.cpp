@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2014 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2014 Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "RenderState.h"
@@ -14,7 +14,7 @@
 
 namespace Marble {
 
-class RenderState::Private
+class Q_DECL_HIDDEN RenderState::Private
 {
 public:
     QString m_name;
@@ -90,7 +90,7 @@ RenderState::Private::Private( const QString &name, RenderStatus status ) :
 RenderStatus RenderState::Private::status() const
 {
     RenderStatus status = Complete;
-    foreach( const RenderState &child, m_children ) {
+    for( const RenderState &child: m_children ) {
         status = minimumStatus( status, child.status() );
     }
     return minimumStatus( status, m_status );
@@ -115,10 +115,7 @@ RenderStatus RenderState::Private::minimumStatus( RenderStatus a, RenderStatus b
 QString RenderState::Private::toString( const RenderState &state, int level ) const
 {
     QString const prefix = level > 0 ? "\n" : "";
-    QString indent;
-    for ( int i=0; i<level; ++i ) {
-        indent += "  ";
-    }
+    QString const indent(level*2, QLatin1Char(' '));
     QString status;
     switch ( state.status() ) {
     case Marble::Complete:         status = "Complete"; break;
@@ -127,9 +124,9 @@ QString RenderState::Private::toString( const RenderState &state, int level ) co
     case Marble::Incomplete:       status = "Incomplete"; break;
     }
     QString const name = ( state.name().isEmpty() ? "Anonymous renderer" : state.name() );
-    QString result = QString("%1%2%3: %4").arg( prefix ).arg( indent ).arg( name ).arg( status );
+    QString result = QString("%1%2%3: %4").arg( prefix, indent, name, status );
 
-    foreach( const RenderState &child, state.d->m_children ) {
+    for( const RenderState &child: state.d->m_children ) {
         result += toString( child, level+1 );
     }
     return result;

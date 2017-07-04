@@ -15,26 +15,26 @@
 #include <QTime>
 #include <QVector>
 #include <QVariant>
-#include <QVariantList>
 #include <QStringList>
-#include <QImage>
 #include <QDir>
 
 // Marble
-#include <MarbleWidget.h>
-#include <MarbleMap.h>
-#include <MarbleModel.h>
-#include <GeoDataTreeModel.h>
-#include <MarbleDirs.h>
-#include <MarblePlacemarkModel.h>
+#include <marble/MarbleWidget.h>
+#include <marble/MarbleMap.h>
+#include <marble/MarbleModel.h>
+#include <marble/GeoDataTreeModel.h>
+#include <marble/MarbleDirs.h>
+#include <marble/MarblePlacemarkModel.h>
 
-#include <GeoDataDocument.h>
-#include <GeoDataPlacemark.h>
-#include <GeoDataStyle.h>
-#include <GeoDataStyleMap.h>
-#include <GeoDataIconStyle.h>
-
-#include <GeoDataTypes.h>
+#include <marble/GeoDataDocument.h>
+#include <marble/GeoDataPlacemark.h>
+#include <marble/GeoDataStyle.h>
+#include <marble/GeoDataStyleMap.h>
+#include <marble/GeoDataIconStyle.h>
+#include <marble/GeoDataLinearRing.h>
+#include <marble/GeoDataPoint.h>
+#include <marble/GeoDataPolygon.h>
+#include <marble/GeoDataMultiGeometry.h>
 
 namespace Marble
 {
@@ -49,10 +49,15 @@ public:
       m_countryNames( 0 ),
       m_countryBoundaries( 0 )
       {
-          m_continentsAndOceans << "Asia" << "Africa" << "North America" << "South America"
-          << "Antarctica" << "Europe" << "Australia" << "Arctic Ocean" << "Indian Ocean"
-          << "North Atlantic Ocean" << "North Pacific Ocean" << "South Pacific Ocean"
-          << "South Atlantic Ocean" << "Southern Ocean" ;
+        m_continentsAndOceans
+            << QStringLiteral("Asia") << QStringLiteral("Africa")
+            << QStringLiteral("North America") << QStringLiteral("South America")
+            << QStringLiteral("Antarctica") << QStringLiteral("Europe")
+            << QStringLiteral("Australia")
+            << QStringLiteral("Arctic Ocean") << QStringLiteral("Indian Ocean")
+            << QStringLiteral("North Atlantic Ocean") << QStringLiteral("North Pacific Ocean")
+            << QStringLiteral("South Pacific Ocean") << QStringLiteral("South Atlantic Ocean")
+            << QStringLiteral("Southern Ocean");
       }
 
     ~ClickOnThatPrivate()
@@ -143,10 +148,9 @@ void ClickOnThat::initiateGame()
             GeoDataObject *object = qvariant_cast<GeoDataObject*>( data );
             Q_ASSERT_X( object, "CountryByShape::initiateGame",
                         "failed to get valid data from treeModel for GeoDataObject" );
-            if ( object->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
-                GeoDataDocument *doc = static_cast<GeoDataDocument*>( object );
+            if (auto doc = geodata_cast<GeoDataDocument>(object)) {
                 QFileInfo fileInfo( doc->fileName() );
-                if ( fileInfo.fileName() == QString("boundaryplacemarks.cache") ) {
+                if (fileInfo.fileName() == QLatin1String("boundaryplacemarks.cache")) {
                     d->m_countryNames = doc;
                     break;
                 }
@@ -161,10 +165,9 @@ void ClickOnThat::initiateGame()
             GeoDataObject *object = qvariant_cast<GeoDataObject*>( data );
             Q_ASSERT_X( object, "MainWindow::initiateGame",
                         "failed to get valid data from treeModel for GeoDataObject" );
-            if ( object->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
-                GeoDataDocument *const doc = static_cast<GeoDataDocument*>( object );
+            if (auto doc = geodata_cast<GeoDataDocument>(object)) {
                 QFileInfo fileInfo( doc->fileName() );
-                if ( fileInfo.fileName() == QString("ne_50m_admin_0_countries.pn2") ) {
+                if (fileInfo.fileName() == QLatin1String("ne_50m_admin_0_countries.pn2")) {
                     d->m_countryBoundaries = doc;
                     break;
                 }
@@ -176,21 +179,21 @@ void ClickOnThat::initiateGame()
         d->m_selectPinDocument = new GeoDataDocument;
         GeoDataPlacemark *pinPlacemark = new GeoDataPlacemark;
 
-        GeoDataStyle pinStyle;
-        pinStyle.setId("answer");
+        GeoDataStyle::Ptr pinStyle(new GeoDataStyle);
+        pinStyle->setId(QStringLiteral("answer"));
         GeoDataIconStyle iconStyle;
-        iconStyle.setIconPath( MarbleDirs::path("bitmaps/target.png") );
-        pinStyle.setIconStyle( iconStyle );
+        iconStyle.setIconPath(MarbleDirs::path(QStringLiteral("bitmaps/target.png")));
+        pinStyle->setIconStyle( iconStyle );
 
         GeoDataStyleMap styleMap;
-        styleMap.setId("default-map");
-        styleMap.insert( "normal", QString("#").append( pinStyle.id()) );
+        styleMap.setId(QStringLiteral("default-map"));
+        styleMap.insert(QStringLiteral("normal"), QLatin1Char('#') + pinStyle->id());
 
         d->m_selectPinDocument->addStyle( pinStyle );
         d->m_selectPinDocument->addStyleMap( styleMap );
 
         d->m_selectPinDocument->append( pinPlacemark );
-        pinPlacemark->setStyleUrl( QString("#").append(styleMap.id()) );
+        pinPlacemark->setStyleUrl(QLatin1Char('#') + styleMap.id());
         d->m_selectPinDocument->setVisible( false );
 
         // Add this document to treeModel
@@ -239,7 +242,7 @@ void ClickOnThat::postQuestion( QObject *gameObject )
         d->m_correctAnswer = point->coordinates();
         if ( gameObject ) {
             QMetaObject::invokeMethod( gameObject, "clickOnThatQuestion",
-                                    Q_ARG(QVariant, QVariant::fromValue(placemark->name())) );
+                                    Q_ARG(QVariant, QVariant(placemark->name())) );
         }
     }
 }
@@ -250,14 +253,14 @@ void ClickOnThat::updateSelectPin(bool result, const GeoDataCoordinates &clicked
     QString iconPath = dir.absolutePath();
     if ( result ) {
         //iconPath = MarbleDirs::path("bitmaps/MapTackRoundHeadGreen.png");
-        iconPath = iconPath.append("/MapTackRoundHeadGreen.png");
+        iconPath += QLatin1String("/MapTackRoundHeadGreen.png");
     }
     else {
-        iconPath = iconPath.append("/MapTackRoundHeadRed.png");
+        iconPath += QLatin1String("/MapTackRoundHeadRed.png");
     }
 
-    GeoDataStyle style = d->m_selectPinDocument->style("answer");
-    style.iconStyle().setIconPath( iconPath );
+    GeoDataStyle::Ptr style = d->m_selectPinDocument->style(QStringLiteral("answer"));
+    style->iconStyle().setIconPath( iconPath );
     d->m_selectPinDocument->addStyle( style );
 
     QVector<GeoDataPlacemark*> placemarkList = d->m_selectPinDocument->placemarkList();

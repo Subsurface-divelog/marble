@@ -4,8 +4,8 @@
 #include <QImage>
 
 #include <marble/MarbleWidget.h>
-#include <GeoDataDocument.h>
-#include <GeoDataGroundOverlay.h>
+#include <marble/GeoDataDocument.h>
+#include <marble/GeoDataGroundOverlay.h>
 #include <marble/GeoDataTreeModel.h>
 #include <marble/MarbleModel.h>
 
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
     MarbleWidget *mapWidget = new MarbleWidget();
 
     // Load the Satellite map
-    mapWidget->setMapThemeId( "earth/bluemarble/bluemarble.dgml" );
+    mapWidget->setMapThemeId(QStringLiteral("earth/bluemarble/bluemarble.dgml"));
 
     // Create a bounding box from the given corner points
     GeoDataLatLonBox box( 55, 48, 14.5, 6, GeoDataCoordinates::Degree );
@@ -43,6 +43,11 @@ int main(int argc, char** argv) {
     // Add the document to MarbleWidget's tree model
     mapWidget->model()->treeModel()->addDocument( document );
 
+    // Ensure we see our the image on start
+    mapWidget->model()->setHome(box.center(), 1500);
+    mapWidget->goHome();
+
+    // Finally show the Marble widget
     mapWidget->show();
 
     return app.exec();

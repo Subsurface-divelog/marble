@@ -16,6 +16,7 @@
 #include "GeoDataLinearRing.h"
 #include "GeoDataPoint.h"
 #include "GeoDataPolygon.h"
+#include "GeoDataTypes.h"
 
 #include "MarbleDebug.h"
 
@@ -39,120 +40,156 @@ GeoDataMultiGeometry::~GeoDataMultiGeometry()
 {
 }
 
-GeoDataMultiGeometryPrivate* GeoDataMultiGeometry::p()
+const char *GeoDataMultiGeometry::nodeType() const
 {
-    return static_cast<GeoDataMultiGeometryPrivate*>(d);
+    return GeoDataTypes::GeoDataMultiGeometryType;
 }
 
-const GeoDataMultiGeometryPrivate* GeoDataMultiGeometry::p() const
+EnumGeometryId GeoDataMultiGeometry::geometryId() const
 {
-    return static_cast<GeoDataMultiGeometryPrivate*>(d);
+    return GeoDataMultiGeometryId;
+}
+
+GeoDataGeometry *GeoDataMultiGeometry::copy() const
+{
+    return new GeoDataMultiGeometry(*this);
+}
+
+bool GeoDataMultiGeometry::operator==(const GeoDataMultiGeometry &other) const
+{
+    Q_D(const GeoDataMultiGeometry);
+    const GeoDataMultiGeometryPrivate *const other_d = other.d_func();
+    QVector<GeoDataGeometry*>::const_iterator thisBegin = d->m_vector.constBegin();
+    QVector<GeoDataGeometry*>::const_iterator thisEnd = d->m_vector.constEnd();
+    QVector<GeoDataGeometry*>::const_iterator otherBegin = other_d->m_vector.constBegin();
+    QVector<GeoDataGeometry*>::const_iterator otherEnd = other_d->m_vector.constEnd();
+
+    for (; thisBegin != thisEnd && otherBegin != otherEnd; ++thisBegin, ++otherBegin) {
+        if (**thisBegin != **otherBegin) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 const GeoDataLatLonAltBox& GeoDataMultiGeometry::latLonAltBox() const
 {
-    QVector<GeoDataGeometry*>::const_iterator it = p()->m_vector.constBegin();
-    QVector<GeoDataGeometry*>::const_iterator end = p()->m_vector.constEnd();
+    Q_D(const GeoDataMultiGeometry);
 
-    p()->m_latLonAltBox.clear();
+    QVector<GeoDataGeometry*>::const_iterator it = d->m_vector.constBegin();
+    QVector<GeoDataGeometry*>::const_iterator end = d->m_vector.constEnd();
+
+    d->m_latLonAltBox.clear();
     for (; it != end; ++it) {
         if ( !(*it)->latLonAltBox().isEmpty() ) {
-            if ( p()->m_latLonAltBox.isEmpty() ) {
-                p()->m_latLonAltBox = (*it)->latLonAltBox();
+            if ( d->m_latLonAltBox.isEmpty() ) {
+                d->m_latLonAltBox = (*it)->latLonAltBox();
             }
             else {
-                p()->m_latLonAltBox |= (*it)->latLonAltBox();
+                d->m_latLonAltBox |= (*it)->latLonAltBox();
             }
         }
     }
-    return p()->m_latLonAltBox;
+    return d->m_latLonAltBox;
 }
 
 int GeoDataMultiGeometry::size() const
 {
-    return p()->m_vector.size();
+    Q_D(const GeoDataMultiGeometry);
+    return d->m_vector.size();
 }
 
-QVector<GeoDataGeometry> GeoDataMultiGeometry::vector() const
+QVector<GeoDataGeometry *> GeoDataMultiGeometry::vector()
 {
-    QVector<GeoDataGeometry> results;
+    Q_D(const GeoDataMultiGeometry);
 
-    QVector<GeoDataGeometry*>::const_iterator it = p()->m_vector.constBegin();
-    QVector<GeoDataGeometry*>::const_iterator end = p()->m_vector.constEnd();
-
-    for (; it != end; ++it) {
-            GeoDataGeometry f = **it;
-            results.append( f );
-    }
-
-    return results;
+    return d->m_vector;
 }
 
 GeoDataGeometry& GeoDataMultiGeometry::at( int pos )
 {
     mDebug() << "detaching!";
     detach();
-    return *(p()->m_vector[ pos ]);
+
+    Q_D(GeoDataMultiGeometry);
+    return *(d->m_vector[pos]);
 }
 
 const GeoDataGeometry& GeoDataMultiGeometry::at( int pos ) const
 {
-    return *(p()->m_vector.at( pos ));
+    Q_D(const GeoDataMultiGeometry);
+    return *(d->m_vector.at(pos));
 }
 
 GeoDataGeometry& GeoDataMultiGeometry::operator[]( int pos )
 {
     detach();
-    return *(p()->m_vector[ pos ]);
+
+    Q_D(GeoDataMultiGeometry);
+    return *(d->m_vector[pos]);
 }
 
 const GeoDataGeometry& GeoDataMultiGeometry::operator[]( int pos ) const
 {
-    return *(p()->m_vector[ pos ]);
+    Q_D(const GeoDataMultiGeometry);
+    return *(d->m_vector[pos]);
 }
 
 GeoDataGeometry& GeoDataMultiGeometry::last()
 {
     detach();
-    return *(p()->m_vector.last());
+
+    Q_D(GeoDataMultiGeometry);
+    return *(d->m_vector.last());
 }
 
 GeoDataGeometry& GeoDataMultiGeometry::first()
 {
     detach();
-    return *(p()->m_vector.first());
+
+    Q_D(GeoDataMultiGeometry);
+    return *(d->m_vector.first());
 }
 
 const GeoDataGeometry& GeoDataMultiGeometry::last() const
 {
-    return *(p()->m_vector.last());
+    Q_D(const GeoDataMultiGeometry);
+    return *(d->m_vector.last());
 }
 
 const GeoDataGeometry& GeoDataMultiGeometry::first() const
 {
-    return *(p()->m_vector.first());
+    Q_D(const GeoDataMultiGeometry);
+    return *(d->m_vector.first());
 }
 
 QVector<GeoDataGeometry*>::Iterator GeoDataMultiGeometry::begin()
 {
     detach();
-    return p()->m_vector.begin();
+
+    Q_D(GeoDataMultiGeometry);
+    return d->m_vector.begin();
 }
 
 QVector<GeoDataGeometry*>::Iterator GeoDataMultiGeometry::end()
 {
     detach();
-    return p()->m_vector.end();
+
+    Q_D(GeoDataMultiGeometry);
+    return d->m_vector.end();
 }
 
 QVector<GeoDataGeometry*>::ConstIterator GeoDataMultiGeometry::constBegin() const
 {
-    return p()->m_vector.constBegin();
+    Q_D(const GeoDataMultiGeometry);
+    return d->m_vector.constBegin();
 }
 
 QVector<GeoDataGeometry*>::ConstIterator GeoDataMultiGeometry::constEnd() const
 {
-    return p()->m_vector.constEnd();
+    Q_D(const GeoDataMultiGeometry);
+    return d->m_vector.constEnd();
 }
 
 /**
@@ -161,12 +198,15 @@ QVector<GeoDataGeometry*>::ConstIterator GeoDataMultiGeometry::constEnd() const
 GeoDataGeometry* GeoDataMultiGeometry::child( int i )
 {
     detach();
-    return p()->m_vector.at( i );
+
+    Q_D(GeoDataMultiGeometry);
+    return d->m_vector.at(i);
 }
 
 const GeoDataGeometry* GeoDataMultiGeometry::child( int i ) const
 {
-    return p()->m_vector.at( i );
+    Q_D(const GeoDataMultiGeometry);
+    return d->m_vector.at(i);
 }
 
 /**
@@ -174,10 +214,9 @@ const GeoDataGeometry* GeoDataMultiGeometry::child( int i ) const
  */
 int GeoDataMultiGeometry::childPosition( const GeoDataGeometry *object ) const
 {
-    for ( int i=0; i< p()->m_vector.size(); i++ )
-    {
-        if ( p()->m_vector.at( i ) == object )
-        {
+    Q_D(const GeoDataMultiGeometry);
+    for (int i = 0; i < d->m_vector.size(); ++i) {
+        if (d->m_vector.at(i) == object) {
             return i;
         }
     }
@@ -190,36 +229,44 @@ int GeoDataMultiGeometry::childPosition( const GeoDataGeometry *object ) const
 void GeoDataMultiGeometry::append( GeoDataGeometry *other )
 {
     detach();
+
+    Q_D(GeoDataMultiGeometry);
     other->setParent( this );
-    p()->m_vector.append( other );
+    d->m_vector.append(other);
 }
 
 
 GeoDataMultiGeometry& GeoDataMultiGeometry::operator << ( const GeoDataGeometry& value )
 {
     detach();
-    GeoDataGeometry *g = new GeoDataGeometry( value );
+
+    Q_D(GeoDataMultiGeometry);
+    GeoDataGeometry *g = value.copy();
     g->setParent( this );
-    p()->m_vector.append( g );
+    d->m_vector.append(g);
     return *this;
 }
 
 void GeoDataMultiGeometry::clear()
 {
     detach();
-    qDeleteAll(p()->m_vector);
-    p()->m_vector.clear();
+
+    Q_D(GeoDataMultiGeometry);
+    qDeleteAll(d->m_vector);
+    d->m_vector.clear();
 }
 
 void GeoDataMultiGeometry::pack( QDataStream& stream ) const
 {
+    Q_D(const GeoDataMultiGeometry);
+
     GeoDataGeometry::pack( stream );
 
-    stream << p()->m_vector.size();
-    
+    stream << d->m_vector.size();
+
     for( QVector<GeoDataGeometry*>::const_iterator iterator
-          = p()->m_vector.constBegin(); 
-         iterator != p()->m_vector.constEnd();
+          = d->m_vector.constBegin();
+         iterator != d->m_vector.constEnd();
          ++iterator ) {
         const GeoDataGeometry *geometry = *iterator;
         stream << geometry->geometryId();
@@ -230,6 +277,8 @@ void GeoDataMultiGeometry::pack( QDataStream& stream ) const
 void GeoDataMultiGeometry::unpack( QDataStream& stream )
 {
     detach();
+
+    Q_D(GeoDataMultiGeometry);
     GeoDataGeometry::unpack( stream );
 
     int size = 0;
@@ -246,35 +295,35 @@ void GeoDataMultiGeometry::unpack( QDataStream& stream )
                 {
                 GeoDataPoint *point = new GeoDataPoint;
                 point->unpack( stream );
-                p()->m_vector.append( point );
+                d->m_vector.append(point);
                 }
                 break;
             case GeoDataLineStringId:
                 {
                 GeoDataLineString *lineString = new GeoDataLineString;
                 lineString->unpack( stream );
-                p()->m_vector.append( lineString );
+                d->m_vector.append(lineString);
                 }
                 break;
             case GeoDataLinearRingId:
                 {
                 GeoDataLinearRing *linearRing = new GeoDataLinearRing;
                 linearRing->unpack( stream );
-                p()->m_vector.append( linearRing );
+                d->m_vector.append(linearRing);
                 }
                 break;
             case GeoDataPolygonId:
                 {
                 GeoDataPolygon *polygon = new GeoDataPolygon;
                 polygon->unpack( stream );
-                p()->m_vector.append( polygon );
+                d->m_vector.append(polygon);
                 }
                 break;
             case GeoDataMultiGeometryId:
                 {
                 GeoDataMultiGeometry *multiGeometry = new GeoDataMultiGeometry;
                 multiGeometry->unpack( stream );
-                p()->m_vector.append( multiGeometry );
+                d->m_vector.append(multiGeometry);
                 }
                 break;
             case GeoDataModelId:

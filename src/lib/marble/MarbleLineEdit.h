@@ -9,11 +9,11 @@
 // as included in KDE 4.5. See there for its authors:
 // http://api.kde.org/4.x-api/kdelibs-apidocs/kdeui/html/klineedit_8cpp.html
 //
-// Copyright 2010,2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010,2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
-#ifndef MARBLE_ROUTINGLINEEDIT_H
-#define MARBLE_ROUTINGLINEEDIT_H
+#ifndef MARBLE_MARBLELINEEDIT_H
+#define MARBLE_MARBLELINEEDIT_H
 
 #include "marble_export.h"
 
@@ -38,7 +38,7 @@ public:
     explicit MarbleLineEdit( QWidget *parent = 0 );
 
     /** Destructor */
-    ~MarbleLineEdit();
+    ~MarbleLineEdit() override;
 
     void setDecorator( const QPixmap &decorator );
 
@@ -51,9 +51,9 @@ Q_SIGNALS:
     void decoratorButtonClicked();
 
 protected:
-    virtual void mouseReleaseEvent( QMouseEvent* event );
+    void mouseReleaseEvent( QMouseEvent* event ) override;
 
-    virtual void resizeEvent( QResizeEvent* event );
+    void resizeEvent( QResizeEvent* event ) override;
 
 private Q_SLOTS:
     void updateClearButtonIcon( const QString& text );
@@ -68,4 +68,4 @@ private:
 
 } // namespace Marble
 
-#endif // MARBLE_ROUTINGLINEEDIT_H
+#endif // MARBLE_MARBLELINEEDIT_H

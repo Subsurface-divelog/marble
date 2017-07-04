@@ -9,15 +9,12 @@
 //
 
 #include "SerialTrack.h"
-#include "GeoDataTypes.h"
 #include "PlaybackFlyToItem.h"
 #include "PlaybackWaitItem.h"
 #include "PlaybackTourControlItem.h"
 #include "GeoDataCamera.h"
 #include "GeoDataLookAt.h"
 #include "TourPlayback.h"
-
-#include <QTimer>
 
 namespace Marble
 {
@@ -37,10 +34,10 @@ SerialTrack::~SerialTrack()
 
 void SerialTrack::append(PlaybackItem* item)
 {
-    connect( item, SIGNAL( progressChanged( double ) ), this, SLOT( changeProgress( double ) ) );
-    connect( item, SIGNAL( centerOn( GeoDataCoordinates ) ), this, SIGNAL( centerOn( GeoDataCoordinates ) ) );
-    connect( item, SIGNAL( finished() ), this, SLOT( handleFinishedItem() ) ) ;
-    connect( item, SIGNAL( paused() ), this, SLOT( pause() ) ) ;
+    connect( item, SIGNAL(progressChanged(double)), this, SLOT(changeProgress(double)) );
+    connect( item, SIGNAL(centerOn(GeoDataCoordinates)), this, SIGNAL(centerOn(GeoDataCoordinates)) );
+    connect( item, SIGNAL(finished()), this, SLOT(handleFinishedItem()) ) ;
+    connect( item, SIGNAL(paused()), this, SLOT(pause()) ) ;
     m_items.append( item );
     if( m_items.size() == 1 ) {
         PlaybackFlyToItem *flyTo = dynamic_cast<PlaybackFlyToItem*>( item );
@@ -122,7 +119,7 @@ void SerialTrack::seek( double offset )
 double SerialTrack::duration() const
 {
     double duration = 0.0;
-    foreach (PlaybackItem* item, m_items) {
+    for (PlaybackItem* item: m_items) {
         duration += item->duration();
     }
     return duration;
@@ -147,6 +144,8 @@ void SerialTrack::handleFinishedItem()
         m_finishedPosition += m_items[m_currentIndex]->duration();
         m_currentIndex++;
         m_items[m_currentIndex]->play();
+        emit itemFinished( m_currentIndex + 1 );
+
     } else {
         emit finished();
     }
@@ -175,4 +174,4 @@ double SerialTrack::currentPosition()
 
 }
 
-#include "SerialTrack.moc"
+#include "moc_SerialTrack.cpp"

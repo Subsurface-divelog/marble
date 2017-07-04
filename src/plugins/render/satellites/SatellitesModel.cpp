@@ -11,17 +11,21 @@
 #include "SatellitesModel.h"
 
 #include "MarbleDebug.h"
+#include "MarbleDirs.h"
 #include "SatellitesMSCItem.h"
 #include "SatellitesTLEItem.h"
 
 #include "MarbleClock.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataStyle.h"
+#include "GeoDataIconStyle.h"
+#include "GeoDataLabelStyle.h"
+#include "GeoDataLineStyle.h"
 
-#include "sgp4/sgp4io.h"
 #include <planetarySats.h>
+#include <sgp4io.h>
 
-#include <locale.h>
+#include <clocale>
 
 namespace Marble {
 
@@ -68,7 +72,7 @@ QColor SatellitesModel::nextColor()
 
 void SatellitesModel::loadSettings( const QHash<QString, QVariant> &settings )
 {
-    QStringList idList = settings["idList"].toStringList();
+    QStringList idList = settings[QStringLiteral("idList")].toStringList();
     m_enabledIds = idList;
 
     updateVisibility();
@@ -89,7 +93,7 @@ void SatellitesModel::updateVisibility()
 {
     beginUpdateItems();
 
-    foreach( TrackerPluginItem *obj, items() ) {
+    for( TrackerPluginItem *obj: items() ) {
         SatellitesMSCItem *oItem = dynamic_cast<SatellitesMSCItem*>(obj);
         if( oItem != NULL ) {
             bool enabled = ( ( oItem->relatedBody().toLower() == m_lcPlanet ) &&
@@ -104,7 +108,7 @@ void SatellitesModel::updateVisibility()
         SatellitesTLEItem *eItem = dynamic_cast<SatellitesTLEItem*>(obj);
         if( eItem != NULL ) {
             // TLE satellites are always earth satellites
-            bool enabled = ( m_lcPlanet == "earth" );
+            bool enabled = (m_lcPlanet == QLatin1String("earth"));
             eItem->setEnabled( enabled );
 
             if( enabled ) {
@@ -147,7 +151,7 @@ void SatellitesModel::parseCatalog( const QString &id,
     QString line = ts.readLine();
     for( ; !line.isNull(); line = ts.readLine() ) {
 
-        if( line.trimmed().startsWith( QLatin1String( "#" ) ) ) {
+        if (line.trimmed().startsWith(QLatin1Char('#'))) {
             continue;
         }
 
@@ -189,14 +193,16 @@ void SatellitesModel::parseCatalog( const QString &id,
         SatellitesMSCItem *item = new SatellitesMSCItem( name, category, body, id,
                                       missionStart, missionEnd,
                                       index++, planSat, m_clock );
-        GeoDataStyle *style = new GeoDataStyle( *item->placemark()->style() );
+        GeoDataStyle::Ptr style(new GeoDataStyle( *item->placemark()->style() ));
         style->lineStyle().setPenStyle( Qt::SolidLine );
         style->lineStyle().setColor( nextColor() );
         style->labelStyle().setGlow( true );
 
         // use special icon for moons
-        if( category == "Moons" ) {
-            style->iconStyle().setIcon( QImage( ":/icons/moon.png" ) );
+        if (category == QLatin1String("Moons")) {
+            style->iconStyle().setIconPath(QStringLiteral(":/icons/moon.png"));
+        } else {
+            style->iconStyle().setIconPath(MarbleDirs::path(QStringLiteral("bitmaps/satellite.png")));
         }
 
         item->placemark()->setStyle( style );
@@ -246,10 +252,11 @@ void SatellitesModel::parseTLE( const QString &id,
         }
 
         SatellitesTLEItem *item = new SatellitesTLEItem( satelliteName, satrec, m_clock );
-        GeoDataStyle *style = new GeoDataStyle( *item->placemark()->style() );
+        GeoDataStyle::Ptr style(new GeoDataStyle( *item->placemark()->style() ));
         style->lineStyle().setPenStyle( Qt::SolidLine );
         style->lineStyle().setColor( nextColor() );
         style->labelStyle().setGlow( true );
+        style->iconStyle().setIconPath(MarbleDirs::path(QStringLiteral("bitmaps/satellite.png")));
         item->placemark()->setStyle( style );
         addItem( item );
     }
@@ -262,4 +269,4 @@ void SatellitesModel::parseTLE( const QString &id,
 
 } // namespace Marble
 
-#include "SatellitesModel.moc"
+#include "moc_SatellitesModel.cpp"

@@ -24,28 +24,21 @@ KML_DEFINE_TAG_HANDLER( listItemType )
 
 GeoNode* KmllistItemTypeTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_listItemType ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_listItemType)));
 
     GeoStackItem parentItem = parser.parentElement();
 
     if ( parentItem.represents( kmlTag_ListStyle ) )
     {
         QString typeText = parser.readElementText().trimmed();
-        GeoDataListStyle::ListItemType type;
-        if ( typeText == "check" )
-        {
+        GeoDataListStyle::ListItemType type = GeoDataListStyle::Check;
+        if (typeText == QLatin1String("check")) {
             type = GeoDataListStyle::Check;
-        }
-        else if ( typeText == "radioFolder" )
-        {
+        } else if (typeText == QLatin1String("radioFolder")) {
             type = GeoDataListStyle::RadioFolder;
-        }
-        else if ( typeText == "checkOffOnly" )
-        {
+        } else if (typeText == QLatin1String("checkOffOnly")) {
             type = GeoDataListStyle::CheckOffOnly;
-        }
-        else if ( typeText == "checkHideChildren" )
-        {
+        } else if (typeText == QLatin1String("checkHideChildren")) {
             type = GeoDataListStyle::CheckHideChildren;
         }
         else

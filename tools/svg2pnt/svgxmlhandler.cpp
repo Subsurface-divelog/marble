@@ -31,17 +31,17 @@ bool SVGXmlHandler::startElement(const QString& nspace,
     Q_UNUSED(localName)
 
     qDebug();
-    if ( qName == "g" ) {
+    if (qName == QLatin1String("g")) {
         qDebug( "Parsing Data ..." );
         m_initialized = true;
     }
 
-    if ( qName == "path" && m_initialized ) {
+    if (qName == QLatin1String("path") && m_initialized) {
         QString  coordinates = atts.value( "d" );
 
         QStringList  stringlist;
         coordinates.chop(2);
-        stringlist << coordinates.mid( 1 ).split( 'L' );
+        stringlist << coordinates.mid(1).split(QLatin1Char('L'));
         // The last element is the first element
         //		stringlist.removeLast();
         bool     firstheader = true;
@@ -54,12 +54,12 @@ bool SVGXmlHandler::startElement(const QString& nspace,
 
         int  count = 0;
         qDebug() << "Starting to write path" << atts.value( "id" );
-        foreach ( const QString& str, stringlist ) {
+        for ( const QString& str: stringlist ) {
             // qDebug()<<str;
             float  x;
             float  y;
-            x = str.section( ',', 0, 0 ).toFloat();
-            y = str.section( ',', 1, 1 ).toFloat();
+            x = str.section(QLatin1Char(','), 0, 0).toFloat();
+            y = str.section(QLatin1Char(','), 1, 1).toFloat();
 			
             // qDebug() << "x:" << x << "y:" << y;
 			

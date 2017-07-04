@@ -8,8 +8,8 @@
 // Copyright 2012      Shou Ya <shouyalovelyx@gmail.com>
 //
 
-#ifndef MARBLE_KMLTIMESPANTAGWRITER_H
-#define MARBLE_KMLTIMESPANTAGWRITER_H
+#ifndef MARBLE_KMLTIMESPANWRITER_H
+#define MARBLE_KMLTIMESPANWRITER_H
 
 #include "GeoTagWriter.h"
 
@@ -21,7 +21,7 @@ namespace Marble
 class KmlTimeSpanWriter : public GeoTagWriter
 {
 public:
-    virtual bool write( const GeoNode *node, GeoWriter& writer ) const;
+    bool write( const GeoNode *node, GeoWriter& writer ) const override;
 
 };
 

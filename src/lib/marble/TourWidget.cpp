@@ -17,17 +17,23 @@
 #include "TourItemDelegate.h"
 
 #include "ui_TourWidget.h"
+#include "GeoDataPlacemark.h"
 #include "GeoDataDocument.h"
+#include "GeoDataLookAt.h"
+#include "GeoDataPlaylist.h"
 #include "GeoDataTour.h"
 #include "GeoDataTreeModel.h"
-#include "GeoDataTypes.h"
 #include "GeoDataFlyTo.h"
 #include "GeoDataWait.h"
 #include "GeoDataCamera.h"
 #include "GeoDataTourControl.h"
 #include "GeoDataSoundCue.h"
+#include "GeoDataCreate.h"
+#include "GeoDataUpdate.h"
+#include "GeoDataDelete.h"
+#include "GeoDataChange.h"
 #include "GeoDataAnimatedUpdate.h"
-#include "GeoWriter.h"
+#include "GeoDataDocumentWriter.h"
 #include "KmlElementDictionary.h"
 #include "MarbleModel.h"
 #include "MarblePlacemarkModel.h"
@@ -41,27 +47,19 @@
 #include "EditPlacemarkDialog.h"
 #include "MarbleDirs.h"
 #include "GeoDataStyle.h"
+#include "GeoDataIconStyle.h"
 
 #include <QFileDialog>
 #include <QDir>
 #include <QModelIndex>
 #include <QMessageBox>
-#include <QStyledItemDelegate>
-#include <QAbstractTextDocumentLayout>
 #include <QPainter>
-#include <QListView>
-#include <QApplication>
-#include <QLabel>
-#include <QDoubleSpinBox>
-#include <QRadioButton>
-#include <QHBoxLayout>
 #include <QToolButton>
-#include <QLineEdit>
-#include <QProcess>
-#include <QProgressBar>
-#include <QToolBar>
 #include <QMenu>
 #include <QUrl>
+#include <QKeyEvent>
+#include <QCloseEvent>
+#include <QPointer>
 
 namespace Marble
 {
@@ -70,7 +68,8 @@ class TourWidgetPrivate
 {
 
 public:
-    TourWidgetPrivate( TourWidget *parent );
+    explicit TourWidgetPrivate( TourWidget *parent );
+    ~TourWidgetPrivate();
     GeoDataFeature *getPlaylistFeature() const;
     void updateRootIndex();
 
@@ -95,14 +94,13 @@ public:
     void captureTour();
     void handlePlaybackProgress( const double position );
     void handlePlaybackFinish();
+    GeoDataObject *rootIndexObject() const;
 
 private:
     GeoDataTour* findTour( GeoDataFeature* feature ) const;
-    GeoDataObject *rootIndexObject() const;
     bool openDocument( GeoDataDocument *document );
     bool saveTourAs( const QString &filename );
     bool overrideModifications();
-    bool m_isChanged;
 
 public:
     TourWidget *q;
@@ -111,8 +109,11 @@ public:
     TourCaptureDialog *m_tourCaptureDialog;
     TourPlayback m_playback;
     TourItemDelegate *m_delegate;
+    bool m_isChanged;
     bool m_playState;
+    bool m_isLoopingStopped;
     GeoDataDocument* m_document;
+    QAction *m_actionToggleLoopPlay;
     QToolButton *m_addPrimitiveButton;
     QAction *m_actionAddFlyTo;
     QAction *m_actionAddWait;
@@ -123,11 +124,11 @@ public:
 };
 
 TourWidgetPrivate::TourWidgetPrivate( TourWidget *parent )
-    : m_isChanged( false ),
-      q( parent ),
+    : q( parent ),
       m_widget( 0 ),
       m_playback( 0 ),
       m_delegate( 0 ),
+      m_isChanged( false ),
       m_playState( false ),
       m_document( 0 ),
       m_addPrimitiveButton( new QToolButton )
@@ -137,48 +138,60 @@ TourWidgetPrivate::TourWidgetPrivate( TourWidget *parent )
 
     QAction *separator = m_tourUi.m_toolBarControl->insertSeparator( m_tourUi.m_actionMoveUp );
 
-    m_addPrimitiveButton->setIcon( QIcon( ":/marble/flag.png" ) );
+    m_addPrimitiveButton->setIcon(QIcon(QStringLiteral(":/marble/flag.png")));
     m_addPrimitiveButton->setToolTip( QObject::tr( "Add FlyTo" ) );
     m_addPrimitiveButton->setPopupMode( QToolButton::MenuButtonPopup );
 
-    QMenu *addPrimitiveMenu = new QMenu;
+    QMenu *addPrimitiveMenu = new QMenu(q);
 
-    m_actionAddFlyTo = new QAction( QIcon( ":/marble/flag.png" ), QObject::tr( "Add FlyTo" ), addPrimitiveMenu );
+    m_actionAddFlyTo = new QAction(QIcon(QStringLiteral(":/marble/flag.png")), QObject::tr("Add FlyTo"), addPrimitiveMenu);
     addPrimitiveMenu->addAction( m_actionAddFlyTo );
-    m_actionAddWait = new QAction( QIcon( ":/marble/player-time.png" ), QObject::tr( "Add Wait" ), addPrimitiveMenu );
+    m_actionAddWait = new QAction(QIcon(QStringLiteral(":/marble/player-time.png")), QObject::tr("Add Wait"), addPrimitiveMenu);
     addPrimitiveMenu->addAction( m_actionAddWait );
-    m_actionAddSoundCue = new QAction( QIcon( ":/marble/audio-x-generic.png" ), QObject::tr( "Add SoundCue" ), addPrimitiveMenu );
+    m_actionAddSoundCue = new QAction(QIcon(QStringLiteral(":/marble/audio-x-generic.png")), QObject::tr("Add SoundCue"), addPrimitiveMenu);
     addPrimitiveMenu->addAction( m_actionAddSoundCue );
     addPrimitiveMenu->addSeparator();
-    m_actionAddPlacemark = new QAction( QIcon( ":/icons/add-placemark.png" ), QObject::tr( "Add Placemark" ), addPrimitiveMenu );
+    m_actionAddPlacemark = new QAction(QIcon(QStringLiteral(":/icons/add-placemark.png")), QObject::tr("Add Placemark"), addPrimitiveMenu);
     addPrimitiveMenu->addAction( m_actionAddPlacemark );
-    m_actionAddRemovePlacemark = new QAction( QIcon( ":/icons/remove.png" ), QObject::tr( "Remove placemark" ), addPrimitiveMenu );
+    m_actionAddRemovePlacemark = new QAction(QIcon(QStringLiteral(":/icons/remove.png")), QObject::tr("Remove placemark"), addPrimitiveMenu);
     addPrimitiveMenu->addAction( m_actionAddRemovePlacemark );
-    m_actionAddChangePlacemark = new QAction( QIcon( ":/marble/document-edit.png" ), QObject::tr( "Change placemark" ), addPrimitiveMenu );
+    m_actionAddChangePlacemark = new QAction(QIcon(QStringLiteral(":/marble/document-edit.png")), QObject::tr("Change placemark"), addPrimitiveMenu);
     addPrimitiveMenu->addAction( m_actionAddChangePlacemark );
+    m_actionToggleLoopPlay = new QAction( QObject::tr( "Loop" ), m_tourUi.m_slider );
+    m_actionToggleLoopPlay->setCheckable( true );
+    m_actionToggleLoopPlay->setChecked( false );
+    m_tourUi.m_slider->setContextMenuPolicy( Qt::ActionsContextMenu );
+    m_tourUi.m_slider->addAction( m_actionToggleLoopPlay );
 
     m_addPrimitiveButton->setMenu( addPrimitiveMenu );
     m_addPrimitiveButton->setEnabled( false );
 
     m_tourUi.m_toolBarControl->insertWidget( separator, m_addPrimitiveButton );
 
-    QObject::connect( m_tourUi.m_listView, SIGNAL( activated( QModelIndex ) ), q, SLOT( mapCenterOn( QModelIndex ) ) );
-    QObject::connect( m_addPrimitiveButton, SIGNAL( clicked() ), q, SLOT( addFlyTo() ) );
-    QObject::connect( m_actionAddFlyTo, SIGNAL( triggered() ), q, SLOT( addFlyTo() ) );
-    QObject::connect( m_actionAddWait, SIGNAL( triggered() ), q, SLOT( addWait() ) );
-    QObject::connect( m_actionAddSoundCue, SIGNAL( triggered() ), q, SLOT( addSoundCue() ) );
-    QObject::connect( m_actionAddPlacemark, SIGNAL( triggered() ), q, SLOT( addPlacemark() ) );
-    QObject::connect( m_actionAddRemovePlacemark, SIGNAL( triggered() ), q, SLOT( addRemovePlacemark() ) );
-    QObject::connect( m_actionAddChangePlacemark, SIGNAL( triggered() ), q, SLOT( addChangePlacemark() ) );
-    QObject::connect( m_tourUi.m_actionDelete, SIGNAL( triggered() ), q, SLOT( deleteSelected() ) );
-    QObject::connect( m_tourUi.m_actionMoveUp, SIGNAL( triggered() ), q, SLOT( moveUp() ) );
-    QObject::connect( m_tourUi.m_actionMoveDown, SIGNAL( triggered() ), q, SLOT( moveDown() ) );
-    QObject::connect( m_tourUi.m_actionNewTour, SIGNAL( triggered() ), q, SLOT( createTour() ) );
-    QObject::connect( m_tourUi.m_actionOpenTour, SIGNAL( triggered() ), q, SLOT( openFile() ) );
-    QObject::connect( m_tourUi.m_actionSaveTour, SIGNAL( triggered() ), q, SLOT( saveTour() ) );
-    QObject::connect( m_tourUi.m_actionSaveTourAs, SIGNAL( triggered() ), q, SLOT( saveTourAs() ) );
-    QObject::connect( m_tourUi.m_actionRecord, SIGNAL(triggered()), q, SLOT( captureTour()) );
-    QObject::connect( &m_playback, SIGNAL( finished() ), q, SLOT( stopPlaying() ) );
+    QObject::connect( m_tourUi.m_listView, SIGNAL(activated(QModelIndex)), q, SLOT(mapCenterOn(QModelIndex)) );
+    QObject::connect( m_addPrimitiveButton, SIGNAL(clicked()), q, SLOT(addFlyTo()) );
+    QObject::connect( m_actionAddFlyTo, SIGNAL(triggered()), q, SLOT(addFlyTo()) );
+    QObject::connect( m_actionAddWait, SIGNAL(triggered()), q, SLOT(addWait()) );
+    QObject::connect( m_actionAddSoundCue, SIGNAL(triggered()), q, SLOT(addSoundCue()) );
+    QObject::connect( m_actionAddPlacemark, SIGNAL(triggered()), q, SLOT(addPlacemark()) );
+    QObject::connect( m_actionAddRemovePlacemark, SIGNAL(triggered()), q, SLOT(addRemovePlacemark()) );
+    QObject::connect( m_actionAddChangePlacemark, SIGNAL(triggered()), q, SLOT(addChangePlacemark()) );
+    QObject::connect( m_tourUi.m_actionDelete, SIGNAL(triggered()), q, SLOT(deleteSelected()) );
+    QObject::connect( m_tourUi.m_actionMoveUp, SIGNAL(triggered()), q, SLOT(moveUp()) );
+    QObject::connect( m_tourUi.m_actionMoveDown, SIGNAL(triggered()), q, SLOT(moveDown()) );
+    QObject::connect( m_tourUi.m_actionNewTour, SIGNAL(triggered()), q, SLOT(createTour()) );
+    QObject::connect( m_tourUi.m_actionOpenTour, SIGNAL(triggered()), q, SLOT(openFile()) );
+    QObject::connect( m_tourUi.m_actionSaveTour, SIGNAL(triggered()), q, SLOT(saveTour()) );
+    QObject::connect( m_tourUi.m_actionSaveTourAs, SIGNAL(triggered()), q, SLOT(saveTourAs()) );
+    QObject::connect( m_tourUi.m_actionRecord, SIGNAL(triggered()), q, SLOT(captureTour()) );
+    QObject::connect( &m_playback, SIGNAL(finished()), q, SLOT(stopPlaying()) );
+    QObject::connect( &m_playback, SIGNAL(itemFinished(int)), q, SLOT(setHighlightedItemIndex(int)) );
+
+}
+
+TourWidgetPrivate::~TourWidgetPrivate()
+{
+    delete m_delegate;
 }
 
 TourWidget::TourWidget( QWidget *parent, Qt::WindowFlags flags )
@@ -187,15 +200,18 @@ TourWidget::TourWidget( QWidget *parent, Qt::WindowFlags flags )
 {
     layout()->setMargin( 0 );
 
-    connect( d->m_tourUi.actionPlay, SIGNAL( triggered() ),
-            this, SLOT( togglePlaying() ) );
-    connect( d->m_tourUi.actionStop, SIGNAL( triggered() ),
-            this, SLOT( stopPlaying() ) );
-    connect( d->m_tourUi.m_slider, SIGNAL( sliderMoved( int ) ),
-             this, SLOT( handleSliderMove( int ) ) );
+    connect( d->m_tourUi.actionPlay, SIGNAL(triggered()),
+            this, SLOT(togglePlaying()) );
+    connect( d->m_tourUi.actionStop, SIGNAL(triggered()),
+            this, SLOT(stopLooping()) );
+    connect( d->m_tourUi.actionStop, SIGNAL(triggered()),
+            this, SLOT(stopPlaying()) );
+    connect( d->m_tourUi.m_slider, SIGNAL(sliderMoved(int)),
+             this, SLOT(handleSliderMove(int)) );
 
     d->m_tourUi.m_toolBarPlayback->setDisabled( true );
     d->m_tourUi.m_slider->setDisabled( true );
+    d->m_tourUi.m_listView->installEventFilter( this );
 }
 
 TourWidget::~TourWidget()
@@ -203,12 +219,61 @@ TourWidget::~TourWidget()
     delete d;
 }
 
+bool TourWidget::eventFilter( QObject *watched, QEvent *event )
+{
+    Q_UNUSED(watched);
+
+    Q_ASSERT( watched == d->m_tourUi.m_listView );
+    GeoDataObject *rootObject =  d->rootIndexObject();
+
+    if ( !rootObject ) {
+        return false;
+    }
+
+    if ( event->type() == QEvent::KeyPress ) {
+        QKeyEvent *key = static_cast<QKeyEvent*>( event );
+        QModelIndexList selectedIndexes = d->m_tourUi.m_listView->selectionModel()->selectedIndexes();
+
+        if ( key->key() == Qt::Key_Delete ) {
+            if ( !selectedIndexes.isEmpty() ) {
+                deleteSelected();
+            }
+            return true;
+        }
+
+        if ( key->key() == Qt::Key_PageDown && key->modifiers().testFlag( Qt::ControlModifier )
+             && !selectedIndexes.isEmpty() )
+        {
+            QModelIndexList::iterator end = selectedIndexes.end() - 1;
+            if (const GeoDataPlaylist *playlist = (rootObject ? geodata_cast<GeoDataPlaylist>(rootObject) : 0)) {
+                if ( end->row() != playlist->size() - 1 ) {
+                    moveDown();
+                }
+            }
+            return true;
+        }
+
+        if ( key->key() == Qt::Key_PageUp && key->modifiers().testFlag( Qt::ControlModifier )
+             && !selectedIndexes.isEmpty() )
+        {
+            QModelIndexList::iterator start = selectedIndexes.begin();
+            if ( start->row() != 0 ) {
+                moveUp();
+            }
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void TourWidget::setMarbleWidget( MarbleWidget *widget )
 {
     d->m_widget = widget;
-    d->m_delegate = new TourItemDelegate( d->m_tourUi.m_listView, d->m_widget );
-    connect( d->m_delegate, SIGNAL( edited( QModelIndex ) ), this, SLOT( updateDuration() ) );
-    connect( d->m_delegate, SIGNAL( edited( QModelIndex ) ), &d->m_playback, SLOT( updateTracks() ) );
+    delete d->m_delegate;
+    d->m_delegate = new TourItemDelegate( d->m_tourUi.m_listView, d->m_widget, this );
+    connect( d->m_delegate, SIGNAL(edited(QModelIndex)), this, SLOT(updateDuration()) );
+    connect( d->m_delegate, SIGNAL(edited(QModelIndex)), &d->m_playback, SLOT(updateTracks()) );
     d->m_tourUi.m_listView->setItemDelegate( d->m_delegate );
 }
 
@@ -225,8 +290,10 @@ void TourWidget::togglePlaying()
 
 void TourWidget::startPlaying()
 {
+    setHighlightedItemIndex( 0 );
+    d->m_isLoopingStopped = false;
     d->m_playback.play();
-    d->m_tourUi.actionPlay->setIcon( QIcon( ":/marble/playback-pause.png" ) );
+    d->m_tourUi.actionPlay->setIcon(QIcon(QStringLiteral(":/marble/playback-pause.png")));
     d->m_tourUi.actionPlay->setEnabled( true );
     d->m_tourUi.actionStop->setEnabled( true );
     d->m_tourUi.m_actionRecord->setEnabled( false );
@@ -238,29 +305,66 @@ void TourWidget::startPlaying()
 void TourWidget::pausePlaying()
 {
     d->m_playback.pause();
-    d->m_tourUi.actionPlay->setIcon( QIcon( ":/marble/playback-play.png" ) );
+    d->m_tourUi.actionPlay->setIcon(QIcon(QStringLiteral(":/marble/playback-play.png")));
     d->m_tourUi.actionPlay->setEnabled( true );
     d->m_tourUi.actionStop->setEnabled( true );
 }
 
 void TourWidget::stopPlaying()
 {
+    removeHighlight();
     d->m_playback.stop();
-    d->m_tourUi.actionPlay->setIcon( QIcon( ":/marble/playback-play.png" ) );
+    d->m_tourUi.actionPlay->setIcon(QIcon(QStringLiteral(":/marble/playback-play.png")));
     d->m_tourUi.actionPlay->setEnabled( true );
     d->m_tourUi.m_actionRecord->setEnabled( true );
     d->m_tourUi.actionStop->setEnabled( false );
     d->m_playState = false;
     d->m_delegate->setEditable( true );
     d->m_addPrimitiveButton->setEnabled( true );
+
+    // Loop if the option ( m_actionLoopPlay ) is checked
+    if ( d->m_actionToggleLoopPlay->isChecked() && !d->m_isLoopingStopped ) {
+        startPlaying();
+    }
+}
+
+void TourWidget::stopLooping()
+{
+    d->m_isLoopingStopped = true;
+}
+
+void TourWidget::closeEvent( QCloseEvent *event )
+{
+    if ( !d->m_document || !d->m_isChanged ) {
+        event->accept();
+        return;
+    }
+
+    const int result = QMessageBox::question( d->m_widget,
+                                             QObject::tr( "Save tour" ),
+                                             QObject::tr( "There are unsaved Tours. Do you want to save your changes?" ),
+                                             QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel );
+
+    switch ( result ) {
+    case QMessageBox::Save:
+        d->saveTour();
+        event->accept();
+        break;
+    case QMessageBox::Discard:
+        event->accept();
+        break;
+    case QMessageBox::Cancel:
+        event->ignore();
+    }
 }
 
 void TourWidget::handleSliderMove( int value )
 {
+    removeHighlight();
     d->m_playback.seek( value / 100.0 );
     QTime nullTime( 0, 0, 0 );
     QTime time = nullTime.addSecs(  value / 100.0 );
-    d->m_tourUi.m_elapsedTime->setText( QString("%L1:%L2").arg( time.minute(), 2, 10, QChar('0') ).arg( time.second(), 2, 10, QChar('0') ) );
+    d->m_tourUi.m_elapsedTime->setText(QString("%L1:%L2").arg(time.minute(), 2, 10, QLatin1Char('0')).arg(time.second(), 2, 10, QLatin1Char('0')));
 }
 
 void TourWidgetPrivate::openFile()
@@ -292,8 +396,8 @@ bool TourWidgetPrivate::openFile( const QString &filename )
 
 GeoDataTour *TourWidgetPrivate::findTour( GeoDataFeature *feature ) const
 {
-    if ( feature && feature->nodeType() == GeoDataTypes::GeoDataTourType ) {
-        return static_cast<GeoDataTour*>( feature );
+    if (GeoDataTour *tour = (feature ? geodata_cast<GeoDataTour>(feature) : 0)) {
+        return tour;
     }
 
     GeoDataContainer *container = dynamic_cast<GeoDataContainer*>( feature );
@@ -357,9 +461,9 @@ void TourWidgetPrivate::addPlacemark()
     GeoDataDocument *document = new GeoDataDocument;
     if( m_document->id().isEmpty() ) {
         if( m_document->name().isEmpty() ) {
-            m_document->setId( "untitled_tour" );
+            m_document->setId(QStringLiteral("untitled_tour"));
         } else {
-            m_document->setId( m_document->name().trimmed().replace( " ", "_" ).toLower() );
+            m_document->setId( m_document->name().trimmed().replace( QLatin1Char(' '), QLatin1Char('_') ).toLower() );
         }
     }
     document->setTargetId( m_document->id() );
@@ -369,9 +473,8 @@ void TourWidgetPrivate::addPlacemark()
     placemark->setVisible( true );
     placemark->setBalloonVisible( true );
     GeoDataStyle *newStyle = new GeoDataStyle( *placemark->style() );
-    newStyle->iconStyle().setIcon( QImage() );
-    newStyle->iconStyle().setIconPath( MarbleDirs::path("bitmaps/redflag_22.png") );
-    placemark->setStyle( newStyle );
+    newStyle->iconStyle().setIconPath(MarbleDirs::path(QStringLiteral("bitmaps/redflag_22.png")));
+    placemark->setStyle( GeoDataStyle::Ptr(newStyle) );
 
     document->append( placemark );
 
@@ -408,11 +511,10 @@ void TourWidgetPrivate::addChangePlacemark()
     GeoDataChange *change = new GeoDataChange;
     GeoDataPlacemark *placemark = 0;
     GeoDataFeature *lastFeature = m_delegate->findFeature( m_delegate->defaultFeatureId() );
-    if( lastFeature != 0 && lastFeature->nodeType() == GeoDataTypes::GeoDataPlacemarkType ) {
-        GeoDataPlacemark *target = static_cast<GeoDataPlacemark*>( lastFeature );
+    if (GeoDataPlacemark *target = (lastFeature != 0 ? geodata_cast<GeoDataPlacemark>(lastFeature) : 0)) {
         placemark = new GeoDataPlacemark( *target );
         placemark->setTargetId( m_delegate->defaultFeatureId() );
-        placemark->setId( "" );
+        placemark->setId(QString());
     } else {
         placemark = new GeoDataPlacemark;
     }
@@ -427,14 +529,21 @@ void TourWidgetPrivate::addChangePlacemark()
 void TourWidgetPrivate::addTourPrimitive( GeoDataTourPrimitive *primitive )
 {
     GeoDataObject *rootObject =  rootIndexObject();
-    if ( rootObject->nodeType() == GeoDataTypes::GeoDataPlaylistType ) {
-        GeoDataPlaylist *playlist = static_cast<GeoDataPlaylist*>( rootObject );
+    if (auto playlist = geodata_cast<GeoDataPlaylist>(rootObject)) {
         QModelIndex currentIndex = m_tourUi.m_listView->currentIndex();
         QModelIndex playlistIndex = m_widget->model()->treeModel()->index( playlist );
         int row = currentIndex.isValid() ? currentIndex.row()+1 : playlist->size();
         m_widget->model()->treeModel()->addTourPrimitive( playlistIndex, primitive, row );
         m_isChanged = true;
         m_tourUi.m_actionSaveTour->setEnabled( true );
+
+        // Scrolling to the inserted item.
+        if ( currentIndex.isValid() ) {
+            m_tourUi.m_listView->scrollTo( currentIndex );
+        }
+        else {
+            m_tourUi.m_listView->scrollToBottom();
+        }
     }
 }
 
@@ -446,11 +555,10 @@ void TourWidgetPrivate::deleteSelected()
     dialog->setDefaultButton( QMessageBox::No );
     if ( dialog->exec() == QMessageBox::Yes ) {
         GeoDataObject *rootObject =  rootIndexObject();
-        if ( rootObject && rootObject->nodeType() == GeoDataTypes::GeoDataPlaylistType ) {
-            GeoDataPlaylist *playlist = static_cast<GeoDataPlaylist*>( rootObject );
+        if (GeoDataPlaylist *playlist = (rootObject ? geodata_cast<GeoDataPlaylist>(rootObject) : 0)) {
             QModelIndex playlistIndex = m_widget->model()->treeModel()->index( playlist );
             QModelIndexList selected = m_tourUi.m_listView->selectionModel()->selectedIndexes();
-            qSort( selected.begin(), selected.end(), qGreater<QModelIndex>() );
+            std::sort( selected.begin(), selected.end(), [](const QModelIndex &a, const QModelIndex &b) { return b < a; } );
             QModelIndexList::iterator end = selected.end();
             QModelIndexList::iterator iter = selected.begin();
             for( ; iter != end; ++iter ) {
@@ -472,13 +580,12 @@ void TourWidgetPrivate::updateButtonsStates()
         m_tourUi.m_actionMoveUp->setEnabled( false );
     } else {
         m_tourUi.m_actionDelete->setEnabled( true );
-        qSort( selectedIndexes.begin(), selectedIndexes.end(), qLess<QModelIndex>() );
+        std::sort( selectedIndexes.begin(), selectedIndexes.end(), std::less<QModelIndex>() );
         QModelIndexList::iterator end = selectedIndexes.end()-1;
         QModelIndexList::iterator start = selectedIndexes.begin();
         m_tourUi.m_actionMoveUp->setEnabled( ( start->row() != 0 ) ); // if we can move up enable action else disable.
         GeoDataObject *rootObject =  rootIndexObject();
-        if ( rootObject && rootObject->nodeType() == GeoDataTypes::GeoDataPlaylistType ) {
-            GeoDataPlaylist *playlist = static_cast<GeoDataPlaylist*>( rootObject );
+        if (GeoDataPlaylist *playlist = (rootObject ? geodata_cast<GeoDataPlaylist>(rootObject) : 0)) {
             m_tourUi.m_actionMoveDown->setEnabled( ( end->row() != playlist->size()-1 ) ); // if we can move down enable action else disable.
         }
     }
@@ -487,11 +594,10 @@ void TourWidgetPrivate::updateButtonsStates()
 void TourWidgetPrivate::moveUp()
 {
     GeoDataObject *rootObject =  rootIndexObject();
-    if ( rootObject && rootObject->nodeType() == GeoDataTypes::GeoDataPlaylistType ) {
-        GeoDataPlaylist *playlist = static_cast<GeoDataPlaylist*>( rootObject );
+    if (GeoDataPlaylist *playlist = (rootObject ? geodata_cast<GeoDataPlaylist>(rootObject) : 0)) {
         QModelIndex playlistIndex = m_widget->model()->treeModel()->index( playlist );
         QModelIndexList selected = m_tourUi.m_listView->selectionModel()->selectedIndexes();
-        qSort( selected.begin(), selected.end(), qLess<QModelIndex>() );
+        std::sort( selected.begin(), selected.end(), std::less<QModelIndex>() );
         QModelIndexList::iterator end = selected.end();
         QModelIndexList::iterator iter = selected.begin();
         for( ; iter != end; ++iter ) {
@@ -508,11 +614,10 @@ void TourWidgetPrivate::moveUp()
 void TourWidgetPrivate::moveDown()
 {
     GeoDataObject *rootObject = rootIndexObject();
-    if ( rootObject && rootObject->nodeType() == GeoDataTypes::GeoDataPlaylistType ) {
-        GeoDataPlaylist *playlist = static_cast<GeoDataPlaylist*>( rootObject );
+    if (GeoDataPlaylist *playlist = (rootObject ? geodata_cast<GeoDataPlaylist>(rootObject) : 0)) {
         QModelIndex playlistIndex = m_widget->model()->treeModel()->index( playlist );
         QModelIndexList selected = m_tourUi.m_listView->selectionModel()->selectedIndexes();
-        qSort( selected.begin(), selected.end(), qGreater<QModelIndex>() );
+        std::sort( selected.begin(), selected.end(), [](const QModelIndex &a, const QModelIndex &b) { return b < a; } );
         QModelIndexList::iterator end = selected.end();
         QModelIndexList::iterator iter = selected.begin();
         for( ; iter != end; ++iter ) {
@@ -529,11 +634,10 @@ void TourWidgetPrivate::moveDown()
 GeoDataFeature* TourWidgetPrivate::getPlaylistFeature() const
 {
     GeoDataObject *rootObject = rootIndexObject();
-    if ( rootObject && rootObject->nodeType() == GeoDataTypes::GeoDataPlaylistType ) {
-        GeoDataPlaylist *playlist = static_cast<GeoDataPlaylist*>( rootObject );
+    if (GeoDataPlaylist *playlist = (rootObject ? geodata_cast<GeoDataPlaylist>(rootObject) : 0)) {
         GeoDataObject *object = playlist->parent();
-        if ( object && object->nodeType() == GeoDataTypes::GeoDataTourType ) {
-            return static_cast<GeoDataFeature*>( object );
+        if (GeoDataTour *tour = (object ? geodata_cast<GeoDataTour>(object) : 0)) {
+            return tour;
         }
     }
     return 0;
@@ -547,17 +651,17 @@ void TourWidgetPrivate::updateRootIndex()
         if ( playlist ) {
             m_tourUi.m_listView->setModel( m_widget->model()->treeModel() );
             m_tourUi.m_listView->setRootIndex( m_widget->model()->treeModel()->index( playlist ) );
-            QObject::connect( m_tourUi.m_listView->selectionModel(), SIGNAL( selectionChanged( QItemSelection, QItemSelection ) ),
-                              q, SLOT( updateButtonsStates() ) );
+            QObject::connect( m_tourUi.m_listView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+                              q, SLOT(updateButtonsStates()) );
         }
         m_playback.setMarbleWidget( m_widget );
         m_playback.setTour( tour );
         m_tourUi.m_slider->setMaximum( m_playback.duration() * 100 );
         QTime nullTime( 0, 0, 0 );
         QTime time = nullTime.addSecs( m_playback.duration() );
-        m_tourUi.m_totalTime->setText( QString("%L1:%L2").arg( time.minute(), 2, 10, QChar('0') ).arg( time.second(), 2, 10, QChar('0') ) );
-        QObject::connect( &m_playback, SIGNAL( progressChanged( double ) ),
-                         q, SLOT( handlePlaybackProgress( double ) ) );
+        m_tourUi.m_totalTime->setText(QString("%L1:%L2").arg(time.minute(), 2, 10, QLatin1Char('0')).arg(time.second(), 2, 10, QLatin1Char('0')));
+        QObject::connect( &m_playback, SIGNAL(progressChanged(double)),
+                         q, SLOT(handlePlaybackProgress(double)) );
         q->stopPlaying();
         m_tourUi.m_toolBarPlayback->setEnabled( true );
         bool isPlaybackEmpty = m_playback.mainTrackSize() != 0;
@@ -568,8 +672,8 @@ void TourWidgetPrivate::updateRootIndex()
         if( m_playback.mainTrackSize() > 0 ) {
             if( dynamic_cast<PlaybackFlyToItem*>( m_playback.mainTrackItemAt( 0 ) ) ) {
                 QModelIndex playlistIndex = m_widget->model()->treeModel()->index( playlist );
-                for( int i = 0; i < playlist->size(); ++i ) {
-                    if( playlist->primitive( i )->nodeType() == GeoDataTypes::GeoDataFlyToType ) {
+                for( int i = 0; playlist && i < playlist->size(); ++i ) {
+                    if (geodata_cast<GeoDataFlyTo>(playlist->primitive(i))) {
                         m_delegate->setFirstFlyTo( m_widget->model()->treeModel()->index( i, 0, playlistIndex ) );
                         break;
                     }
@@ -632,9 +736,9 @@ void TourWidget::updateDuration()
     d->m_tourUi.m_slider->setMaximum( d->m_playback.duration() * 100 );
     QTime nullTime( 0, 0, 0 );
     QTime totalTime = nullTime.addSecs( d->m_playback.duration() );
-    d->m_tourUi.m_totalTime->setText( QString("%L1:%L2").arg( totalTime.minute(), 2, 10, QChar('0') ).arg( totalTime.second(), 2, 10, QChar('0') ) );
+    d->m_tourUi.m_totalTime->setText(QString("%L1:%L2").arg(totalTime.minute(), 2, 10, QLatin1Char('0') ).arg(totalTime.second(), 2, 10, QLatin1Char('0')));
     d->m_tourUi.m_slider->setValue( 0 );
-    d->m_tourUi.m_elapsedTime->setText( QString("%L1:%L2").arg( 0, 2, 10, QChar('0') ).arg( 0, 2, 10, QChar('0') ) );
+    d->m_tourUi.m_elapsedTime->setText(QString("%L1:%L2").arg(0, 2, 10, QLatin1Char('0')).arg(0, 2, 10, QLatin1Char('0')));
 }
 
 void TourWidget::finishAddingItem()
@@ -677,10 +781,10 @@ void TourWidgetPrivate::createTour()
     if ( overrideModifications() ) {
         GeoDataDocument *document = new GeoDataDocument();
         document->setDocumentRole( UserDocument );
-        document->setName( "New Tour" );
-        document->setId( "new_tour" );
+        document->setName(QStringLiteral("New Tour"));
+        document->setId(QStringLiteral("new_tour"));
         GeoDataTour *tour = new GeoDataTour();
-        tour->setName( "New Tour" );
+        tour->setName(QStringLiteral("New Tour"));
         GeoDataPlaylist *playlist = new GeoDataPlaylist;
         tour->setPlaylist( playlist );
         document->append( static_cast<GeoDataFeature*>( tour ) );
@@ -736,24 +840,17 @@ void TourWidgetPrivate::saveTourAs()
 
 bool TourWidgetPrivate::saveTourAs(const QString &filename)
 {
-    if ( !filename.isEmpty() )
-    {
-        QFile file( filename );
-        if ( file.open( QIODevice::WriteOnly ) ) {
-            GeoWriter writer;
-            writer.setDocumentType( kml::kmlTag_nameSpaceOgc22 );
-            if ( writer.write( &file, m_document ) ) {
-                file.close();
-                m_tourUi.m_actionSaveTour->setEnabled( false );
-                m_isChanged = false;
-                GeoDataDocument* document = m_document;
-                if ( !document->fileName().isNull() ) {
-                    m_widget->model()->removeGeoData( document->fileName() );
-                }
-                m_widget->model()->addGeoDataFile( filename );
-                m_document->setFileName( filename );
-                return true;
+    if ( !filename.isEmpty() ) {
+        if (GeoDataDocumentWriter::write(filename, *m_document)) {
+            m_tourUi.m_actionSaveTour->setEnabled( false );
+            m_isChanged = false;
+            GeoDataDocument* document = m_document;
+            if ( !document->fileName().isNull() ) {
+                m_widget->model()->removeGeoData( document->fileName() );
             }
+            m_widget->model()->addGeoDataFile( filename );
+            m_document->setFileName( filename );
+            return true;
         }
     }
     return false;
@@ -778,7 +875,7 @@ void TourWidgetPrivate::captureTour()
         m_tourUi.m_listView->setRootIndex( widget->model()->treeModel()->index( tour->playlist() ) );
         m_tourUi.m_listView->repaint();
 
-        TourCaptureDialog* tourCaptureDialog = new TourCaptureDialog( widget, m_widget );
+        QPointer<TourCaptureDialog> tourCaptureDialog = new TourCaptureDialog( widget, m_widget );
         tourCaptureDialog->setDefaultFilename( tour->name() );
         tourCaptureDialog->setTourPlayback( playback );
         tourCaptureDialog->exec();
@@ -818,10 +915,58 @@ void TourWidgetPrivate::handlePlaybackProgress(const double position)
         m_tourUi.m_slider->setValue( position * 100 );
         QTime nullTime( 0, 0, 0 );
         QTime time = nullTime.addSecs( position );
-        m_tourUi.m_elapsedTime->setText( QString("%L1:%L2").arg( time.minute(), 2, 10, QChar('0') ).arg( time.second(), 2, 10, QChar('0') ) );
+        m_tourUi.m_elapsedTime->setText(QString("%L1:%L2").arg(time.minute(), 2, 10, QLatin1Char('0')).arg(time.second(), 2, 10, QLatin1Char('0')));
     }
 }
 
+void TourWidget::setHighlightedItemIndex( int index )
+{
+    GeoDataObject* rootObject =  d->rootIndexObject();
+    GeoDataPlaylist* playlist = static_cast<GeoDataPlaylist*>( rootObject );
+    QModelIndex playlistIndex = d->m_widget->model()->treeModel()->index( playlist );
+
+    // Only flyTo and wait items have duration, so the other types have to be skipped.
+    int searchedIndex = 0;
+    for ( int  i = 0; i < playlist->size(); i++ ) {
+
+        QModelIndex currentIndex = d->m_widget->model()->treeModel()->index( i, 0, playlistIndex );
+        GeoDataObject* object = qvariant_cast<GeoDataObject*>(currentIndex.data( MarblePlacemarkModel::ObjectPointerRole ) );
+
+        if (geodata_cast<GeoDataFlyTo>(object)
+          || geodata_cast<GeoDataWait>(object))
+                ++searchedIndex;
+
+        if ( index == searchedIndex ) {
+            d->m_tourUi.m_listView->selectionModel()->setCurrentIndex( currentIndex, QItemSelectionModel::NoUpdate );
+            d->m_tourUi.m_listView->scrollTo( currentIndex );
+            break;
+        }
+    }
+    d->m_tourUi.m_listView->viewport()->update();
 }
 
-#include "TourWidget.moc"
+void TourWidget::removeHighlight()
+{
+    QModelIndex index;
+
+    // Restoring the CurrentIndex to the previously selected item
+    // or clearing it if there was no selected item.
+    if ( d->m_tourUi.m_listView->selectionModel()->hasSelection() ) {
+        index = d->m_tourUi.m_listView->selectionModel()->selectedIndexes().last();
+    }
+    else {
+        index = QModelIndex();
+    }
+
+    d->m_tourUi.m_listView->selectionModel()->setCurrentIndex( index, QItemSelectionModel::NoUpdate );
+    d->m_tourUi.m_listView->viewport()->update();
+}
+
+bool TourWidget::isPlaying() const
+{
+    return d->m_playState;
+}
+
+}
+
+#include "moc_TourWidget.cpp"

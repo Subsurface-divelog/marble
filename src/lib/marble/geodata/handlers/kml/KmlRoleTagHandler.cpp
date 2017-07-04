@@ -38,13 +38,13 @@ KML_DEFINE_TAG_HANDLER( role )
 
 GeoNode* KmlroleTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_role ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_role)));
 
     GeoStackItem parentItem = parser.parentElement();
     if( parentItem.is<GeoDataPlacemark>() ) {
         QString role = parser.readElementText().trimmed();
         if ( role.isEmpty() ) {
-            role = ' ';
+            role = QLatin1Char(' ');
         }        
         parentItem.nodeAs<GeoDataPlacemark>()->setRole( role );
     }

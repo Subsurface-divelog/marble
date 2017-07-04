@@ -45,27 +45,30 @@ class KineticModel: public QObject
 
 public:
     explicit KineticModel(QObject *parent = 0);
-    ~KineticModel();
+    ~KineticModel() override;
 
     int duration() const;
     QPointF position() const;
     int updateInterval() const;
+    bool hasVelocity() const;
 
-public slots:
+public Q_SLOTS:
     void setDuration(int ms);
-    void setPosition(QPointF position);
+    void setPosition(const QPointF& position);
     void setPosition(qreal posX, qreal posY);
-    void jumpToPosition(QPointF position);
+    void setHeading(qreal heading);
+    void jumpToPosition(const QPointF& position);
     void jumpToPosition(qreal posX, qreal posY);
     void setUpdateInterval(int ms);
     void stop();
     void start();
 
-signals:
+Q_SIGNALS:
     void positionChanged( qreal lon, qreal lat );
+    void headingChanged( qreal heading );
     void finished();
 
-private slots:
+private Q_SLOTS:
     void update();
 
 private:

@@ -12,6 +12,7 @@
 #include "MarbleClock.h"
 #include "MarbleDebug.h"
 
+#include <QDateTime>
 #include <QTimer>
 
 namespace Marble {
@@ -136,4 +137,4 @@ void MarbleClock::setTimezone( int timezoneInSec )
 
 }
 
-#include "MarbleClock.moc"
+#include "moc_MarbleClock.cpp"

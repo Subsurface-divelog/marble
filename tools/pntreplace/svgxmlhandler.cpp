@@ -20,12 +20,12 @@ SVGXmlHandler::SVGXmlHandler( QDataStream * out, const QString & path, int heade
 {
 }
 
-bool SVGXmlHandler::startElement(const QString& nspace,
-                                 const QString& localName,
+bool SVGXmlHandler::startElement(const QString& /*nspace*/,
+                                 const QString& /*localName*/,
                                  const QString& qName,
                                  const QXmlAttributes &atts)
 {
-    if ( qName == "path" && atts.value( "id" ) == m_path ) {
+    if (qName == QLatin1String("path") && atts.value("id") == m_path) {
         QString  coordinates = atts.value( "d" );
 
         QStringList  stringlist;
@@ -33,16 +33,16 @@ bool SVGXmlHandler::startElement(const QString& nspace,
 
         // This requires absolute paths and repeated L commands to
         // to be enforced in inkscape!
-        stringlist << coordinates.mid( 1 ).split( 'L' );
+        stringlist << coordinates.mid(1).split(QLatin1Char('L'));
         bool     firstheader = true;
 
         int  count = 0;
         qDebug() << "Starting to write path" << atts.value( "id" );
-        foreach ( const QString& str, stringlist ) {
+        for ( const QString& str: stringlist ) {
             float  x;
             float  y;
-            x = str.section( ',', 0, 0 ).toFloat();
-            y = str.section( ',', 1, 1 ).toFloat();
+            x = str.section(QLatin1Char(','), 0, 0).toFloat();
+            y = str.section(QLatin1Char(','), 1, 1).toFloat();
 						
             short  header;
             short  lat;

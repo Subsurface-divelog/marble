@@ -20,7 +20,6 @@
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
-#include <QFileInfo>
 #include <QPointer>
 #include <QStack>
 #include <QDialog>
@@ -55,7 +54,7 @@ void DataMigration::exec()
         return;
     }
 
-    foreach( const QString& oldLocalPath, oldLocalPaths ) {
+    for( const QString& oldLocalPath: oldLocalPaths ) {
         QDir oldLocalDir( oldLocalPath );
 
         if( oldLocalDir.entryList( QDir::AllEntries | QDir::NoDotAndDotDot ).size() == 0 ) {
@@ -152,8 +151,8 @@ void DataMigration::moveFiles( const QString& source, const QString& target )
             }
             else {
                 // Add child directories to the stack
-                foreach( const QString& childDir, childDirs ) {
-                    dirs.push( sourceDirPath + '/' + childDir );
+                for( const QString& childDir: childDirs ) {
+                    dirs.push(sourceDirPath + QLatin1Char('/') + childDir);
                     progressSliceSizeStack.push( childSliceSize );
                 }
 
@@ -164,14 +163,12 @@ void DataMigration::moveFiles( const QString& source, const QString& target )
                 QDir().mkpath( targetDirPath );
 
                 // Copying contents
-                foreach( const QString& file, files ) {
+                for( const QString& file: files ) {
                     if( progressDialog.wasCanceled() ) {
                         return;
                     }
 
-                    QString sourceFilePath = sourceDirPath;
-                    sourceFilePath += '/';
-                    sourceFilePath += file;
+                    const QString sourceFilePath = sourceDirPath + QLatin1Char('/') + file;
 
                     if( !sourceFilePath.startsWith( sourcePath ) ) {
                         continue;
@@ -191,4 +188,4 @@ void DataMigration::moveFiles( const QString& source, const QString& target )
 
 }
 
-#include "DataMigration.moc"
+#include "moc_DataMigration.cpp"

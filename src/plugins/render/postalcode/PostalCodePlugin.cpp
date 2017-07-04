@@ -11,6 +11,8 @@
 #include "PostalCodePlugin.h"
 #include "PostalCodeModel.h"
 
+#include <QIcon>
+
 using namespace Marble;
 
 PostalCodePlugin::PostalCodePlugin()
@@ -43,23 +45,23 @@ QString PostalCodePlugin::guiString() const
 
 QString PostalCodePlugin::nameId() const
 {
-    return "postalCode";
+    return QStringLiteral("postalCode");
 }
 
 QString PostalCodePlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString PostalCodePlugin::copyrightYears() const
 {
-    return "2011";
+    return QStringLiteral("2011");
 }
 
-QList<PluginAuthor> PostalCodePlugin::pluginAuthors() const
+QVector<PluginAuthor> PostalCodePlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( "Valery Kharitonov", "kharvd@gmail.com" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Valery Kharitonov"), QStringLiteral("kharvd@gmail.com"));
 }
 
 QString PostalCodePlugin::description() const
@@ -69,9 +71,7 @@ QString PostalCodePlugin::description() const
 
 QIcon PostalCodePlugin::icon() const
 {
-    return QIcon(":/icons/postalcode.png");
+    return QIcon(QStringLiteral(":/icons/postalcode.png"));
 }
 
-Q_EXPORT_PLUGIN2( PostalCodePlugin, Marble::PostalCodePlugin )
-
-#include "PostalCodePlugin.moc"
+#include "moc_PostalCodePlugin.cpp"

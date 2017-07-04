@@ -18,13 +18,11 @@
 
 #include <QUrl>
 #include <QDateTime>
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QScriptValueIterator>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
-#if QT_VERSION >= 0x050000
-  #include <QUrlQuery>
-#endif
+#include <QUrlQuery>
 
 using namespace Marble;
 
@@ -46,19 +44,11 @@ GeoNamesWeatherService::~GeoNamesWeatherService()
 void GeoNamesWeatherService::getAdditionalItems( const GeoDataLatLonAltBox& box,
                                             qint32 number )
 {
-    if( marbleModel()->planetId() != "earth" ) {
+    if (marbleModel()->planetId() != QLatin1String("earth")) {
         return;
     }
 
     QUrl geonamesUrl( "http://ws.geonames.org/weatherJSON" );
-#if QT_VERSION < 0x050000
-    geonamesUrl.addQueryItem( "north", QString::number( box.north( GeoDataCoordinates::Degree ) ) );
-    geonamesUrl.addQueryItem( "south", QString::number( box.south( GeoDataCoordinates::Degree ) ) );
-    geonamesUrl.addQueryItem( "east", QString::number( box.east( GeoDataCoordinates::Degree ) ) );
-    geonamesUrl.addQueryItem( "west", QString::number( box.west( GeoDataCoordinates::Degree ) ) );
-    geonamesUrl.addQueryItem( "maxRows", QString::number( number ) );
-    geonamesUrl.addQueryItem( "username", "marble" );
-#else
     QUrlQuery urlQuery;
     urlQuery.addQueryItem( "north", QString::number( box.north( GeoDataCoordinates::Degree ) ) );
     urlQuery.addQueryItem( "south", QString::number( box.south( GeoDataCoordinates::Degree ) ) );
@@ -67,54 +57,48 @@ void GeoNamesWeatherService::getAdditionalItems( const GeoDataLatLonAltBox& box,
     urlQuery.addQueryItem( "maxRows", QString::number( number ) );
     urlQuery.addQueryItem( "username", "marble" );
     geonamesUrl.setQuery( urlQuery );
-#endif
 
     emit downloadDescriptionFileRequested( geonamesUrl );
 }
 
 void GeoNamesWeatherService::getItem( const QString &id )
 {
-    if( marbleModel()->planetId() != "earth" ) {
+    if (marbleModel()->planetId() != QLatin1String("earth")) {
         return;
     }
 
     if ( id.startsWith(QLatin1String("geonames_") ) ) {
         QUrl geonamesUrl( "http://ws.geonames.org/weatherIcaoJSON" );
-#if QT_VERSION < 0x050000
-        geonamesUrl.addQueryItem( "ICAO", id.mid( 9 ) );
-        geonamesUrl.addQueryItem( "username", "marble" );
-#else
         QUrlQuery urlQuery;
         urlQuery.addQueryItem( "ICAO", id.mid( 9 ) );
         urlQuery.addQueryItem( "username", "marble" );
         geonamesUrl.setQuery( urlQuery );
-#endif
         emit downloadDescriptionFileRequested( geonamesUrl );
     }
 }
 
 void GeoNamesWeatherService::parseFile( const QByteArray& file )
 {
-    QScriptValue data;
-    QScriptEngine engine;
-
-    // Qt requires parentheses around json code
-    data = engine.evaluate( '(' + QString( file ) + ')' );
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(file);
+    QJsonValue weatherObservationsValue = jsonDoc.object().value(QStringLiteral("weatherObservations"));
 
     // Parse if any result exists
     QList<AbstractDataPluginItem*> items;
-    if ( data.property( "weatherObservations" ).isArray() ) {
-        QScriptValueIterator iterator( data.property( "weatherObservations" ) );
+    if (weatherObservationsValue.isArray()) {
         // Add items to the list
-        while ( iterator.hasNext() ) {
-            iterator.next();
-            AbstractDataPluginItem* item = parse( iterator.value() );
+        QJsonArray weatherObservationsArray = weatherObservationsValue.toArray();
+        for (int index = 0; index < weatherObservationsArray.size(); ++index) {
+            QJsonObject weatherObservationObject = weatherObservationsArray[index].toObject();
+
+            AbstractDataPluginItem* item = parse(weatherObservationObject);
             if ( item ) {
                 items << item;
             }
         }
     } else {
-        AbstractDataPluginItem* item = parse( data.property( "weatherObservation" ) );
+        QJsonValue weatherObservationValue = jsonDoc.object().value(QStringLiteral("weatherObservation"));
+        QJsonObject weatherObservationObject = weatherObservationValue.toObject();
+        AbstractDataPluginItem* item = parse(weatherObservationObject);
         if ( item ) {
             items << item;
         }
@@ -123,27 +107,27 @@ void GeoNamesWeatherService::parseFile( const QByteArray& file )
     emit createdItems( items );
 }
 
-AbstractDataPluginItem *GeoNamesWeatherService::parse( const QScriptValue &value )
+AbstractDataPluginItem *GeoNamesWeatherService::parse(const QJsonObject &weatherObservationObject)
 {
-    QString condition = value.property( "weatherCondition" ).toString();
-    QString clouds = value.property( "clouds" ).toString();
-    int windDirection = value.property( "windDirection" ).toInteger();
-    QString id = value.property( "ICAO" ).toString();
-    int temperature = value.property( "temperature" ).toInteger();
-    int windSpeed = value.property( "windSpeed" ).toInteger();
-    int humidity = value.property( "humidity" ).toInteger();
-    double pressure = value.property( "seaLevelPressure" ).toNumber();
-    QString name = value.property( "stationName" ).toString();
-    QDateTime date = QDateTime::fromString(
-                value.property( "datetime" ).toString(), "yyyy-MM-dd hh:mm:ss" );
-    double longitude = value.property( "lng" ).toNumber();
-    double latitude = value.property( "lat" ).toNumber();
+    const QString condition = weatherObservationObject.value(QStringLiteral("weatherCondition")).toString();
+    const QString clouds = weatherObservationObject.value(QStringLiteral("clouds")).toString();
+    const int windDirection = weatherObservationObject.value(QStringLiteral("windDirection")).toInt();
+    QString id = weatherObservationObject.value(QStringLiteral("ICAO")).toString();
+    const double temperature = weatherObservationObject.value(QStringLiteral("temperature")).toString().toDouble(); //delivered as string
+    const int windSpeed = weatherObservationObject.value(QStringLiteral("windSpeed")).toString().toInt(); //delivered as string
+    const int humidity = weatherObservationObject.value(QStringLiteral("humidity")).toInt();
+    const double pressure = weatherObservationObject.value(QStringLiteral("seaLevelPressure")).toDouble();
+    const QString name = weatherObservationObject.value(QStringLiteral("stationName")).toString();
+    const QDateTime date = QDateTime::fromString(
+                weatherObservationObject.value(QStringLiteral("datetime")).toString(), "yyyy-MM-dd hh:mm:ss" );
+    const double longitude = weatherObservationObject.value(QStringLiteral("lng")).toDouble();
+    const double latitude = weatherObservationObject.value(QStringLiteral("lat")).toDouble();
 
     if ( !id.isEmpty() ) {
         WeatherData data;
 
         // Weather condition
-        if ( clouds != "n/a" && condition != "n/a" ) {
+        if (clouds != QLatin1String("n/a") && condition != QLatin1String("n/a")) {
             if ( dayConditions.contains( condition ) ) {
                 data.setCondition( dayConditions[condition] );
             } else {
@@ -185,7 +169,7 @@ AbstractDataPluginItem *GeoNamesWeatherService::parse( const QScriptValue &value
         data.setPublishingTime( date );
 
         // ID
-        id = "geonames_" + id;
+        id = QLatin1String("geonames_") + id;
 
         GeoDataCoordinates coordinates( longitude, latitude, 0.0, GeoDataCoordinates::Degree );
         GeoNamesWeatherItem *item = new GeoNamesWeatherItem( this );
@@ -283,4 +267,4 @@ void GeoNamesWeatherService::setupHashes()
     windDirections[15] = WeatherData::NNW;
 }
 
-#include "GeoNamesWeatherService.moc"
+#include "moc_GeoNamesWeatherService.cpp"

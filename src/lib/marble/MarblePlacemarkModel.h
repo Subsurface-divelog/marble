@@ -19,17 +19,15 @@
 
 #include <QAbstractListModel>
 #include <QModelIndex>
-#include <QVariant>
 
 #include "marble_export.h"
-
-#include "GeoDataPlacemark.h"
 
 namespace Marble
 {
 
 class GeoDataCoordinates;
-class GeoDataStyle;
+class GeoDataPlacemark;
+
 /**
  * This class represents a model of all place marks which
  * are currently available through a given PlacemarkManager.
@@ -64,7 +62,8 @@ class MARBLE_EXPORT MarblePlacemarkModel : public QAbstractListModel
       DstRole,                         ///< The Daylight Saving Time
       GeometryRole,                    ///< The GeoDataGeometry geometry
       LongitudeRole,                   ///< The longitude in degree (for use in QML)
-      LatitudeRole                     ///< The latitude in degree (for use in QML)
+      LatitudeRole,                    ///< The latitude in degree (for use in QML)
+      IconPathRole                     ///< Path to the image, if known
     };
 
     /**
@@ -77,22 +76,20 @@ class MARBLE_EXPORT MarblePlacemarkModel : public QAbstractListModel
     /**
      * Destroys the place mark model.
      */
-    ~MarblePlacemarkModel();
+    ~MarblePlacemarkModel() override;
 
     void setPlacemarkContainer( QVector<GeoDataPlacemark*> *container );
 
     /**
      * Return the number of Placemarks in the Model.
      */
-    int rowCount( const QModelIndex &parent = QModelIndex() ) const;
-    int columnCount( const QModelIndex &parent = QModelIndex() ) const;
+    int rowCount( const QModelIndex &parent = QModelIndex() ) const override;
+    int columnCount( const QModelIndex &parent = QModelIndex() ) const override;
 
-#if QT_VERSION >= 0x050000
     /**
      * Return the supported role names
      */
-    QHash<int, QByteArray> roleNames() const;
-#endif
+    QHash<int, QByteArray> roleNames() const override;
 
     /**
      * Return the data according to the index.
@@ -100,7 +97,7 @@ class MARBLE_EXPORT MarblePlacemarkModel : public QAbstractListModel
      * @param index  the index of the data
      * @param role   which part of the data to return.  @see Roles
      */
-    QVariant data( const QModelIndex &index, int role ) const;
+    QVariant data( const QModelIndex &index, int role ) const override;
 
     QModelIndexList approxMatch( const QModelIndex &start, int role, 
                                    const QVariant &value, int hits = 1,
@@ -129,9 +126,7 @@ Q_SIGNALS:
     Q_DISABLE_COPY( MarblePlacemarkModel )
     class Private;
     Private* const d;
-#if QT_VERSION >= 0x050000
     QHash<int, QByteArray> m_roleNames;
-#endif
 };
 
 }

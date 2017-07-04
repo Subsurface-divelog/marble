@@ -15,8 +15,8 @@
 #include "GeoDataDocument.h"
 
 #include <QObject>
-#include <QString>
-#include <QStringList>
+
+class QString;
 
 namespace Marble
 {
@@ -49,12 +49,12 @@ class FileManager : public QObject
     /**
      * Destroys the file manager.
      */
-    ~FileManager();
+    ~FileManager() override;
 
     /**
      * Loads a new file into the manager.
      */
-    void addFile( const QString &fileName, const QString &property, const GeoDataStyle* style, DocumentRole role, bool recenter = false );
+    void addFile(const QString &fileName, const QString &property, const GeoDataStyle::Ptr &style, DocumentRole role, int renderOrder = 0, bool recenter = false );
 
 
     /**
@@ -67,7 +67,6 @@ class FileManager : public QObject
     */
     void addData( const QString &name, const QString &data, DocumentRole role );
 
-    void saveFile( const QString &fileName, const GeoDataDocument *document );
     void closeFile( const GeoDataDocument *document );
 
     int size() const;

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2010,2011  Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -20,7 +20,6 @@
 
 #include <QRect>
 #include <QColor>
-#include <QMutexLocker>
 #include <QPaintDevice>
 #include <QPainter>
 
@@ -54,18 +53,6 @@ ProgressFloatItem::ProgressFloatItem( const MarbleModel *marbleModel )
     m_repaintTimer.setInterval( 1000 );
     connect( &m_repaintTimer, SIGNAL(timeout()), this, SIGNAL(repaintNeeded()) );
 
-    // The icon resembles the pie chart
-    QImage canvas( 16, 16, QImage::Format_ARGB32 );
-    canvas.fill( Qt::transparent );
-    QPainter painter( &canvas );
-    painter.setRenderHint( QPainter::Antialiasing, true );
-    painter.setPen( QColor ( Qt::black ) );
-    painter.drawEllipse( 1, 1, 14, 14 );
-    painter.setPen( Qt::NoPen );
-    painter.setBrush( QBrush( QColor( Qt::darkGray ) ) );
-    painter.drawPie( 2, 2, 12, 12, 1440, -1325 ); // 23 percent of a full circle
-    m_icon = QIcon( QPixmap::fromImage( canvas ) );
-
     // Plugin is enabled by default
     setEnabled( true );
 
@@ -80,7 +67,7 @@ ProgressFloatItem::~ProgressFloatItem ()
 
 QStringList ProgressFloatItem::backendTypes() const
 {
-    return QStringList( "progress" );
+    return QStringList(QStringLiteral("progress"));
 }
 
 QString ProgressFloatItem::name() const
@@ -95,12 +82,12 @@ QString ProgressFloatItem::guiString() const
 
 QString ProgressFloatItem::nameId() const
 {
-    return QString( "progress" );
+    return QStringLiteral("progress");
 }
 
 QString ProgressFloatItem::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString ProgressFloatItem::description() const
@@ -110,14 +97,14 @@ QString ProgressFloatItem::description() const
 
 QString ProgressFloatItem::copyrightYears() const
 {
-    return "2010, 2011";
+    return QStringLiteral("2010, 2011");
 }
 
-QList<PluginAuthor> ProgressFloatItem::pluginAuthors() const
+QVector<PluginAuthor> ProgressFloatItem::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
-            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
+            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"));
 }
 
 QIcon ProgressFloatItem::icon() const
@@ -141,6 +128,18 @@ void ProgressFloatItem::initialize()
         myFont.setPointSize( fontSize );
     }
     m_fontSize = fontSize - 1;
+
+    // The icon resembles the pie chart
+    QImage canvas( 16, 16, QImage::Format_ARGB32 );
+    canvas.fill( Qt::transparent );
+    QPainter painter( &canvas );
+    painter.setRenderHint( QPainter::Antialiasing, true );
+    painter.setPen( QColor ( Qt::black ) );
+    painter.drawEllipse( 1, 1, 14, 14 );
+    painter.setPen( Qt::NoPen );
+    painter.setBrush( QBrush( QColor( Qt::darkGray ) ) );
+    painter.drawPie( 2, 2, 12, 12, 1440, -1325 ); // 23 percent of a full circle
+    m_icon = QIcon( QPixmap::fromImage( canvas ) );
 
     m_isInitialized = true;
 }
@@ -189,7 +188,7 @@ void ProgressFloatItem::paintContent( QPainter *painter )
     // Paint progress label
     QFont myFont = font();
     myFont.setPointSize( m_fontSize );
-    QString done = QString::number( (int) ( m_completed * 100 ) ) + '%';
+    const QString done = QString::number((int) (m_completed * 100)) + QLatin1Char('%');
     int fontWidth = QFontMetrics( myFont ).boundingRect( done ).width();
     QPointF baseline( padding() + 0.5 * ( rect.width() - fontWidth ), 0.75 * rect.height() );
     QPainterPath path;
@@ -289,6 +288,4 @@ void ProgressFloatItem::scheduleRepaint()
 
 }
 
-Q_EXPORT_PLUGIN2( ProgressFloatItem, Marble::ProgressFloatItem )
-
-#include "ProgressFloatItem.moc"
+#include "moc_ProgressFloatItem.cpp"

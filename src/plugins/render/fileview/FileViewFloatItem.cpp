@@ -16,9 +16,7 @@
 #include <QApplication>
 #include <QFileDialog>
 #include <QListView>
-#include <QListWidget>
 #include <QMenu>
-#include <QPixmap>
 #include <QSlider>
 #include <QMouseEvent>
 
@@ -48,7 +46,7 @@ FileViewFloatItem::~FileViewFloatItem()
 
 QStringList FileViewFloatItem::backendTypes() const
 {
-    return QStringList("fileview");
+    return QStringList(QStringLiteral("fileview"));
 }
 
 QString FileViewFloatItem::name() const
@@ -63,7 +61,7 @@ QString FileViewFloatItem::guiString() const
 
 QString FileViewFloatItem::nameId() const
 {
-    return QString("fileview");
+    return QStringLiteral("fileview");
 }
 
 QString FileViewFloatItem::description() const
@@ -186,7 +184,7 @@ bool FileViewFloatItem::eventFilter(QObject *object, QEvent *e)
     return AbstractFloatItem::eventFilter(object, e);
 }
 
-void FileViewFloatItem::selectTheme(QString theme)
+void FileViewFloatItem::selectTheme(const QString& theme)
 {
     Q_UNUSED(theme);
     
@@ -244,8 +242,5 @@ void FileViewFloatItem::removeFile()
     // close selected file
     reinterpret_cast<FileViewModel*>(m_fileView->model())->closeFile();
 }
-	 
 
-Q_EXPORT_PLUGIN2(FileViewFloatItem, FileViewFloatItem)
-
-#include "FileViewFloatItem.moc"
+#include "moc_FileViewFloatItem.cpp"

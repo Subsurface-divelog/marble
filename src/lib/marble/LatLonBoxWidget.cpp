@@ -19,7 +19,7 @@
 namespace Marble
 {
 
-class LatLonBoxWidget::Private
+class Q_DECL_HIDDEN LatLonBoxWidget::Private
 {
 public:
     explicit Private( QWidget * const parent );
@@ -86,4 +86,4 @@ void LatLonBoxWidget::updateLonSingleStep()
 
 }
 
-#include "LatLonBoxWidget.moc"
+#include "moc_LatLonBoxWidget.cpp"

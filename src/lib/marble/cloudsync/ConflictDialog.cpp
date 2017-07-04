@@ -11,22 +11,23 @@
 #include "ConflictDialog.h"
 
 #include "MergeItem.h"
-#include "GeoDataPlacemark.h"
 
 #include <QLabel>
-#include <QVariant>
+#include <QDialogButtonBox>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QVariant>
 
 namespace Marble {
 
 ConflictDialog::ConflictDialog( QWidget *parent ) :
     QDialog( parent ),
     m_mergeItem( 0 ),
-    m_box( 0 )
+    m_box( 0 ),
+    m_resolveAction(ConflictDialog::AskUser)
 {
-    m_resolveAction = ConflictDialog::AskUser;
+    // nothing to do
 }
 
 void ConflictDialog::setMergeItem( MergeItem *item )
@@ -184,4 +185,4 @@ void ConflictDialog::prepareLayout()
 
 }
 
-#include "ConflictDialog.moc"
+#include "moc_ConflictDialog.cpp"

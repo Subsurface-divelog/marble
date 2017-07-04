@@ -13,11 +13,15 @@
 #define MARBLE_LAYERINTERFACE_H
 
 #include "marble_export.h"
-#include "RenderState.h"
 
-#include <QStringList>
+#include <QtGlobal>
+
+class QStringList;
+class QString;
 
 namespace Marble {
+
+class RenderState;
 
 class GeoPainter;
 class GeoSceneLayer;

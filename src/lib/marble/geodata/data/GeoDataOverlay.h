@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -15,22 +15,23 @@
 #include "geodata_export.h"
 #include "GeoDataFeature.h"
 
-#include <QVector>
-#include <QColor>
-#include <QImage>
+class QColor;
+class QImage;
 
 namespace Marble
 {
 
 class GeoDataOverlayPrivate;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataOverlay: public GeoDataFeature
 {
  public:
     /** Constructor */
     GeoDataOverlay();
 
-    ~GeoDataOverlay();
+    ~GeoDataOverlay() override;
 
     GeoDataOverlay( const GeoDataOverlay &other );
 
@@ -59,12 +60,15 @@ class GEODATA_EXPORT GeoDataOverlay: public GeoDataFeature
       */
     QString absoluteIconFile() const;
 
-private:
-    GeoDataOverlayPrivate * const d;
-
 protected:
+    explicit GeoDataOverlay(GeoDataOverlayPrivate *priv);
+    GeoDataOverlay(const GeoDataOverlay& other, GeoDataOverlayPrivate *priv);
+
     bool equals(const GeoDataOverlay &other) const;
     using GeoDataFeature::equals;
+
+ private:
+    Q_DECLARE_PRIVATE(GeoDataOverlay)
 };
 
 }

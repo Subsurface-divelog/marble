@@ -8,8 +8,8 @@
 // Copyright 2013      Mohammed Nafees <nafees.technocool@gmail.com>
 //
 
-#ifndef KMLMAXREFRESHPERIODTAGHANDLER_H
-#define KMLMAXREFRESHPERIODTAGHANDLER_H
+#ifndef MARBLE_KMLMAXSESSIONLENGTHTAGHANDLER_H
+#define MARBLE_KMLMAXSESSIONLENGTHTAGHANDLER_H
 
 #include "GeoTagHandler.h"
 
@@ -21,7 +21,7 @@ namespace kml
 class KmlmaxSessionLengthTagHandler : public GeoTagHandler
 {
 public:
-    virtual GeoNode* parse(GeoParser&) const;
+    GeoNode* parse(GeoParser&) const override;
 };
 
 }

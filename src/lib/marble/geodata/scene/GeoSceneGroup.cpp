@@ -24,6 +24,7 @@
 #include "MarbleDebug.h"
 
 #include "GeoSceneProperty.h"
+#include "GeoSceneTypes.h"
 
 namespace Marble
 {
@@ -87,6 +88,11 @@ bool GeoSceneGroup::propertyValue( const QString& name, bool& value ) const
 
 void GeoSceneGroup::addProperty( GeoSceneProperty* property )
 {
+    Q_ASSERT(property);
+    if (!property) {
+        return;
+    }
+
     // Remove any property that has the same name
     QVector<GeoSceneProperty*>::iterator it = m_properties.begin();
     while (it != m_properties.end()) {
@@ -101,14 +107,12 @@ void GeoSceneGroup::addProperty( GeoSceneProperty* property )
         }
     }
 
-    if ( property ) {
-        m_properties.append( property );
+    m_properties.append( property );
 
-        // Establish connection to the outside, e.g. the LegendBrowser
-        connect ( property, SIGNAL(valueChanged(QString,bool)), 
-                            SIGNAL(valueChanged(QString,bool)) );
-        emit valueChanged( property->name(), property->value() );
-    }
+    // Establish connection to the outside, e.g. the LegendBrowser
+    connect ( property, SIGNAL(valueChanged(QString,bool)),
+                        SIGNAL(valueChanged(QString,bool)) );
+    emit valueChanged( property->name(), property->value() );
 }
 
 const GeoSceneProperty* GeoSceneGroup::property( const QString& name ) const
@@ -143,8 +147,9 @@ QVector<GeoSceneProperty*> GeoSceneGroup::properties()
 QVector<const GeoSceneProperty*> GeoSceneGroup::properties() const
 {
     QVector<const GeoSceneProperty*> result;
+    result.reserve(m_properties.size());
 
-    foreach ( const GeoSceneProperty *property, m_properties ) {
+    for ( const GeoSceneProperty *property: m_properties ) {
         result << property;
     }
 
@@ -156,6 +161,11 @@ QString GeoSceneGroup::name() const
     return m_name;
 }
 
+const char *GeoSceneGroup::nodeType() const
+{
+    return GeoSceneTypes::GeoSceneGroupType;
 }
 
-#include "GeoSceneGroup.moc"
+}
+
+#include "moc_GeoSceneGroup.cpp"

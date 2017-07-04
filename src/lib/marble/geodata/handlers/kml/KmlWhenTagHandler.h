@@ -11,9 +11,10 @@
 #ifndef KmlWhenTagHandler_h
 #define KmlWhenTagHandler_h
 
-#include <QString>
 #include "GeoTagHandler.h"
 #include <GeoDataTimeStamp.h>
+
+class QString;
 
 namespace Marble
 {
@@ -23,7 +24,7 @@ namespace kml
 class KmlwhenTagHandler : public GeoTagHandler
 {
 public:
-    virtual GeoNode* parse(GeoParser&) const;
+    GeoNode* parse(GeoParser&) const override;
 
     static QDateTime parse( const QString &dateTime );
 

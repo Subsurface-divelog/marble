@@ -5,16 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2014 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2014 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2014 Abhinav Gangwar <abhgang@gmail.com>
 //
 
 #ifndef MARBLE_GAMEMAINWINDOW_H
 #define MARBLE_GAMEMAINWINDOW_H
 
-#include <GeoDataCoordinates.h>
-
-#include <marble_export.h>
+#include <marble/GeoDataCoordinates.h>
 
 #include <QMainWindow>
 
@@ -24,7 +22,7 @@ namespace Marble
 class Private;
 class MarbleWidget;
 
-class MARBLE_EXPORT MainWindow: public QMainWindow
+class MainWindow: public QMainWindow
 {
     Q_OBJECT
 public:

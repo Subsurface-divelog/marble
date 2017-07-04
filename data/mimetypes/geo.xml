@@ -6,7 +6,7 @@ Notes:
 -->
 <mime-info xmlns="http://www.freedesktop.org/standards/shared-mime-info">
   <mime-type type="application/x-gpx+xml">
-    <!-- prevent txt/plain thumbnailer <sub-class-of type="application/xml"/> -->
+    <sub-class-of type="application/xml"/>
     <comment>GPX geographic data</comment>
     <comment xml:lang="bg">Географски данни GPX</comment>
     <comment xml:lang="bs">GPX geografski podaci</comment>
@@ -17,6 +17,7 @@ Notes:
     <comment xml:lang="de">GPX-Geografiedaten</comment>
     <comment xml:lang="el">Γεωγραφικά δεδομένα GPX</comment>
     <comment xml:lang="en_GB">GPX geographic data</comment>
+    <comment xml:lang="eo">GPX geografiaj datumoj</comment>
     <comment xml:lang="es">Datos geográficos GPX</comment>
     <comment xml:lang="et">GPX geograafilised andmed</comment>
     <comment xml:lang="fi">GPX-paikkatieto</comment>
@@ -42,6 +43,7 @@ Notes:
     <comment xml:lang="sv">GPX-geografisk data</comment>
     <comment xml:lang="tr">GPX geografik ver</comment>
     <comment xml:lang="uk">географічні дані GPX</comment>
+    <comment xml:lang="zh_CN">GPX 地理数据</comment>
     <comment xml:lang="zh_TW">GPX 地理資料</comment>
     <acronym>GPX</acronym>
     <expanded-acronym>GPS eXchange Format</expanded-acronym>
@@ -50,17 +52,13 @@ Notes:
     <alias type="application/gpx"/>
     <alias type="application/gpx+xml"/>
     <alias type="application/x-gpx"/>
-    <!-- temporary solution, until thumbnailer is done, remove for root-XML stuff -->
-    <magic priority="80">
-      <match value="&lt;gpx" type="string" offset="0:256"/>
-    </magic>
-    <!-- use again if thumbnailer is done -->
-    <!-- <root-XML namespaceURI='http://www.topografix.com/GPX/1/0' localName='gpx'/> -->
-    <!-- <root-XML namespaceURI='http://www.topografix.com/GPX/1/1' localName='gpx'/> -->
+    <root-XML namespaceURI='http://www.topografix.com/GPX/1/0' localName='gpx'/>
+    <root-XML namespaceURI='http://www.topografix.com/GPX/1/1' localName='gpx'/>
   </mime-type>
   <mime-type type="application/x-osm+xml">
-    <!-- prevent txt/plain thumbnailer <sub-class-of type="application/xml"/> -->
+    <sub-class-of type="application/xml"/>
     <comment>OSM Data</comment>
+    <comment xml:lang="ast">Datos OSM</comment>
     <comment xml:lang="bg">Данни OSM</comment>
     <comment xml:lang="bs">OSM podaci</comment>
     <comment xml:lang="ca">Dades OSM</comment>
@@ -70,6 +68,7 @@ Notes:
     <comment xml:lang="de">OSM-Daten</comment>
     <comment xml:lang="el">Δεδομένα OSM</comment>
     <comment xml:lang="en_GB">OSM Data</comment>
+    <comment xml:lang="eo">OSM Datumoj</comment>
     <comment xml:lang="es">Datos OSM</comment>
     <comment xml:lang="et">OSM andmed</comment>
     <comment xml:lang="fi">OSM-data</comment>
@@ -95,18 +94,17 @@ Notes:
     <comment xml:lang="sv">OSM-data</comment>
     <comment xml:lang="tr">OSM Verisi</comment>
     <comment xml:lang="uk">дані OSM</comment>
+    <comment xml:lang="zh_CN">OSM 数据</comment>
     <comment xml:lang="zh_TW">OSM 資料</comment>
     <acronym>OSM</acronym>
     <expanded-acronym>OpenStreetMap</expanded-acronym>
     <generic-icon name="application-vnd-google-earth-kml"/>
     <glob pattern="*.osm" />
     <glob pattern="*.osc" />
-    <!-- temporary solution, until thumbnailer is done, remove for root-XML stuff -->
+    <!-- no official namespaceURI defined for OSM XML, so cannot use root-XML tag -->
     <magic priority="80">
       <match value="&lt;osm" type="string" offset="0:256"/>
     </magic>
-    <!-- use again if thumbnailer is done -->
-    <!-- <root-XML namespaceURI='? TODO' localName='osm'/> -->
   </mime-type>
   <mime-type type="application/x-esri-shape">
     <generic-icon name="application-vnd-google-earth-kml"/>
@@ -119,6 +117,7 @@ Notes:
     <comment xml:lang="de">ESRI-Shapefile</comment>
     <comment xml:lang="el">ESRI Shapefile</comment>
     <comment xml:lang="en_GB">ESRI Shapefile</comment>
+    <comment xml:lang="eo">ESRI Shapefile</comment>
     <comment xml:lang="es">Archivo de formas ESRI</comment>
     <comment xml:lang="et">ESRI Shapefile</comment>
     <comment xml:lang="fi">ESRI Shapefile</comment>
@@ -143,6 +142,7 @@ Notes:
     <comment xml:lang="sv">ESRI-formfil</comment>
     <comment xml:lang="tr">ESRI Shapefile</comment>
     <comment xml:lang="uk">файл форм ESRI</comment>
+    <comment xml:lang="zh_CN">ESRI 形状文件</comment>
     <comment xml:lang="zh_TW">ESRI Shapefile</comment>
     <generic-icon name="application-vnd-google-earth-kml"/>
     <glob pattern="*.shp"/>
@@ -160,6 +160,7 @@ Notes:
     <comment xml:lang="de">ESRI-Shapefile-Index</comment>
     <comment xml:lang="el">ESRI Shapefile Index</comment>
     <comment xml:lang="en_GB">ESRI Shapefile Index</comment>
+    <comment xml:lang="eo">ESRI Shapefile Indekso</comment>
     <comment xml:lang="es">Índice de archivo de formas ESRI</comment>
     <comment xml:lang="et">ESRI Shapefile Index</comment>
     <comment xml:lang="fi">ESRI Shapefile -hakemisto</comment>
@@ -184,6 +185,7 @@ Notes:
     <comment xml:lang="sv">ESRI-formfilindex</comment>
     <comment xml:lang="tr">ESRI Shapefile Dizini</comment>
     <comment xml:lang="uk">покажчик файла форм ESRI</comment>
+    <comment xml:lang="zh_CN">ESRI 形状文件索引</comment>
     <comment xml:lang="zh_TW">ESRI Shapefile 索引</comment>
     <generic-icon name="application-octet-stream"/>
     <glob pattern="*.shx"/>

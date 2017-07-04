@@ -13,10 +13,8 @@
 
 #include "MergeItem.h"
 #include "marble_export.h"
-#include "GeoDataPlacemark.h"
 
 #include <QObject>
-#include <QNetworkReply>
 
 namespace Marble {
 
@@ -31,7 +29,7 @@ class MARBLE_EXPORT BookmarkSyncManager : public QObject
 
 public:
     explicit BookmarkSyncManager( CloudSyncManager *cloudSyncManager );
-    ~BookmarkSyncManager();
+    ~BookmarkSyncManager() override;
 
     /**
      * Last time Marble synced everything up

@@ -26,20 +26,20 @@
 #define MARBLE_STACKEDTILELOADER_H
 
 #include <QObject>
-#include <QSize>
 
-#include "GeoSceneTiled.h"
-#include "TileId.h"
 #include "RenderState.h"
 
 class QImage;
 class QString;
+class QSize;
 
 namespace Marble
 {
 
+class GeoSceneAbstractTileProjection;
 class MergedLayerDecorator;
 class StackedTile;
+class TileId;
 
 class StackedTileLoaderPrivate;
 
@@ -68,13 +68,13 @@ class StackedTileLoader : public QObject
          *                        the tiles from a remote resource.
          */
         explicit StackedTileLoader( MergedLayerDecorator *mergedLayerDecorator, QObject *parent = 0 );
-        virtual ~StackedTileLoader();
+        ~StackedTileLoader() override;
 
         int tileColumnCount( int level ) const;
 
         int tileRowCount( int level ) const;
 
-        GeoSceneTextureTile::Projection tileProjection() const;
+        const GeoSceneAbstractTileProjection *tileProjection() const;
 
         QSize tileSize() const;
 

@@ -1,40 +1,58 @@
 PROJECT( OsmPlugin )
 
 INCLUDE_DIRECTORIES(
+ ${CMAKE_SOURCE_DIR}/src/3rdparty/o5mreader
  ${CMAKE_CURRENT_SOURCE_DIR}
- ${CMAKE_CURRENT_SOURCE_DIR}/handlers
+ ${CMAKE_CURRENT_SOURCE_DIR}/writers
+ ${CMAKE_CURRENT_SOURCE_DIR}/translators
  ${CMAKE_CURRENT_BINARY_DIR}
- ${QT_INCLUDE_DIR}
 )
-if( QT4_FOUND )
-  INCLUDE(${QT_USE_FILE})
-endif()
 
-set( osm_handlers_SRCS
-        handlers/OsmBoundsTagHandler.cpp
-        handlers/OsmBoundTagHandler.cpp
-        handlers/OsmElementDictionary.cpp
-        handlers/OsmNdTagHandler.cpp
-        handlers/OsmNodeTagHandler.cpp
-        handlers/OsmOsmTagHandler.cpp
-        handlers/OsmRelationTagHandler.cpp
-        handlers/OsmMemberTagHandler.cpp
-        handlers/OsmTagTagHandler.cpp
-        handlers/OsmWayTagHandler.cpp
+set( osm_writers_SRCS
+        writers/OsmObjectAttributeWriter.cpp
+        writers/OsmNodeTagWriter.cpp
+        writers/OsmWayTagWriter.cpp
+        writers/OsmRelationTagWriter.cpp
+        writers/OsmTagWriter.cpp
+        writers/OsmTagTagWriter.cpp
+   )
+set( osm_translators_SRCS
+        translators/OsmDocumentTagTranslator.cpp
+        translators/O5mWriter.cpp
+        translators/OsmConverter.cpp
    )
 
-set( osm_SRCS OsmParser.cpp OsmPlugin.cpp OsmRunner.cpp )
+set( osm_SRCS
+  OsmParser.cpp
+  OsmPlugin.cpp
+  OsmRunner.cpp
+  OsmNode.cpp
+  OsmWay.cpp
+  OsmRelation.cpp
+  OsmElementDictionary.cpp
+)
 
-marble_add_plugin( OsmPlugin ${osm_SRCS}  ${osm_handlers_SRCS} )
+marble_add_plugin( OsmPlugin ${osm_SRCS} ${osm_writers_SRCS} ${osm_translators_SRCS} )
+target_link_libraries(OsmPlugin o5mreader)
 
-if(QTONLY)
-  if(WIN32 OR APPLE)
-    # nothing to do
-  else(WIN32 OR APPLE)
-    install(FILES marble_osm.desktop DESTINATION ${APPS_INSTALL_DIR})
-  endif(WIN32 OR APPLE)
-else(QTONLY)
-  install(PROGRAMS marble_osm.desktop DESTINATION ${APPS_INSTALL_DIR})
-  install(FILES marble_part_osm.desktop DESTINATION ${SERVICES_INSTALL_DIR})
-  install(FILES marble_thumbnail_osm.desktop DESTINATION ${SERVICES_INSTALL_DIR})
-endif(QTONLY)
+find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+if(NOT ECM_FOUND)
+    return()
+endif()
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+
+include(KDEInstallDirs)
+
+macro_optional_find_package(KF5 ${REQUIRED_KF5_VERSION} QUIET COMPONENTS KIO)
+if(NOT KF5_FOUND)
+    return()
+endif()
+
+# register marble part as handler
+# install again once part is fixed to load and show the passed file
+# install(FILES marble_part_osm.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+
+# register thumbnail plugin as handler
+install(FILES marble_thumbnail_osm.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+

@@ -12,14 +12,16 @@
 #ifndef GEODATASCALE_H
 #define GEODATASCALE_H
 
-#include "GeoDataGeometry.h"
+#include "GeoDataObject.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
 class GeoDataScalePrivate;
 
-class MARBLE_EXPORT GeoDataScale: public GeoDataObject
+/**
+ */
+class GEODATA_EXPORT GeoDataScale: public GeoDataObject
 {
 public:
     GeoDataScale();
@@ -31,10 +33,10 @@ public:
     bool operator==( const GeoDataScale &other ) const;
     bool operator!=( const GeoDataScale &other ) const;
 
-    ~GeoDataScale();
+    ~GeoDataScale() override;
 
     /** Provides type information for downcasting a GeoNode */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     double x() const;
 

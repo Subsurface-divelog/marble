@@ -12,17 +12,19 @@
 #define GEODATAUPDATE_H
 
 #include "GeoDataObject.h"
-#include "GeoDataCreate.h"
-#include "GeoDataDelete.h"
-#include "GeoDataChange.h"
-#include "marble_export.h"
+#include "geodata_export.h"
 
 namespace Marble
 {
 
+class GeoDataChange;
+class GeoDataCreate;
+class GeoDataDelete;
 class GeoDataUpdatePrivate;
 
-class MARBLE_EXPORT GeoDataUpdate : public GeoDataObject
+/**
+ */
+class GEODATA_EXPORT GeoDataUpdate : public GeoDataObject
 {
 public:
     GeoDataUpdate();
@@ -33,21 +35,24 @@ public:
     bool operator==( const GeoDataUpdate &other ) const;
     bool operator!=( const GeoDataUpdate &other ) const;
 
-    ~GeoDataUpdate();
+    ~GeoDataUpdate() override;
 
     /** Provides type information for downcasting a GeoNode */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     QString targetHref() const;
     void setTargetHref( const QString &targetHref );
 
-    GeoDataChange* change() const;
+    const GeoDataChange *change() const;
+    GeoDataChange *change();
     void setChange( GeoDataChange* change );
 
-    GeoDataCreate* create() const;
+    const GeoDataCreate *create() const;
+    GeoDataCreate *create();
     void setCreate( GeoDataCreate* create );
 
-    GeoDataDelete* getDelete() const;
+    const GeoDataDelete *getDelete() const;
+    GeoDataDelete *getDelete();
     void setDelete( GeoDataDelete* dataDelete );
 
 private:

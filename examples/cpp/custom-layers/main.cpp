@@ -5,14 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include <marble/MarbleWidget.h>
 #include <marble/MarbleMap.h>
 #include <marble/MarbleModel.h>
 #include <marble/GeoPainter.h>
-#include <GeoDataLineString.h>
+#include <marble/GeoDataLineString.h>
 #include <marble/LayerInterface.h>
 
 #include <QTime>
@@ -33,7 +33,7 @@ public:
 
     // Implemented from LayerInterface
     virtual bool render( GeoPainter *painter, ViewportParams *viewport,
-       const QString& renderPos = "NONE", GeoSceneLayer * layer = 0 );
+                        const QString &renderPos, GeoSceneLayer *layer);
 
     // Overriding QObject
     virtual bool eventFilter(QObject *obj, QEvent *event);
@@ -55,8 +55,12 @@ QStringList MyPaintLayer::renderPosition() const
 {
     // We will paint in exactly one of the following layers.
     // The current one can be changed by pressing the '+' key
-    QStringList layers = QStringList() << "SURFACE" << "HOVERS_ABOVE_SURFACE";
-    layers << "ORBIT" << "USER_TOOLS" << "STARS";
+    const QStringList layers = QStringList()
+        << QStringLiteral("SURFACE")
+        << QStringLiteral("HOVERS_ABOVE_SURFACE")
+        << QStringLiteral("ORBIT")
+        << QStringLiteral("USER_TOOLS")
+        << QStringLiteral("STARS");
 
     int index = m_index % layers.size();
     return QStringList() << layers.at(index);
@@ -131,7 +135,10 @@ int main(int argc, char** argv)
     mapWidget->installEventFilter(layer);
 
     // Finish widget creation.
-    mapWidget->setMapThemeId("earth/bluemarble/bluemarble.dgml");
+    mapWidget->setMapThemeId(QStringLiteral("earth/bluemarble/bluemarble.dgml"));
+    // Ensure we see our rendered feature on start
+    mapWidget->model()->setHome(8.4, 48.0, 1800);
+    mapWidget->goHome();
     mapWidget->show();
 
     // Update each second to give the clock second resolution

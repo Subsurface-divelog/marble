@@ -217,7 +217,7 @@ SOURCE="""/*
 
 #include "KmltemplateTagHandler.h"
 
-#include <QtCore/QDebug>
+#include <QDebug>
 
 #include "KmlElementDictionary.h"
 
@@ -233,7 +233,7 @@ KML_DEFINE_TAG_HANDLER( template )
 
 GeoNode* KmltemplateTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_template ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_template)));
 
     GeoStackItem parentItem = parser.parentElement();
     

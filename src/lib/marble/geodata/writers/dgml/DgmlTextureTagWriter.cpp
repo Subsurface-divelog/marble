@@ -12,20 +12,22 @@
 
 #include "GeoSceneTypes.h"
 #include "GeoWriter.h"
-#include "GeoSceneTiled.h"
+#include "GeoSceneTileDataset.h"
 #include "DownloadPolicy.h"
 #include "DgmlElementDictionary.h"
 #include "ServerLayout.h"
 
+#include <QUrl>
+
 namespace Marble
 {
 
-static GeoTagWriterRegistrar s_writerTexture( GeoTagWriter::QualifiedName( GeoSceneTypes::GeoSceneTiledType, dgml::dgmlTag_nameSpace20 ),
+static GeoTagWriterRegistrar s_writerTexture( GeoTagWriter::QualifiedName( GeoSceneTypes::GeoSceneTileDatasetType, dgml::dgmlTag_nameSpace20 ),
                                                new DgmlTextureTagWriter() );
 
 bool DgmlTextureTagWriter::write(const GeoNode *node, GeoWriter& writer) const
 {
-    const GeoSceneTiled *texture = static_cast<const GeoSceneTiled*>( node );
+    const GeoSceneTileDataset *texture = static_cast<const GeoSceneTileDataset*>( node );
     writer.writeStartElement( dgml::dgmlTag_Texture );
     writer.writeAttribute( "name", texture->name() );
     writer.writeAttribute( "expire", QString::number( texture->expire() ) );
@@ -53,14 +55,10 @@ bool DgmlTextureTagWriter::write(const GeoNode *node, GeoWriter& writer) const
     {
         for( int i = 0; i < texture->downloadUrls().size(); ++i )
         {
-            QString protocol = texture->downloadUrls().at(i).toString().left( texture->downloadUrls().at(i).toString().indexOf( ':' ) );
+            QString protocol = texture->downloadUrls().at(i).toString().left(texture->downloadUrls().at(i).toString().indexOf(QLatin1Char(':')));
             QString host =  QString( texture->downloadUrls().at(i).host() );
             QString path =  QString( texture->downloadUrls().at(i).path() );
-#if QT_VERSION < 0x050000
-            QString query = QUrl::fromEncoded( texture->downloadUrls().at(i).encodedQuery() ).toString();
-#else
             QString query = texture->downloadUrls().at(i).query(QUrl::FullyEncoded);
-#endif
 
             writer.writeStartElement( dgml::dgmlTag_DownloadUrl );
             writer.writeAttribute( "protocol", protocol );
@@ -71,7 +69,7 @@ bool DgmlTextureTagWriter::write(const GeoNode *node, GeoWriter& writer) const
         }
     }
     
-    foreach( const DownloadPolicy *policy, texture->downloadPolicies() )
+    for( const DownloadPolicy *policy: texture->downloadPolicies() )
     {
         writer.writeStartElement( dgml::dgmlTag_DownloadPolicy );
         
@@ -91,9 +89,10 @@ bool DgmlTextureTagWriter::write(const GeoNode *node, GeoWriter& writer) const
     }
     
     writer.writeStartElement( dgml::dgmlTag_Projection );
-    if( texture->projection() == GeoSceneTiled::Mercator ) {
+    const GeoSceneAbstractTileProjection::Type tileProjectionType = texture->tileProjectionType();
+    if (tileProjectionType == GeoSceneAbstractTileProjection::Mercator) {
         writer.writeAttribute( "name", "Mercator" );
-    } else if ( texture->projection() == GeoSceneTiled::Equirectangular ) {
+    } else if (tileProjectionType == GeoSceneAbstractTileProjection::Equirectangular) {
         writer.writeAttribute( "name", "Equirectangular" );        
     }
     writer.writeEndElement();

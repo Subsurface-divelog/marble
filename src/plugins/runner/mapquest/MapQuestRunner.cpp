@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "MapQuestRunner.h"
@@ -15,21 +15,21 @@
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataExtendedData.h"
-#include "TinyWebBrowser.h"
+#include "GeoDataData.h"
+#include "GeoDataLineString.h"
+#include "HttpDownloadManager.h"
 #include "routing/Maneuver.h"
 #include "routing/RouteRequest.h"
 
 #include <QString>
-#include <QVector>
 #include <QUrl>
 #include <QTime>
 #include <QTimer>
 #include <QNetworkReply>
 #include <QDomDocument>
 
-#if QT_VERSION >= 0x050000
-  #include <QUrlQuery>
-#endif
+#include <QUrlQuery>
+
 namespace Marble
 {
 
@@ -55,72 +55,70 @@ void MapQuestRunner::retrieveRoute( const RouteRequest *route )
 
     QHash<QString, QVariant> settings = route->routingProfile().pluginSettings()["mapquest"];
 
-    if ( settings.value( "appKey" ).toString().isEmpty() )
-    {
+    if (settings.value(QStringLiteral("appKey")).toString().isEmpty()) {
         return;
     }
 
     QString url = "http://open.mapquestapi.com/directions/v1/route?callback=renderAdvancedNarrative&outFormat=xml&narrativeType=text&shapeFormat=raw&generalize=0";
     GeoDataCoordinates::Unit const degree = GeoDataCoordinates::Degree;
-    append( &url, "from", QString::number( route->source().latitude( degree ), 'f', 6 ) + ',' + QString::number( route->source().longitude( degree ), 'f', 6 ) );
+    append(&url, "from", QString::number(route->source().latitude(degree), 'f', 6) + QLatin1Char(',') + QString::number(route->source().longitude(degree), 'f', 6));
     for ( int i=1; i<route->size(); ++i ) {
-        append( &url, "to", QString::number( route->at( i ).latitude( degree ), 'f', 6 ) + ',' + QString::number( route->at( i ).longitude( degree ), 'f', 6 ) );
+        append(&url, "to", QString::number(route->at(i).latitude(degree), 'f', 6) + QLatin1Char(',') + QString::number(route->at(i).longitude(degree), 'f', 6));
     }
 
     QString const unit = MarbleGlobal::getInstance()->locale()->measurementSystem() == MarbleLocale::MetricSystem ? "k" : "m";
     append( &url, "units", unit );
 
-    if ( settings["noMotorways"].toInt() ) {
+    if (settings[QStringLiteral("noMotorways")].toInt()) {
         append( &url, "avoids", "Limited Access" );
     }
-    if ( settings["noTollroads"].toInt() ) {
+    if (settings[QStringLiteral("noTollroads")].toInt()) {
         append( &url, "avoids", "Toll road" );
     }
-    if ( settings["noFerries"].toInt() ) {
+    if (settings[QStringLiteral("noFerries")].toInt()) {
         append( &url, "avoids", "Ferry" );
     }
 
-    if ( !settings["preference"].toString().isEmpty() ) {
-        append( &url, "routeType", settings["preference"].toString() );
+    if (!settings[QStringLiteral("preference")].toString().isEmpty()) {
+        append(&url, QStringLiteral("routeType"), settings[QStringLiteral("preference")].toString());
     }
 
-    if ( !settings["ascending"].toString().isEmpty() && !settings["descending"].toString().isEmpty() ) {
-            if ( settings["ascending"].toString() == "AVOID_UP_HILL"
-                       && settings["descending"].toString() == "AVOID_DOWN_HILL" ) {
-                append( &url, "roadGradeStrategy", "AVOID_ALL_HILLS" );
-            }
-            else if ( settings["ascending"].toString() == "FAVOR_UP_HILL"
-                         && settings["descending"].toString() == "FAVOR_DOWN_HILL" ) {
-                append( &url, "roadGradeStrategy", "FAVOR_ALL_HILLS" );
-            }
-            else if ( settings["ascending"].toString() == "DEFAULT_STRATEGY"
-                         && settings["descending"].toString() == "DEFAULT_STRATEGY" ) {
-                append( &url, "roadGradeStrategy", "DEFAULT_STRATEGY" );
-            }
-            else if ( settings["ascending"].toString() == "DEFAULT_STRATEGY" ) {
-                append( &url, "roadGradeStrategy", settings["descending"].toString() );
-            }
-            else if ( settings["descending"].toString() == "DEFAULT_STRATEGY" ) {
-                append( &url, "roadGradeStrategy", settings["ascending"].toString() );
-            }
-            else if ( settings["descending"].toString() == "AVOID_DOWN_HILL" ) {
-                append( &url, "roadGradeStrategy", settings["descending"].toString() );
-            }
-            else if ( settings["ascending"].toString() == "AVOID_UP_HILL" ) {
-                append( &url, "roadGradeStrategy", settings["ascending"].toString() );
-            }
+    const QString ascendingSetting = settings[QStringLiteral("ascending")].toString();
+    const QString descendingSetting = settings[QStringLiteral("descending")].toString();
+    if (!ascendingSetting.isEmpty() && !descendingSetting.isEmpty()) {
+        if (ascendingSetting == QLatin1String("AVOID_UP_HILL") &&
+            descendingSetting == QLatin1String("AVOID_DOWN_HILL")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), QStringLiteral("AVOID_ALL_HILLS"));
         }
+        else if (ascendingSetting == QLatin1String("FAVOR_UP_HILL") &&
+                 descendingSetting == QLatin1String("FAVOR_DOWN_HILL")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), QStringLiteral("FAVOR_ALL_HILLS"));
+        }
+        else if (ascendingSetting == QLatin1String("DEFAULT_STRATEGY") &&
+                 descendingSetting == QLatin1String("DEFAULT_STRATEGY")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), QStringLiteral("DEFAULT_STRATEGY"));
+        }
+        else if (ascendingSetting == QLatin1String("DEFAULT_STRATEGY")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), descendingSetting);
+        }
+        else if (descendingSetting == QLatin1String("DEFAULT_STRATEGY")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), ascendingSetting);
+        }
+        else if (descendingSetting == QLatin1String("AVOID_DOWN_HILL")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), descendingSetting);
+        }
+        else if (ascendingSetting == QLatin1String("AVOID_UP_HILL")) {
+            append(&url, QStringLiteral("roadGradeStrategy"), ascendingSetting);
+        }
+    }
+
     QUrl qurl(url);
-// FIXME: verify that this works with special characters.
-#if QT_VERSION >= 0x050000
+    // FIXME: verify that this works with special characters.
     QUrlQuery urlQuery;
-    urlQuery.addQueryItem( "key", settings.value( "appKey" ).toByteArray() );
+    urlQuery.addQueryItem(QStringLiteral("key"), settings.value(QStringLiteral("appKey")).toByteArray());
     qurl.setQuery(urlQuery);
-#else
-    qurl.addEncodedQueryItem( "key", settings.value( "appKey" ).toByteArray() );
-#endif
     m_request.setUrl( qurl );
-    m_request.setRawHeader( "User-Agent", TinyWebBrowser::userAgent( "Browser", "MapQuestRunner" ) );
+    m_request.setRawHeader( "User-Agent", HttpDownloadManager::userAgent( "Browser", "MapQuestRunner" ) );
 
     QEventLoop eventLoop;
 
@@ -170,7 +168,7 @@ void MapQuestRunner::handleError( QNetworkReply::NetworkError error )
 
 void MapQuestRunner::append(QString *input, const QString &key, const QString &value)
 {
-    *input += '&' + key + '=' + value;
+    *input += QLatin1Char('&') + key + QLatin1Char('=') + value;
 }
 
 int MapQuestRunner::maneuverType( int mapQuestId )
@@ -213,17 +211,17 @@ GeoDataDocument* MapQuestRunner::parse( const QByteArray &content ) const
     QDomElement root = xml.documentElement();
 
     GeoDataDocument* result = new GeoDataDocument();
-    result->setName( "MapQuest" );
+    result->setName(QStringLiteral("MapQuest"));
     GeoDataPlacemark* routePlacemark = new GeoDataPlacemark;
-    routePlacemark->setName( "Route" );
+    routePlacemark->setName(QStringLiteral("Route"));
 
     GeoDataLineString* routeWaypoints = new GeoDataLineString;
-    QDomNodeList shapePoints = root.elementsByTagName( "shapePoints" );
+    QDomNodeList shapePoints = root.elementsByTagName(QStringLiteral("shapePoints"));
     if ( shapePoints.size() == 1 ) {
-        QDomNodeList geometry = shapePoints.at( 0 ).toElement().elementsByTagName( "latLng" );
+        QDomNodeList geometry = shapePoints.at(0).toElement().elementsByTagName(QStringLiteral("latLng"));
         for ( int i=0; i<geometry.size(); ++i ) {
-            double const lat = geometry.item( i ).namedItem( "lat" ).toElement().text().toDouble();
-            double const lon = geometry.item( i ).namedItem( "lng" ).toElement().text().toDouble();
+            double const lat = geometry.item(i).namedItem(QStringLiteral("lat")).toElement().text().toDouble();
+            double const lon = geometry.item(i).namedItem(QStringLiteral("lng")).toElement().text().toDouble();
             GeoDataCoordinates const position( lon, lat, 0.0, GeoDataCoordinates::Degree );
             routeWaypoints->append( position );
         }
@@ -231,7 +229,7 @@ GeoDataDocument* MapQuestRunner::parse( const QByteArray &content ) const
     routePlacemark->setGeometry( routeWaypoints );
 
     QTime time;
-    time = time.addSecs( root.elementsByTagName( "time" ).at( 0 ).toElement().text().toInt() );
+    time = time.addSecs(root.elementsByTagName(QStringLiteral("time")).at(0).toElement().text().toInt());
     qreal length = routeWaypoints->length( EARTH_RADIUS );
     const QString name = nameString( "MQ", length, time );
     const GeoDataExtendedData data = routeData( length, time );
@@ -240,7 +238,7 @@ GeoDataDocument* MapQuestRunner::parse( const QByteArray &content ) const
     result->append( routePlacemark );
 
     QMap<int,int> mapping;
-    QDomNodeList maneuvers = root.elementsByTagName( "maneuverIndexes" );
+    QDomNodeList maneuvers = root.elementsByTagName(QStringLiteral("maneuverIndexes"));
     if ( maneuvers.size() == 1 ) {
         maneuvers = maneuvers.at( 0 ).childNodes();
         for ( int i=0; i<maneuvers.size(); ++i ) {
@@ -251,15 +249,15 @@ GeoDataDocument* MapQuestRunner::parse( const QByteArray &content ) const
         }
     }
 
-    QDomNodeList instructions = root.elementsByTagName( "maneuver" );
+    QDomNodeList instructions = root.elementsByTagName(QStringLiteral("maneuver"));
     unsigned int const lastInstruction = qMax<int>( 0, instructions.length()-1 ); // ignore the last 'Welcome to xy' instruction
     for ( unsigned int i = 0; i < lastInstruction; ++i ) {
         QDomElement node = instructions.item( i ).toElement();
 
-        QDomNodeList maneuver = node.elementsByTagName( "turnType" );
-        QDomNodeList textNodes = node.elementsByTagName( "narrative" );
-        QDomNodeList points = node.elementsByTagName( "startPoint" );
-        QDomNodeList streets = node.elementsByTagName( "streets" );
+        QDomNodeList maneuver = node.elementsByTagName(QStringLiteral("turnType"));
+        QDomNodeList textNodes = node.elementsByTagName(QStringLiteral("narrative"));
+        QDomNodeList points = node.elementsByTagName(QStringLiteral("startPoint"));
+        QDomNodeList streets = node.elementsByTagName(QStringLiteral("streets"));
 
         Q_ASSERT( mapping.contains( i ) );
         if ( textNodes.size() == 1 && maneuver.size() == 1 && points.size() == 1 && mapping.contains( i ) ) {
@@ -268,12 +266,12 @@ GeoDataDocument* MapQuestRunner::parse( const QByteArray &content ) const
 
             GeoDataExtendedData extendedData;
             GeoDataData turnType;
-            turnType.setName( "turnType" );
+            turnType.setName(QStringLiteral("turnType"));
             turnType.setValue( maneuverType( maneuver.at( 0 ).toElement().text().toInt() ) );
             extendedData.addValue( turnType );
             if ( streets.size() == 1 ) {
                 GeoDataData roadName;
-                roadName.setName( "roadName" );
+                roadName.setName(QStringLiteral("roadName"));
                 roadName.setValue( streets.at( 0 ).toElement().text() );
                 extendedData.addValue( roadName );
             }
@@ -307,4 +305,4 @@ GeoDataDocument* MapQuestRunner::parse( const QByteArray &content ) const
 
 } // namespace Marble
 
-#include "MapQuestRunner.moc"
+#include "moc_MapQuestRunner.cpp"

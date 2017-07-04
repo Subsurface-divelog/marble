@@ -3,14 +3,10 @@ PROJECT( WlocatePositionProviderPlugin )
 INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}
  ${CMAKE_CURRENT_BINARY_DIR}
- ${QT_INCLUDE_DIR}
- ${Qt5Concurrent_INCLUDE_DIRS}
- ${liblocation_INCLUDE_DIRS}
+ ${LIBWLOCATE_INCLUDE_DIR}
 )
 
-if( QT4_FOUND )
-  include(${QT_USE_FILE})
-endif()
+INCLUDE_DIRECTORIES(${Qt5Concurrent_INCLUDE_DIRS})
 
 set( wlocate_SRCS
  WlocatePositionProviderPlugin.cpp

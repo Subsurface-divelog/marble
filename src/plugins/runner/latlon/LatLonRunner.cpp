@@ -9,13 +9,11 @@
 
 #include "LatLonRunner.h"
 
-#include "GeoDataFeature.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataCoordinates.h"
 
 #include "MarbleDebug.h"
 #include <QString>
-#include <QStringList>
 #include <QVector>
 
 #include <QtDebug>
@@ -46,7 +44,7 @@ void LatLonRunner::search( const QString &searchTerm, const GeoDataLatLonBox & )
         qreal lon, lat;
         coord.geoCoordinates( lon, lat );
         placemark->setCoordinate( lon, lat );
-        placemark->setVisualCategory( GeoDataFeature::Coordinate );
+        placemark->setVisualCategory(GeoDataPlacemark::Coordinate);
         placemark->setPopularity( 1000000000 );
         placemark->setZoomLevel( 1 );
         vector.append( placemark );
@@ -57,4 +55,4 @@ void LatLonRunner::search( const QString &searchTerm, const GeoDataLatLonBox & )
 
 }
 
-#include "LatLonRunner.moc"
+#include "moc_LatLonRunner.cpp"

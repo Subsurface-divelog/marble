@@ -11,8 +11,6 @@
 #ifndef MAPSCALEFLOATITEM_H
 #define MAPSCALEFLOATITEM_H
 
-#include <QObject>
-
 #include "AbstractFloatItem.h"
 #include "DialogConfigurationInterface.h"
 
@@ -32,46 +30,46 @@ namespace Marble
 class MapScaleFloatItem : public AbstractFloatItem, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.MapScaleFloatItem" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.MapScaleFloatItem")
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( MapScaleFloatItem )
  public:
     explicit MapScaleFloatItem( const MarbleModel *marbleModel = 0 );
-    ~MapScaleFloatItem();
+    ~MapScaleFloatItem() override;
 
-    QStringList backendTypes() const;
+    QStringList backendTypes() const override;
 
-    QString name() const;
+    QString name() const override;
 
-    QString guiString() const;
+    QString guiString() const override;
 
-    QString nameId() const;
+    QString nameId() const override;
 
-    QString version() const;
+    QString version() const override;
 
-    QString description() const;
+    QString description() const override;
 
-    QString copyrightYears() const;
+    QString copyrightYears() const override;
 
-    QList<PluginAuthor> pluginAuthors() const;
+    QVector<PluginAuthor> pluginAuthors() const override;
 
-    QIcon icon () const;
+    QIcon icon () const override;
 
-    void initialize ();
+    void initialize () override;
 
-    bool isInitialized () const;
+    bool isInitialized () const override;
 
-    void setProjection( const ViewportParams *viewport );
+    void setProjection( const ViewportParams *viewport ) override;
 
-    void paintContent( QPainter *painter );
+    void paintContent( QPainter *painter ) override;
 
 
-    QDialog *configDialog();
+    QDialog *configDialog() override;
 
  protected:
-    virtual void contextMenuEvent( QWidget *w, QContextMenuEvent *e );
-    virtual void toolTipEvent( QHelpEvent *e );
+    void contextMenuEvent( QWidget *w, QContextMenuEvent *e ) override;
+    void toolTipEvent( QHelpEvent *e ) override;
 
  private Q_SLOTS:
     void readSettings();

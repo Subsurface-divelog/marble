@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2010      Niko Sams <niko.sams@gmail.com>
 //
 
@@ -18,10 +18,11 @@
 #include "routing/instructions/InstructionTransformation.h"
 #include "GeoDataDocument.h"
 #include "GeoDataExtendedData.h"
+#include "GeoDataData.h"
 #include "GeoDataPlacemark.h"
+#include "GeoDataLineString.h"
 
 #include <QProcess>
-#include <QMap>
 #include <QTemporaryFile>
 #include <MarbleMap.h>
 #include <MarbleModel.h>
@@ -52,7 +53,7 @@ public:
 RoutinoRunnerPrivate::RoutinoRunnerPrivate()
 {
     m_parser.setLineSeparator("\n");
-    m_parser.setFieldSeparator('\t');
+    m_parser.setFieldSeparator(QLatin1Char('\t'));
     m_parser.setFieldIndex( WaypointParser::RoadName, 10 );
 }
 
@@ -72,7 +73,7 @@ public:
     ~TemporaryDir() {
         QDir dir( m_dirName );
         QFileInfoList entries = dir.entryInfoList( QDir::Files );
-        foreach ( const QFileInfo &file, entries ) {
+        for ( const QFileInfo &file: entries ) {
             QFile( file.absoluteFilePath() ).remove();
         }
         dir.rmdir( dir.absolutePath() );
@@ -94,7 +95,7 @@ QByteArray RoutinoRunnerPrivate::retrieveWaypoints( const QStringList &params ) 
 
     QStringList routinoParams;
     routinoParams << params;
-    routinoParams << "--dir=" + m_mapDir.absolutePath();
+    routinoParams << QLatin1String("--dir=") + m_mapDir.absolutePath();
     routinoParams << "--output-text-all";
     mDebug() << routinoParams;
     routinoProcess.start( "routino-router", routinoParams );
@@ -106,9 +107,9 @@ QByteArray RoutinoRunnerPrivate::retrieveWaypoints( const QStringList &params ) 
     if ( routinoProcess.waitForFinished(60 * 1000) ) {
         mDebug() << routinoProcess.readAll();
         mDebug() << "routino finished";
-        QFile file( routinoProcess.workingDirectory() + "/shortest-all.txt" );
+        QFile file(routinoProcess.workingDirectory() + QLatin1String("/shortest-all.txt"));
         if ( !file.exists() ) {
-            file.setFileName( routinoProcess.workingDirectory() + "/quickest-all.txt" );
+            file.setFileName(routinoProcess.workingDirectory() + QLatin1String("/quickest-all.txt"));
         }
         if ( !file.exists() ) {
             mDebug() << "Can't get results";
@@ -127,14 +128,14 @@ GeoDataLineString* RoutinoRunnerPrivate::parseRoutinoOutput( const QByteArray &c
 {
     GeoDataLineString* routeWaypoints = new GeoDataLineString;
 
-    QStringList lines = QString::fromUtf8( content ).split( '\n' );
+    const QStringList lines = QString::fromUtf8(content).split(QLatin1Char('\n'));
     mDebug() << lines.count() << "lines";
-    foreach( const QString &line, lines ) {
-        if ( line.left(1) == QString('#') ) {
-             //skip comment
+    for( const QString &line: lines ) {
+        if (line.startsWith(QLatin1Char('#'))) {
+            //skip comment
             continue;
         }
-        QStringList fields = line.split('\t');
+        const QStringList fields = line.split(QLatin1Char('\t'));
         if ( fields.size() >= 10 ) {
             qreal lon = fields.at(1).trimmed().toDouble();
             qreal lat = fields.at(0).trimmed().toDouble();
@@ -158,11 +159,11 @@ QVector<GeoDataPlacemark*> RoutinoRunnerPrivate::parseRoutinoInstructions( const
         GeoDataPlacemark* placemark = new GeoDataPlacemark( directions[i].instructionText() );
         GeoDataExtendedData extendedData;
         GeoDataData turnType;
-        turnType.setName( "turnType" );
+        turnType.setName(QStringLiteral("turnType"));
         turnType.setValue( qVariantFromValue<int>( int( directions[i].turnType() ) ) );
         extendedData.addValue( turnType );
         GeoDataData roadName;
-        roadName.setName( "roadName" );
+        roadName.setName(QStringLiteral("roadName"));
         roadName.setValue( directions[i].roadName() );
         extendedData.addValue( roadName );
         placemark->setExtendedData( extendedData );
@@ -202,7 +203,7 @@ GeoDataDocument* RoutinoRunnerPrivate::createDocument( GeoDataLineString* routeW
     }
     result->setName( name.arg( length, 0, 'f', 1 ).arg( unit ) );
 
-    foreach( GeoDataPlacemark* placemark, instructions )
+    for( GeoDataPlacemark* placemark: instructions )
     {
         result->append( placemark );
     }
@@ -215,7 +216,7 @@ RoutinoRunner::RoutinoRunner( QObject *parent ) :
         d( new RoutinoRunnerPrivate )
 {
     // Check installation
-    d->m_mapDir = QDir( MarbleDirs::localPath() + "/maps/earth/routino/" );
+    d->m_mapDir = QDir(MarbleDirs::localPath() + QLatin1String("/maps/earth/routino/"));
 }
 
 RoutinoRunner::~RoutinoRunner()
@@ -242,11 +243,11 @@ void RoutinoRunner::retrieveRoute( const RouteRequest *route )
         params << QString("--lon%1=%2").arg(i+1).arg(fLon, 0, 'f', 8);
     }
 
-    QHash<QString, QVariant> settings = route->routingProfile().pluginSettings()["routino"];
-    QString transport = settings["transport"].toString();
+    QHash<QString, QVariant> settings = route->routingProfile().pluginSettings()[QStringLiteral("routino")];
+    QString transport = settings[QStringLiteral("transport")].toString();
     params << QString( "--transport=%0" ).arg( transport );
 
-    if ( settings["method"] == "shortest" ) {
+    if (settings[QStringLiteral("method")] == QLatin1String("shortest")) {
         params << "--shortest";
     } else {
         params << "--quickest";
@@ -268,4 +269,4 @@ void RoutinoRunner::retrieveRoute( const RouteRequest *route )
 
 } // namespace Marble
 
-#include "RoutinoRunner.moc"
+#include "moc_RoutinoRunner.cpp"

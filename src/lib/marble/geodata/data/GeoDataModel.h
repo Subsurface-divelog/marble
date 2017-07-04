@@ -15,18 +15,20 @@
 #include "GeoDataGeometry.h"
 #include "MarbleGlobal.h"
 #include "GeoDataLink.h"
-#include "GeoDataScale.h"
-#include "GeoDataOrientation.h"
-#include "GeoDataCoordinates.h"
-#include "GeoDataLocation.h"
-#include "GeoDataResourceMap.h"
-#include "GeoDataAlias.h"
 
 namespace Marble {
 
+class GeoDataCoordinates;
+class GeoDataLink;
+class GeoDataLocation;
+class GeoDataOrientation;
+class GeoDataResourceMap;
+class GeoDataScale;
 class GeoDataModelPrivate;
 
-class MARBLE_EXPORT GeoDataModel: public GeoDataGeometry
+/**
+ */
+class GEODATA_EXPORT GeoDataModel: public GeoDataGeometry
 {
 public:
     GeoDataModel();
@@ -35,10 +37,16 @@ public:
 
     GeoDataModel& operator=( const GeoDataModel &other );
 
+    const char *nodeType() const override;
+
+    EnumGeometryId geometryId() const override;
+
+    GeoDataGeometry *copy() const override;
+
     bool operator==( const GeoDataModel &other ) const;
     bool operator!=( const GeoDataModel &other ) const;
 
-    ~GeoDataModel();
+    ~GeoDataModel() override;
 
     const GeoDataLink& link() const;
     GeoDataLink& link();
@@ -70,7 +78,7 @@ public:
     void setTargetHref(const QString &targetHref);
 
 private:
-    GeoDataModelPrivate *p() const;
+    Q_DECLARE_PRIVATE(GeoDataModel)
 };
 
 }

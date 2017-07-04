@@ -8,8 +8,8 @@
 // Copyright 2011 Guillaume Martres <smarter@ubuntu.com>
 //
 
-#ifndef MARBLE_KMLGXTRACKWRITER_H
-#define MARBLE_KMLGXTRACKWRITER_H
+#ifndef MARBLE_KMLTRACKWRITER_H
+#define MARBLE_KMLTRACKWRITER_H
 
 #include "GeoTagWriter.h"
 
@@ -19,9 +19,9 @@ class KmlTrackWriter : public GeoTagWriter
 {
 
 public:
-    virtual bool write( const GeoNode *node, GeoWriter &writer ) const;
+    bool write( const GeoNode *node, GeoWriter &writer ) const override;
 };
 
 }
 
-#endif // MARBLE_KMLGXTRACKWRITER_H
+#endif // MARBLE_KMLTRACKWRITER_H

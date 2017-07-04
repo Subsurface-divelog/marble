@@ -35,7 +35,7 @@ GPX_DEFINE_TAG_HANDLER(wpt)
 
 GeoNode* GPXwptTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_wpt));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_wpt)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_gpx))
@@ -47,20 +47,20 @@ GeoNode* GPXwptTagHandler::parse(GeoParser& parser) const
         QStringRef tmp;
         qreal lat = 0;
         qreal lon = 0;
-        tmp = attributes.value(gpxTag_lat);
+        tmp = attributes.value(QLatin1String(gpxTag_lat));
         if ( !tmp.isEmpty() )
         {
             lat = tmp.toString().toFloat();
         }
-        tmp = attributes.value(gpxTag_lon);
+        tmp = attributes.value(QLatin1String(gpxTag_lon));
         if ( !tmp.isEmpty() )
         {
             lon = tmp.toString().toFloat();
         }
         placemark->setCoordinate( lon, lat, 0, GeoDataCoordinates::Degree );
-        placemark->setRole("Waypoint");
+        placemark->setRole(QStringLiteral("Waypoint"));
 
-        placemark->setStyle(&doc->style("waypoint"));
+        placemark->setStyle(doc->style(QStringLiteral("waypoint")));
 
         doc->append(placemark);
         return placemark;

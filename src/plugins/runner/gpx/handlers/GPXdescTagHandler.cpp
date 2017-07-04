@@ -15,10 +15,8 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
-#include "GeoDataFolder.h"
 
 namespace Marble
 {
@@ -28,7 +26,8 @@ GPX_DEFINE_TAG_HANDLER(desc)
 
 GeoNode* GPXdescTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_desc));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_desc)));
+
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_wpt)
         || parentItem.represents(gpxTag_trk)
@@ -39,7 +38,7 @@ GeoNode* GPXdescTagHandler::parse(GeoParser& parser) const
         QString desc = placemark->description();
         if (!desc.isEmpty())
         {
-            desc.append("<br/>");
+            desc += QLatin1String("<br/>");
         }
         placemark->setDescription(desc.append(parser.readElementText().trimmed().replace(QLatin1Char('\n'),QLatin1String("\n<br/>"))));
         placemark->setDescriptionCDATA(true);
@@ -51,7 +50,7 @@ GeoNode* GPXdescTagHandler::parse(GeoParser& parser) const
         QString desc = route->description();
         if (!desc.isEmpty())
         {
-            desc.append("<br/>");
+            desc += QLatin1String("<br/>");
         }
         route->setDescription(desc.append(parser.readElementText().trimmed().replace(QLatin1Char('\n'),QLatin1String("\n<br/>"))));
         route->setDescriptionCDATA(true);

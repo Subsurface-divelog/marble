@@ -15,27 +15,27 @@
 #include "ui_ElevationWidget.h"
 
 // Qt
-#include <QFileDialog>
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QColorDialog>
 #include <QCheckBox>
-#include <QToolBar>
-#include <QTextEdit>
-#include <QFontComboBox>
-#include <QPushButton>
-#include <QLineEdit>
 
 // Marble
 #include "GeoDataStyle.h"
+#include "GeoDataIconStyle.h"
+#include "GeoDataLabelStyle.h"
 #include "GeoDataPlacemark.h"
 #include "MarbleWidget.h"
 #include "MarbleLocale.h"
-#include "AddLinkDialog.h"
+#include "FormattedTextWidget.h"
+#include "StyleBuilder.h"
+#include "osm/OsmTagEditorWidget.h"
+#include "osm/OsmPlacemarkData.h"
+#include "osm/OsmRelationManagerWidget.h"
 
 namespace Marble {
 
-class EditPlacemarkDialog::Private : public Ui::UiEditPlacemarkDialog
+class Q_DECL_HIDDEN EditPlacemarkDialog::Private : public Ui::UiEditPlacemarkDialog
 {
 public:
     Private( GeoDataPlacemark *placemark );
@@ -46,23 +46,26 @@ public:
     // Attached to label/icon/text color selectors.
     QColorDialog *m_iconColorDialog;
     QColorDialog *m_labelColorDialog;
-    QColorDialog *m_textColorDialog;
-
 
     // Used to restore if the Cancel button is pressed.
     QString m_initialDescription;
     QString m_initialName;
     GeoDataCoordinates m_initialCoords;
     GeoDataStyle m_initialStyle;
+    GeoDataPlacemark::GeoDataVisualCategory m_initialVisualCategory;
+    OsmPlacemarkData m_initialOsmData;
     QString m_styleColorTabName;
     bool m_initialIsPlacemarkVisible;
     bool m_initialIsBaloonVisible;
     bool m_initialDescriptionIsCDATA;
+    bool m_hadInitialOsmData;
     QString m_initialId;
     Ui::ElevationWidget *m_elevationWidget;
+    OsmTagEditorWidget *m_osmTagEditorWidget;
+    OsmRelationManagerWidget *m_osmRelationManagerWidget;
     MarbleLocale::MeasureUnit m_elevationUnit;
     QString m_initialTargetId;
-    QPushButton *m_textColorButton;
+
 };
 
 EditPlacemarkDialog::Private::Private( GeoDataPlacemark *placemark ) :
@@ -70,7 +73,8 @@ EditPlacemarkDialog::Private::Private( GeoDataPlacemark *placemark ) :
     m_placemark( placemark ),
     m_iconColorDialog( 0 ),
     m_labelColorDialog( 0 ),
-    m_textColorButton( new QPushButton )
+    m_osmTagEditorWidget( 0 ),
+    m_osmRelationManagerWidget( 0 )
 {
     // nothing to do
 }
@@ -78,12 +82,15 @@ EditPlacemarkDialog::Private::Private( GeoDataPlacemark *placemark ) :
 EditPlacemarkDialog::Private::~Private()
 {
     delete m_elevationWidget;
+    delete m_osmTagEditorWidget;
+    delete m_osmRelationManagerWidget;
     delete m_iconColorDialog;
     delete m_labelColorDialog;
-    delete m_textColorDialog;
 }
 
-EditPlacemarkDialog::EditPlacemarkDialog( GeoDataPlacemark *placemark, QWidget *parent ) :
+EditPlacemarkDialog::EditPlacemarkDialog( GeoDataPlacemark *placemark,
+                                          const QHash<qint64, OsmPlacemarkData> *relations,
+                                          QWidget *parent ) :
     QDialog( parent ),
     d( new Private( placemark ) )
 {
@@ -92,8 +99,16 @@ EditPlacemarkDialog::EditPlacemarkDialog( GeoDataPlacemark *placemark, QWidget *
     // Store initial style so that it can be restored if the 'Cancel' button is pressed.
     d->m_initialStyle = *placemark->style();
 
+    d->m_initialVisualCategory = placemark->visualCategory();
 
-    // If the placemark has just been created, assign it a default name.
+
+    d->m_hadInitialOsmData = placemark->hasOsmData();
+    if ( d->m_hadInitialOsmData ) {
+        d->m_initialOsmData = placemark->osmData();
+    }
+
+
+    // If the placemark has just been created, assign    it a default name.
     if ( placemark->name().isNull() ) {
         placemark->setName( tr("Untitled Placemark") );
     }
@@ -113,18 +128,13 @@ EditPlacemarkDialog::EditPlacemarkDialog( GeoDataPlacemark *placemark, QWidget *
         const GeoDataCoordinates::Notation notation =
             (defaultAngleUnit == DecimalDegree) ? GeoDataCoordinates::Decimal :
             (defaultAngleUnit == DMSDegree) ?     GeoDataCoordinates::DMS :
-            /* else, UTM */                       GeoDataCoordinates::DMS;
+            /* else, UTM */                       GeoDataCoordinates::UTM;
         d->m_header->setNotation( notation );
     }
     connect( d->m_header, SIGNAL(valueChanged()), this, SLOT(
                  updateTextAnnotation()) );
 
-    if( d->m_isFormattedTextMode->isChecked() ) {
-        d->m_description->setHtml( placemark->description() );
-    } else {
-        d->m_description->setPlainText( placemark->description() );
-    }
-    d->m_description->setPlainText( placemark->description() );
+    d->m_formattedTextWidget->setText( placemark->description() );
     d->m_initialDescription = placemark->description();
     d->m_initialDescriptionIsCDATA = placemark->descriptionIsCDATA();
     d->m_isBalloonVisible->setChecked( placemark->isBalloonVisible() );
@@ -137,6 +147,23 @@ EditPlacemarkDialog::EditPlacemarkDialog( GeoDataPlacemark *placemark, QWidget *
                                              0,
                                              GeoDataCoordinates::Degree );
 
+    // There's no point showing Relations and Tags tabs if the editor was not
+    // loaded from the annotate plugin ( loaded from tourWidget.. )
+    if ( relations ) {
+        // Adding the osm tag editor widget tab
+        d->m_osmTagEditorWidget = new OsmTagEditorWidget( placemark, this );
+        d->tabWidget->addTab( d->m_osmTagEditorWidget, tr( "Tags" ) );
+        QObject::connect( d->m_osmTagEditorWidget, SIGNAL( placemarkChanged( GeoDataFeature* ) ),
+                          this, SLOT( updateTextAnnotation() ) );
+
+        // Adding the osm relation editor widget tab
+        d->m_osmRelationManagerWidget = new OsmRelationManagerWidget( placemark, relations, this );
+        d->tabWidget->addTab( d->m_osmRelationManagerWidget, tr( "Relations" ) );
+        QObject::connect( d->m_osmRelationManagerWidget, SIGNAL( relationCreated( const OsmPlacemarkData& ) ),
+                          this, SIGNAL( relationCreated( const OsmPlacemarkData& ) ) );
+    }
+
+    // Adding the elevation widget tab
     d->m_elevationWidget = new Ui::ElevationWidget;
     QWidget *elevationTab = new QWidget;
     d->m_elevationWidget->setupUi( elevationTab );
@@ -192,47 +219,17 @@ EditPlacemarkDialog::EditPlacemarkDialog( GeoDataPlacemark *placemark, QWidget *
     d->m_labelColorDialog->setOption( QColorDialog::ShowAlphaChannel );
     d->m_labelColorDialog->setCurrentColor( labelStyle.color() );
     connect( d->m_labelButton, SIGNAL(clicked()), d->m_labelColorDialog, SLOT(exec()) );
-    connect( d->m_labelColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(updateLabelDialog(const QColor&)) );
+    connect( d->m_labelColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(updateLabelDialog(QColor)) );
     connect( d->m_labelColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(updateTextAnnotation()) );
 
     d->m_iconColorDialog = new QColorDialog( this );
     d->m_iconColorDialog->setOption( QColorDialog::ShowAlphaChannel );
     d->m_iconColorDialog->setCurrentColor( iconStyle.color() );
     connect( d->m_iconButton, SIGNAL(clicked()), d->m_iconColorDialog, SLOT(exec()) );
-    connect( d->m_iconColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(updateIconDialog(const QColor&)) );
+    connect( d->m_iconColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(updateIconDialog(QColor)) );
     connect( d->m_iconColorDialog, SIGNAL(colorSelected(QColor)), this, SLOT(updateTextAnnotation()) );
 
-    d->m_formattedTextToolBar->setVisible( false );
-    d->m_fontSize->setVisible( false );
-    d->m_fontFamily->setVisible( false );
-    QAction *separator = d->m_formattedTextToolBar->insertSeparator( d->m_actionAddImage );
-    d->m_formattedTextToolBar->insertWidget( separator, d->m_textColorButton );
-    d->m_textColorButton->setMaximumSize( 24, 24 );
-    QPixmap textColorPixmap( d->m_textColorButton->iconSize().width(),
-                        d->m_textColorButton->iconSize().height() );
-    textColorPixmap.fill( d->m_description->textCursor().charFormat().foreground().color() );
-    d->m_textColorButton->setIcon( QIcon( textColorPixmap ) );
-    d->m_textColorDialog = new QColorDialog( this );
-    d->m_textColorDialog->setOption( QColorDialog::ShowAlphaChannel );
-    d->m_textColorDialog->setCurrentColor( d->m_description->textCursor().charFormat().foreground().color() );
-    d->m_fontSize->setValidator( new QIntValidator( 1, 9000, this ) );
-    int index = d->m_fontSize->findText( QString::number( d->m_description->textCursor().charFormat().font().pointSize() ) );
-    if( index != -1 ) {
-        d->m_fontSize->setCurrentIndex( index );
-    } else {
-        d->m_fontSize->lineEdit()->setText( QString::number( d->m_description->textCursor().charFormat().font().pointSize() ) );
-    }
-    connect( d->m_textColorButton, SIGNAL( clicked() ), d->m_textColorDialog, SLOT( exec() ) );
-    connect( d->m_textColorDialog, SIGNAL( colorSelected( QColor ) ), this, SLOT( setTextCursorColor( const QColor& ) ) );
-    connect( d->m_isFormattedTextMode, SIGNAL( toggled( bool ) ), this, SLOT( toggleDescriptionEditMode( bool ) ) );
-    connect( d->m_fontFamily, SIGNAL( currentFontChanged( QFont ) ), this, SLOT( setTextCursorFont( QFont ) ) );
-    connect( d->m_fontSize, SIGNAL( editTextChanged( QString ) ), this, SLOT( setTextCursorFontSize( QString ) ) );
-    connect( d->m_actionBold, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorBold( bool ) ) );
-    connect( d->m_actionItalics, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorItalic( bool ) ) );
-    connect( d->m_actionUnderlined, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorUnderlined( bool ) ) );
-    connect( d->m_actionAddImage, SIGNAL( triggered() ), this, SLOT( addImageToDescription() ) );
-    connect( d->m_actionAddLink, SIGNAL( triggered() ), this, SLOT( addLinkToDescription() ) );
-    connect( d->m_description, SIGNAL( cursorPositionChanged() ), this, SLOT( updateDescriptionEditButtons() ) );
+    connect( d->m_isBalloonVisible, SIGNAL(toggled(bool)), this, SLOT(updateTextAnnotation()) );
 
     // Promote "Ok" button to default button.
     d->buttonBox->button( QDialogButtonBox::Ok )->setDefault( true );
@@ -307,7 +304,7 @@ void EditPlacemarkDialog::setIdFieldVisible(bool visible)
 void EditPlacemarkDialog::setReadOnly(bool state)
 {
     d->m_header->setReadOnly(state);
-    d->m_description->setReadOnly(state);
+    d->m_formattedTextWidget->setReadOnly(state);
     d->m_isBalloonVisible->setDisabled(state);
     d->m_isPlacemarkVisible->setDisabled(state);
     d->style_color_tab->setDisabled(state);
@@ -315,11 +312,7 @@ void EditPlacemarkDialog::setReadOnly(bool state)
 
 void EditPlacemarkDialog::updateTextAnnotation()
 {
-    if( d->m_isFormattedTextMode->isChecked() ) {
-        d->m_placemark->setDescription( d->m_description->toHtml() );
-    } else {
-        d->m_placemark->setDescription( d->m_description->toPlainText() );
-    }
+    d->m_placemark->setDescription( d->m_formattedTextWidget->text() );
     //allow for HTML in the description
     d->m_placemark->setDescriptionCDATA( true );
     d->m_placemark->setName( d->m_header->name() );
@@ -333,20 +326,29 @@ void EditPlacemarkDialog::updateTextAnnotation()
     d->m_placemark->setId( d->m_header->id() );
     d->m_placemark->setTargetId( d->m_header->targetId() );
 
-    GeoDataStyle *newStyle = new GeoDataStyle( *d->m_placemark->style() );
 
-    QFileInfo fileInfo( d->m_header->iconLink() );
-    if ( fileInfo.exists() ) {
-        newStyle->iconStyle().setIconPath( d->m_header->iconLink() );
+    if ( !d->m_header->iconLink().isEmpty() ) {
+        QFileInfo fileInfo( d->m_header->iconLink() );
+
+        GeoDataStyle::Ptr newStyle(new GeoDataStyle( *d->m_placemark->style() ));
+        if ( fileInfo.exists() ) {
+            newStyle->iconStyle().setIconPath( d->m_header->iconLink() );
+        }
+
+        newStyle->iconStyle().setScale( d->m_iconScale->value() );
+        newStyle->labelStyle().setScale( d->m_labelScale->value() );
+        newStyle->iconStyle().setColor( d->m_iconColorDialog->currentColor() );
+        newStyle->labelStyle().setColor( d->m_labelColorDialog->currentColor() );
+        d->m_placemark->setStyle( newStyle );
     }
-
-    newStyle->iconStyle().setScale( d->m_iconScale->value() );
-    newStyle->labelStyle().setScale( d->m_labelScale->value() );
-
-    newStyle->iconStyle().setColor( d->m_iconColorDialog->currentColor() );
-    newStyle->labelStyle().setColor( d->m_labelColorDialog->currentColor() );
-
-    d->m_placemark->setStyle( newStyle );
+    else {
+        const OsmPlacemarkData osmData = d->m_osmTagEditorWidget->placemarkData();
+        const GeoDataPlacemark::GeoDataVisualCategory category = StyleBuilder::determineVisualCategory(osmData);
+        if (category != GeoDataPlacemark::None) {
+            d->m_placemark->setStyle(GeoDataStyle::Ptr());
+            d->m_placemark->setVisualCategory( category );
+        }
+    }
 
     emit textAnnotationUpdated( d->m_placemark );
 }
@@ -365,11 +367,11 @@ void EditPlacemarkDialog::checkFields()
         QMessageBox::warning( this,
                               tr( "ID is invalid" ),
                               tr( "Please specify a valid ID for this placemark." ) );
-    } else if ( d->m_header->iconLink().isEmpty() ) {
+    } else if (d->m_header->iconLink().isEmpty() && d->m_placemark->visualCategory() == GeoDataPlacemark::None) {
         QMessageBox::warning( this,
                               tr( "No image specified" ),
-                              tr( "Please specify an icon for this placemark." ) );
-    } else if( !QFileInfo( d->m_header->iconLink() ).exists() ) {
+                              tr( "Please specify an icon for this placemark or add a valid tag." ) );
+    } else if( !d->m_header->iconLink().isEmpty() && !QFileInfo( d->m_header->iconLink() ).exists() ) {
         QMessageBox::warning( this,
                               tr( "Invalid icon path" ),
                               tr( "Please specify a valid path for the icon file." ) );
@@ -467,12 +469,20 @@ void EditPlacemarkDialog::restoreInitial( int result )
         d->m_placemark->setCoordinate( d->m_initialCoords );
     }
 
+    if ( d->m_placemark->visualCategory() != d->m_initialVisualCategory ) {
+        d->m_placemark->setVisualCategory( d->m_initialVisualCategory );
+    }
+
     if ( *d->m_placemark->style() != d->m_initialStyle ) {
-        d->m_placemark->setStyle( new GeoDataStyle( d->m_initialStyle ) );
+        d->m_placemark->setStyle( GeoDataStyle::Ptr(new GeoDataStyle( d->m_initialStyle )) );
     }
 
     if( d->m_placemark->isVisible() != d->m_initialIsPlacemarkVisible ) {
         d->m_placemark->setVisible( d->m_initialIsPlacemarkVisible );
+    }
+
+    if( d->m_hadInitialOsmData ) {
+        d->m_placemark->setOsmData( d->m_initialOsmData );
     }
 
     if( d->m_placemark->isBalloonVisible() != d->m_initialIsBaloonVisible ) {
@@ -482,158 +492,6 @@ void EditPlacemarkDialog::restoreInitial( int result )
     emit textAnnotationUpdated( d->m_placemark );
 }
 
-void EditPlacemarkDialog::toggleDescriptionEditMode(bool isFormattedTextMode)
-{
-    d->m_formattedTextToolBar->setVisible( isFormattedTextMode );
-    d->m_fontSize->setVisible( isFormattedTextMode );
-    d->m_fontFamily->setVisible( isFormattedTextMode );
-    if( isFormattedTextMode ) {
-        d->m_description->setHtml( d->m_description->toPlainText() );
-    } else {
-        QTextCursor cursor = d->m_description->textCursor();
-        QTextCharFormat format;
-        format.setFont( QFont() );
-        format.setFontWeight( QFont::Normal );
-        format.setFontItalic( false );
-        format.setFontUnderline( false );
-        format.clearForeground();
-        cursor.setCharFormat( format );
-        d->m_description->setTextCursor( cursor );
-        d->m_description->setPlainText( d->m_description->toHtml() );
-    }
 }
 
-void EditPlacemarkDialog::setTextCursorBold( bool bold )
-{
-    QTextCursor cursor = d->m_description->textCursor();
-    QTextCharFormat format;
-    format.setFontWeight( bold ? QFont::Bold : QFont::Normal );
-    cursor.mergeCharFormat( format );
-    d->m_description->setTextCursor( cursor );
-}
-
-void EditPlacemarkDialog::setTextCursorItalic( bool italic )
-{
-    QTextCursor cursor = d->m_description->textCursor();
-    QTextCharFormat format;
-    format.setFontItalic( italic );
-    cursor.mergeCharFormat( format );
-    d->m_description->setTextCursor( cursor );
-}
-
-void EditPlacemarkDialog::setTextCursorUnderlined( bool underlined )
-{
-    QTextCursor cursor = d->m_description->textCursor();
-    QTextCharFormat format;
-    format.setFontUnderline( underlined );
-    cursor.mergeCharFormat( format );
-    d->m_description->setTextCursor( cursor );
-}
-
-void EditPlacemarkDialog::setTextCursorColor( const QColor &color )
-{
-    QTextCursor cursor = d->m_description->textCursor();
-    QTextCharFormat format;
-    QBrush brush( color );
-    format.setForeground( brush );
-    cursor.mergeCharFormat( format );
-    d->m_description->setTextCursor( cursor );
-    QPixmap textColorPixmap( d->m_textColorButton->iconSize().width(),
-                        d->m_textColorButton->iconSize().height() );
-    textColorPixmap.fill( format.foreground().color() );
-    d->m_textColorButton->setIcon( QIcon( textColorPixmap ) );
-    d->m_textColorDialog->setCurrentColor( format.foreground().color() );
-}
-
-void EditPlacemarkDialog::setTextCursorFont( const QFont &font )
-{
-    QTextCursor cursor = d->m_description->textCursor();
-    QTextCharFormat format;
-    format.setFontFamily( font.family() );
-    cursor.mergeCharFormat( format );
-    d->m_description->setTextCursor( cursor );
-}
-
-void EditPlacemarkDialog::setTextCursorFontSize(const QString &fontSize)
-{
-    bool ok = false;
-    int size = fontSize.toInt( &ok );
-    if( ok ) {
-        QTextCursor cursor = d->m_description->textCursor();
-        QTextCharFormat format;
-        format.setFontPointSize( size );
-        cursor.mergeCharFormat( format );
-        d->m_description->setTextCursor( cursor );
-    }
-}
-
-void EditPlacemarkDialog::addImageToDescription()
-{
-    QString filename = QFileDialog::getOpenFileName( this, tr( "Choose image" ), tr( "All Supported Files (*.png *.jpg *.jpeg)" )  );
-    QImage image( filename );
-    if( !image.isNull() ) {
-        QTextCursor cursor = d->m_description->textCursor();
-        cursor.insertImage( image, filename );
-    }
-}
-
-void EditPlacemarkDialog::addLinkToDescription()
-{
-    QPointer<AddLinkDialog> dialog = new AddLinkDialog( this );
-    if( dialog->exec() ) {
-        QTextCharFormat oldFormat = d->m_description->textCursor().charFormat();
-        QTextCharFormat linkFormat = oldFormat;
-        linkFormat.setAnchor( true );
-        linkFormat.setFontUnderline( true );
-        linkFormat.setForeground( QApplication::palette().link() );
-        linkFormat.setAnchorHref( dialog->url() );
-        d->m_description->textCursor().insertText( dialog->name(), linkFormat );
-        QTextCursor cursor =  d->m_description->textCursor();
-        cursor.setCharFormat( oldFormat );
-        d->m_description->setTextCursor( cursor );
-        d->m_description->textCursor().insertText( " " );
-    }
-}
-
-void EditPlacemarkDialog::updateDescriptionEditButtons()
-{
-    disconnect( d->m_actionBold, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorBold( bool ) ) );
-    disconnect( d->m_actionItalics, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorItalic( bool ) ) );
-    disconnect( d->m_actionUnderlined, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorUnderlined( bool ) ) );
-    disconnect( d->m_fontFamily, SIGNAL( currentFontChanged( QFont ) ), this, SLOT( setTextCursorFont( QFont ) ) );
-    disconnect( d->m_fontSize, SIGNAL( editTextChanged( QString ) ), this, SLOT( setTextCursorFontSize( QString ) ) );
-
-    QTextCharFormat format = d->m_description->textCursor().charFormat();
-
-    d->m_fontFamily->setCurrentFont( format.font() );
-
-    if( format.fontWeight() == QFont::Bold ) {
-        d->m_actionBold->setChecked( true );
-    } else if ( format.fontWeight() == QFont::Normal ) {
-        d->m_actionBold->setChecked( false );
-    }
-    d->m_actionItalics->setChecked( format.fontItalic() );
-    d->m_actionUnderlined->setChecked( format.fontUnderline() );
-
-    QPixmap textColorPixmap( d->m_textColorButton->iconSize().width(),
-                        d->m_textColorButton->iconSize().height() );
-    textColorPixmap.fill( format.foreground().color() );
-    d->m_textColorButton->setIcon( QIcon( textColorPixmap ) );
-    d->m_textColorDialog->setCurrentColor( format.foreground().color() );
-
-    int index = d->m_fontSize->findText( QString::number( d->m_description->textCursor().charFormat().font().pointSize() ) );
-    if( index != -1 ) {
-        d->m_fontSize->setCurrentIndex( index );
-    } else {
-        d->m_fontSize->lineEdit()->setText( QString::number( d->m_description->textCursor().charFormat().font().pointSize() ) );
-    }
-    connect( d->m_actionBold, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorBold( bool ) ) );
-    connect( d->m_actionItalics, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorItalic( bool ) ) );
-    connect( d->m_actionUnderlined, SIGNAL( toggled( bool ) ), this, SLOT( setTextCursorUnderlined( bool ) ) );
-    connect( d->m_fontFamily, SIGNAL( currentFontChanged( QFont ) ), this, SLOT( setTextCursorFont( QFont ) ) );
-    connect( d->m_fontSize, SIGNAL( editTextChanged( QString ) ), this, SLOT( setTextCursorFontSize( QString ) ) );
-}
-
-}
-
-#include "EditPlacemarkDialog.moc"
+#include "moc_EditPlacemarkDialog.cpp"

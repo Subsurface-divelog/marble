@@ -6,7 +6,7 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 //
 // This file originates from the MoNav project where it was named pbfreader.h and
 // Copyright 2010  Christian Vetter veaac.fdirct@gmail.com
@@ -20,7 +20,6 @@
 #include "../OsmParser.h"
 
 #include <QString>
-#include <QHash>
 #include <QSet>
 #include <QFile>
 #include <QDataStream>
@@ -30,7 +29,7 @@ class PbfParser : public Marble::OsmParser
 public:
     PbfParser();
 
-    virtual bool parse( const QFileInfo &file, int pass, bool &needAnotherPass );
+    bool parse( const QFileInfo &file, int pass, bool &needAnotherPass ) override;
 
 private:
     enum Mode {

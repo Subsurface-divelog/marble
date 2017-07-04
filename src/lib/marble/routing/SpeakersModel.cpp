@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "SpeakersModel.h"
@@ -37,7 +37,7 @@ public:
 
     NewstuffModel m_newstuffModel;
 
-    SpeakersModelPrivate( SpeakersModel* parent );
+    explicit SpeakersModelPrivate( SpeakersModel* parent );
 
     void fillModel();
 
@@ -45,9 +45,7 @@ public:
 
     void handleInstallation( int );
 
-#if QT_VERSION >= 0x050000
     QHash<int, QByteArray> m_roleNames;
-#endif
 };
 
 SpeakersModelItem::SpeakersModelItem() : m_newstuffIndex( -1 )
@@ -63,7 +61,7 @@ bool SpeakersModelItem::lessThan( const SpeakersModelItem& one, const SpeakersMo
 SpeakersModelPrivate::SpeakersModelPrivate( SpeakersModel* parent ) :
     m_parent( parent )
 {
-    m_newstuffModel.setTargetDirectory( MarbleDirs::localPath() + "/audio/speakers" );
+    m_newstuffModel.setTargetDirectory(MarbleDirs::localPath() + QLatin1String("/audio/speakers"));
     m_newstuffModel.setProvider( "http://edu.kde.org/marble/newstuff/speakers.xml" );
     QObject::connect( &m_newstuffModel, SIGNAL(modelReset()), m_parent, SLOT(fillModel()) );
     QObject::connect( &m_newstuffModel, SIGNAL(installationProgressed(int,qreal)),
@@ -76,12 +74,12 @@ void SpeakersModelPrivate::fillModel()
     m_speakers.clear();
 
     QStringList const baseDirs = QStringList() << MarbleDirs::systemPath() << MarbleDirs::localPath();
-    foreach ( const QString &baseDir, baseDirs ) {
-        QString base = baseDir + "/audio/speakers/";
+    for ( const QString &baseDir: baseDirs ) {
+        const QString base = baseDir + QLatin1String("/audio/speakers/");
 
         QDir::Filters filter = QDir::Readable | QDir::Dirs | QDir::NoDotAndDotDot;
         QFileInfoList subdirs = QDir( base ).entryInfoList( filter, QDir::Name );
-        foreach( const QFileInfo &file, subdirs ) {
+        for( const QFileInfo &file: subdirs ) {
             SpeakersModelItem item;
             item.m_file = file;
             m_speakers << item;
@@ -103,13 +101,13 @@ void SpeakersModelPrivate::fillModel()
         if ( !exists ) {
             SpeakersModelItem item;
             QString const path = "%1/audio/speakers/%2";
-            item.m_file = QFileInfo( path.arg( MarbleDirs::localPath() ).arg( name ) );
+            item.m_file = QFileInfo( path.arg( MarbleDirs::localPath(), name ) );
             item.m_newstuffIndex = i;
             m_speakers << item;
         }
     }
 
-    qSort(m_speakers.begin(), m_speakers.end(), SpeakersModelItem::lessThan);
+    std::sort(m_speakers.begin(), m_speakers.end(), SpeakersModelItem::lessThan);
     m_parent->beginResetModel();
     m_parent->endResetModel();
     emit m_parent->countChanged();
@@ -144,18 +142,14 @@ SpeakersModel::SpeakersModel( QObject *parent ) :
     roles[Name] = "name";
     roles[IsLocal] = "isLocal";
     roles[IsRemote] = "isRemote";
-#if QT_VERSION < 0x050000
-    setRoleNames( roles );
-#else
     d->m_roleNames = roles;
-#endif
 
     d->fillModel();
 }
 
 SpeakersModel::~SpeakersModel()
 {
-    // nothing to do
+    delete d;
 }
 
 int SpeakersModel::rowCount ( const QModelIndex &parent ) const
@@ -182,12 +176,10 @@ QVariant SpeakersModel::data ( const QModelIndex &index, int role ) const
     return QVariant();
 }
 
-#if QT_VERSION >= 0x050000
 QHash<int, QByteArray> SpeakersModel::roleNames() const
 {
     return d->m_roleNames;
 }
-#endif
 
 int SpeakersModel::indexOf( const QString &name )
 {
@@ -233,4 +225,4 @@ int SpeakersModel::count() const
 
 }
 
-#include "SpeakersModel.moc"
+#include "moc_SpeakersModel.cpp"

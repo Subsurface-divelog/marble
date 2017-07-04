@@ -25,12 +25,12 @@ QString PntPlugin::name() const
 
 QString PntPlugin::nameId() const
 {
-    return "Pnt";
+    return QStringLiteral("Pnt");
 }
 
 QString PntPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString PntPlugin::description() const
@@ -40,13 +40,13 @@ QString PntPlugin::description() const
 
 QString PntPlugin::copyrightYears() const
 {
-    return "2011";
+    return QStringLiteral("2011");
 }
 
-QList<PluginAuthor> PntPlugin::pluginAuthors() const
+QVector<PluginAuthor> PntPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"));
 }
 
 QString PntPlugin::fileFormatDescription() const
@@ -56,7 +56,7 @@ QString PntPlugin::fileFormatDescription() const
 
 QStringList PntPlugin::fileExtensions() const
 {
-    return QStringList() << "pnt";
+    return QStringList(QStringLiteral("pnt"));
 }
 
 ParsingRunner* PntPlugin::newRunner() const
@@ -66,6 +66,4 @@ ParsingRunner* PntPlugin::newRunner() const
 
 }
 
-Q_EXPORT_PLUGIN2( PntPlugin, Marble::PntPlugin )
-
-#include "PntPlugin.moc"
+#include "moc_PntPlugin.cpp"
