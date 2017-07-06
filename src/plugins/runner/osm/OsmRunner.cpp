@@ -11,8 +11,7 @@
 
 #include "GeoDataDocument.h"
 #include "OsmParser.h"
-
-#include <QFile>
+#include "MarbleDebug.h"
 
 namespace Marble
 {
@@ -22,38 +21,16 @@ OsmRunner::OsmRunner(QObject *parent) :
 {
 }
 
-OsmRunner::~OsmRunner()
+GeoDataDocument *OsmRunner::parseFile(const QString &fileName, DocumentRole role, QString &error)
 {
-}
-
-void OsmRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
-{
-    QFile  file( fileName );
-    if ( !file.exists() ) {
-        qWarning( "File does not exist!" );
-        emit parsingFinished( 0 );
-        return;
+    GeoDataDocument* document = OsmParser::parse(fileName, error);
+    if (document) {
+        document->setDocumentRole(role);
+        document->setFileName(fileName);
     }
-
-    // Open file in right mode
-    file.open( QIODevice::ReadOnly );
-
-    OsmParser parser;
-
-    if ( !parser.read( &file ) ) {
-        emit parsingFinished( 0, parser.errorString() );
-        return;
-    }
-    GeoDocument* document = parser.releaseDocument();
-    Q_ASSERT( document );
-    GeoDataDocument* doc = static_cast<GeoDataDocument*>( document );
-    doc->setDocumentRole( role );
-    doc->setFileName( fileName );
-
-    file.close();
-    emit parsingFinished( doc );
+    return document;
 }
 
 }
 
-#include "OsmRunner.moc"
+#include "moc_OsmRunner.cpp"

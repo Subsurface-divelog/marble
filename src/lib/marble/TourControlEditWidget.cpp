@@ -17,7 +17,6 @@
 
 #include "TourControlEditWidget.h"
 #include "MarblePlacemarkModel.h"
-#include "GeoDataTypes.h"
 #include "GeoDataTourControl.h"
 
 namespace Marble
@@ -34,7 +33,7 @@ TourControlEditWidget::TourControlEditWidget( const QModelIndex &index, QWidget 
     layout->setSpacing( 5 );
 
     QLabel* iconLabel = new QLabel;
-    iconLabel->setPixmap( QPixmap( ":/marble/media-playback-pause.png" ) );
+    iconLabel->setPixmap(QPixmap(QStringLiteral(":/marble/media-playback-pause.png")));
     layout->addWidget( iconLabel );
 
     layout->addWidget( m_radio_play );
@@ -49,7 +48,7 @@ TourControlEditWidget::TourControlEditWidget( const QModelIndex &index, QWidget 
         m_radio_pause->setChecked( true );
     }
 
-    m_button->setIcon( QIcon( ":/marble/document-save.png" ) );
+    m_button->setIcon(QIcon(QStringLiteral(":/marble/document-save.png")));
     connect(m_button, SIGNAL(clicked()), this, SLOT(save()));
     layout->addWidget( m_button );
 
@@ -80,10 +79,11 @@ GeoDataTourControl* TourControlEditWidget::tourControlElement()
 {
     GeoDataObject *object = qvariant_cast<GeoDataObject*>(m_index.data( MarblePlacemarkModel::ObjectPointerRole ) );
     Q_ASSERT( object );
-    Q_ASSERT( object->nodeType() == GeoDataTypes::GeoDataTourControlType );
-    return static_cast<GeoDataTourControl*>( object );
+    auto tourControl = geodata_cast<GeoDataTourControl>(object);
+    Q_ASSERT(tourControl);
+    return tourControl;
 }
 
 } // namespace Marble
 
-#include "TourControlEditWidget.moc"
+#include "moc_TourControlEditWidget.cpp"

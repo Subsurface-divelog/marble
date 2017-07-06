@@ -11,8 +11,7 @@
 
 #include "ScanlineTextureMapperContext.h"
 
-#include <QImage>
-
+#include "GeoSceneAbstractTileProjection.h"
 #include "MarbleDebug.h"
 #include "StackedTile.h"
 #include "StackedTileLoader.h"
@@ -20,11 +19,13 @@
 #include "ViewParams.h"
 #include "ViewportParams.h"
 
+#include <QImage>
+
 using namespace Marble;
 
 ScanlineTextureMapperContext::ScanlineTextureMapperContext( StackedTileLoader * const tileLoader, int tileLevel )
     : m_tileLoader( tileLoader ),
-      m_textureProjection( tileLoader->tileProjection() ),  // cache texture projection
+      m_textureProjection(tileLoader->tileProjection()->type()),  // cache texture projection
       m_tileSize( tileLoader->tileSize() ),  // cache tile size
       m_tileLevel( tileLevel ),
       m_globalWidth( m_tileSize.width() * m_tileLoader->tileColumnCount( m_tileLevel ) ),
@@ -32,15 +33,14 @@ ScanlineTextureMapperContext::ScanlineTextureMapperContext( StackedTileLoader * 
       m_normGlobalWidth( m_globalWidth / ( 2 * M_PI ) ),
       m_normGlobalHeight( m_globalHeight /  M_PI ),
       m_tile( 0 ),
-      m_deltaLevel( 0 ),
       m_tilePosX( 65535 ),
       m_tilePosY( 65535 ),
-      m_vTileStartX( 0 ),
-      m_vTileStartY( 0 ),
       m_toTileCoordinatesLon( 0.5 * m_globalWidth  - m_tilePosX ),
       m_toTileCoordinatesLat( 0.5 * m_globalHeight - m_tilePosY ),
       m_prevLat( 0.0 ),
-      m_prevLon( 0.0 )
+      m_prevLon( 0.0 ),
+      m_prevPixelX( 0.0 ),
+      m_prevPixelY( 0.0 )
 {
 }
 
@@ -54,8 +54,11 @@ void ScanlineTextureMapperContext::pixelValueF( const qreal lon, const qreal lat
     // measured in radian to the pixel position of the requested 
     // coordinate on the current tile.
 
-    qreal posX = m_toTileCoordinatesLon + rad2PixelX( lon );
-    qreal posY = m_toTileCoordinatesLat + rad2PixelY( lat );
+    m_prevPixelX = rad2PixelX( lon );
+    m_prevPixelY = rad2PixelY( lat );
+
+    qreal posX = m_toTileCoordinatesLon + m_prevPixelX;
+    qreal posY = m_toTileCoordinatesLat + m_prevPixelY;
 
     // Most of the time while moving along the scanLine we'll stay on the 
     // same tile. However at the tile border we might "fall off". If that 
@@ -69,8 +72,7 @@ void ScanlineTextureMapperContext::pixelValueF( const qreal lon, const qreal lat
         nextTile( posX, posY );
     }
     if ( m_tile ) {
-        *scanLine = m_tile->pixelF( ( (int)posX + m_vTileStartX ) / ( 1 << m_deltaLevel ),
-                                    ( (int)posY + m_vTileStartY ) / ( 1 << m_deltaLevel ) );
+        *scanLine = m_tile->pixelF( posX, posY );
     }
     else {
         *scanLine = 0;
@@ -90,8 +92,10 @@ void ScanlineTextureMapperContext::pixelValue( const qreal lon, const qreal lat,
     // measured in radian to the pixel position of the requested 
     // coordinate on the current tile.
 
-    int iPosX = (int)( m_toTileCoordinatesLon + rad2PixelX( lon ) );
-    int iPosY = (int)( m_toTileCoordinatesLat + rad2PixelY( lat ) );
+    m_prevPixelX = rad2PixelX( lon );
+    m_prevPixelY = rad2PixelY( lat );
+    int iPosX = (int)( m_toTileCoordinatesLon + m_prevPixelX );
+    int iPosY = (int)( m_toTileCoordinatesLat + m_prevPixelY );
 
     // Most of the time while moving along the scanLine we'll stay on the 
     // same tile. However at the tile border we might "fall off". If that 
@@ -106,8 +110,7 @@ void ScanlineTextureMapperContext::pixelValue( const qreal lon, const qreal lat,
     }
 
     if ( m_tile ) {
-        *scanLine = m_tile->pixel( ( iPosX + m_vTileStartX ) >> m_deltaLevel,
-                                   ( iPosY + m_vTileStartY ) >> m_deltaLevel );
+        *scanLine = m_tile->pixel( iPosX, iPosY );
     }
     else {
         *scanLine = 0;
@@ -141,18 +144,15 @@ void ScanlineTextureMapperContext::pixelValueApproxF( const qreal lon, const qre
     const qreal nInverse = 1.0 / (qreal)(n);
 
     if ( fabs(stepLon) < M_PI ) {
-        const qreal prevPixelX = rad2PixelX( m_prevLon );
-        const qreal prevPixelY = rad2PixelY( m_prevLat );
-
-        const qreal itStepLon = ( rad2PixelX( lon ) - prevPixelX ) * nInverse;
-        const qreal itStepLat = ( rad2PixelY( lat ) - prevPixelY ) * nInverse;
+        const qreal itStepLon = ( rad2PixelX( lon ) - m_prevPixelX ) * nInverse;
+        const qreal itStepLat = ( rad2PixelY( lat ) - m_prevPixelY ) * nInverse;
 
         // To improve speed we unroll 
         // AbstractScanlineTextureMapper::pixelValue(...) here and 
         // calculate the performance critical issues via integers
 
-        qreal itLon = prevPixelX + m_toTileCoordinatesLon;
-        qreal itLat = prevPixelY + m_toTileCoordinatesLat;
+        qreal itLon = m_prevPixelX + m_toTileCoordinatesLon;
+        qreal itLat = m_prevPixelY + m_toTileCoordinatesLat;
 
         const int tileWidth = m_tileSize.width();
         const int tileHeight = m_tileSize.height();
@@ -179,28 +179,23 @@ void ScanlineTextureMapperContext::pixelValueApproxF( const qreal lon, const qre
                     || posY < 0.0 )
                 {
                     nextTile( posX, posY );
-                    itLon = prevPixelX + m_toTileCoordinatesLon;
-                    itLat = prevPixelY + m_toTileCoordinatesLat;
-                    posX = qMax<qreal>( 0.0, qMin<qreal>( tileWidth-1.0, itLon + itStepLon * j ) );
-                    posY = qMax<qreal>( 0.0, qMin<qreal>( tileHeight-1.0, itLat + itStepLat * j ) );
+                    itLon = m_prevPixelX + m_toTileCoordinatesLon;
+                    itLat = m_prevPixelY + m_toTileCoordinatesLat;
+                    posX = qBound <qreal>( 0.0, (itLon + itStepLon * j), tileWidth-1.0 );
+                    posY = qBound <qreal>( 0.0, (itLat + itStepLat * j), tileHeight-1.0 );
                     oldPosX = -1;
                 }
 
-            *scanLine = m_tile->pixel( ( (int)posX + m_vTileStartX ) >> m_deltaLevel,
-                                       ( (int)posY + m_vTileStartY ) >> m_deltaLevel ); 
+            *scanLine = m_tile->pixelF( posX, posY );
 
             // Just perform bilinear interpolation if there's a color change compared to the 
             // last pixel that was evaluated. This speeds up things greatly for maps like OSM
             if ( *scanLine != oldRgb ) {
                 if ( oldPosX != -1 ) {
-                    *(scanLine - 1) = m_tile->pixelF( ( oldPosX + m_vTileStartX ) / ( 1 << m_deltaLevel ),
-                                                      ( oldPosY + m_vTileStartY ) / ( 1 << m_deltaLevel ),
-                                                      *(scanLine - 1) );
+                    *(scanLine - 1) = m_tile->pixelF( oldPosX, oldPosY, *(scanLine - 1) );
                     oldPosX = -1;
                 }
-                oldRgb = m_tile->pixelF( ( posX + m_vTileStartX ) / ( 1 << m_deltaLevel ),
-                                         ( posY + m_vTileStartY ) / ( 1 << m_deltaLevel ),
-                                         *scanLine );
+                oldRgb = m_tile->pixelF( posX, posY, *scanLine );
                 *scanLine = oldRgb;
             }
             else {
@@ -287,18 +282,15 @@ void ScanlineTextureMapperContext::pixelValueApprox( const qreal lon, const qrea
     const qreal nInverse = 1.0 / (qreal)(n);
 
     if ( fabs(stepLon) < M_PI ) {
-        const qreal prevPixelX = rad2PixelX( m_prevLon );
-        const qreal prevPixelY = rad2PixelY( m_prevLat );
-
-        const int itStepLon = (int)( ( rad2PixelX( lon ) - prevPixelX ) * nInverse * 128.0 );
-        const int itStepLat = (int)( ( rad2PixelY( lat ) - prevPixelY ) * nInverse * 128.0 );
+        const int itStepLon = (int)( ( rad2PixelX( lon ) - m_prevPixelX ) * nInverse * 128.0 );
+        const int itStepLat = (int)( ( rad2PixelY( lat ) - m_prevPixelY ) * nInverse * 128.0 );
 
         // To improve speed we unroll 
         // AbstractScanlineTextureMapper::pixelValue(...) here and 
         // calculate the performance critical issues via integers
 
-        int itLon = (int)( ( prevPixelX + m_toTileCoordinatesLon ) * 128.0 );
-        int itLat = (int)( ( prevPixelY + m_toTileCoordinatesLat ) * 128.0 );
+        int itLon = (int)( ( m_prevPixelX + m_toTileCoordinatesLon ) * 128.0 );
+        int itLat = (int)( ( m_prevPixelY + m_toTileCoordinatesLat ) * 128.0 );
 
         const int tileWidth = m_tileSize.width();
         const int tileHeight = m_tileSize.height();
@@ -312,8 +304,7 @@ void ScanlineTextureMapperContext::pixelValueApprox( const qreal lon, const qrea
             for ( int j = 1; j < n; ++j ) {
                 iPosXf += itStepLon;
                 iPosYf += itStepLat;
-                *scanLine = m_tile->pixel( ( ( iPosXf >> 7 ) + m_vTileStartX ) >> m_deltaLevel,
-                                           ( ( iPosYf >> 7 ) + m_vTileStartY ) >> m_deltaLevel );
+                *scanLine = m_tile->pixel( iPosXf >> 7, iPosYf >> 7 );
                 ++scanLine;
             }
         }        
@@ -328,14 +319,13 @@ void ScanlineTextureMapperContext::pixelValueApprox( const qreal lon, const qrea
                     || iPosY < 0 )
                 {
                     nextTile( iPosX, iPosY );
-                    itLon = (int)( ( prevPixelX + m_toTileCoordinatesLon ) * 128.0 );
-                    itLat = (int)( ( prevPixelY + m_toTileCoordinatesLat ) * 128.0 );
+                    itLon = (int)( ( m_prevPixelX + m_toTileCoordinatesLon ) * 128.0 );
+                    itLat = (int)( ( m_prevPixelY + m_toTileCoordinatesLat ) * 128.0 );
                     iPosX = ( itLon + itStepLon * j ) >> 7;
                     iPosY = ( itLat + itStepLat * j ) >> 7;
                 }
 
-                *scanLine = m_tile->pixel( ( iPosX + m_vTileStartX ) >> m_deltaLevel,
-                                           ( iPosY + m_vTileStartY ) >> m_deltaLevel );
+                *scanLine = m_tile->pixel( iPosX, iPosY );
                 ++scanLine;
             }
         }
@@ -461,8 +451,7 @@ void ScanlineTextureMapperContext::nextTile( int &posX, int &posY )
     const int tileCol = lon / m_tileSize.width();
     const int tileRow = lat / m_tileSize.height();
 
-    m_deltaLevel = 0;
-    m_tile = m_tileLoader->loadTile( TileId( 0, m_tileLevel - m_deltaLevel, tileCol >> m_deltaLevel, tileRow >> m_deltaLevel ) );
+    m_tile = m_tileLoader->loadTile( TileId( 0, m_tileLevel, tileCol, tileRow ) );
 
     // Update position variables:
     // m_tilePosX/Y stores the position of the tiles in 
@@ -470,12 +459,10 @@ void ScanlineTextureMapperContext::nextTile( int &posX, int &posY )
     // ( origin upper left, measured in pixels )
 
     m_tilePosX = tileCol * m_tileSize.width();
-    m_vTileStartX = ( tileCol - ( ( tileCol >> m_deltaLevel ) << m_deltaLevel ) ) * m_tileSize.width();
     m_toTileCoordinatesLon = (qreal)(0.5 * m_globalWidth - m_tilePosX);
     posX = lon - m_tilePosX;
 
     m_tilePosY = tileRow * m_tileSize.height();
-    m_vTileStartY = ( tileRow - ( ( tileRow >> m_deltaLevel ) << m_deltaLevel ) ) * m_tileSize.height();
     m_toTileCoordinatesLat = (qreal)(0.5 * m_globalHeight - m_tilePosY);
     posY = lat - m_tilePosY;
 }
@@ -503,8 +490,7 @@ void ScanlineTextureMapperContext::nextTile( qreal &posX, qreal &posY )
     const int tileCol = lon / m_tileSize.width();
     const int tileRow = lat / m_tileSize.height();
 
-    m_deltaLevel = 0;
-    m_tile = m_tileLoader->loadTile( TileId( 0, m_tileLevel - m_deltaLevel, tileCol >> m_deltaLevel, tileRow >> m_deltaLevel ) );
+    m_tile = m_tileLoader->loadTile( TileId( 0, m_tileLevel, tileCol, tileRow ) );
 
     // Update position variables:
     // m_tilePosX/Y stores the position of the tiles in 
@@ -512,12 +498,10 @@ void ScanlineTextureMapperContext::nextTile( qreal &posX, qreal &posY )
     // ( origin upper left, measured in pixels )
 
     m_tilePosX = tileCol * m_tileSize.width();
-    m_vTileStartX = ( tileCol - ( ( tileCol >> m_deltaLevel ) << m_deltaLevel ) ) * m_tileSize.width();
     m_toTileCoordinatesLon = (qreal)(0.5 * m_globalWidth - m_tilePosX);
     posX = lon - m_tilePosX;
 
     m_tilePosY = tileRow * m_tileSize.height();
-    m_vTileStartY = ( tileRow - ( ( tileRow >> m_deltaLevel ) << m_deltaLevel ) ) * m_tileSize.height();
     m_toTileCoordinatesLat = (qreal)(0.5 * m_globalHeight - m_tilePosY);
     posY = lat - m_tilePosY;
 }

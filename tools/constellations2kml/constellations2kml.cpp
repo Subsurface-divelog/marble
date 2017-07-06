@@ -12,7 +12,7 @@
 
 #include <QFile>
 #include <QDebug>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QStringList>
 #include <QHash>
 #include <QPair>
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
             longitude = ( raHH + raMM / 60.0 + raSS / 3600.0 ) * 15.0 - 180.0;
 
             QString decString = starsLine.mid( 83, 7 );
-            double deSign = ( decString.mid( 0, 1 ) == "-" ) ? -1.0 : 1.0;
+            double deSign = decString.startsWith(QLatin1Char('-')) ? -1.0 : 1.0;
             double deHH = decString.mid( 1, 2 ).toDouble();
             double deMM = decString.mid( 3, 2 ).toDouble();
             double deSS = decString.mid( 5, 2 ).toDouble();
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 
             // Ignore Comment lines in header and
             // between constellation entries
-            if ( name.startsWith( '#' ) )    {
+            if (name.startsWith(QLatin1Char('#'))) {
                 continue;
             }
 
@@ -122,18 +122,18 @@ int main(int argc, char *argv[])
                 << "            <LineString> \n"
                 << "                <coordinates> \n";
 
-            starIndexes = indexList.split( ' ' );
+            starIndexes = indexList.split(QLatin1Char(' '));
             QList<qreal> x;
             QList<qreal> y;
             QList<qreal> z;
             int numberOfStars = 0;
             for ( int i = 0; i < starIndexes.size(); ++i ) {
-                if ( starIndexes.at(i) == "-1" ) {
+                if (starIndexes.at(i) == QLatin1String("-1")) {
                     out << "                </coordinates> \n"
                         << "            </LineString> \n"
                         << "            <LineString> \n"
                         << "                <coordinates> \n";
-                } else if ( starIndexes.at(i) == "-2" ) {
+                } else if (starIndexes.at(i) == QLatin1String("-2")) {
                     out << "                </coordinates> \n"
                         << "            </LineString> \n"
                         << "        </MultiGeometry> \n"
@@ -143,7 +143,7 @@ int main(int argc, char *argv[])
                         << "        <MultiGeometry> \n"
                         << "            <LineString> \n"
                         << "                <coordinates> \n";
-                } else if ( starIndexes.at(i) == "-3" ) {
+                } else if (starIndexes.at(i) == QLatin1String("-3")) {
                     out << "                </coordinates> \n"
                         << "            </LineString> \n"
                         << "        </MultiGeometry> \n"
@@ -154,8 +154,8 @@ int main(int argc, char *argv[])
                         << "            <LineString> \n"
                         << "                <coordinates> \n";
                 }
-                QHash<int, QPair<qreal, qreal> >::const_iterator j = hash.find( starIndexes.at(i).toInt() );
-                while( j != hash.end() && j.key() == starIndexes.at(i).toInt() ) {
+                QHash<int, QPair<qreal, qreal> >::const_iterator j = hash.constFind( starIndexes.at(i).toInt() );
+                while( j != hash.constEnd() && j.key() == starIndexes.at(i).toInt() ) {
                     out << "                " << j.value().first << "," << j.value().second << " \n";
                     x.append( cos( j.value().first * DEG2RAD ) * cos( j.value().second * DEG2RAD ) );
                     y.append( sin( j.value().first * DEG2RAD ) * cos( j.value().second * DEG2RAD ) );

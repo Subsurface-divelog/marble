@@ -5,53 +5,45 @@ if(MSVC)
   set(marble_SRCS ${marble_SRCS} marble.qrc)
 endif(MSVC)
 
-if(MINGW AND QT4_FOUND)
-   QT4_ADD_RESOURCES2(marble_SRCS marble.qrc)
-endif(MINGW AND QT4_FOUND)
-
 qt_add_resources(marble_SRCS marble.qrc)
 
 qt_wrap_ui(marble_SRCS ${marble_UI})
-marble_qt4_automoc(${marble_SRCS})
 
 add_library (marbleui STATIC ${marble_SRCS})
 
-if( QT4_FOUND )
-target_link_libraries (
-  marbleui
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTDBUS_LIBRARY}
-  ${QT_QTGUI_LIBRARY}
-  ${QT_QTXML_LIBRARY}
-  ${QT_QTSVG_LIBRARY}
-  ${QT_QTNETWORK_LIBRARY}
-  ${QT_QTSCRIPT_LIBRARY}
-  ${QT_QTMAIN_LIBRARY}
-  marblewidget)
-else()
+# TODO: use PUBLIC/PRIVATE everywhere instead of LINK_PUBLIC/LINK_PRIVATE
+# once SailfishOS has cmake >= 2.8.12
+
 target_link_libraries (
     marbleui
-    ${Qt5Core_LIBRARIES}
-    ${Qt5Xml_LIBRARIES}
-    ${Qt5Widgets_LIBRARIES}
-    ${Qt5PrintSupport_LIBRARIES}
-    ${Qt5Network_LIBRARIES}
-    ${Qt5WebKitWidgets_LIBRARIES}
-    ${Qt5WebKit_LIBRARIES}
-    marblewidget)
-endif()
+    LINK_PUBLIC
+        marblewidget
+        Qt5::Widgets
+        Qt5::PrintSupport
+    LINK_PRIVATE
+        Qt5::Network
+)
+if (NOT MARBLE_NO_DBUS)
+    target_link_libraries( marbleui
+        LINK_PRIVATE
+            Qt5::DBus
+    )
+endif ()
 
 if(WIN32)
+  # TODO: PUBLIC or can be PRIVATE?
   target_link_libraries(
     marbleui
-    ws2_32 
-    imm32 
-    winmm
+    LINK_PUBLIC
+        ws2_32
+        imm32
+        winmm
     )
 endif(WIN32)
 
-## this works for win32 only because FindQt4 does not handle this correct
+## this works for win32 only because FindQt does not handle this correct
 if(STATIC_BUILD)
-    target_link_libraries(marble ${QT_PLUGINS_DIR}/imageformats/qjpeg.lib)
-    target_link_libraries(marble ${QT_PLUGINS_DIR}/imageformats/qsvg.lib)
+    # TODO: PUBLIC or can be PRIVATE?
+    target_link_libraries(marble LINK_PUBLIC ${QT_PLUGINS_DIR}/imageformats/qjpeg.lib)
+    target_link_libraries(marble LINK_PUBLIC ${QT_PLUGINS_DIR}/imageformats/qsvg.lib)
 endif(STATIC_BUILD)

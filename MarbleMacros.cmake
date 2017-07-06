@@ -19,77 +19,26 @@ else()
   endmacro()
 endif()
 
-macro( marble_qt4_automoc )
-  if( ${CMAKE_VERSION} STRLESS "2.8" OR QT4_FOUND)
-    qt4_automoc( ${ARGN} )
-  else()
-    # Just ignore it
-  endif()
-endmacro()
-
 macro(qt_add_resources)
-  if( QT4_FOUND )
-    qt4_add_resources(${ARGN})
-  else()
-    qt5_add_resources(${ARGN})
-  endif()
+  qt5_add_resources(${ARGN})
 endmacro()
 
 macro(qt_wrap_ui)
-  if( QT4_FOUND )
-    qt4_wrap_ui(${ARGN})
-  else()
-    qt5_wrap_ui(${ARGN})
-  endif()
+  qt5_wrap_ui(${ARGN})
 endmacro()
 
 macro(qt_generate_moc)
-  if( QT4_FOUND )
-    qt4_generate_moc(${ARGN})
-  else()
-    qt5_generate_moc(${ARGN})
-  endif()
+  qt5_generate_moc(${ARGN})
 endmacro()
 
 # the place to put in common cmake macros
 # this is needed to minimize the amount of errors to do
 macro( marble_add_plugin _target_name )
 set( _src ${ARGN} )
-if( QTONLY )
-    marble_qt4_automoc( ${_src} )
-    add_library( ${_target_name} MODULE ${_src} )
-    target_link_libraries( ${_target_name} ${QT_QTCORE_LIBRARY}
-                                           ${QT_QTDBUS_LIBRARY}
-                                           ${QT_QTGUI_LIBRARY}
-                                           ${QT_QTXML_LIBRARY}
-                                           ${QT_QTSVG_LIBRARY}
-                                           ${QT_QTNETWORK_LIBRARY}
-                                           ${QT_QTMAIN_LIBRARY}
-                                           ${${_target_name}_LIBS}
-                                           marblewidget )
-    install( TARGETS ${_target_name} DESTINATION ${MARBLE_PLUGIN_INSTALL_PATH} )
-else( QTONLY )
-    kde4_add_plugin( ${_target_name} ${_src} )
-    target_link_libraries( ${_target_name} ${QT_QTCORE_LIBRARY}
-                                           ${QT_QTDBUS_LIBRARY}
-                                           ${QT_QTGUI_LIBRARY}
-                                           ${QT_QTXML_LIBRARY}
-                                           ${QT_QTSVG_LIBRARY}
-                                           ${QT_QTNETWORK_LIBRARY}
-                                           ${KDE4_KDECORE_LIBRARY}
-                                           ${KDE4_KDEUI_LIBRARY}
-                                           ${KDE4_KIO_LIBRARY}
-                                           ${QT_QTMAIN_LIBRARY}
-                                           ${${_target_name}_LIBS}
-                                           marblewidget )
-    install( TARGETS ${_target_name} DESTINATION ${MARBLE_PLUGIN_INSTALL_PATH} )
-endif( QTONLY )
-
-set_target_properties( ${_target_name} PROPERTIES 
-                       INSTALL_RPATH_USE_LINK_PATH TRUE  
-                       SKIP_BUILD_RPATH TRUE 
-                       BUILD_WITH_INSTALL_RPATH TRUE 
-                     )
+add_library( ${_target_name} MODULE ${_src} )
+target_link_libraries( ${_target_name} ${${_target_name}_LIBS}
+                                       marblewidget )
+install( TARGETS ${_target_name} DESTINATION ${MARBLE_PLUGIN_INSTALL_PATH} )
 
 endmacro( marble_add_plugin _target_name )
 
@@ -100,66 +49,12 @@ set( _src ${ARGN} )
 
 qt_add_resources( _src ../../../apps/marble-ui/marble.qrc )
 
-if( QTONLY )
-    marble_qt4_automoc( ${_src} )
-    add_library( ${_target_name} MODULE ${_src} )
-    target_link_libraries( ${_target_name} ${QT_QTCORE_LIBRARY}
-                                           ${QT_QTDBUS_LIBRARY}
-                                           ${QT_QTGUI_LIBRARY}
-                                           ${QT_QTXML_LIBRARY}
-                                           ${QT_QTSVG_LIBRARY}
-                                           ${QT_QTNETWORK_LIBRARY}
-                                           ${QT_QTMAIN_LIBRARY}
-                                           ${${_target_name}_LIBS}
-                                           marblewidget )
-    install( TARGETS ${_target_name} DESTINATION ${QT_PLUGINS_DIR}/designer )
-else( QTONLY )
-    kde4_add_plugin( ${_target_name} ${_src} )
-    target_link_libraries( ${_target_name} ${QT_QTCORE_LIBRARY}
-                                           ${QT_QTDBUS_LIBRARY}
-                                           ${QT_QTGUI_LIBRARY}
-                                           ${QT_QTXML_LIBRARY}
-                                           ${QT_QTSVG_LIBRARY}
-                                           ${QT_QTNETWORK_LIBRARY}
-                                           ${KDE4_KDECORE_LIBRARY}
-                                           ${KDE4_KDEUI_LIBRARY}
-                                           ${KDE4_KIO_LIBRARY}
-                                           ${QT_QTMAIN_LIBRARY}
-                                           ${${_target_name}_LIBS}
-                                           marblewidget )
-    install( TARGETS ${_target_name} DESTINATION ${PLUGIN_INSTALL_DIR}/plugins/designer )
-endif( QTONLY )
-
-set_target_properties( ${_target_name} PROPERTIES 
-                       INSTALL_RPATH_USE_LINK_PATH TRUE  
-                       SKIP_BUILD_RPATH TRUE 
-                       BUILD_WITH_INSTALL_RPATH TRUE 
-                     )
+add_library( ${_target_name} MODULE ${_src} )
+target_link_libraries( ${_target_name} ${${_target_name}_LIBS}
+                                       marblewidget )
+install( TARGETS ${_target_name} DESTINATION ${QT_PLUGINS_DIR}/designer )
 
 endmacro( marble_add_designer_plugin _target_name )
-
-macro( marble_add_declarative_plugin _target_name _install_path )
-set( _src ${ARGN} )
-marble_qt4_automoc( ${_src} )
-add_library( ${_target_name} MODULE ${_src} )
-target_link_libraries( ${_target_name} ${QT_QTCORE_LIBRARY}
-                                           ${QT_QTDBUS_LIBRARY}
-                                           ${QT_QTGUI_LIBRARY}
-                                           ${QT_QTXML_LIBRARY}
-                                           ${QT_QTSVG_LIBRARY}
-                                           ${QT_QTNETWORK_LIBRARY}
-                                           ${QT_QTMAIN_LIBRARY}
-                                           ${${_target_name}_LIBS}
-                                           marblewidget )
-install( TARGETS ${_target_name} DESTINATION ${MARBLE_QT_IMPORTS_DIR}/org/kde/edu/marble/${_install_path} )
-
-set_target_properties( ${_target_name} PROPERTIES
-                       INSTALL_RPATH_USE_LINK_PATH TRUE
-                       SKIP_BUILD_RPATH TRUE
-                       BUILD_WITH_INSTALL_RPATH TRUE
-                     )
-
-endmacro( marble_add_declarative_plugin _target_name )
 
 if( WIN32 )
     set( DATA_PATH ${CMAKE_INSTALL_PREFIX}/${MARBLE_DATA_PATH} )
@@ -172,21 +67,16 @@ endif( WIN32 )
 macro( marble_add_test TEST_NAME )
     if( BUILD_MARBLE_TESTS )
         set( ${TEST_NAME}_SRCS ${TEST_NAME}.cpp ${ARGN} )
-        if( QTONLY )
-            qt_generate_moc( ${TEST_NAME}.cpp ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.moc )
-            include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
-            set( ${TEST_NAME}_SRCS ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.moc ${${TEST_NAME}_SRCS} )
-          
-            add_executable( ${TEST_NAME} ${${TEST_NAME}_SRCS} )
-        else( QTONLY )
-            kde4_add_executable( ${TEST_NAME} ${${TEST_NAME}_SRCS} )
-        endif( QTONLY )
-        target_link_libraries( ${TEST_NAME} ${QT_QTMAIN_LIBRARY}
-                                            ${QT_QTCORE_LIBRARY} 
-                                            ${QT_QTGUI_LIBRARY} 
-                                            ${QT_QTTEST_LIBRARY} 
-                                            ${Qt5Test_LIBRARIES}
-                                            marblewidget )
+        qt_generate_moc( ${TEST_NAME}.cpp ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.moc )
+        include_directories( ${CMAKE_CURRENT_BINARY_DIR} )
+        set( ${TEST_NAME}_SRCS ${CMAKE_CURRENT_BINARY_DIR}/${TEST_NAME}.moc ${${TEST_NAME}_SRCS} )
+
+        add_executable( ${TEST_NAME} ${${TEST_NAME}_SRCS} )
+        target_link_libraries(${TEST_NAME}
+            marblewidget
+            Qt5::Test
+        )
+
         set_target_properties( ${TEST_NAME} PROPERTIES 
                                COMPILE_FLAGS "-DDATA_PATH=\"\\\"${DATA_PATH}\\\"\" -DPLUGIN_PATH=\"\\\"${PLUGIN_PATH}\\\"\"" )
         add_test( ${TEST_NAME} ${TEST_NAME} )
@@ -256,4 +146,125 @@ if(NOT COMMAND ADD_FEATURE_INFO)
 macro(ADD_FEATURE_INFO)
   # just ignore it
 endmacro()
+endif()
+
+
+# Find Qt translation tools
+find_package(Qt5LinguistTools CONFIG)
+
+if(NOT Qt5LinguistTools_FOUND)
+
+# dummy implementation
+function(marble_install_po_files_as_qm podir)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs)
+    cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(ARGS_TARGET)
+        if(NOT TARGET ${ARGS_TARGET})
+            add_custom_target(${ARGS_TARGET})
+        endif()
+    endif()
+    if (NOT IS_ABSOLUTE "${podir}")
+        set(podir "${CMAKE_CURRENT_SOURCE_DIR}/${podir}")
+    endif()
+    if (IS_DIRECTORY "${podir}")
+        message(STATUS "Will do nothing for po files in \"${podir}\", tools missing")
+    endif()
+endfunction()
+
+else()
+
+if(TARGET Qt5::lconvert)
+    set(lconvert_executable Qt5::lconvert)
+else()
+    # Qt < 5.3.1 does not define Qt5::lconvert
+    get_target_property(lrelease_location Qt5::lrelease LOCATION)
+    get_filename_component(lrelease_path ${lrelease_location} PATH)
+    find_program(lconvert_executable
+        NAMES lconvert-qt5 lconvert
+        PATHS ${lrelease_path}
+        NO_DEFAULT_PATH
+    )
+endif()
+
+function(marble_process_po_files_as_qm lang po_file)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs)
+    cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    # Create commands to turn po files into qm files
+    get_filename_component(po_file ${po_file} ABSOLUTE)
+    get_filename_component(filename_base ${po_file} NAME_WE)
+
+    # Include ${lang} in build dir because we might be called multiple times
+    # with the same ${filename_base}
+    set(build_dir ${CMAKE_CURRENT_BINARY_DIR}/locale/${lang})
+    set(ts_file ${build_dir}/${filename_base}.ts)
+    set(qm_file ${build_dir}/${filename_base}.qm)
+    if(CMAKE_SYSTEM_NAME STREQUAL Android)
+        set(qm_install_dir "${locale_dir}/${lang}")
+    else()
+        set(qm_install_dir "${locale_dir}/${lang}/LC_MESSAGES")
+    endif()
+
+    file(MAKE_DIRECTORY ${build_dir})
+
+    # lconvert from .po to .ts, then lrelease from .ts to .qm.
+    add_custom_command(OUTPUT ${qm_file}
+        COMMAND ${lconvert_executable}
+            ARGS -i ${po_file} -o ${ts_file} -target-language ${lang}
+        COMMAND Qt5::lrelease
+            ARGS -removeidentical -nounfinished -silent ${ts_file} -qm ${qm_file}
+        DEPENDS ${po_file}
+    )
+    install(
+        FILES ${qm_file}
+        DESTINATION ${qm_install_dir}
+        OPTIONAL # if not build, ignore it
+    )
+
+    if(ARGS_TARGET)
+        set(target_name_prefix ${ARGS_TARGET})
+    else()
+        set(target_name_prefix translation)
+    endif()
+    string(REPLACE "@" "AT" _lang ${lang})
+    set(target_name ${target_name_prefix}_${_lang}_${filename_base})
+
+    if(ARGS_TARGET)
+        add_custom_target(${target_name} DEPENDS ${qm_file})
+        add_dependencies(${ARGS_TARGET} ${target_name})
+    else()
+        add_custom_target(${target_name} ALL DEPENDS ${qm_file})
+    endif()
+endfunction()
+
+
+function(marble_install_po_files_as_qm podir)
+    set(options)
+    set(oneValueArgs TARGET)
+    set(multiValueArgs)
+    cmake_parse_arguments(ARGS "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    if(ARGS_TARGET)
+        if(NOT TARGET ${ARGS_TARGET})
+            add_custom_target(${ARGS_TARGET})
+        endif()
+
+        set(target_arg TARGET ${ARGS_TARGET})
+    else()
+        set(target_arg)
+    endif()
+
+    file(GLOB po_files "${podir}/*/*.po")
+    foreach(po_file ${po_files})
+        get_filename_component(po_dir ${po_file} DIRECTORY)
+        get_filename_component(lang ${po_dir} NAME)
+        marble_process_po_files_as_qm(${lang} ${po_file} ${target_arg})
+    endforeach()
+endfunction()
+
 endif()

@@ -13,14 +13,14 @@
 
 #include <QFontMetrics>
 #include <QPainter>
-#include <QPixmap>
 #include <QSvgRenderer>
+#include <QLocale>
 
 namespace Marble
 {
 
 // That's the font we will use to paint.
-const QFont EarthquakeItem::s_font = QFont( "Sans Serif", 8, QFont::Bold );
+const QFont EarthquakeItem::s_font = QFont( QStringLiteral( "Sans Serif" ), 8, QFont::Bold );
 
 EarthquakeItem::EarthquakeItem( QObject *parent )
     : AbstractDataPluginItem( parent ), m_magnitude( 0.0 ), m_depth( 0.0 )
@@ -83,12 +83,12 @@ void EarthquakeItem::paint( QPainter *painter )
     painter->drawEllipse( arcRect );
 
     // Draws the seismograph
-    QSvgRenderer renderer( QString( ":/seismograph.svg" ) );
+    QSvgRenderer renderer(QStringLiteral(":/seismograph.svg"));
     renderer.render( painter, QRectF( 0.0, 0.0, width, height ) );
 
     // Draws magnitude of the earthquake
     QFontMetrics metrics( s_font );
-    QString magnitudeText = QString::number( magnitude() );
+    const QString magnitudeText = QLocale::system().toString(m_magnitude);
     QRect magnitudeRect = metrics.boundingRect( magnitudeText );
     painter->setBrush( QBrush() );
     painter->setPen( QPen() );
@@ -123,17 +123,16 @@ void EarthquakeItem::setDepth( double depth )
 
 void EarthquakeItem::updateTooltip()
 {
-    QString html = "<table cellpadding=\"2\">";
+    QLocale locale = QLocale::system();
+    QString html = QLatin1String("<table cellpadding=\"2\">");
     if ( m_dateTime.isValid() ) {
-        html += "<tr><td align=\"right\">Date</td>";
-        html += "<td>" + m_dateTime.toString( Qt::SystemLocaleShortDate ) + "</td></tr>";
+        html += QLatin1String("<tr><td align=\"right\">") + tr("Date:") + QLatin1String("</td><td>") + locale.toString(m_dateTime, QLocale::ShortFormat) + QLatin1String("</td></tr>");
     }
-    html += "<tr><td align=\"right\">Magnitude</td><td>" + QString::number( m_magnitude ) + "</td></tr>";
-    html += "<tr><td align=\"right\">Depth</td><td>" + QString::number( m_depth ) + " km</td></tr>";
-    html += "</table>";
+    html +=
+        QLatin1String("<tr><td align=\"right\">") + tr("Magnitude:") + QLatin1String("</td><td>") + locale.toString(m_magnitude) + QLatin1String("</td></tr><tr><td align=\"right\">") + tr("Depth:") + QLatin1String("</td><td>") + locale.toString(m_depth) + QLatin1String(" km</td></tr></table>");
     setToolTip( html );
 }
 
 }
 
-#include "EarthquakeItem.moc"
+#include "moc_EarthquakeItem.cpp"

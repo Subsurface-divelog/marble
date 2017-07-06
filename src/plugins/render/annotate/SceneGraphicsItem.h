@@ -33,7 +33,7 @@ class SceneGraphicsItem : public GeoGraphicsItem
 {
 public:
     explicit SceneGraphicsItem( GeoDataPlacemark *placemark );
-    ~SceneGraphicsItem();
+    ~SceneGraphicsItem() override;
 
     enum ActionState {
         // General action states
@@ -66,15 +66,33 @@ public:
         ShowNodeRmbMenu,
         StartPolygonAnimation,
         RemovePolygonRequest,
+        ChangeCursorPolygonNodeHover,
+        ChangeCursorPolygonBodyHover,
 
         // Placemark specific
         ShowPlacemarkRmbMenu,
+        ChangeCursorPlacemarkHover,
 
         // Polyline specific
         RemovePolylineRequest,
         ShowPolylineRmbMenu,
-        StartPolylineAnimation
+        StartPolylineAnimation,
+        ChangeCursorPolylineNodeHover,
+        ChangeCursorPolylineLineHover,
+
+        // GroundOverlay specific
+        ChangeCursorOverlayVerticalHover,
+        ChangeCursorOverlayHorizontalHover,
+        ChangeCursorOverlayBDiagHover,
+        ChangeCursorOverlayFDiagHover,
+        ChangeCursorOverlayBodyHover,
+        ChangeCursorOverlayRotateHover
     };
+
+    /**
+     * @copydoc
+     */
+    const GeoDataLatLonAltBox &latLonAltBox() const override;
 
     /**
      * @brief Pure virtual method which is implemented by concrete scene graphic items

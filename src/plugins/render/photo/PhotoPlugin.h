@@ -13,12 +13,8 @@
 
 #include "AbstractDataPlugin.h"
 #include "DialogConfigurationInterface.h"
-#include "RenderPlugin.h"
-#include "RenderPluginInterface.h"
 
 #include <QHash>
-
-class QIcon;
 
 namespace Ui
 {
@@ -31,7 +27,7 @@ namespace Marble
 class PhotoPlugin : public AbstractDataPlugin, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.PhotoPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.PhotoPlugin")
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( PhotoPlugin )
@@ -41,40 +37,40 @@ class PhotoPlugin : public AbstractDataPlugin, public DialogConfigurationInterfa
 
     explicit PhotoPlugin( const MarbleModel *marbleModel );
 
-    ~PhotoPlugin();
+    ~PhotoPlugin() override;
 
-    void initialize();
+    void initialize() override;
 
-    QString name() const;
+    QString name() const override;
     
-    QString guiString() const;
+    QString guiString() const override;
 
-    QString nameId() const;
+    QString nameId() const override;
     
-    QString version() const;
+    QString version() const override;
 
-    QString description() const;
+    QString description() const override;
 
-    QString copyrightYears() const;
+    QString copyrightYears() const override;
 
-    QList<PluginAuthor> pluginAuthors() const;
+    QVector<PluginAuthor> pluginAuthors() const override;
 
-    QIcon icon() const;
+    QIcon icon() const override;
 
-    QDialog *configDialog();
+    QDialog *configDialog() override;
 
     /**
      * @return: The settings of the item.
      */
-    virtual QHash<QString,QVariant> settings() const;
+    QHash<QString,QVariant> settings() const override;
 
     /**
      * Set the settings of the item.
      */
-    virtual void setSettings( const QHash<QString,QVariant> &settings );
+    void setSettings( const QHash<QString,QVariant> &settings ) override;
 
  protected:
-    bool eventFilter( QObject *object, QEvent *event );
+    bool eventFilter( QObject *object, QEvent *event ) override;
 
  private Q_SLOTS:
    void readSettings();

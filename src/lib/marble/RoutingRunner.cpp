@@ -9,12 +9,14 @@
 
 #include "RoutingRunner.h"
 
-#include "GeoDataPlacemark.h"
 #include "GeoDataExtendedData.h"
+#include "GeoDataData.h"
 #include "MarbleGlobal.h"
 #include "MarbleLocale.h"
 
+#include <QTime>
 #include <QString>
+#include <QVariant>
 
 namespace Marble
 {
@@ -70,25 +72,25 @@ const QString RoutingRunner::durationString(const QTime& duration) const
 {
     const QString hoursString = duration.toString( "hh" );
     const QString minutesString = duration.toString( "mm" );
-    const QString timeString = tr("%1:%2 h","journey duration").arg( hoursString ).arg( minutesString );
+    const QString timeString = tr("%1:%2 h","journey duration").arg( hoursString, minutesString );
     return timeString;
 }
 
 const QString RoutingRunner::nameString(const QString& name, qreal length, const QTime& duration) const
 {
     const QString result = "%1; %2 (%3)";
-    return result.arg( lengthString( length ) ).arg( durationString( duration ) ).arg( name );
+    return result.arg( lengthString( length ), durationString( duration ), name );
 }
 
 const GeoDataExtendedData RoutingRunner::routeData(qreal length, const QTime& duration) const
 {
     GeoDataExtendedData result;
     GeoDataData lengthData;
-    lengthData.setName( "length" );
+    lengthData.setName(QStringLiteral("length"));
     lengthData.setValue( length );
     result.addValue( lengthData );
     GeoDataData durationData;
-    durationData.setName( "duration" );
+    durationData.setName(QStringLiteral("duration"));
     durationData.setValue( duration.toString( Qt::ISODate ) );
     result.addValue( durationData );
     return result;
@@ -96,4 +98,4 @@ const GeoDataExtendedData RoutingRunner::routeData(qreal length, const QTime& du
 
 }
 
-#include "RoutingRunner.moc"
+#include "moc_RoutingRunner.cpp"

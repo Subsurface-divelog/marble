@@ -21,12 +21,14 @@ namespace Marble
 
 class GeoDataSimpleDataPrivate;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataSimpleData : public GeoNode
 {
 public:
     GeoDataSimpleData();
     GeoDataSimpleData( const GeoDataSimpleData &other );
-    virtual ~GeoDataSimpleData();
+    ~GeoDataSimpleData() override;
 
     /*
      * @brief Returns the value of name attribute of SimpleData tag
@@ -62,7 +64,7 @@ public:
     /*
      * Provides information for downcasting a GeoNode
      */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     /*
      * Seriliaze SimpleData to stream @p stream

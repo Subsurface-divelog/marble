@@ -20,7 +20,7 @@ Copyright 2009, 2010  Jens-Michael Hoffmann <jmho@c-xx.com>
 #include "DgmlAttributeDictionary.h"
 #include "DgmlElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoSceneTiled.h"
+#include "GeoSceneTileDataset.h"
 
 #include "MarbleGlobal.h"
 #include "MarbleDebug.h"
@@ -40,7 +40,7 @@ static GeoTagHandlerRegistrar handler( GeoParser::QualifiedName( dgmlTag_Downloa
 GeoNode* DgmlDownloadPolicyTagHandler::parse( GeoParser& parser ) const
 {
     // Check whether the tag is valid
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( dgmlTag_DownloadPolicy ));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(dgmlTag_DownloadPolicy)));
 
     // Checking for parent item
     GeoStackItem parentItem = parser.parentElement();
@@ -52,9 +52,9 @@ GeoNode* DgmlDownloadPolicyTagHandler::parse( GeoParser& parser ) const
     // Attribute usage
     DownloadUsage usage;
     const QString usageStr = parser.attribute( dgmlAttr_usage ).trimmed();
-    if ( usageStr == "Browse" )
+    if (usageStr == QLatin1String("Browse"))
         usage = DownloadBrowse;
-    else if ( usageStr == "Bulk" )
+    else if (usageStr == QLatin1String("Bulk"))
         usage = DownloadBulk;
     else {
         qCritical( "Parse error: invalid attribute downloadPolicy/@usage" );
@@ -70,7 +70,7 @@ GeoNode* DgmlDownloadPolicyTagHandler::parse( GeoParser& parser ) const
         return 0;
     }
 
-    parentItem.nodeAs<GeoSceneTiled>()->addDownloadPolicy( usage, maximumConnections );
+    parentItem.nodeAs<GeoSceneTileDataset>()->addDownloadPolicy( usage, maximumConnections );
     return 0;
 }
 

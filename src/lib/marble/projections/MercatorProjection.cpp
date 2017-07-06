@@ -17,15 +17,20 @@
 
 // Marble
 #include "ViewportParams.h"
+#include "GeoDataLatLonAltBox.h"
 
 #include "MathHelper.h"
 #include "GeoDataPoint.h"
 #include "MarbleMath.h"
 
+#include <QIcon>
+
 using namespace Marble;
 
 MercatorProjection::MercatorProjection()
-    : CylindricalProjection()
+    : CylindricalProjection(),
+      m_lastCenterLat(200.0),
+      m_lastCenterLatInv(0.0)
 {
     setMinLat( minValidLat() );
     setMaxLat( maxValidLat() );
@@ -47,7 +52,7 @@ QString MercatorProjection::description() const
 
 QIcon MercatorProjection::icon() const
 {
-    return QIcon(":/icons/map-mercator.png");
+    return QIcon(QStringLiteral(":/icons/map-mercator.png"));
 }
 
 qreal MercatorProjection::maxValidLat() const
@@ -68,23 +73,11 @@ bool MercatorProjection::screenCoordinates( const GeoDataCoordinates &geopoint,
 {
     globeHidesPoint = false;
     qreal  lon;
-    qreal  lat;
+    qreal  originalLat;
 
-    geopoint.geoCoordinates( lon, lat );
-
-    const bool isLatValid = minLat() <= lat && lat <= maxLat();
-
-    if ( lat > maxLat() ) {
-        GeoDataCoordinates approxCoords( geopoint );
-        approxCoords.setLatitude( maxLat() );
-        approxCoords.geoCoordinates( lon, lat );
-    }
-
-    if ( lat < minLat() ) {
-        GeoDataCoordinates approxCoords( geopoint );
-        approxCoords.setLatitude( minLat() );
-        approxCoords.geoCoordinates( lon, lat );
-    }
+    geopoint.geoCoordinates( lon, originalLat );
+    qreal const lat = qBound(minLat(), originalLat, maxLat());
+    const bool isLatValid = lat == originalLat;
 
     // Convenience variables
     int  radius = viewport->radius();
@@ -95,10 +88,14 @@ bool MercatorProjection::screenCoordinates( const GeoDataCoordinates &geopoint,
 
     const qreal centerLon = viewport->centerLongitude();
     const qreal centerLat = viewport->centerLatitude();
+    if (centerLat != m_lastCenterLat) {
+        m_lastCenterLatInv = gdInv(centerLat);
+        m_lastCenterLat = centerLat;
+    }
 
     // Let (x, y) be the position on the screen of the placemark..
     x = ( width  / 2 + rad2Pixel * ( lon - centerLon ) );
-    y = ( height / 2 - rad2Pixel * ( gdInv( lat ) - gdInv( centerLat ) ) );
+    y = ( height / 2 - rad2Pixel * ( gdInv( lat ) - m_lastCenterLatInv ) );
 
     // Return true if the calculated point is inside the screen area,
     // otherwise return false.
@@ -160,7 +157,7 @@ bool MercatorProjection::screenCoordinates( const GeoDataCoordinates &coordinate
 
         pointRepeatNum = itNum;
 
-        return visible && true;
+        return visible;
     }
 
     // the requested point is out of the visible y range:
@@ -271,8 +268,5 @@ bool MercatorProjection::mapCoversViewport( const ViewportParams *viewport ) con
     int yTop          = height / 2 - 2 * radius + yCenterOffset;
     int yBottom       = yTop + 4 * radius;
 
-    if ( yTop >= 0 || yBottom < height )
-        return false;
-
-    return true;
+    return !(yTop >= 0 || yBottom < height);
 }

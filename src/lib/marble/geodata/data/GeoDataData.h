@@ -11,18 +11,19 @@
 #ifndef MARBLE_GEODATADATA_H
 #define MARBLE_GEODATADATA_H
 
-#include <QString>
-#include <QVariant>
-
 #include "GeoDataObject.h"
 
 #include "geodata_export.h"
+
+class QVariant;
 
 namespace Marble
 {
 
 class GeoDataDataPrivate;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataData : public GeoDataObject
 {
   public:
@@ -34,7 +35,7 @@ class GEODATA_EXPORT GeoDataData : public GeoDataObject
     GeoDataData( const GeoDataData& other );
     bool operator==( const GeoDataData& other ) const;
     bool operator!=( const GeoDataData& other ) const;
-    virtual ~GeoDataData();
+    ~GeoDataData() override;
 
     /**
      * @brief assignment operator
@@ -42,8 +43,14 @@ class GEODATA_EXPORT GeoDataData : public GeoDataObject
     GeoDataData& operator=( const GeoDataData& other );
 
     /// Provides type information for downcasting a GeoData
-    virtual const char* nodeType() const;
-    
+    const char* nodeType() const override;
+
+    /**
+    * @brief return a reference to the value of data;
+    */
+    QVariant& valueRef();
+    const QVariant& valueRef() const;
+
     /**
     * @brief return the value of data
     */
@@ -78,10 +85,10 @@ class GEODATA_EXPORT GeoDataData : public GeoDataObject
     void setDisplayName( const QString& displayName );
 
     /// Serialize the contents of the feature to @p stream.
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
     /// Unserialize the contents of the feature from @p stream.
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
   private:
     GeoDataDataPrivate * const d;

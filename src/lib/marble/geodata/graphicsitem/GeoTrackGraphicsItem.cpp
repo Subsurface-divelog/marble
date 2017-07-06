@@ -11,15 +11,21 @@
 #include "GeoTrackGraphicsItem.h"
 
 #include "GeoDataLineString.h"
+#include "GeoDataPlacemark.h"
 #include "GeoDataTrack.h"
 #include "MarbleDebug.h"
+#include "StyleBuilder.h"
 
 using namespace Marble;
 
-GeoTrackGraphicsItem::GeoTrackGraphicsItem( const GeoDataFeature *feature, const GeoDataTrack *track )
-    : GeoLineStringGraphicsItem( feature, new GeoDataLineString() )
+GeoTrackGraphicsItem::GeoTrackGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataTrack *track) :
+    GeoLineStringGraphicsItem(placemark, track->lineString())
 {
     setTrack( track );
+    if (placemark) {
+        QString const paintLayer = QLatin1String("Track/") + StyleBuilder::visualCategoryName(placemark->visualCategory());
+        setPaintLayers(QStringList() << paintLayer);
+    }
 }
 
 void GeoTrackGraphicsItem::setTrack( const GeoDataTrack* track )
@@ -28,11 +34,12 @@ void GeoTrackGraphicsItem::setTrack( const GeoDataTrack* track )
     update();
 }
 
-void GeoTrackGraphicsItem::paint( GeoPainter *painter, const ViewportParams *viewport )
+void GeoTrackGraphicsItem::paint(GeoPainter *painter, const ViewportParams *viewport , const QString &layer, int tileZoomLevel)
 {
+    Q_UNUSED(layer);
+    Q_UNUSED(tileZoomLevel);
     update();
-
-    GeoLineStringGraphicsItem::paint( painter, viewport );
+    GeoLineStringGraphicsItem::paint(painter, viewport, layer, tileZoomLevel);
 }
 
 void GeoTrackGraphicsItem::update()

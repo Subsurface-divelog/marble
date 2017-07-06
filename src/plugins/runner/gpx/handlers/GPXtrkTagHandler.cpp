@@ -26,6 +26,7 @@
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
+#include "GeoDataMultiGeometry.h"
 
 namespace Marble
 {
@@ -35,7 +36,7 @@ GPX_DEFINE_TAG_HANDLER(trk)
 
 GeoNode* GPXtrkTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_trk));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_trk)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_gpx))
@@ -45,7 +46,7 @@ GeoNode* GPXtrkTagHandler::parse(GeoParser& parser) const
         doc->append(placemark);
         GeoDataMultiGeometry *multigeometry = new GeoDataMultiGeometry;
         placemark->setGeometry(multigeometry);
-        placemark->setStyleUrl("#map-track");
+        placemark->setStyleUrl(QStringLiteral("#map-track"));
 
         return placemark;
     }

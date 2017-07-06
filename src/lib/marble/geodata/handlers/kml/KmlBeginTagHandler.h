@@ -11,7 +11,6 @@
 #ifndef KmlBeginTagHandler_h
 #define KmlBeginTagHandler_h
 
-#include <QString>
 #include "GeoTagHandler.h"
 
 namespace Marble
@@ -22,7 +21,7 @@ namespace kml
 class KmlbeginTagHandler : public GeoTagHandler
 {
 public:
-    virtual GeoNode* parse(GeoParser&) const;
+    GeoNode* parse(GeoParser&) const override;
 };
 
 }

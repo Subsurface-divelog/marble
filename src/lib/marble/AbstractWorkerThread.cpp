@@ -24,7 +24,7 @@ const int WAIT_TIME = 100;
 class AbstractWorkerThreadPrivate
 {
  public:
-    AbstractWorkerThreadPrivate( AbstractWorkerThread *parent )
+    explicit AbstractWorkerThreadPrivate( AbstractWorkerThread *parent )
             : m_running( false ),
               m_end( false ),
               m_parent( parent )
@@ -37,8 +37,8 @@ class AbstractWorkerThreadPrivate
         m_parent->wait( 1000 );
     }
 
-    bool m_running;
     QMutex m_runningMutex;
+    bool m_running;
     bool m_end;
 
     AbstractWorkerThread *m_parent;
@@ -95,4 +95,4 @@ void AbstractWorkerThread::run()
 
 }
 
-#include "AbstractWorkerThread.moc"
+#include "moc_AbstractWorkerThread.cpp"

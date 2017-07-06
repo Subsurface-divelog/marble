@@ -20,19 +20,15 @@
  * @author Inge Wallin  <inge@lysator.liu.se>
  */
 
-#include <QPixmap>
 #include <QWidget>
 
 #include "GeoDataCoordinates.h"
-#include "GeoDataLookAt.h"
 #include "MarbleGlobal.h"             // types needed in all of marble.
 #include "marble_export.h"
-#include "RenderState.h"
 
 // Qt
-class QAbstractItemModel;
-class QItemSelectionModel;
 class QSettings;
+class QPixmap;
 
 namespace Marble
 {
@@ -43,6 +39,7 @@ class GeoDataLatLonAltBox;
 class GeoDataLatLonBox;
 class GeoDataFeature;
 class GeoDataPlacemark;
+class GeoDataLookAt;
 class GeoPainter;
 class GeoSceneDocument;
 class LayerInterface;
@@ -53,19 +50,21 @@ class MarbleWidgetPopupMenu;
 class MarbleWidgetInputHandler;
 class MarbleWidgetPrivate;
 class RenderPlugin;
+class RenderState;
 class RoutingLayer;
 class TextureLayer;
 class TileCoordsPyramid;
 class TileCreator;
 class ViewportParams;
 class PopupLayer;
+class StyleBuilder;
 
 /**
  * @short A widget class that displays a view of the earth.
  *
  * This widget displays a view of the earth or any other globe,
  * depending on which dataset is used.  The user can navigate the
- * globe using either a control widget, e.g. the MarbleControlBox, or
+ * globe using either a control widget, e.g. the MarbleNavigator, or
  * the mouse.  The mouse and keyboard control is done through a
  * MarbleWidgetInputHandler. Only some aspects of the widget can be
  * controlled by the mouse and/or keyboard.
@@ -97,7 +96,7 @@ class PopupLayer;
  * Wikipedia to retrieve an article about it. If there is such an
  * article, you will get a mini-browser window with the article in a tab.
  *
- * @see MarbleControlBox
+ * @see MarbleNavigator
  * @see MarbleMap
  * @see MarbleModel
  */
@@ -142,6 +141,8 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
     Q_PROPERTY(bool showRivers   READ showRivers      WRITE setShowRivers)
     Q_PROPERTY(bool showLakes    READ showLakes       WRITE setShowLakes)
 
+    Q_PROPERTY(ViewContext viewContext READ viewContext WRITE setViewContext NOTIFY viewContextChanged)
+
     Q_PROPERTY( RenderStatus renderStatus READ renderStatus NOTIFY renderStatusChanged )
 
     Q_PROPERTY(quint64 volatileTileCacheLimit    READ volatileTileCacheLimit    WRITE setVolatileTileCacheLimit)
@@ -158,7 +159,7 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
      */
     explicit MarbleWidget( QWidget *parent = 0 );
 
-    virtual ~MarbleWidget();
+    ~MarbleWidget() override;
 
     /// @name Access to helper objects
     //@{
@@ -250,6 +251,11 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
     RoutingLayer* routingLayer();
 
     PopupLayer* popupLayer();
+
+    /**
+     * @since 0.26.0
+     */
+    const StyleBuilder* styleBuilder() const;
 
     /**
      * @brief  Get the Projection used for the map
@@ -354,6 +360,8 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
      * @return The latitude of the center point in degree.
      */
     qreal centerLatitude() const;
+
+    qreal heading() const;
 
     /**
      * @brief  Return how much the map will move if one of the move slots are called.
@@ -719,6 +727,8 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
      */
     void setCenterLongitude( qreal lon, FlyToMode mode = Instant );
 
+    void setHeading( qreal heading );
+
     /**
      * @brief  Move left by the moveStep.
      */
@@ -934,6 +944,35 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
      */
     void setShowRuntimeTrace( bool visible );
 
+    bool showRuntimeTrace() const;
+
+    /**
+     * @brief Set whether to enter the debug mode for
+     * polygon node drawing
+     * @param visible visibility of the node debug mode
+     */
+    void setShowDebugPolygons( bool visible);
+
+    bool showDebugPolygons() const;
+
+    /**
+     * @brief Set whether to enter the debug mode for
+     * batch rendering
+     * @param visible visibility of the batch rendering
+     */
+    void setShowDebugBatchRender( bool visible);
+
+    bool showDebugBatchRender() const;
+
+    /**
+     * @brief Set whether to enter the debug mode for
+     * placemark drawing
+     * @param visible visibility of the node debug mode
+     */
+    void setShowDebugPlacemarks(bool visible);
+
+    bool showDebugPlacemarks() const;
+
     /**
      * @brief Set the map quality for the specified view context.
      *
@@ -1020,6 +1059,8 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
 
     void tileLevelChanged( int level );
 
+    void viewContextChanged(ViewContext newViewContext);
+
     /**
      * @brief Signal that the theme has changed
      * @param theme  Name of the new theme.
@@ -1070,31 +1111,26 @@ class MARBLE_EXPORT MarbleWidget : public QWidget
     /**
      * @brief Reimplementation of the leaveEvent() function in QWidget.
      */
-    virtual void leaveEvent( QEvent *event );
+    void leaveEvent( QEvent *event ) override;
 
     /**
      * @brief Reimplementation of the paintEvent() function in QWidget.
      */
-    virtual void paintEvent( QPaintEvent *event );
+    void paintEvent( QPaintEvent *event ) override;
 
     /**
      * @brief Reimplementation of the resizeEvent() function in QWidget.
      */
-    virtual void resizeEvent( QResizeEvent *event );
+    void resizeEvent( QResizeEvent *event ) override;
 
-#if QT_VERSION < 0x050000
-    void connectNotify( const char * signal );
-    void disconnectNotify( const char * signal );
-#else
-    virtual void connectNotify(const QMetaMethod &signal);
-    virtual void disconnectNotify(const QMetaMethod &signal);
-#endif
+    void connectNotify(const QMetaMethod &signal) override;
+    void disconnectNotify(const QMetaMethod &signal) override;
 
     /**
       * @brief Reimplementation of the changeEvent() function in QWidget to
       * react to changes of the enabled state
       */
-    virtual void changeEvent( QEvent * event );
+    void changeEvent( QEvent * event ) override;
 
     /**
      * @brief Enables custom drawing onto the MarbleWidget straight after

@@ -10,9 +10,9 @@
 
 #include "PlaybackFlyToItem.h"
 
-#include "GeoDataTypes.h"
 #include "GeoDataLookAt.h"
 #include "GeoDataCamera.h"
+#include "GeoDataFlyTo.h"
 #include "Quaternion.h"
 
 #include <QTimer>
@@ -68,7 +68,7 @@ void PlaybackFlyToItem::playNext()
         if( m_isPlaying ){
             center( t );
             emit progressChanged( progress );
-            QTimer::singleShot( 5, this, SLOT( playNext() ) );
+            QTimer::singleShot( 5, this, SLOT(playNext()) );
         }
     } else {
         center( 1.0 );
@@ -132,4 +132,4 @@ void PlaybackFlyToItem::setFirst(bool isFirst)
 
 }
 
-#include "PlaybackFlyToItem.moc"
+#include "moc_PlaybackFlyToItem.cpp"

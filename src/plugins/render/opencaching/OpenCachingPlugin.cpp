@@ -96,7 +96,7 @@ QHash<QString,QVariant> OpenCachingPlugin::settings() const
     return m_settings;
 }
 
-void OpenCachingPlugin::setSettings( QHash<QString,QVariant> settings )
+void OpenCachingPlugin::setSettings(const QHash<QString, QVariant> &settings)
 {
     if ( !settings.contains( "numResults" ) ) {
         settings.insert( "numResults", numberOfItemsOnScreen );
@@ -186,6 +186,4 @@ void OpenCachingPlugin::validateDifficultyRange()
 
 }
 
-Q_EXPORT_PLUGIN2( OpenCachingPlugin, Marble::OpenCachingPlugin )
-
-#include "OpenCachingPlugin.moc"
+#include "moc_OpenCachingPlugin.cpp"

@@ -12,17 +12,20 @@
 #include "FileViewWidget.h"
 
 // Qt
-#include <QSortFilterProxyModel>
 #include <QFileDialog>
 #include <QMenu>
 #include <QAction>
+#include <QPointer>
 
 // Marble
+#include "GeoDataLatLonAltBox.h"
 #include "GeoDataContainer.h"
 #include "GeoDataDocument.h"
+#include "GeoDataDocumentWriter.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataTreeModel.h"
 #include "FileManager.h"
+#include "KmlElementDictionary.h"
 #include "MarblePlacemarkModel.h"
 #include "MarbleModel.h"
 #include "MarbleWidget.h"
@@ -40,7 +43,7 @@ class FileViewWidgetPrivate
 {
 
  public:
-    FileViewWidgetPrivate( FileViewWidget *parent );
+    explicit FileViewWidgetPrivate( FileViewWidget *parent );
     void setTreeModel( GeoDataTreeModel *model );
     void setFileManager( FileManager *manager );
 
@@ -143,7 +146,8 @@ void FileViewWidgetPrivate::saveFile()
         = index.model()->data( index, MarblePlacemarkModel::ObjectPointerRole ).value<GeoDataObject*>();
     GeoDataDocument *document = dynamic_cast<GeoDataDocument*>(object);
     if ( document && !document->fileName().isEmpty() ) {
-        m_fileManager->saveFile( QFileDialog::getSaveFileName( q, "Select filename for KML document" ), document );
+        const QString saveFileName = QFileDialog::getSaveFileName(q, QObject::tr("Select filename for KML document"));
+        GeoDataDocumentWriter::write(saveFileName, *document, kml::kmlTag_nameSpaceOgc22);
     }
 }
 
@@ -196,7 +200,7 @@ void FileViewWidgetPrivate::showPlacemarkDialog()
     GeoDataObject *obj = model->data(index, MarblePlacemarkModel::ObjectPointerRole).value<GeoDataObject*>();
     GeoDataPlacemark *placemark = dynamic_cast<GeoDataPlacemark*>(obj);
     if (placemark) {
-        QPointer<EditPlacemarkDialog> dialog = new EditPlacemarkDialog(placemark, q);
+        QPointer<EditPlacemarkDialog> dialog = new EditPlacemarkDialog(placemark, nullptr, q);
         dialog->setReadOnly(true);
         dialog->exec();
         delete dialog;
@@ -224,4 +228,4 @@ void FileViewWidget::mapCenterOnTreeViewModel( const QModelIndex &index )
 
 }
 
-#include "FileViewWidget.moc"
+#include "moc_FileViewWidget.cpp"

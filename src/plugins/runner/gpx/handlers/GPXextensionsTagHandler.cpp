@@ -14,8 +14,6 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
-#include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
 #include "GeoDataTrack.h"
 #include "GeoDataExtendedData.h"
@@ -28,7 +26,8 @@ GPX_DEFINE_TAG_HANDLER(extensions)
 
 GeoNode* GPXextensionsTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( gpxTag_extensions ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_extensions)));
+
     GeoStackItem parentItem = parser.parentElement();
 
     if ( parentItem.represents( gpxTag_trkpt ) )

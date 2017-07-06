@@ -15,30 +15,13 @@
 #include "marble_export.h"
 
 #include <QWidget>
-#include <QStyledItemDelegate>
-#include <QListView>
-#include <GeoDataCoordinates.h>
 
-class QItemSelection;
 class QModelIndex;
-class QDoubleSpinBox;
-class QRadioButton;
-class QLineEdit;
-class QToolButton;
-class QLabel;
 
 namespace Marble
 {
 
-class FileManager;
-class GeoDataPlacemark;
-class GeoDataLatLonBox;
-class GeoDataTreeModel;
 class GeoDataFeature;
-class GeoDataFlyTo;
-class GeoDataTourControl;
-class GeoDataWait;
-class GeoDataSoundCue;
 class GeoDataContainer;
 class MarbleWidget;
 
@@ -48,12 +31,15 @@ class MARBLE_EXPORT TourWidget : public QWidget
 {
     Q_OBJECT
 
- public:
+public:
     explicit TourWidget( QWidget *parent = 0, Qt::WindowFlags f = 0 );
-    ~TourWidget();
+    ~TourWidget() override;
 
     void setMarbleWidget( MarbleWidget *widget );
     bool openTour( const QString &filename );
+    bool isPlaying() const;
+
+    bool eventFilter( QObject *watched, QEvent *event ) override;
 
 public Q_SLOTS:
     void startPlaying();
@@ -61,6 +47,10 @@ public Q_SLOTS:
     void togglePlaying();
     void stopPlaying();
     void handleSliderMove( int );
+    /**
+     * Highlights the item curently being played.
+     */
+    void setHighlightedItemIndex( int index );
 
 Q_SIGNALS:
     void featureUpdated( GeoDataFeature *feature );
@@ -79,8 +69,12 @@ private Q_SLOTS:
     void deleteSelected();
     void updateDuration();
     void finishAddingItem();
+    void stopLooping();
 
- private:
+protected:
+    void closeEvent( QCloseEvent *event ) override;
+
+private:
     Q_PRIVATE_SLOT( d, void openFile() )
     Q_PRIVATE_SLOT( d, void createTour() )
     Q_PRIVATE_SLOT( d, void saveTour() )
@@ -91,6 +85,7 @@ private Q_SLOTS:
     Q_PRIVATE_SLOT( d, void handlePlaybackProgress( const double position ) )
     Q_DISABLE_COPY( TourWidget )
 
+    void removeHighlight();
     TourWidgetPrivate * const d;
 };
 

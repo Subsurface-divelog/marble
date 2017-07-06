@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012 Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "DownloadRegion.h"
@@ -17,6 +17,8 @@
 #include "TextureLayer.h"
 #include "GeoDataLatLonAltBox.h"
 #include "GeoDataLineString.h"
+#include "GeoSceneAbstractTileProjection.h"
+#include "TileCoordsPyramid.h"
 
 namespace Marble {
 
@@ -56,10 +58,10 @@ int DownloadRegionPrivate::rad2PixelY( qreal const lat, const TextureLayer *text
     qreal const globalHeight = textureLayer->tileSize().height()
             * textureLayer->tileRowCount( m_visibleTileLevel );
     qreal const normGlobalHeight = globalHeight / M_PI;
-    switch ( textureLayer->tileProjection() ) {
-    case GeoSceneTiled::Equirectangular:
+    switch (textureLayer->tileProjection()->type()) {
+    case GeoSceneAbstractTileProjection::Equirectangular:
         return static_cast<int>( globalHeight * 0.5 - lat * normGlobalHeight );
-    case GeoSceneTiled::Mercator:
+    case GeoSceneAbstractTileProjection::Mercator:
         if ( fabs( lat ) < 1.4835 )
             return static_cast<int>( globalHeight * 0.5 - gdInv( lat ) * 0.5 * normGlobalHeight );
         if ( lat >= +1.4835 )
@@ -252,4 +254,4 @@ QVector<TileCoordsPyramid> DownloadRegion::fromPath( const TextureLayer *texture
 
 }
 
-#include "DownloadRegion.moc"
+#include "moc_DownloadRegion.cpp"

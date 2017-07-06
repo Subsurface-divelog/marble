@@ -16,6 +16,7 @@
 #include "GeoDataDocument.h"
 #include "GeoDataLineString.h"
 #include "GeoDataObject.h"
+#include "GeoDataMultiGeometry.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataTrack.h"
 #include "GeoDataTreeModel.h"
@@ -36,10 +37,10 @@ ElevationProfileDataSource::ElevationProfileDataSource( QObject *parent ) :
     // nothing to do
 }
 
-QList<QPointF> ElevationProfileDataSource::calculateElevationData( const GeoDataLineString &lineString ) const
+QVector<QPointF> ElevationProfileDataSource::calculateElevationData(const GeoDataLineString &lineString) const
 {
     // TODO: Don't re-calculate the whole route if only a small part of it was changed
-    QList<QPointF> result;
+    QVector<QPointF> result;
     qreal distance = 0;
 
     //GeoDataLineString path;
@@ -162,7 +163,7 @@ void ElevationProfileTrackDataSource::handleObjectAdded(GeoDataObject *object)
         QList<const GeoDataTrack *> list = i.value();
         for (int i = 0; i<list.size(); ++i) {
             m_trackList << list[i];
-            m_trackChooserList << QString(filename + ": " + QString::number(i));
+            m_trackChooserList << QString(filename + QLatin1String(": ") + QString::number(i));
         }
     }
     if (selectedTrack) {
@@ -226,7 +227,7 @@ void ElevationProfileRouteDataSource::requestUpdate()
     }
 
     const GeoDataLineString routePoints = m_routingModel->route().path();
-    const QList<QPointF> elevationData = calculateElevationData( routePoints );
+    const QVector<QPointF> elevationData = calculateElevationData(routePoints);
     emit dataUpdated( routePoints, elevationData );
 }
 
@@ -240,14 +241,11 @@ qreal ElevationProfileRouteDataSource::getElevation(const GeoDataCoordinates &co
     const qreal lat = coordinates.latitude ( GeoDataCoordinates::Degree );
     const qreal lon = coordinates.longitude( GeoDataCoordinates::Degree );
     qreal ele = m_elevationModel->height( lon, lat );
-    if ( ele == invalidElevationData ) { // no data
-        ele = 0;
-    }
     return ele;
 }
 // end of impl of ElevationProfileRouteDataSource
 
 }
 
-#include "ElevationProfileDataSource.moc"
+#include "moc_ElevationProfileDataSource.cpp"
 

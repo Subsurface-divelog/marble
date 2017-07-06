@@ -18,7 +18,6 @@
 #include <QDir>
 #include <QPointer>
 #include <QStringList>
-#include <QTimer>
 #include <QClipboard>
 #include <QLabel>
 #include <QFontMetrics>
@@ -26,45 +25,33 @@
 #include <QPrintDialog>
 #include <QProgressBar>
 #include <QStandardItemModel>
-#include <QShortcut>
 #include <QNetworkProxy>
-#include <QLabel>
+#include <QDomDocument>
+#include <QDomNodeList>
+#include <QFileDialog>
+#include <QMenu>
+#include <QStatusBar>
 
-// KDE
+// KF
 #include <kaboutdata.h>
-#include <kaction.h>
 #include <kactioncollection.h>
-#include <kapplication.h>
-#include <kcomponentdata.h>
 #include <kconfigdialog.h>
-#include <kdeversion.h>
-#include <kfiledialog.h>
-#include <kicon.h>
-#include <klocale.h>
-#include <kmenu.h>
+#include <klocalizedstring.h>
 #include <kmessagebox.h>
 #include <kpluginfactory.h>
 #include <kparts/statusbarextension.h>
 #include <kstandardaction.h>
-#include <kstatusbar.h>
 #include <ktoggleaction.h>
 #include <ktogglefullscreenaction.h>
-#include <knewstuff3/knewstuffaction.h>
-#include <knewstuff3/downloaddialog.h>
-#include <knewstuff3/uploaddialog.h>
-#include <KDE/KStandardDirs>
-#include <kdeprintdialog.h>
-#include <KDE/KToolBar>
-#include <KDE/KWallet/Wallet>
+#include <kns3/knewstuffaction.h>
+#include <kns3/uploaddialog.h>
 
 // Marble library classes
 #include "AbstractFloatItem.h"
-#include "AbstractDataPlugin.h"
 #include "EditBookmarkDialog.h"
 #include "BookmarkManager.h"
 #include "BookmarkManagerDialog.h"
 #include "CurrentLocationWidget.h"
-#include "DialogConfigurationInterface.h"
 #include "DownloadRegionDialog.h"
 #include "GeoDataCoordinates.h"
 #include "GeoDataFolder.h"
@@ -100,6 +87,7 @@
 #include "cloudsync/BookmarkSyncManager.h"
 #include "MovieCaptureDialog.h"
 #include "cloudsync/RouteSyncManager.h"
+#include "cloudsync/CloudSyncManager.h"
 
 // Marble non-library classes
 #include "ControlView.h"
@@ -117,10 +105,10 @@ namespace Marble
 
 namespace
 {
-    const char* POSITION_STRING = I18N_NOOP( "Position: %1" );
-    const char* DISTANCE_STRING = I18N_NOOP( "Altitude: %1" );
-    const char* TILEZOOMLEVEL_STRING = I18N_NOOP( "Tile Zoom Level: %1" );
-    const char* DATETIME_STRING = I18N_NOOP( "Time: %1" );
+    const char POSITION_STRING[] = I18N_NOOP( "Position: %1" );
+    const char DISTANCE_STRING[] = I18N_NOOP( "Altitude: %1" );
+    const char TILEZOOMLEVEL_STRING[] = I18N_NOOP( "Tile Zoom Level: %1" );
+    const char DATETIME_STRING[] = I18N_NOOP( "Time: %1" );
 }
 
 K_PLUGIN_FACTORY(MarblePartFactory, registerPlugin<MarblePart>();)
@@ -137,9 +125,8 @@ MarblePart::MarblePart( QWidget *parentWidget, QObject *parent, const QVariantLi
     m_stopRecordingAction( 0 ),
     m_recentFilesAction( 0 ),
     m_configDialog( 0 ),
-    m_wallet( 0 ),
-    m_position( i18n( NOT_AVAILABLE ) ),
-    m_tileZoomLevel( i18n( NOT_AVAILABLE ) ),
+    m_position( QCoreApplication::translate( "Marble", NOT_AVAILABLE ) ),
+    m_tileZoomLevel( QCoreApplication::translate( "Marble", NOT_AVAILABLE ) ),
     m_positionLabel( 0 ),
     m_distanceLabel( 0 )
 {
@@ -151,14 +138,17 @@ MarblePart::MarblePart( QWidget *parentWidget, QObject *parent, const QVariantLi
     // This has to happen before any initialization so plugins (for example) can
     // use it during initialization.
     MarbleLocale *marbleLocale = MarbleGlobal::getInstance()->locale();
-    KLocale *kLocale = KGlobal::locale();
-    if ( kLocale->measureSystem() == KLocale::Metric ) {
-        marbleLocale->setMeasurementSystem( MarbleLocale::MetricSystem );
-    }
-    else {
-        marbleLocale->setMeasurementSystem( MarbleLocale::ImperialSystem );
-    }
+    // KF5 TODO: Read Connecting Calls to Catalogs" in ki18n programmer's guide
+    //           and enable translations
+    //     KLocale *kLocale = KGlobal::locale();
+//     if ( kLocale->measureSystem() == KLocale::Metric ) {
+//         marbleLocale->setMeasurementSystem( QLocale::MetricSystem );
+//     }
+//     else {
+//         marbleLocale->setMeasurementSystem( QLocale::ImperialSystem );
+//     }
 
+    marbleLocale->setMeasurementSystem( MarbleLocale::ImperialSystem );
     migrateNewstuffConfigFiles();
 
     m_externalEditorMapping[0] = "";
@@ -221,12 +211,14 @@ ControlView* MarblePart::controlView() const
 
 KAboutData *MarblePart::createAboutData()
 {
-    return new KAboutData( I18N_NOOP( "marble_part" ), 0,
-                           ki18n( "A Virtual Globe" ),
-                           ControlView::applicationVersion().toLatin1() );
+    return new KAboutData( QString( I18N_NOOP( "marble_part" ) ),
+                           QString( "Marble" ),
+                           ControlView::applicationVersion(),
+                           i18n( "A Virtual Globe" ),
+                           KAboutLicense::LGPL_V2 );
 }
 
-bool MarblePart::openUrl( const KUrl &url )
+bool MarblePart::openUrl( const QUrl &url )
 {
     QFileInfo fileInfo( url.toLocalFile() );
     if ( fileInfo.isReadable() ) {
@@ -236,7 +228,7 @@ bool MarblePart::openUrl( const KUrl &url )
     }
 
     KMessageBox::error( widget(),
-        i18n( "Sorry, unable to open '%1'. The file is not accessible." ).arg( fileInfo.fileName() ),
+        i18n( "Sorry, unable to open '%1'. The file is not accessible.", fileInfo.fileName() ),
         i18n( "File not accessible" ) );
     return false;
 }
@@ -247,35 +239,33 @@ bool MarblePart::openFile()
 
     QStringList allFileExtensions;
     QStringList filters;
-    foreach ( const ParseRunnerPlugin *plugin, pluginManager->parsingRunnerPlugins() ) {
-        if ( plugin->nameId() == "Cache" )
+    for ( const ParseRunnerPlugin *plugin: pluginManager->parsingRunnerPlugins() ) {
+        if (plugin->nameId() == QLatin1String("Cache"))
             continue;
 
         const QStringList fileExtensions = plugin->fileExtensions().replaceInStrings( QRegExp( "^" ), "*." );
-        const QString filter = QString( "%1|%2" ).arg( fileExtensions.join( " " ) ).arg( plugin->fileFormatDescription() );
+        const QString filter = plugin->fileFormatDescription() + QLatin1String(" (") + fileExtensions.join(QLatin1Char(' ')) + QLatin1Char(')');
         filters << filter;
-
         allFileExtensions << fileExtensions;
     }
 
-    allFileExtensions.sort();
-    const QString allFileTypes = QString( "%1|%2" ).arg( allFileExtensions.join( " " ) ).arg( i18n( "All Supported Files" ) );
+    allFileExtensions.sort();  // sort since file extensions are visible under Windows
+    const QString allFileTypes = i18n("All Supported Files") + QLatin1String(" (") + allFileExtensions.join(QLatin1Char(' ')) + QLatin1Char(')');
 
     filters.sort();
     filters.prepend( allFileTypes );
-    const QString filter = filters.join( "\n" );
+    const QString filter = filters.join( ";;" );
 
-    QStringList fileNames = KFileDialog::getOpenFileNames( m_lastFileOpenPath, filter,
-                                            widget(), i18n("Open File")
-                                           );
+    QStringList fileNames = QFileDialog::getOpenFileNames( widget(), i18n("Open File"),
+                                                           m_lastFileOpenPath, filter );
 
     if ( !fileNames.isEmpty() ) {
         const QString firstFile = fileNames.first();
-        m_lastFileOpenPath = KUrl::fromLocalFile( QFileInfo( firstFile ).absolutePath() );
+        m_lastFileOpenPath = QFileInfo( firstFile ).absolutePath();
     }
 
-    foreach( const QString &fileName, fileNames ) {
-        openUrl( fileName );
+    for( const QString &fileName: fileNames ) {
+        openUrl( QUrl::fromLocalFile(fileName) );
     }
 
     return true;
@@ -283,9 +273,8 @@ bool MarblePart::openFile()
 
 void MarblePart::exportMapScreenShot()
 {
-    QString  fileName = KFileDialog::getSaveFileName( QDir::homePath(),
-                                                      i18n( "Images *.jpg *.png" ),
-                                                      widget(), i18n("Export Map") );
+    QString  fileName = QFileDialog::getSaveFileName( widget(), i18n("Export Map"), QDir::homePath(),
+                                                      i18n( "Images *.jpg *.png" ) );
 
     if ( !fileName.isEmpty() ) {
         // Take the case into account where no file format is indicated
@@ -349,8 +338,8 @@ void MarblePart::showDownloadProgressBar( bool isChecked )
 
 void MarblePart::showFullScreen( bool isChecked )
 {
-    if ( KApplication::activeWindow() )
-        KToggleFullScreenAction::setFullScreen( KApplication::activeWindow(), isChecked );
+    if ( QApplication::activeWindow() )
+        KToggleFullScreenAction::setFullScreen( QApplication::activeWindow(), isChecked );
 
     m_fullScreenAct->setChecked( isChecked ); // Sync state with the GUI
 }
@@ -420,7 +409,7 @@ void MarblePart::workOffline( bool offline )
 void MarblePart::copyMap()
 {
     QPixmap      mapPixmap = m_controlView->mapScreenShot();
-    QClipboard  *clipboard = KApplication::clipboard();
+    QClipboard  *clipboard = QApplication::clipboard();
 
     clipboard->setPixmap( mapPixmap );
 }
@@ -438,55 +427,7 @@ void MarblePart::copyCoordinates()
 
 void MarblePart::readSettings()
 {
-    kDebug() << "Start: MarblePart::readSettings()";
-
-    // Open a wallet.
-    QString m_walletFolderName="Marble";
-    m_wallet = KWallet::Wallet::openWallet( KWallet::Wallet::NetworkWallet(), 0 );
-    if ( m_wallet == 0 ) {
-        if ( MarbleSettings::accessKWallet() ) {
-            QPointer<KDialog> confirmDialog = new KDialog( m_controlView );
-            confirmDialog->setCaption( i18n( "Please allow access to KWallet." ) );
-            QLabel *body = new QLabel();
-            body->setText( i18n( "You haven't allowed Marble to use KWallet yet.\n"
-                               "This is dangerous since Marble will store your password without encryption.\n"
-                               "Are you sure?" ) );
-            confirmDialog->setMainWidget( body );
-            confirmDialog->setButtons( KDialog::Yes | KDialog::No );
-            if ( confirmDialog->exec() == KDialog::Yes ) {
-                // User wants to save his password in plain text.
-                MarbleSettings::setAccessKWallet( false );
-            }
-            else {
-                m_wallet = KWallet::Wallet::openWallet( KWallet::Wallet::NetworkWallet(), 0 );
-                if ( m_wallet == 0 ) {
-                    // Show dialog and ask why user don't allowed. 
-                    // If user didn't see KWallet dialog it means that he deny forever.
-                    // Show instructions how to disable the block.
-                    QPointer<KDialog> confirmDialog = new KDialog( m_controlView );
-                    confirmDialog->setCaption( i18n( "Do you allow Marble to use KWallet?" ) );
-                    QLabel *body = new QLabel();
-                    body->setText( i18n( "You still don't allow Marble to use KWallet.\n"
-                                       "If you haven't seen the KWallet dialog asking to allow access, it means that you have disabled it.\n"
-                                       "If you would like to change this see System Information -> Account Details -> KDE Wallet -> Access Control.\n"
-                                       "Choose your wallet and allow Marble to use it." ) );
-                    confirmDialog->setMainWidget( body );
-                    confirmDialog->setButtons( KDialog::Ok );
-                    confirmDialog->exec();
-                    // User wants to save his passwords in plain text.
-                    MarbleSettings::setAccessKWallet( false );
-                    delete confirmDialog;
-                }
-            }
-            delete confirmDialog;
-        }
-    }
-    if ( m_wallet ) {
-        if ( !m_wallet->hasFolder( m_walletFolderName ) ) {
-            m_wallet->createFolder( m_walletFolderName );
-        }
-        m_wallet->setFolder( m_walletFolderName );
-    }
+    qDebug() << "Start: MarblePart::readSettings()";
 
     // Set home position
     m_controlView->marbleModel()->setHome( MarbleSettings::homeLongitude(),
@@ -522,10 +463,7 @@ void MarblePart::readSettings()
     m_lockToSubSolarPoint->setChecked( MarbleSettings::lockToSubSolarPoint() );
 
     // View
-    m_initialGraphicsSystem = (GraphicsSystem) MarbleSettings::graphicsSystem();
-    m_previousGraphicsSystem = m_initialGraphicsSystem;
-
-    m_lastFileOpenPath = KUrl::fromLocalFile( MarbleSettings::lastFileOpenDir() );
+    m_lastFileOpenPath = MarbleSettings::lastFileOpenDir();
 
     // Tracking settings
     readTrackingSettings();
@@ -535,7 +473,7 @@ void MarblePart::readSettings()
     bool const startupWarning = MarbleSettings::showGuidanceModeStartupWarning();
     m_controlView->marbleModel()->routingManager()->setShowGuidanceModeStartupWarning( startupWarning );
 
-    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig( KGlobal::mainComponent() );
+    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig();
     if ( sharedConfig->hasGroup( "Routing Profiles" ) ) {
         QList<RoutingProfile> profiles;
         KConfigGroup profilesGroup = sharedConfig->group( "Routing Profiles" );
@@ -544,11 +482,11 @@ void MarblePart::readSettings()
             KConfigGroup profileGroup = profilesGroup.group( QString( "Profile %0" ).arg(i) );
             QString name = profileGroup.readEntry( "Name", i18n( "Unnamed" ) );
             RoutingProfile profile( name );
-            foreach ( const QString& pluginName, profileGroup.groupList() ) {
+            for ( const QString& pluginName: profileGroup.groupList() ) {
                 KConfigGroup pluginGroup = profileGroup.group( pluginName );
                 profile.pluginSettings().insert( pluginName, QHash<QString, QVariant>() );
-                foreach ( const QString& key, pluginGroup.keyList() ) {
-                    if ( key != "Enabled" ) {
+                for ( const QString& key: pluginGroup.keyList() ) {
+                    if (key != QLatin1String("Enabled")) {
                         profile.pluginSettings()[ pluginName ].insert( key, pluginGroup.readEntry( key ) );
                     }
                 }
@@ -570,7 +508,7 @@ void MarblePart::readSettings()
     QString positionProvider = MarbleSettings::activePositionTrackingPlugin();
     if ( !positionProvider.isEmpty() ) {
         const PluginManager* pluginManager = m_controlView->marbleModel()->pluginManager();
-        foreach( const PositionProviderPlugin* plugin, pluginManager->positionProviderPlugins() ) {
+        for( const PositionProviderPlugin* plugin: pluginManager->positionProviderPlugins() ) {
             if ( plugin->nameId() == positionProvider ) {
                 PositionProviderPlugin* instance = plugin->newInstance();
                 tracking->setPositionProviderPlugin( instance );
@@ -598,17 +536,6 @@ void MarblePart::readSettings()
 
     m_controlView->setExternalMapEditor( m_externalEditorMapping[MarbleSettings::externalMapEditor()] );
 
-    if ( m_wallet ) {
-        // Read settings from kwallet and store it in MarbleSettings for using in kconfigdialog.
-        QMap<QString, QString> owncloudAuth;
-        m_wallet->readMap( "OwncloudServer", owncloudAuth );
-        if ( owncloudAuth.contains( "Username" ) ) {
-            MarbleSettings::setOwncloudUsername( owncloudAuth[ "Username" ] );
-        }
-        if ( owncloudAuth.contains( "Password" ) ) {
-            MarbleSettings::setOwncloudPassword( owncloudAuth[ "Password" ] );
-        }
-    }
     CloudSyncManager* cloudSyncManager = m_controlView->cloudSyncManager();
     cloudSyncManager->setOwncloudCredentials( MarbleSettings::owncloudServer(),
                                               MarbleSettings::owncloudUsername(),
@@ -666,17 +593,6 @@ void MarblePart::writeSettings()
     MarbleSettings::setQuitLatitude( quitLat );
     MarbleSettings::setQuitRange( quitRange );
 
-    if ( m_wallet ) {
-        // Write changes to kwallet...
-        QMap<QString, QString> owncloudAuth;
-        owncloudAuth.insert( "Username", MarbleSettings::owncloudUsername() );
-        owncloudAuth.insert( "Password", MarbleSettings::owncloudPassword() );
-        m_wallet->writeMap( "OwncloudServer",owncloudAuth );
-        // Remove username and password form config file (they were saved in kwallet).
-        MarbleSettings::setOwncloudUsername( QString() );
-        MarbleSettings::setOwncloudPassword( QString() );
-    }
-
     // Get the 'home' values from the widget and store them in the settings.
     qreal  homeLon = 0;
     qreal  homeLat = 0;
@@ -707,11 +623,7 @@ void MarblePart::writeSettings()
 
     MarbleSettings::setShowBookmarks( m_controlView->marbleModel()->bookmarkManager()->showBookmarks() );
 
-    // FIXME: Hopefully Qt will have a getter for this one in the future ...
-    GraphicsSystem graphicsSystem = (GraphicsSystem) MarbleSettings::graphicsSystem();
-    MarbleSettings::setGraphicsSystem( graphicsSystem );
-
-    MarbleSettings::setLastFileOpenDir( m_lastFileOpenPath.toLocalFile() );
+    MarbleSettings::setLastFileOpenDir( m_lastFileOpenPath );
 
     MarbleSettings::setDistanceUnit( MarbleGlobal::getInstance()->locale()->measurementSystem() );
     MarbleSettings::setAngleUnit( m_controlView->marbleWidget()->defaultAngleUnit() );
@@ -759,7 +671,7 @@ void MarblePart::writeSettings()
     writeStatusBarSettings();
 
     // Store recent files
-    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig( KGlobal::mainComponent() );
+    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig();
     m_recentFilesAction->saveEntries( sharedConfig->group( "RecentFiles" ) );
 
     // Store current route settings
@@ -776,7 +688,7 @@ void MarblePart::writeSettings()
 
     applyPluginState();
 
-    MarbleSettings::self()->writeConfig();
+    MarbleSettings::self()->save();
 }
 
 void MarblePart::writeStatusBarSettings()
@@ -791,13 +703,13 @@ void MarblePart::writeStatusBarSettings()
 void MarblePart::setupActions()
 {
     // Action: Recent Files
-    m_recentFilesAction = KStandardAction::openRecent( this, SLOT(openUrl(KUrl)),
+    m_recentFilesAction = KStandardAction::openRecent( this, SLOT(openUrl(QUrl)),
                                                        actionCollection() );
-    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig( KGlobal::mainComponent() );
+    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig();
     m_recentFilesAction->loadEntries( sharedConfig->group( "RecentFiles" ) );
 
     // Action: Download Region
-    m_downloadRegionAction = new KAction( this );
+    m_downloadRegionAction = new QAction( this );
     m_downloadRegionAction->setText( i18nc( "Action for downloading an entire region of a map",
                                             "Download Region..." ));
     actionCollection()->addAction( "file_download_region", m_downloadRegionAction );
@@ -811,19 +723,19 @@ void MarblePart::setupActions()
                                                actionCollection() );
 
     // Action: Export Map
-    m_exportMapAction = new KAction( this );
+    m_exportMapAction = new QAction( this );
     actionCollection()->addAction( "exportMap", m_exportMapAction );
     m_exportMapAction->setText( i18nc( "Action for saving the map to a file", "&Export Map..." ) );
-    m_exportMapAction->setIcon( KIcon( "document-save-as" ) );
-    m_exportMapAction->setShortcut( Qt::CTRL + Qt::Key_S );
+    m_exportMapAction->setIcon( QIcon::fromTheme( "document-save-as" ) );
+    actionCollection()->setDefaultShortcut( m_exportMapAction, Qt::CTRL + Qt::Key_S );
     connect( m_exportMapAction, SIGNAL(triggered(bool)),
              this,              SLOT(exportMapScreenShot()) );
 
     // Action: Work Offline
-    m_workOfflineAction = new KAction( this );
+    m_workOfflineAction = new QAction( this );
     actionCollection()->addAction( "workOffline", m_workOfflineAction );
     m_workOfflineAction->setText( i18nc( "Action for toggling offline mode", "&Work Offline" ) );
-    m_workOfflineAction->setIcon( KIcon( "user-offline" ) );
+    m_workOfflineAction->setIcon( QIcon::fromTheme( "user-offline" ) );
     m_workOfflineAction->setCheckable( true );
     m_workOfflineAction->setChecked( false );
     connect( m_workOfflineAction, SIGNAL(triggered(bool)),
@@ -835,12 +747,12 @@ void MarblePart::setupActions()
     m_copyMapAction->setText( i18nc( "Action for copying the map to the clipboard", "&Copy Map" ) );
 
     // Action: Copy Coordinates string
-    m_copyCoordinatesAction = new KAction( this );
+    m_copyCoordinatesAction = new QAction( this );
     actionCollection()->addAction( "edit_copy_coordinates",
                                    m_copyCoordinatesAction );
     m_copyCoordinatesAction->setText( i18nc( "Action for copying the coordinates to the clipboard",
                                              "C&opy Coordinates" ) );
-    m_copyCoordinatesAction->setIcon( KIcon( ":/icons/copy-coordinates.png" ) );
+    m_copyCoordinatesAction->setIcon(QIcon(QStringLiteral(":/icons/copy-coordinates.png")));
     connect( m_copyCoordinatesAction, SIGNAL(triggered(bool)),
              this,                    SLOT(copyCoordinates()) );
 
@@ -850,7 +762,7 @@ void MarblePart::setupActions()
     m_openAct->setText( i18nc( "Action for opening a file", "&Open..." ) );
 
     // Standard actions.  So far only Quit.
-    KStandardAction::quit( kapp, SLOT(closeAllWindows()),
+    KStandardAction::quit( qApp, SLOT(closeAllWindows()),
                            actionCollection() );
 
     // Action: Get hot new stuff
@@ -860,13 +772,13 @@ void MarblePart::setupActions()
                                              SLOT(showNewStuffDialog()),
                                              actionCollection(), "new_stuff" );
     m_newStuffAction->setStatusTip( i18nc( "Status tip", "Download new maps"));
-    m_newStuffAction->setShortcut( Qt::CTRL + Qt::Key_N );
+    actionCollection()->setDefaultShortcut( m_newStuffAction, Qt::CTRL + Qt::Key_N );
 
     // Action: Create a New Map
-    m_mapWizardAct = new KAction( i18nc( "Action for creating new maps",
+    m_mapWizardAct = new QAction( i18nc( "Action for creating new maps",
                                          "&Create a New Map..." ),
                                   this );
-    m_mapWizardAct->setIcon( KIcon( ":/icons/create-new-map.png" ) );
+    m_mapWizardAct->setIcon(QIcon(QStringLiteral(":/icons/create-new-map.png")));
     actionCollection()->addAction( "createMap", m_mapWizardAct );
     m_mapWizardAct->setStatusTip( i18nc( "Status tip",
                                          "A wizard guides you through the creation of your own map theme." ) );
@@ -885,23 +797,23 @@ void MarblePart::setupActions()
     QList<RenderPlugin *>::const_iterator i = pluginList.constBegin();
     QList<RenderPlugin *>::const_iterator const end = pluginList.constEnd();
     for (; i != end; ++i ) {
-        if ( (*i)->nameId() == "crosshairs" ) {
+        if ((*i)->nameId() == QLatin1String("crosshairs")) {
             actionCollection()->addAction( "show_crosshairs", (*i)->action() );
         }
     }
 
     // Action: Show Clouds option
-    m_showCloudsAction = new KAction( this );
+    m_showCloudsAction = new QAction( this );
     actionCollection()->addAction( "show_clouds", m_showCloudsAction );
     m_showCloudsAction->setCheckable( true );
     m_showCloudsAction->setChecked( true );
-    m_showCloudsAction->setIcon( KIcon( ":/icons/clouds.png" ) );
+    m_showCloudsAction->setIcon(QIcon(QStringLiteral(":/icons/clouds.png")));
     m_showCloudsAction->setText( i18nc( "Action for toggling clouds", "&Clouds" ) );
     connect( m_showCloudsAction, SIGNAL(triggered(bool)),
              this,               SLOT(setShowClouds(bool)) );
 
     // Action: Show Sunshade options
-    m_controlSunAction = new KAction( this );
+    m_controlSunAction = new QAction( this );
     actionCollection()->addAction( "control_sun", m_controlSunAction );
     m_controlSunAction->setText( i18nc( "Action for sun control dialog", "S&un Control..." ) );
     connect( m_controlSunAction, SIGNAL(triggered(bool)),
@@ -910,20 +822,20 @@ void MarblePart::setupActions()
     KStandardAction::redisplay( m_controlView->marbleWidget(), SLOT(reloadMap()), actionCollection() );
 
     // Action: Show Time options
-    m_controlTimeAction = new KAction( this );
+    m_controlTimeAction = new QAction( this );
     actionCollection()->addAction( "control_time", m_controlTimeAction );
-    m_controlTimeAction->setIcon( KIcon( ":/icons/clock.png" ) );
+    m_controlTimeAction->setIcon(QIcon(QStringLiteral(":/icons/clock.png")));
     m_controlTimeAction->setText( i18nc( "Action for time control dialog", "&Time Control..." ) );
     connect( m_controlTimeAction, SIGNAL(triggered(bool)),
          this,               SLOT(controlTime()) );
 
     // Action: Lock float items
-    m_lockFloatItemsAct = new KAction ( this );
+    m_lockFloatItemsAct = new QAction ( this );
     actionCollection()->addAction( "options_lock_floatitems",
                                    m_lockFloatItemsAct );
     m_lockFloatItemsAct->setText( i18nc( "Action for locking float items on the map",
                                          "Lock Position" ) );
-    m_lockFloatItemsAct->setIcon( KIcon( ":/icons/unlock.png" ) );
+    m_lockFloatItemsAct->setIcon(QIcon(QStringLiteral(":/icons/unlock.png")));
     m_lockFloatItemsAct->setCheckable( true );
     m_lockFloatItemsAct->setChecked( false );
     connect( m_lockFloatItemsAct, SIGNAL(triggered(bool)),
@@ -934,7 +846,7 @@ void MarblePart::setupActions()
 
     //Toggle Action: Show sun shadow
     m_showShadow = new KToggleAction( i18n( "Show Shadow" ), this );
-    m_showShadow->setIcon( KIcon( "" ) );        // Fixme: Add Icon
+//     m_showShadow->setIcon(QIcon(QStringLiteral("")));        // Fixme: Add Icon
     actionCollection()->addAction( "sun_shadow", m_showShadow );
     m_showShadow->setCheckedState( KGuiItem( i18n( "Hide Shadow" ) ) );
     m_showShadow->setToolTip(i18n("Shows and hides the shadow of the sun"));
@@ -959,19 +871,21 @@ void MarblePart::setupActions()
     QList<RenderPlugin *>::const_iterator it = pluginList.constBegin();
     QList<RenderPlugin *>::const_iterator const itEnd = pluginList.constEnd();
     for (; it != itEnd; ++it ) {
-        connect( (*it), SIGNAL(actionGroupsChanged()),
-                 this, SLOT(createPluginMenus()) );
+        if ((*it)->nameId() != QLatin1String("annotation")) {
+            connect( (*it), SIGNAL(actionGroupsChanged()),
+                     this, SLOT(createPluginMenus()) );
+        }
     }
 
-    m_addBookmarkAction = new KAction( this );
+    m_addBookmarkAction = new QAction( this );
     actionCollection()->addAction( "add_bookmark", m_addBookmarkAction );
     m_addBookmarkAction->setText( i18nc( "Add Bookmark", "&Add Bookmark" ) );
-    m_addBookmarkAction->setIcon( KIcon( ":/icons/bookmark-new.png" ) );
-    m_addBookmarkAction->setShortcut( Qt::CTRL + Qt::Key_B );
+    m_addBookmarkAction->setIcon(QIcon(QStringLiteral(":/icons/bookmark-new.png")));
+    actionCollection()->setDefaultShortcut( m_addBookmarkAction, Qt::CTRL + Qt::Key_B );
     connect( m_addBookmarkAction, SIGNAL(triggered()),
              this,                SLOT(openEditBookmarkDialog()) );
 
-    m_toggleBookmarkDisplayAction = new KAction( this );
+    m_toggleBookmarkDisplayAction = new QAction( this );
     actionCollection()->addAction( "show_bookmarks", m_toggleBookmarkDisplayAction );
     m_toggleBookmarkDisplayAction->setText( i18nc( "Show Bookmarks", "Show &Bookmarks" ) );
     m_toggleBookmarkDisplayAction->setStatusTip( i18n( "Show or hide bookmarks in the map" ) );
@@ -980,17 +894,17 @@ void MarblePart::setupActions()
     connect( m_toggleBookmarkDisplayAction, SIGNAL(toggled(bool)),
                   m_controlView->marbleModel()->bookmarkManager(), SLOT(setShowBookmarks(bool)) );
 
-    m_setHomeAction = new KAction( this );
+    m_setHomeAction = new QAction( this );
     actionCollection()->addAction( "set_home", m_setHomeAction );
     m_setHomeAction->setText( i18n( "&Set Home Location" ) );
-    m_setHomeAction->setIcon( KIcon( "go-home" ) );
+    m_setHomeAction->setIcon( QIcon::fromTheme( "go-home" ) );
     connect( m_setHomeAction, SIGNAL(triggered()),
              this,                SLOT(setHome()) );
 
-    m_manageBookmarksAction = new KAction( this );
+    m_manageBookmarksAction = new QAction( this );
     actionCollection()->addAction( "manage_bookmarks", m_manageBookmarksAction );
     m_manageBookmarksAction->setText( i18nc( "Manage Bookmarks", "&Manage Bookmarks" ) );
-    m_manageBookmarksAction->setIcon( KIcon( ":/icons/bookmarks-organize.png" ) );
+    m_manageBookmarksAction->setIcon(QIcon(QStringLiteral(":/icons/bookmarks-organize.png")));
     connect( m_manageBookmarksAction, SIGNAL(triggered()),
              this,                SLOT(openManageBookmarksDialog()) );
 
@@ -999,28 +913,28 @@ void MarblePart::setupActions()
     connect( m_controlView->marbleModel()->bookmarkManager(),
              SIGNAL(bookmarksChanged()), this, SLOT(createFolderList()) );
 
-    m_externalMapEditorAction = new KAction( this );
+    m_externalMapEditorAction = new QAction( this );
     actionCollection()->addAction( "external_editor", m_externalMapEditorAction );
     m_externalMapEditorAction->setText( i18nc( "Edit the map in an external application", "&Edit Map" ) );
-    m_externalMapEditorAction->setIcon( KIcon( ":/icons/edit-map.png" ) );
-    m_externalMapEditorAction->setShortcut( Qt::CTRL + Qt::Key_E );
+    m_externalMapEditorAction->setIcon(QIcon(QStringLiteral(":/icons/edit-map.png")));
+    actionCollection()->setDefaultShortcut( m_externalMapEditorAction, Qt::CTRL + Qt::Key_E );
     connect( m_externalMapEditorAction, SIGNAL(triggered()),
              m_controlView, SLOT(launchExternalMapEditor()) );
     connect( m_controlView->marbleWidget(), SIGNAL(themeChanged(QString)),
              this, SLOT(updateMapEditButtonVisibility(QString)) );
 
-     m_recordMovieAction = new KAction( tr( "&Record Movie" ), this );
+     m_recordMovieAction = new QAction( i18n( "&Record Movie" ), this );
      actionCollection()->addAction( "record_movie" , m_recordMovieAction );
-     m_recordMovieAction->setStatusTip( tr( "Records a movie of the globe" ) );
-     m_recordMovieAction->setShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_R );
-     m_recordMovieAction->setIcon( KIcon( ":/icons/animator.png" ) );
+     m_recordMovieAction->setStatusTip( i18n( "Records a movie of the globe" ) );
+     actionCollection()->setDefaultShortcut( m_recordMovieAction, Qt::CTRL + Qt::SHIFT + Qt::Key_R );
+     m_recordMovieAction->setIcon(QIcon(QStringLiteral(":/icons/animator.png")));
      connect( m_recordMovieAction, SIGNAL(triggered()),
              this, SLOT(showMovieCaptureDialog()) );
 
-     m_stopRecordingAction = new KAction( tr( "&Stop recording" ), this );
+     m_stopRecordingAction = new QAction( i18n( "&Stop recording" ), this );
      actionCollection()->addAction( "stop_recording" , m_stopRecordingAction );
-     m_stopRecordingAction->setStatusTip( tr( "Stop recording a movie of the globe" ) );
-     m_recordMovieAction->setShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_S );
+     m_stopRecordingAction->setStatusTip( i18n( "Stop recording a movie of the globe" ) );
+     actionCollection()->setDefaultShortcut( m_recordMovieAction, Qt::CTRL + Qt::SHIFT + Qt::Key_S );
      m_stopRecordingAction->setEnabled( false );
      connect( m_stopRecordingAction, SIGNAL(triggered()),
              this, SLOT(stopRecording()) );
@@ -1142,7 +1056,7 @@ void MarblePart::showPosition( const QString& position )
 void MarblePart::showZoomLevel( const int tileLevel )
 {
     if ( tileLevel == -1 )
-        m_tileZoomLevel = i18n( NOT_AVAILABLE );
+        m_tileZoomLevel = QCoreApplication::translate( "Marble", NOT_AVAILABLE );
     else {
         m_tileZoomLevel.setNum( tileLevel );
     }
@@ -1169,7 +1083,7 @@ void MarblePart::createPluginMenus()
         // menus
         const QList<QActionGroup*> *tmp_actionGroups = (*i)->actionGroups();
         if( (*i)->enabled() && tmp_actionGroups ) {
-            foreach( QActionGroup *ag, *tmp_actionGroups ) {
+            for( QActionGroup *ag: *tmp_actionGroups ) {
                 plugActionList( "plugins_menuactionlist", ag->actions() );
             }
         }
@@ -1178,7 +1092,7 @@ void MarblePart::createPluginMenus()
         const QList<QActionGroup*> *tmp_toolbarActionGroups = (*i)->toolbarActionGroups();
         if ( (*i)->enabled() && tmp_toolbarActionGroups ) {
 
-            foreach( QActionGroup* ag, *tmp_toolbarActionGroups ) {
+            for( QActionGroup* ag: *tmp_toolbarActionGroups ) {
                 plugActionList( "plugins_actionlist", ag->actions() );
             }
         }
@@ -1191,7 +1105,7 @@ void MarblePart::updateTileZoomLevel()
     const int tileZoomLevel =
         m_controlView->marbleWidget()->tileZoomLevel();
     if ( tileZoomLevel == -1 )
-        m_tileZoomLevel = i18n( NOT_AVAILABLE );
+        m_tileZoomLevel = QCoreApplication::translate( "Marble", NOT_AVAILABLE );
     else {
         m_tileZoomLevel.setNum( tileZoomLevel );
     }
@@ -1203,9 +1117,9 @@ void MarblePart::migrateNewstuffConfigFiles() const
     // shared between Marble KDE and Marble Qt in Marble's data path of the user.
     // This method moves an old KDE newstuff config file to the new location if the former
     // exists and the latter not.
-    QFileInfo const target( MarbleDirs::localPath() + "/newstuff/marble-map-themes.knsregistry" );
+    QFileInfo const target(MarbleDirs::localPath() + QLatin1String("/newstuff/marble-map-themes.knsregistry"));
     if ( !target.exists() ) {
-        QString const source = KStandardDirs::locate( "data", "knewstuff3/marble.knsregistry" );
+        QString const source = QStandardPaths::locate( QStandardPaths::GenericDataLocation, "knewstuff3/marble.knsregistry" );
         if ( !source.isEmpty() ) {
             if ( !target.absoluteDir().exists() ) {
                 if ( !QDir::root().mkpath( target.absolutePath() ) ) {
@@ -1226,9 +1140,9 @@ void MarblePart::migrateNewstuffConfigFiles() const
             }
 
             QDomNodeList items = xml.elementsByTagName( "stuff" );
-            for ( unsigned int i = 0; i < items.length(); ++i ) {
-                repairNode( items.item(i), "summary" );
-                repairNode( items.item(i), "author" );
+            for ( int i = 0; i < items.length(); ++i ) {
+                repairNode( items.item(i), QString("summary") );
+                repairNode( items.item(i), QString("author") );
             }
 
             QFile output( target.absoluteFilePath() );
@@ -1248,7 +1162,7 @@ void MarblePart::repairNode( QDomNode node, const QString &child )
 {
     int const size = node.namedItem( child ).toElement().text().size();
     if ( size > 1024 ) {
-        QString const theme = node.namedItem( "name" ).toElement().text();
+        QString const theme = node.namedItem(QStringLiteral("name")).toElement().text();
         mDebug() << "Removing GHNS field " << child << " of map theme " << theme << ": Size " << size << " exceeds maximum size (see bug 319542).";
         node.removeChild( node.namedItem( child ) );
     }
@@ -1297,8 +1211,9 @@ void MarblePart::setupStatusBar()
 {
     QFontMetrics statusBarFontMetrics( m_statusBarExtension->statusBar()->fontMetrics() );
 
+    // UTM syntax is used in the template string, as it is longer than the lon/lat one
     QString templatePositionString =
-        QString( "%1 000\xb0 00\' 00\"_, 000\xb0 00\' 00\"_" ).arg(POSITION_STRING);
+        QString( "%1 00Z 000000.00 m E, 00000000.00 m N_" ).arg(POSITION_STRING);
     m_positionLabel = setupStatusBarLabel( templatePositionString );
 
     QString templateDistanceString =
@@ -1309,7 +1224,7 @@ void MarblePart::setupStatusBar()
 
     m_clockLabel = setupStatusBarLabel( templateDateTimeString );
 
-    const QString templateTileZoomLevelString = i18n( TILEZOOMLEVEL_STRING );
+    const QString templateTileZoomLevelString = i18n( TILEZOOMLEVEL_STRING, m_tileZoomLevel );
     m_tileZoomLevelLabel = setupStatusBarLabel( templateTileZoomLevelString );
 
     connect( m_controlView->marbleWidget(), SIGNAL(mouseMoveGeoPosition(QString)),
@@ -1346,7 +1261,7 @@ QLabel * MarblePart::setupStatusBarLabel( const QString& templateString )
 void MarblePart::setupDownloadProgressBar()
 {
     // get status bar and add progress widget
-    KStatusBar * const statusBar = m_statusBarExtension->statusBar();
+    QStatusBar * const statusBar = m_statusBarExtension->statusBar();
     Q_ASSERT( statusBar );
 
     m_downloadProgressBar = new QProgressBar;
@@ -1356,13 +1271,13 @@ void MarblePart::setupDownloadProgressBar()
     HttpDownloadManager * const downloadManager =
         m_controlView->marbleModel()->downloadManager();
     Q_ASSERT( downloadManager );
-    connect( downloadManager, SIGNAL(progressChanged( int, int )), SLOT(handleProgress( int, int )) );
+    connect( downloadManager, SIGNAL(progressChanged(int,int)), SLOT(handleProgress(int,int)) );
     connect( downloadManager, SIGNAL(jobRemoved()), SLOT(removeProgressItem()) );
 }
 
 void MarblePart::setupStatusBarActions()
 {
-    KStatusBar * const statusBar = m_statusBarExtension->statusBar();
+    QStatusBar * const statusBar = m_statusBarExtension->statusBar();
     Q_ASSERT( statusBar );
 
     statusBar->setContextMenuPolicy( Qt::CustomContextMenu );
@@ -1402,12 +1317,12 @@ void MarblePart::showNewStuffDialog()
 
 void MarblePart::showUploadNewStuffDialog()
 {
-    QString  newStuffConfig = KStandardDirs::locate ( "data", "marble/marble.knsrc" );
-    kDebug() << "KNS config file:" << newStuffConfig;
+    QString  newStuffConfig = QStandardPaths::locate( QStandardPaths::GenericDataLocation, "marble/marble.knsrc" );
+    qDebug() << "KNS config file:" << newStuffConfig;
 
     QPointer<KNS3::UploadDialog> dialog( new KNS3::UploadDialog( newStuffConfig, m_controlView ) );
-    kDebug() << "Creating the archive";
-    dialog->setUploadFile( KUrl( MapWizard::createArchive( m_controlView, m_controlView->marbleWidget()->mapThemeId() ) ) );
+    qDebug() << "Creating the archive";
+    dialog->setUploadFile( QUrl( MapWizard::createArchive( m_controlView, m_controlView->marbleWidget()->mapThemeId() ) ) );
     dialog->exec();
     MapWizard::deleteArchive( m_controlView->marbleWidget()->mapThemeId() );
     delete dialog;
@@ -1448,10 +1363,10 @@ void MarblePart::downloadRegion()
 
 void MarblePart::showStatusBarContextMenu( const QPoint& pos )
 {
-    KStatusBar * const statusBar = m_statusBarExtension->statusBar();
+    QStatusBar * const statusBar = m_statusBarExtension->statusBar();
     Q_ASSERT( statusBar );
 
-    KMenu statusBarContextMenu( m_controlView->marbleWidget() );
+    QMenu statusBarContextMenu( m_controlView->marbleWidget() );
     statusBarContextMenu.addAction( m_showPositionAction );
     statusBarContextMenu.addAction( m_showDateTimeAction );
     statusBarContextMenu.addAction( m_showAltitudeAction );
@@ -1489,20 +1404,6 @@ void MarblePart::editSettings()
     ui_viewSettings.setupUi( w_viewSettings );
     m_configDialog->addPage( w_viewSettings, i18n( "View" ), "configure" );
 
-    // It's experimental -- so we remove it for now.
-    // FIXME: Delete the following  line once OpenGL support is officially supported.
-    ui_viewSettings.kcfg_graphicsSystem->removeItem( OpenGLGraphics );
-
-    QString nativeString ( i18n("Native") );
-
-    #ifdef Q_WS_X11
-    nativeString = i18n( "Native (X11)" );
-    #endif
-    #ifdef Q_OS_MAC
-    nativeString = i18n( "Native (Mac OS X Core Graphics)" );
-    #endif
-
-    ui_viewSettings.kcfg_graphicsSystem->setItemText( NativeGraphics, nativeString );
     ui_viewSettings.label_labelLocalization->hide();
     ui_viewSettings.kcfg_labelLocalization->hide();
 
@@ -1568,22 +1469,18 @@ void MarblePart::editSettings()
     m_configDialog->addPage( w_pluginSettings, i18n( "Plugins" ),
                              "preferences-plugin" );
     // Setting the icons of the pluginSettings page.
-    w_pluginSettings->setConfigIcon( KIcon( "configure" ) );
-    w_pluginSettings->setAboutIcon( KIcon( "help-about" ) );
+    w_pluginSettings->setConfigIcon( QIcon::fromTheme( "configure" ) );
+    w_pluginSettings->setAboutIcon( QIcon::fromTheme( "help-about" ) );
 
     connect( w_pluginSettings, SIGNAL(pluginListViewClicked()),
                                SLOT(enableApplyButton()) );
     connect( m_configDialog,   SIGNAL(settingsChanged(QString)),
                                SLOT(updateSettings()) );
-    connect( m_configDialog,   SIGNAL(applyClicked()),
+    connect( m_configDialog,   SIGNAL(accepted()),
                                SLOT(applyPluginState()) );
-    connect( m_configDialog,   SIGNAL(okClicked()),
-                               SLOT(applyPluginState()) );
-    connect( m_configDialog,   SIGNAL(applyClicked()),
+    connect( m_configDialog,   SIGNAL(accepted()),
              pluginModel,      SLOT(applyPluginState()) );
-    connect( m_configDialog,   SIGNAL(okClicked()),
-             pluginModel,      SLOT(applyPluginState()) );
-    connect( m_configDialog,   SIGNAL(cancelClicked()),
+    connect( m_configDialog,   SIGNAL(rejected()),
              pluginModel,      SLOT(retrievePluginState()) );
 
     m_configDialog->show();
@@ -1591,28 +1488,28 @@ void MarblePart::editSettings()
 
 void MarblePart::enableApplyButton()
 {
-    m_configDialog->enableButtonApply( true );
+    //m_configDialog->enableButtonApply( true );
 }
 
 void MarblePart::applyPluginState()
 {
     QList<RoutingProfile>  profiles = m_controlView->marbleWidget()
                         ->model()->routingManager()->profilesModel()->profiles();
-    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig( KGlobal::mainComponent() );
+    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig();
     KConfigGroup profilesGroup = sharedConfig->group( "Routing Profiles" );
     profilesGroup.writeEntry( "Num", profiles.count() );
     for ( int i = 0; i < profiles.count(); ++i ) {
         KConfigGroup profileGroup = profilesGroup.group( QString( "Profile %0" ).arg(i) );
         RoutingProfile profile = profiles.at( i );
         profileGroup.writeEntry( "Name", profile.name() );
-        foreach ( const QString &pluginName, profileGroup.groupList() ) {
+        for ( const QString &pluginName: profileGroup.groupList() ) {
             profileGroup.group( pluginName ).deleteGroup();
         }
-        foreach ( const QString &key, profile.pluginSettings().keys() ) {
+        for ( const QString &key: profile.pluginSettings().keys() ) {
             KConfigGroup pluginGroup = profileGroup.group( key );
             pluginGroup.writeEntry( "Enabled", true );
-            foreach ( const QString& settingKey, profile.pluginSettings()[ key ].keys() ) {
-                Q_ASSERT( settingKey != "Enabled" );
+            for ( const QString& settingKey: profile.pluginSettings()[ key ].keys() ) {
+                Q_ASSERT(settingKey != QLatin1String("Enabled"));
                 pluginGroup.writeEntry( settingKey, profile.pluginSettings()[ key ][ settingKey ] );
             }
         }
@@ -1621,7 +1518,7 @@ void MarblePart::applyPluginState()
 
 void MarblePart::updateSettings()
 {
-    kDebug() << "Updating Settings ...";
+    qDebug() << "Updating Settings ...";
 
     // FIXME: Font doesn't get updated instantly.
     m_controlView->marbleWidget()->setDefaultFont( MarbleSettings::mapFont() );
@@ -1632,8 +1529,6 @@ void MarblePart::updateSettings()
     m_controlView->marbleWidget()->
         setMapQualityForViewContext( (MapQuality) MarbleSettings::animationQuality(),
                                      Animation );
-
-    GraphicsSystem graphicsSystem = (GraphicsSystem) MarbleSettings::graphicsSystem();
 
     m_controlView->marbleWidget()->
         setDefaultAngleUnit( (AngleUnit) MarbleSettings::angleUnit() );
@@ -1654,7 +1549,7 @@ void MarblePart::updateSettings()
     QNetworkProxy proxy;
 
     // Make sure that no proxy is used for an empty string or the default value:
-    if ( MarbleSettings::proxyUrl().isEmpty() || MarbleSettings::proxyUrl() == "http://" ) {
+    if (MarbleSettings::proxyUrl().isEmpty() || MarbleSettings::proxyUrl() == QLatin1String("http://")) {
         proxy.setType( QNetworkProxy::NoProxy );
     } else {
         if ( MarbleSettings::proxyType() == Marble::Socks5Proxy ) {
@@ -1664,7 +1559,7 @@ void MarblePart::updateSettings()
             proxy.setType( QNetworkProxy::HttpProxy );
         }
         else {
-            kDebug() << "Unknown proxy type! Using Http Proxy instead.";
+            qDebug() << "Unknown proxy type! Using Http Proxy instead.";
             proxy.setType( QNetworkProxy::HttpProxy );
         }
     }
@@ -1680,17 +1575,6 @@ void MarblePart::updateSettings()
     QNetworkProxy::setApplicationProxy(proxy);
 
     m_controlView->marbleWidget()->update();
-
-    // Show message box
-    if (    m_initialGraphicsSystem != graphicsSystem
-         && m_previousGraphicsSystem != graphicsSystem ) {
-        KMessageBox::information (m_controlView->marbleWidget(),
-                                i18n("You have decided to run Marble with a different graphics system.\n"
-                                   "For this change to become effective, Marble has to be restarted.\n"
-                                   "Please close the application and start Marble again."),
-                                i18n("Graphics System Change") );
-    }
-    m_previousGraphicsSystem = graphicsSystem;
 
     // Time
     if( MarbleSettings::systemTimezone() == true  )
@@ -1737,9 +1621,9 @@ void MarblePart::updateSettings()
 
 void MarblePart::writePluginSettings()
 {
-    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig( KGlobal::mainComponent() );
+    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig();
 
-    foreach( RenderPlugin *plugin, m_controlView->marbleWidget()->renderPlugins() ) {
+    for( RenderPlugin *plugin: m_controlView->marbleWidget()->renderPlugins() ) {
         KConfigGroup group = sharedConfig->group( QString( "plugin_" ) + plugin->nameId() );
 
         const QHash<QString,QVariant> hash = plugin->settings();
@@ -1758,14 +1642,14 @@ void MarblePart::readPluginSettings()
     disconnect( m_controlView->marbleWidget(), SIGNAL(pluginSettingsChanged()),
                 this,                          SLOT(writePluginSettings()) );
 
-    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig( KGlobal::mainComponent() );
+    KSharedConfig::Ptr sharedConfig = KSharedConfig::openConfig();
 
-    foreach( RenderPlugin *plugin, m_controlView->marbleWidget()->renderPlugins() ) {
+    for( RenderPlugin *plugin: m_controlView->marbleWidget()->renderPlugins() ) {
         KConfigGroup group = sharedConfig->group( QString( "plugin_" ) + plugin->nameId() );
 
         QHash<QString,QVariant> hash;
 
-        foreach ( const QString& key, group.keyList() ) {
+        for ( const QString& key: group.keyList() ) {
             hash.insert( key, group.readEntry( key ) );
         }
 
@@ -1800,7 +1684,7 @@ void MarblePart::handleProgress( int active, int queued )
         m_downloadProgressBar->setMaximum( qMax<int>( m_downloadProgressBar->maximum(), active + queued ) );
     }
 
-//     kDebug() << "downloadProgressJobAdded: value/maximum: "
+//     qDebug() << "downloadProgressJobAdded: value/maximum: "
 //              << m_downloadProgressBar->value() << '/' << m_downloadProgressBar->maximum();
 
     m_downloadProgressBar->setUpdatesEnabled( true );
@@ -1815,7 +1699,7 @@ void MarblePart::removeProgressItem()
         m_downloadProgressBar->setVisible( false );
     }
 
-//     kDebug() << "downloadProgressJobCompleted: value/maximum: "
+//     qDebug() << "downloadProgressJobCompleted: value/maximum: "
 //              << m_downloadProgressBar->value() << '/' << m_downloadProgressBar->maximum();
 
     m_downloadProgressBar->setUpdatesEnabled( true );
@@ -1901,7 +1785,7 @@ void MarblePart::printMapScreenShot()
 {
 #ifndef QT_NO_PRINTER
     QPrinter printer( QPrinter::HighResolution );
-    QPointer<QPrintDialog> printDialog = KdePrint::createPrintDialog(&printer, widget());
+    QPointer<QPrintDialog> printDialog = new QPrintDialog( &printer, widget() );
     m_controlView->printMapScreenShot( printDialog );
     delete printDialog;
 #endif
@@ -1910,7 +1794,7 @@ void MarblePart::printMapScreenShot()
 void MarblePart::updateMapEditButtonVisibility( const QString &mapTheme )
 {
     Q_ASSERT( m_externalMapEditorAction );
-    m_externalMapEditorAction->setVisible( mapTheme == "earth/openstreetmap/openstreetmap.dgml" );
+    m_externalMapEditorAction->setVisible(mapTheme == QLatin1String("earth/openstreetmap/openstreetmap.dgml"));
 }
 
 void MarblePart::fallBackToDefaultTheme()
@@ -1944,4 +1828,5 @@ void MarblePart::changeRecordingState()
 
 }
 
+#include "moc_marble_part.cpp"
 #include "marble_part.moc"

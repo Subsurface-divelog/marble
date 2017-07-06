@@ -11,8 +11,6 @@
 #ifndef GEOCUTE_POSITIONPROVIDER_H
 #define GEOCUTE_POSITIONPROVIDER_H
 
-#include <QObject>
-
 #include "Provider.h"
 #include "Position.h"
 
@@ -35,7 +33,7 @@ class PositionProvider : public Provider
 
         static PositionProvider* detailed();
 
-    signals:
+    Q_SIGNALS:
         void positionChanged(GeoCute::Position position);
         
     private:

@@ -14,7 +14,8 @@
 #define TOURITEMDELEGATE_H
 
 #include <QStyledItemDelegate>
-#include <QListView>
+
+class QListView;
 
 namespace Marble
 {
@@ -23,16 +24,17 @@ class MarbleWidget;
 class GeoDataAnimatedUpdate;
 class GeoDataPlaylist;
 class GeoDataFeature;
+class TourWidget;
 
 class TourItemDelegate : public QStyledItemDelegate
 {
 Q_OBJECT
 
 public:
-    TourItemDelegate( QListView* view, MarbleWidget* widget );
-    void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const;
-    QSize sizeHint( const QStyleOptionViewItem &option, const QModelIndex &index ) const;
-    QWidget* createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const;
+    TourItemDelegate( QListView* view, MarbleWidget* widget, TourWidget* tour );
+    void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+    QSize sizeHint( const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+    QWidget* createEditor ( QWidget * parent, const QStyleOptionViewItem & option, const QModelIndex & index ) const override;
     bool editable() const;
     void setEditable( bool editable );
     QModelIndex firstFlyTo() const;
@@ -47,12 +49,12 @@ public Q_SLOTS:
     void setDefaultFeatureId( const QString &id );
 
 Q_SIGNALS:
-    void editingChanged( QModelIndex index );
-    void edited( QModelIndex index );
+    void editingChanged( const QModelIndex& index );
+    void edited( const QModelIndex& index );
     void editableChanged( bool editable );
     void firstFlyToChanged( const QPersistentModelIndex &newFirstFlyTo );
-    void featureIdsChanged( QStringList ids );
-    void defaultFeatureIdChanged( QString id );
+    void featureIdsChanged( const QStringList& ids );
+    void defaultFeatureIdChanged( const QString& id );
 
 public:
 
@@ -64,14 +66,14 @@ public:
     };
 
 protected:
-    bool editorEvent( QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index );
+    bool editorEvent( QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index ) override;
 
 private Q_SLOTS:
     void closeEditor(const QModelIndex& index);
 
 private:
     static QRect position( Element element, const QStyleOptionViewItem &option );
-    QStringList findIds( GeoDataPlaylist *playlist, bool onlyFeatures = false ) const;
+    static QStringList findIds(const GeoDataPlaylist &playlist, bool onlyFeatures = false);
     GeoDataPlaylist *playlist() const;
     QList<QPersistentModelIndex> m_editingIndices;
     QListView* m_listView;
@@ -79,6 +81,7 @@ private:
     bool m_editable;
     QPersistentModelIndex m_firstFlyTo;
     QString m_defaultFeatureId;
+    TourWidget* m_tourWidget;
 };
 
 } // namespace Marble

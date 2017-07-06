@@ -15,9 +15,9 @@
 #include "GenericScanlineTextureMapper.h"
 
 // Qt
-#include <QtCore/qmath.h>
-#include <QtCore/QRunnable>
-#include <QtGui/QImage>
+#include <qmath.h>
+#include <QRunnable>
+#include <QImage>
 
 // Marble
 #include "GeoPainter.h"
@@ -38,7 +38,7 @@ class GenericScanlineTextureMapper::RenderJob : public QRunnable
 public:
     RenderJob( StackedTileLoader *tileLoader, int tileLevel, QImage *canvasImage, const ViewportParams *viewport, MapQuality mapQuality, int yTop, int yBottom );
 
-    virtual void run();
+    void run() override;
 
 private:
     StackedTileLoader *const m_tileLoader;
@@ -105,11 +105,7 @@ void GenericScanlineTextureMapper::mapTexture( GeoPainter *painter,
 
     QRect rect( viewport->width() / 2 - radius, viewport->height() / 2 - radius,
                 2 * radius, 2 * radius);
-#if QT_VERSION < 0x050000
-    rect = rect.intersect( dirtyRect );
-#else
     rect = rect.intersected( dirtyRect );
-#endif
     painter->drawImage( rect, m_canvasImage, rect );
 }
 

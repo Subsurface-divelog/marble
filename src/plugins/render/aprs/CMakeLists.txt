@@ -1,24 +1,19 @@
 PROJECT(AprsPlugin)
 
-macro_optional_find_package(QextSerialPort)
-marble_set_package_properties( QextSerialPort PROPERTIES DESCRIPTION "access to serial ports" )
-marble_set_package_properties( QextSerialPort PROPERTIES URL "http://code.google.com/p/qextserialport/" )
-marble_set_package_properties( QextSerialPort PROPERTIES TYPE OPTIONAL PURPOSE "Reading from serial port in APRS plugin" )
+find_package(Qt5 ${REQUIRED_QT_VERSION} COMPONENTS SerialPort)
+marble_set_package_properties( Qt5SerialPort PROPERTIES DESCRIPTION "Provides access to hardware and virtual serial ports." )
+marble_set_package_properties( Qt5SerialPort PROPERTIES TYPE OPTIONAL PURPOSE "Reading from serial port in APRS plugin" )
 
 INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}
  ${CMAKE_CURRENT_BINARY_DIR}
- ${QT_INCLUDE_DIR}
 )
-if( QT4_FOUND )
-  INCLUDE(${QT_USE_FILE})
-endif()
 
-if (QEXTSERIALPORT_FOUND)
-  include_directories (${QEXTSERIALPORT_INCLUDE_DIR})
+if (Qt5SerialPort_FOUND)
+  include_directories (${Qt5SerialPort_INCLUDE_DIR})
   set (serial_src AprsTTY.cpp)
-  list (APPEND AprsPlugin_LIBS ${QEXTSERIALPORT_LIBRARIES})
-  set (HAVE_QEXTSERIALPORT TRUE)
+  list (APPEND AprsPlugin_LIBS ${Qt5SerialPort_LIBRARIES})
+  set (HAVE_QTSERIALPORT TRUE)
 endif ()
 
 set( aprs_SRCS AprsPlugin.cpp
@@ -36,10 +31,6 @@ set( aprs_SRCS AprsPlugin.cpp
 set( aprs_UI AprsConfigWidget.ui )
 qt_wrap_ui( aprs_SRCS ${aprs_UI} )
 
-if (QTONLY)
-marble_qt4_automoc( ${aprs_SRCS} )
-endif (QTONLY)
-
 add_custom_command(
   OUTPUT AprsGatherer_mic_e.cpp
   COMMAND ${PERL_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/AprsGatherGen.pl > AprsGatherer_mic_e.cpp
@@ -48,7 +39,6 @@ add_custom_command(
 )
 
 marble_add_plugin( AprsPlugin ${aprs_SRCS} )
-#target_link_libraries( Aprs ${QT_QTWEBKIT_LIBRARY} )
 
 CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/aprsconfig.h.in
 	       ${CMAKE_CURRENT_BINARY_DIR}/aprsconfig.h)

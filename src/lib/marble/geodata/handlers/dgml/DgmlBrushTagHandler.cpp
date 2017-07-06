@@ -40,7 +40,7 @@ DGML_DEFINE_TAG_HANDLER(Brush)
 GeoNode* DgmlBrushTagHandler::parse(GeoParser& parser) const
 {
     // Check whether the tag is valid
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(dgmlTag_Brush));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(dgmlTag_Brush)));
 
     QString color = parser.attribute(dgmlAttr_color).trimmed();
     QString colorMap = parser.attribute(dgmlAttr_colorMap).trimmed();
@@ -50,7 +50,12 @@ GeoNode* DgmlBrushTagHandler::parse(GeoParser& parser) const
 
     if ( !color.isEmpty() && QColor( color ).isValid() ) {
         QColor brushColor( color );
-        brushColor.setAlphaF( alpha );
+        if (color.contains(QLatin1String("transparent"))) {
+            brushColor.setAlphaF( 0.0 );
+        }
+        else {
+            brushColor.setAlphaF( alpha );
+        }
         brush.setColor( brushColor );
     }
 
@@ -60,12 +65,14 @@ GeoNode* DgmlBrushTagHandler::parse(GeoParser& parser) const
          || parentItem.represents( dgmlTag_Geodata ) ) {
         GeoSceneGeodata *geodata = parentItem.nodeAs<GeoSceneGeodata>();
         geodata->setBrush( brush );
-        QList<QColor> colorList;
         if ( !colorMap.isEmpty() ) {
-            QStringList colorString = colorMap.split(",");
-            for ( int i = 0; i < colorString.size(); ++i ) {
-                colorList.append( QColor( colorString[i] ) );
-           }
+            const QStringList colorString = colorMap.split(QLatin1Char(','));
+
+            QVector<QColor> colorList;
+            colorList.reserve(colorString.size());
+            for(const QString& colorName: colorString) {
+                colorList.append(QColor(colorName));
+            }
             geodata->setColors( colorList );
         }
         geodata->setAlpha( alpha );

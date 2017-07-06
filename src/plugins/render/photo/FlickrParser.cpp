@@ -12,7 +12,6 @@
 #include "FlickrParser.h"
 
 // Marble
-#include "AbstractDataPluginItem.h"
 #include "PhotoPluginItem.h"
 
 // Qt
@@ -29,7 +28,7 @@ FlickrParser::FlickrParser( MarbleWidget *widget,
 {
 }
 
-bool FlickrParser::read( QByteArray data )
+bool FlickrParser::read( const QByteArray& data )
 {
     addData( data );
 
@@ -37,12 +36,15 @@ bool FlickrParser::read( QByteArray data )
         readNext();
 
         if (isStartElement()) {
-            if ( name() == "rsp" && attributes().value( "stat" ) == "ok" )
-                readFlickr();
-            else if ( name() == "rsp" )
-                raiseError( QObject::tr("Query failed") );
-            else
-                raiseError( QObject::tr("The file is not a valid Flickr answer.") );
+            if (name() == QLatin1String("rsp")) {
+                if (attributes().value(QLatin1String("stat")) == QLatin1String("ok")) {
+                    readFlickr();
+                } else {
+                    raiseError(QObject::tr("Query failed"));
+                }
+            } else {
+                raiseError(QObject::tr("The file is not a valid Flickr answer."));
+            }
         }
     }
 
@@ -67,8 +69,8 @@ void FlickrParser::readUnknownElement()
 void FlickrParser::readFlickr()
 {
     Q_ASSERT( isStartElement()
-              && name() == "rsp" 
-              && attributes().value( "stat" ) == "ok" );
+              && name() == QLatin1String("rsp")
+              && attributes().value(QLatin1String("stat")) == QLatin1String("ok"));
               
     while( !atEnd() ) {
         readNext();
@@ -77,7 +79,7 @@ void FlickrParser::readFlickr()
             break;
         
         if( isStartElement() ) {
-            if( name() == "photos" )
+            if (name() == QLatin1String("photos"))
                 readPhotos();
             else
                 readUnknownElement();
@@ -88,7 +90,7 @@ void FlickrParser::readFlickr()
 void FlickrParser::readPhotos()
 {
     Q_ASSERT( isStartElement()
-              && name() == "photos" );
+              && name() == QLatin1String("photos"));
 
     while( !atEnd() ) {
         readNext();
@@ -97,7 +99,7 @@ void FlickrParser::readPhotos()
             break;
         
         if( isStartElement() ) {
-            if( name() == "photo" )
+            if (name() == QLatin1String("photo"))
                 readPhoto();
             else
                 readUnknownElement();
@@ -108,16 +110,16 @@ void FlickrParser::readPhotos()
 void FlickrParser::readPhoto()
 {
     Q_ASSERT( isStartElement()
-              && name() == "photo" );
+              && name() == QLatin1String("photo"));
 
-    if( attributes().hasAttribute( "id" ) ) {
+    if( attributes().hasAttribute(QLatin1String("id")) ) {
         PhotoPluginItem *item = new PhotoPluginItem( m_marbleWidget, m_parent );
-        item->setId( attributes().value( "id" ).toString() );
-        item->setServer( attributes().value( "server" ).toString() );
-        item->setFarm( attributes().value( "farm" ).toString() );
-        item->setSecret( attributes().value( "secret" ).toString() );
-        item->setOwner( attributes().value( "owner" ).toString() );
-        item->setTitle( attributes().value( "title" ).toString() );
+        item->setId( attributes().value(QLatin1String("id")).toString() );
+        item->setServer( attributes().value(QLatin1String("server")).toString() );
+        item->setFarm( attributes().value(QLatin1String("farm")).toString() );
+        item->setSecret( attributes().value(QLatin1String("secret")).toString() );
+        item->setOwner( attributes().value(QLatin1String("owner")).toString() );
+        item->setTitle( attributes().value(QLatin1String("title")).toString() );
         m_list->append( item );
     }
     

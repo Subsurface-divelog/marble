@@ -11,7 +11,7 @@
 
 #include <QFile>
 #include <QDebug>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QStringList>
 
 #include <cmath>
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
         // Ignore Comment lines in header and
         // between dso entries
-        if ( line.startsWith( '#' ) )    {
+        if (line.startsWith(QLatin1Char('#'))) {
             continue;
         }
 

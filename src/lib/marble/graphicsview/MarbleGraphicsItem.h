@@ -13,15 +13,14 @@
 
 #include "marble_export.h"
 
-#include <QPointF>
-#include <QList>
-#include <QSizeF>
-#include <QRectF>
-#include <QString>
+#include <QtGlobal>
 
 class QEvent;
 class QObject;
 class QPainter;
+class QRectF;
+class QSizeF;
+class QPointF;
 
 namespace Marble
 {
@@ -33,8 +32,6 @@ class MarbleGraphicsItemPrivate;
 
 class MARBLE_EXPORT MarbleGraphicsItem
 {
-    friend class MarbleGraphicsItemPrivate;
-
  public:
     enum CacheMode {
         NoCache,
@@ -125,7 +122,7 @@ class MARBLE_EXPORT MarbleGraphicsItem
     virtual void setProjection(const ViewportParams *viewport );
 
  protected:
-    explicit MarbleGraphicsItem( MarbleGraphicsItemPrivate *d_ptr );
+    explicit MarbleGraphicsItem(MarbleGraphicsItemPrivate *dd);
 
     /**
      * Paints the item in item coordinates. This has to be reimplemented by the subclass
@@ -141,11 +138,12 @@ class MARBLE_EXPORT MarbleGraphicsItem
      */
     void update();
 
-    MarbleGraphicsItemPrivate * const d;
+ protected:
+    MarbleGraphicsItemPrivate * const d_ptr;
 
  private:
-    MarbleGraphicsItemPrivate* p();
-    const MarbleGraphicsItemPrivate* p() const;
+    Q_DISABLE_COPY(MarbleGraphicsItem)
+    Q_DECLARE_PRIVATE(MarbleGraphicsItem)
 };
 
 } // Namespace Marble

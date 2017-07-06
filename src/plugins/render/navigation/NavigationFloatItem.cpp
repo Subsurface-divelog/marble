@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2008      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2008      Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2010      Bastian Holst <bastianholst@gmx.de>
 // Copyright 2013      Mohammed Nafees <nafees.technocool@gmail.com>
 //
@@ -15,8 +15,6 @@
 #include <qmath.h>
 #include <QContextMenuEvent>
 #include <QRect>
-#include <QPixmap>
-#include <QToolButton>
 #include <QSlider>
 #include <QWidget>
 #include <QPainter>
@@ -55,19 +53,12 @@ NavigationFloatItem::NavigationFloatItem( const MarbleModel *marbleModel )
 
 NavigationFloatItem::~NavigationFloatItem()
 {
-    QPixmapCache::remove( "marble/navigation/navigational_backdrop_top" );
-    QPixmapCache::remove( "marble/navigation/navigational_backdrop_center" );
-    QPixmapCache::remove( "marble/navigation/navigational_backdrop_bottom" );
-    QPixmapCache::remove( "marble/navigation/navigational_currentlocation" );
-    QPixmapCache::remove( "marble/navigation/navigational_currentlocation_hover" );
-    QPixmapCache::remove( "marble/navigation/navigational_currentlocation_pressed" );
-
     delete m_navigationWidget;
 }
 
 QStringList NavigationFloatItem::backendTypes() const
 {
-    return QStringList("navigation");
+    return QStringList(QStringLiteral("navigation"));
 }
 
 QString NavigationFloatItem::name() const
@@ -82,12 +73,12 @@ QString NavigationFloatItem::guiString() const
 
 QString NavigationFloatItem::nameId() const
 {
-    return QString("navigation");
+    return QStringLiteral("navigation");
 }
 
 QString NavigationFloatItem::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString NavigationFloatItem::description() const
@@ -97,20 +88,20 @@ QString NavigationFloatItem::description() const
 
 QString NavigationFloatItem::copyrightYears() const
 {
-    return "2008, 2010, 2013";
+    return QStringLiteral("2008, 2010, 2013");
 }
 
-QList<PluginAuthor> NavigationFloatItem::pluginAuthors() const
+QVector<PluginAuthor> NavigationFloatItem::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
-            << PluginAuthor( "Bastian Holst", "bastianholst@gmx.de" )
-            << PluginAuthor( "Mohammed Nafees", "nafees.technocool@gmail.com" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
+            << PluginAuthor(QStringLiteral("Bastian Holst"), QStringLiteral("bastianholst@gmx.de"))
+            << PluginAuthor(QStringLiteral("Mohammed Nafees"), QStringLiteral("nafees.technocool@gmail.com"));
 }
 
 QIcon NavigationFloatItem::icon() const
 {
-    return QIcon(":/icons/navigation.png");
+    return QIcon(QStringLiteral(":/icons/navigation.png"));
 }
 
 void NavigationFloatItem::initialize()
@@ -202,7 +193,7 @@ bool NavigationFloatItem::eventFilter( QObject *object, QEvent *e )
     return AbstractFloatItem::eventFilter(object, e);
 }
 
-void NavigationFloatItem::selectTheme( QString )
+void NavigationFloatItem::selectTheme( const QString& )
 {
     if ( m_marbleWidget ) {
         m_maxZoom = m_marbleWidget->maximumZoom();
@@ -232,7 +223,7 @@ QPixmap NavigationFloatItem::pixmap( const QString &id )
 {
     QPixmap result;
     if ( !QPixmapCache::find( id, result ) ) {
-        result = QPixmap( QString( ":/%1.png" ).arg( id ) );
+        result = QPixmap(QLatin1String(":/") + id + QLatin1String(".png"));
         QPixmapCache::insert( id, result );
     }
     return result;
@@ -253,7 +244,7 @@ void NavigationFloatItem::contextMenuEvent( QWidget *w, QContextMenuEvent *e )
         m_activateCurrentPositionButtonAction = new QAction( QIcon(),
                                                              tr( "Current Location Button" ),
                                                              m_contextMenu );
-        m_activateHomeButtonAction = new QAction( QIcon( ":/icons/go-home.png" ),
+        m_activateHomeButtonAction = new QAction(QIcon(QStringLiteral(":/icons/go-home.png")),
                                                              tr( "Home Button" ),
                                                              m_contextMenu );
         m_activateHomeButtonAction->setVisible( !m_showHomeButton );
@@ -332,14 +323,14 @@ void NavigationFloatItem::centerOnCurrentLocation()
 QHash<QString,QVariant> NavigationFloatItem::settings() const
 {
     QHash<QString, QVariant> settings = AbstractFloatItem::settings();
-    settings.insert( "showHomeButton", m_showHomeButton );
+    settings.insert(QStringLiteral("showHomeButton"), m_showHomeButton);
     return settings;
 }
 
 void NavigationFloatItem::setSettings( const QHash<QString, QVariant> &settings )
 {
     AbstractFloatItem::setSettings( settings );
-    m_showHomeButton = settings.value( "showHomeButton", true ).toBool();
+    m_showHomeButton = settings.value(QStringLiteral("showHomeButton"), true).toBool();
     if ( m_showHomeButton ) {
         activateHomeButton();
     } else {
@@ -347,6 +338,4 @@ void NavigationFloatItem::setSettings( const QHash<QString, QVariant> &settings 
     }
 }
 
-Q_EXPORT_PLUGIN2( NavigationFloatItem, Marble::NavigationFloatItem )
-
-#include "NavigationFloatItem.moc"
+#include "moc_NavigationFloatItem.cpp"

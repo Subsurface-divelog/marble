@@ -1,0 +1,35 @@
+[Desktop Entry]
+Name=World Map
+Name[ca]=Mapa mundial
+Name[ca@valencia]=Mapa mundial
+Name[cs]=Mapa světa
+Name[da]=Verdenskort
+Name[de]=Weltkarte
+Name[el]=Παγκόσμιος χάρτης
+Name[en_GB]=World Map
+Name[es]=Mapa mundial
+Name[et]=Maailmakaart
+Name[fi]=Maailmankartta
+Name[it]=Mappa del mondo
+Name[nl]=Wereldkaart
+Name[pl]=Mapa świata
+Name[pt]=Mapa-Mundo
+Name[pt_BR]=Mapa mundial
+Name[sk]=Mapa sveta
+Name[sl]=Zemljevid sveta
+Name[sv]=Världskarta
+Name[tr]=Dünya Haritası
+Name[uk]=Карта світу
+Name[x-test]=xxWorld Mapxx
+Name[zh_TW]=世界地圖
+Type=Service
+Icon=marble
+
+X-KDE-ServiceTypes=Plasma/Wallpaper
+X-KDE-PluginInfo-Author=Friedrich W. H. Kossebau
+X-KDE-PluginInfo-Email=kossebau@kde.org
+X-KDE-PluginInfo-License=LGPL
+X-KDE-PluginInfo-Name=org.kde.plasma.worldmap
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-Website=https://marble.kde.org/
+X-Plasma-MainScript=ui/main.qml

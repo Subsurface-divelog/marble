@@ -14,7 +14,7 @@
 #define TOURCONTROLEDITWIDGET_H
 
 #include <QWidget>
-#include <QModelIndex>
+#include <QPersistentModelIndex>
 
 class QRadioButton;
 class QToolButton;
@@ -29,7 +29,7 @@ class TourControlEditWidget: public QWidget
     Q_OBJECT
 
 public:
-    TourControlEditWidget( const QModelIndex& index, QWidget* parent=0 );
+    explicit TourControlEditWidget( const QModelIndex& index, QWidget* parent=0 );
     bool editable() const;
 
 Q_SIGNALS:

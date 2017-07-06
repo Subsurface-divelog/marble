@@ -18,15 +18,15 @@ namespace Marble {
     class AprsTTY : public AprsSource
     {
       public:
-        explicit AprsTTY( QString ttyName );
-        ~AprsTTY();
+        explicit AprsTTY( const QString &ttyName );
+        ~AprsTTY() override;
 
-        QString sourceName() const;
-        QIODevice *openSocket();
+        QString sourceName() const override;
+        QIODevice *openSocket() override;
         void       checkReadReturn( int length, QIODevice **socket,
-                                    AprsGatherer *gatherer );
+                                    AprsGatherer *gatherer ) override;
 
-        bool       canDoDirect() const;
+        bool       canDoDirect() const override;
 
       private:
         QString m_ttyName;

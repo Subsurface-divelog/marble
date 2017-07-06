@@ -5,16 +5,15 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_KMLOVERLAYTAGWRITER_H
 #define MARBLE_KMLOVERLAYTAGWRITER_H
 
-#include "GeoTagWriter.h"
 #include "KmlFeatureTagWriter.h"
 
-#include <QString>
+class QString;
 
 namespace Marble
 {
@@ -26,7 +25,7 @@ public:
     explicit KmlOverlayTagWriter( const QString &elementName );
 
 protected:
-    virtual bool writeMid( const GeoNode *node, GeoWriter& writer ) const = 0;
+    bool writeMid( const GeoNode *node, GeoWriter& writer ) const override = 0;
 };
 
 }

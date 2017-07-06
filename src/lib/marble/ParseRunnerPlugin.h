@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 // Copyright 2012 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
@@ -33,7 +33,7 @@ public:
     explicit ParseRunnerPlugin( QObject* parent = 0 );
 
     /** Destructor */
-    virtual ~ParseRunnerPlugin();
+    ~ParseRunnerPlugin() override;
 
     /**
       * Returns a short description of the supported file format.
@@ -56,7 +56,7 @@ public:
 
     // Overridden methods with default implementations
 
-    virtual QIcon icon() const;
+    QIcon icon() const override;
 
 private:
     class Private;

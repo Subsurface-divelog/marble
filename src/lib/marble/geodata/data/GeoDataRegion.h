@@ -13,14 +13,13 @@
 #define MARBLE_GEODATAREGION_H
 
 #include "GeoDataObject.h"
-#include "GeoDataLatLonAltBox.h"
-#include "GeoDataLod.h"
-
 
 namespace Marble
 {
 
 class GeoDataFeature;
+class GeoDataLatLonAltBox;
+class GeoDataLod;
 class GeoDataRegionPrivate;
 
 /*!
@@ -74,13 +73,13 @@ class GEODATA_EXPORT GeoDataRegion : public GeoDataObject
 /*!
     \brief Destroys a Region object.
 */
-    virtual ~GeoDataRegion();
+    ~GeoDataRegion() override;
 
     
 /*!
     \brief Provides type information for downcasting a GeoNode
 */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     bool operator==( const GeoDataRegion &other ) const;
     bool operator!=( const GeoDataRegion &other ) const;
@@ -129,14 +128,14 @@ class GEODATA_EXPORT GeoDataRegion : public GeoDataObject
     \brief Serialize the Region to a stream.
     \param stream the stream.
 */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
 
 /*!
     \brief Unserialize the Region from a stream.
     \param stream the stream.
 */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
     GeoDataRegion &operator=( const GeoDataRegion& other );
 

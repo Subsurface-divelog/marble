@@ -5,14 +5,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012       Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012       Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2012       Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
 #ifndef MARBLE_SEARCHINPUTWIDGET_H
 #define MARBLE_SEARCHINPUTWIDGET_H
 
-#include <QModelIndex>
 #include <QSortFilterProxyModel>
 
 #include "MarbleLineEdit.h"
@@ -20,7 +19,9 @@
 #include "marble_export.h"
 
 class QAbstractItemModel;
+
 class QCompleter;
+class QModelIndex;
 
 namespace Marble {
 

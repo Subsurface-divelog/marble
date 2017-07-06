@@ -13,15 +13,14 @@
 
 #include "TrackerPluginItem.h"
 
-#include "GeoDataCoordinates.h"
-#include "GeoDataTrack.h"
-
-#include "sgp4/sgp4unit.h"
+#include <sgp4unit.h>
 
 class QColor;
+class QDateTime;
 
 namespace Marble {
 
+class GeoDataCoordinates;
 class GeoDataTrack;
 class MarbleClock;
 
@@ -36,7 +35,7 @@ public:
                        elsetrec satrec,
                        const MarbleClock *clock );
 
-    void update();
+    void update() override;
 
 private:
     double m_earthSemiMajorAxis; // in km

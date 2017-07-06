@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -25,10 +25,10 @@ class RoutinoRunner : public RoutingRunner
 public:
     explicit RoutinoRunner(QObject *parent = 0);
 
-    ~RoutinoRunner();
+    ~RoutinoRunner() override;
 
     // Overriding MarbleAbstractRunner
-    virtual void retrieveRoute( const RouteRequest *request );
+    void retrieveRoute( const RouteRequest *request ) override;
 
 private:
     RoutinoRunnerPrivate* const d;

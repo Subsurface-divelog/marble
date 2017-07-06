@@ -18,6 +18,11 @@
 #include "GeoDataLineString.h"
 #include "GeoDataLinearRing.h"
 
+Q_DECLARE_METATYPE( Marble::GeoDataLinearRing )
+Q_DECLARE_METATYPE( Marble::Projection )
+Q_DECLARE_METATYPE( Marble::TessellationFlag )
+Q_DECLARE_METATYPE( Marble::TessellationFlags )
+
 namespace Marble
 {
 
@@ -25,7 +30,7 @@ class ViewportParamsTest : public QObject
 {
     Q_OBJECT
 
- private slots:
+private Q_SLOTS:
     void constructorDefaultValues();
 
     void constructorValues_data();
@@ -35,6 +40,8 @@ class ViewportParamsTest : public QObject
     void screenCoordinates_GeoDataLineString();
 
     void screenCoordinates_GeoDataLineString2();
+
+    void screenCoordinates_GeoDataLinearRing();
 
     void geoDataLinearRing_data();
     void geoDataLinearRing();
@@ -297,6 +304,40 @@ void ViewportParamsTest::screenCoordinates_GeoDataLineString2()
     QCOMPARE( polys.size(), 2 );
 }
 
+void ViewportParamsTest::screenCoordinates_GeoDataLinearRing()
+{
+    // Creates a Rectangle on the eastern southern hemisphere
+    // with the planet rotated so that only the western half
+    // of the rectangle is visible. As a result only a single
+    // screen polygon should be rendered.
+
+    const ViewportParams viewport( Spherical, -15 * DEG2RAD, 0 * DEG2RAD, 350, QSize( 1000, 750 ) );
+
+    GeoDataLinearRing line( Tessellate );
+    GeoDataCoordinates coord1 ( 30, -10, 0.0, GeoDataCoordinates::Degree );
+    GeoDataCoordinates coord2 ( 30, -45, 0.0, GeoDataCoordinates::Degree );
+    GeoDataCoordinates coord3 ( 100, -45, 0.0, GeoDataCoordinates::Degree );
+    GeoDataCoordinates coord4 ( 100, -10, 0.0, GeoDataCoordinates::Degree );
+
+    qreal x, y;
+    bool globeHidesPoint;
+    viewport.screenCoordinates( coord1, x, y, globeHidesPoint );
+    QCOMPARE( globeHidesPoint, false );
+    viewport.screenCoordinates( coord2, x, y, globeHidesPoint );
+    QCOMPARE( globeHidesPoint, false );
+    viewport.screenCoordinates( coord3, x, y, globeHidesPoint );
+    QCOMPARE( globeHidesPoint, true );
+    viewport.screenCoordinates( coord4, x, y, globeHidesPoint );
+    QCOMPARE( globeHidesPoint, true );
+
+    line << coord1 << coord2 << coord3 << coord4;
+
+    QVector<QPolygonF*> polys;
+    viewport.screenCoordinates( line, polys );
+
+    QCOMPARE( polys.size(), 1 );
+}
+
 void ViewportParamsTest::geoDataLinearRing_data()
 {
     QTest::addColumn<Marble::Projection>( "projection" );
@@ -330,8 +371,10 @@ void ViewportParamsTest::geoDataLinearRing_data()
     QTest::newRow("Mercator NoTesselation acrossIDLRing")
             << projection << flags << acrossIDLRing << 2;
 
+#ifdef BUG_357540_IS_FIXED
     QTest::newRow("Mercator NoTesselation aroundSPoleRing")
             << projection << flags << aroundSPoleRing << 2;
+#endif
 
     flags = Tessellate;
     QTest::newRow("Mercator Tesselate normalRing")
@@ -340,8 +383,10 @@ void ViewportParamsTest::geoDataLinearRing_data()
     QTest::newRow("Mercator Tesselate acrossIDLRing")
             << projection << flags << acrossIDLRing << 2;
 
+#ifdef BUG_357540_IS_FIXED
     QTest::newRow("Mercator Tesselate aroundSPoleRing")
             << projection << flags << aroundSPoleRing << 2;
+#endif
 
     flags = Tessellate | RespectLatitudeCircle;
     QTest::newRow("Mercator LatitudeCircle normalRing")
@@ -350,8 +395,10 @@ void ViewportParamsTest::geoDataLinearRing_data()
     QTest::newRow("Mercator LatitudeCircle acrossIDLRing")
             << projection << flags << acrossIDLRing << 2;
 
+#ifdef BUG_357540_IS_FIXED
     QTest::newRow("Mercator LatitudeCircle aroundSPoleRing")
             << projection << flags << aroundSPoleRing << 2;
+#endif
 
     projection = Equirectangular;
 
@@ -362,8 +409,10 @@ void ViewportParamsTest::geoDataLinearRing_data()
     QTest::newRow("Equirect NoTesselation acrossIDLRing")
             << projection << flags << acrossIDLRing << 2;
 
+#ifdef BUG_357540_IS_FIXED
     QTest::newRow("Equirect NoTesselation aroundSPoleRing")
             << projection << flags << aroundSPoleRing << 2;
+#endif
 
     flags = Tessellate;
     QTest::newRow("Equirect Tesselate normalRing")
@@ -372,8 +421,10 @@ void ViewportParamsTest::geoDataLinearRing_data()
     QTest::newRow("Equirect Tesselate acrossIDLRing")
             << projection << flags << acrossIDLRing << 2;
 
+#ifdef BUG_357540_IS_FIXED
     QTest::newRow("Equirect Tesselate aroundSPoleRing")
             << projection << flags << aroundSPoleRing << 2;
+#endif
 
     flags = Tessellate | RespectLatitudeCircle;
     QTest::newRow("Equirect LatitudeCircle normalRing")
@@ -382,8 +433,10 @@ void ViewportParamsTest::geoDataLinearRing_data()
     QTest::newRow("Equirect LatitudeCircle acrossIDLRing")
             << projection << flags << acrossIDLRing << 2;
 
+#ifdef BUG_357540_IS_FIXED
     QTest::newRow("Equirect LatitudeCircle aroundSPoleRing")
             << projection << flags << aroundSPoleRing << 2;
+#endif
 
     projection = Spherical;
 
@@ -499,10 +552,6 @@ void ViewportParamsTest::setFocusPoint()
 
 }
 
-Q_DECLARE_METATYPE( Marble::GeoDataLinearRing )
-Q_DECLARE_METATYPE( Marble::Projection )
-Q_DECLARE_METATYPE( Marble::TessellationFlag )
-Q_DECLARE_METATYPE( Marble::TessellationFlags )
 QTEST_MAIN( Marble::ViewportParamsTest )
 
 #include "ViewportParamsTest.moc"

@@ -19,7 +19,6 @@
 #include "GeoDataSchemaData.h"
 
 #include <QHash>
-#include <QList>
 
 namespace Marble
 {
@@ -43,7 +42,7 @@ bool KmlExtendedDataTagWriter::write( const GeoNode *node,
         writeElement( &i.value(), writer );
     }
 
-    foreach( const GeoDataSchemaData &schemaData, extended->schemaDataList() ) {
+    for( const GeoDataSchemaData &schemaData: extended->schemaDataList() ) {
         writeElement( &schemaData, writer );
     }
 

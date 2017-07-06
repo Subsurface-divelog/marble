@@ -13,10 +13,9 @@
 #define MARBLE_GLOBAL_H
 
 
-#include <math.h>
+#include <cmath>
 
 #include <QString>
-#include <QColor>
 
 #include "marble_export.h"
 #include "MarbleColors.h"
@@ -29,11 +28,10 @@ namespace Marble
 
 enum TessellationFlag {
     NoTessellation = 0x0,
-    Tessellate = 0x1, 
+    Tessellate = 0x1,
     RespectLatitudeCircle = 0x2,
     FollowGround = 0x4,
-    RotationIndicatesFill = 0x8,
-    SkipLatLonNormalization = 0x10
+    PreventNodeFiltering = 0x8
 };
 
 Q_DECLARE_FLAGS(TessellationFlags, TessellationFlag)
@@ -41,7 +39,7 @@ Q_DECLARE_FLAGS(TessellationFlags, TessellationFlag)
 /**
  * @brief This enum is used to choose the projection shown in the view.
  */
-enum Projection { 
+enum Projection {
     Spherical,          ///< Spherical projection ("Orthographic")
     Equirectangular,    ///< Flat projection ("plate carree")
     Mercator,           ///< Mercator projection
@@ -79,7 +77,7 @@ enum AngleUnit {
 enum ViewContext {
     Still,              ///< still image
     Animation           ///< animated view (e.g. while rotating the globe)
-}; 
+};
 
 /**
  * @brief This enum is used to choose the map quality shown in the view.
@@ -90,15 +88,6 @@ enum MapQuality {
     NormalQuality,      ///< Normal quality
     HighQuality,        ///< High quality (e.g. antialiasing for lines)
     PrintQuality        ///< Print quality
-}; 
-
-/**
- * @brief This enum is used to choose which graphics system Qt is using.
- */
-enum GraphicsSystem {
-    NativeGraphics,     ///< Uses the native graphics system of the OS
-    RasterGraphics,     ///< Renders everything onto a pixmap
-    OpenGLGraphics      ///< Uses OpenGL
 };
 
 /**
@@ -118,7 +107,8 @@ enum LabelPositionFlag {
     LineCenter = 0x2,
     LineEnd = 0x4,
     IgnoreXMargin = 0x8,
-    IgnoreYMargin = 0x10
+    IgnoreYMargin = 0x10,
+    FollowLine = 0x20
 };
 
 Q_DECLARE_FLAGS(LabelPositionFlags, LabelPositionFlag)
@@ -129,8 +119,8 @@ Q_DECLARE_FLAGS(LabelPositionFlags, LabelPositionFlag)
 enum LabelLocalization {
     CustomAndNative,    ///< Custom and native labels
     Custom,             ///< Shows the name in the user's language
-    Native              ///< Display the name in the official language and  
-                        ///  glyphs of the labeled place. 
+    Native              ///< Display the name in the official language and
+                        ///  glyphs of the labeled place.
 };
 
 /**
@@ -171,7 +161,7 @@ enum DownloadUsage {
     DownloadBrowse      ///< Browsing mode, normal operation of Marble, like a web browser
 };
 
-/** 
+/**
  * @brief Describes possible flight mode (interpolation between source
  *        and target camera positions)
  */
@@ -179,7 +169,7 @@ enum FlyToMode {
     Automatic, ///< A sane value is chosen automatically depending on animation settings and the action
     Instant, ///< Change camera position immediately (no interpolation)
     Linear, ///< Linear interpolation of lon, lat and distance to ground
-    Jump ///< Linear interpolation of lon and lat, distance increases towards the middle point, then decreases    
+    Jump ///< Linear interpolation of lon and lat, distance increases towards the middle point, then decreases
 };
 
 /**
@@ -256,22 +246,22 @@ const qreal SEC2HOUR = 1.0 / HOUR2SEC;
 
 // String for about dialog and http user agent
 // FIXME: check if blanks are allowed in user agent version numbers
-const QString MARBLE_VERSION_STRING = QString::fromLatin1( "0.21.3 (stable release)" );
+const QString MARBLE_VERSION_STRING = QString::fromLatin1( "0.27.20 (0.28 development version)" );
 
 // API Version id:
 // form : 0xMMmmpp
 //        MM = major revision.
 //        mm = minor revision.
 //        pp = patch revision.
-#define MARBLE_VERSION 0x001503
+#define MARBLE_VERSION 0x001b14
 
-static const char NOT_AVAILABLE[] = QT_TR_NOOP("not available");
+static const char NOT_AVAILABLE[] = QT_TRANSLATE_NOOP("Marble", "not available");
 
 const int tileDigits = 6;
 
 // Average earth radius in m
 // Deprecated: Please use model()->planetRadius() instead.
-const qreal EARTH_RADIUS = 6378000.0;
+const qreal EARTH_RADIUS = 6378137.0;
 
 // Maximum level of base tiles
 const int maxBaseTileLevel = 4;
@@ -289,23 +279,21 @@ class  MARBLE_EXPORT MarbleGlobal
     ~MarbleGlobal();
 
     MarbleLocale * locale() const;
-    
+
     enum Profile {
         Default = 0x0,
         SmallScreen = 0x1,
         HighResolution = 0x2
     };
-    
+
     Q_DECLARE_FLAGS( Profiles, Profile )
 
     Profiles profiles() const;
     void setProfiles( Profiles profiles );
-    
-    /**
-     * Automatically detects the profile.
-     */
-    static Profiles detectProfiles();
-    
+
+    /** @deprecated Profiles are detected automatically now. This only returns profiles() anymore */
+    MARBLE_DEPRECATED static Profiles detectProfiles();
+
  private:
     MarbleGlobal();
 

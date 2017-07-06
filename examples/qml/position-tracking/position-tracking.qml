@@ -4,13 +4,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
 
 // A (gps) tracking example. Shows the current (gps) position on the map
 // using a small ghost image. The visibility of the track can be toggled.
 
 import Qt 4.7
-import org.kde.edu.marble 0.11
+import org.kde.marble 0.20
 
 Rectangle {
     id: screen

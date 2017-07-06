@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013 Gerhard Holtkamp
+// Copyright 2014 Gerhard Holtkamp
 //
 
 #if !defined(__attlib_h)
@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include "astrolib_export.h"
+
 
 ASTROLIB_EXPORT double atan20 (double y, double x);
 
@@ -65,13 +66,13 @@ class ASTROLIB_EXPORT Mat3
  public:
    double m[3][3];
 
-   Mat3(double x=0);
+   explicit Mat3(double x=0);
    Mat3 (const Mat3& c);
    void assign (double x11, double x12, double x13,  double x21, double x22,
                 double x23, double x31, double x32, double x33);
    void assign (double x[3][3]);             // assign matrix
    void PutMij (double x, int i, int j);    // put single matrix element
-   double GetMij (int i, int j) const;      // get single matrix element
+   double GetMij (int i, int j);            // get single matrix element
    Mat3& operator = (const Mat3& c);
    Mat3& operator += (const Mat3& c);
    Mat3& operator -= (const Mat3& c);

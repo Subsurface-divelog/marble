@@ -12,7 +12,6 @@
 
 #include "GeoDataGeometry_p.h"
 
-#include "GeoDataTypes.h"
 #include "GeoDataTrack.h"
 
 namespace Marble
@@ -25,7 +24,7 @@ class GeoDataMultiTrackPrivate : public GeoDataGeometryPrivate
     {
     }
 
-    ~GeoDataMultiTrackPrivate()
+    ~GeoDataMultiTrackPrivate() override
     {
         qDeleteAll(m_vector);
     }
@@ -33,29 +32,24 @@ class GeoDataMultiTrackPrivate : public GeoDataGeometryPrivate
     GeoDataMultiTrackPrivate& operator=( const GeoDataMultiTrackPrivate &other)
     {
         GeoDataGeometryPrivate::operator=( other );
+
         qDeleteAll( m_vector );
-        foreach( GeoDataTrack *track, other.m_vector ) {
+        m_vector.clear();
+
+        m_vector.reserve(other.m_vector.size());
+        for( GeoDataTrack *track: other.m_vector ) {
             m_vector.append( new GeoDataTrack( *track ) );
         }
         return *this;
     }
 
-    virtual GeoDataGeometryPrivate* copy()
+    GeoDataGeometryPrivate *copy() const override
     { 
          GeoDataMultiTrackPrivate* copy = new GeoDataMultiTrackPrivate;
         *copy = *this;
         return copy;
     }
 
-    virtual const char* nodeType() const
-    {
-        return GeoDataTypes::GeoDataMultiTrackType;
-    }
-
-    virtual EnumGeometryId geometryId() const
-    {
-        return GeoDataMultiTrackId;
-    }
     QVector<GeoDataTrack*>  m_vector;
 };
 

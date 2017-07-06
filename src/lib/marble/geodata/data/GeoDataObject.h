@@ -52,16 +52,14 @@ public:
     GeoDataObject();
     GeoDataObject( const GeoDataObject & );
     GeoDataObject & operator=( const GeoDataObject & );
-    virtual ~GeoDataObject();
-
-    /// Provides type information for downcasting a GeoNode
-    virtual const char* nodeType() const = 0;
+    ~GeoDataObject() override;
 
     /// Provides the parent of the object in GeoDataContainers
-    virtual GeoDataObject *parent() const;
+    const GeoDataObject *parent() const;
+    GeoDataObject *parent();
 
     /// Sets the parent of the object
-    virtual void setParent(GeoDataObject *parent);
+    void setParent(GeoDataObject *parent);
 
     /**
      * @brief Get the id of the object.
@@ -86,9 +84,9 @@ public:
     QString resolvePath( const QString &relativePath ) const;
 
     /// Reimplemented from Serializable
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
     /// Reimplemented from Serializable
-    virtual void unpack( QDataStream& steam );
+    void unpack( QDataStream& steam ) override;
 
  private:
 
@@ -101,6 +99,49 @@ public:
      */
     virtual bool equals(const GeoDataObject &other) const;
 };
+
+
+/**
+ * Returns the given node cast to type T if the node was instantiated as type T; otherwise returns 0.
+ * If node is 0 then it will also return 0.
+ *
+ * @param node pointer to GeoNode object to be casted
+ * @return the given node as type T if cast is successfull, otherwise 0
+ */
+template<typename T>
+T *geodata_cast(GeoNode *node)
+{
+    if (node == nullptr) {
+        return nullptr;
+    }
+
+    if (node->nodeType() == T().nodeType()) {
+        return static_cast<T *>(node);
+    }
+
+    return nullptr;
+}
+
+/**
+ * Returns the given node cast to type const T if the node was instantiated as type T; otherwise returns 0.
+ * If node is 0 then it will also return 0.
+ *
+ * @param node pointer to GeoNode object to be casted
+ * @return the given node as type const T if cast is successfull, otherwise 0
+ */
+template<typename T>
+const T *geodata_cast(const GeoNode *node)
+{
+    if (node == nullptr) {
+        return nullptr;
+    }
+
+    if (node->nodeType() == T().nodeType()) {
+        return static_cast<const T *>(node);
+    }
+
+    return nullptr;
+}
 
 }
 

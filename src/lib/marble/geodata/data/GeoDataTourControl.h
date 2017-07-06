@@ -16,6 +16,8 @@
 namespace Marble
 {
 
+/**
+ */
 class GEODATA_EXPORT GeoDataTourControl : public GeoDataTourPrimitive
 {
 public:
@@ -25,14 +27,14 @@ public:
     };
 
     GeoDataTourControl();
-    ~GeoDataTourControl();
+    ~GeoDataTourControl() override;
 
     bool operator==( const GeoDataTourControl &other ) const;
     bool operator!=( const GeoDataTourControl &other ) const;
-    const char *nodeType() const;
+    const char *nodeType() const override;
 
     PlayMode playMode() const;
-    void setPlayMode(const PlayMode &mode);
+    void setPlayMode(PlayMode mode);
 
 private:
     PlayMode m_playMode;

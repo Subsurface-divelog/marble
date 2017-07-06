@@ -8,8 +8,8 @@
 // Copyright 2014 Abhinav Gangwar <abhgang@gmail.com>
 //
 
-#ifndef MARBLE_GEODATDASIMPLEFIELD_H
-#define MARBLE_GEODATDASIMPLEFIELD_H
+#ifndef MARBLE_GEODATASIMPLEFIELD_H
+#define MARBLE_GEODATASIMPLEFIELD_H
 
 #include "geodata_export.h"
 #include "GeoDocument.h"
@@ -22,6 +22,8 @@ namespace Marble
 
 class GeoDataSimpleFieldPrivate;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataSimpleField : public GeoNode
 {
 public:
@@ -29,7 +31,7 @@ public:
     GeoDataSimpleField( const GeoDataSimpleField& other );
     bool operator==( const GeoDataSimpleField& other ) const;
     bool operator!=( const GeoDataSimpleField& other ) const;
-    virtual ~GeoDataSimpleField();
+    ~GeoDataSimpleField() override;
 
     /*
      * @brief Enum for different values of type attribute of SimpleField
@@ -54,7 +56,7 @@ public:
      * @brief Sets the value of type attribute
      * @param type  The of type attribute
      */
-    void setType( const SimpleFieldType& type );
+    void setType(SimpleFieldType type);
 
     /*
      * @brief Returns the value of name attribute of simple field
@@ -87,7 +89,7 @@ public:
     /*
      * @brief Provides information for downcasting a GeoNode
      */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     /*
      * @brief Serialize SimpleField to a stream
@@ -108,4 +110,4 @@ private:
 
 }
 
-#endif // MARBLE_GEODATDASIMPLEFIELD_H
+#endif // MARBLE_GEODATASIMPLEFIELD_H

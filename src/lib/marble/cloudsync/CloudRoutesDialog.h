@@ -11,14 +11,11 @@
 #ifndef CLOUDROUTESDIALOG_H
 #define CLOUDROUTESDIALOG_H
 
-#include "MarbleWidget.h"
-#include "CloudRouteModel.h"
-
 #include <QDialog>
-#include <QListView>
-#include <QStyledItemDelegate>
 
 namespace Marble {
+
+class CloudRouteModel;
 
 class CloudRoutesDialog : public QDialog
 {
@@ -26,24 +23,24 @@ class CloudRoutesDialog : public QDialog
     
 public:
     explicit CloudRoutesDialog( CloudRouteModel *model, QWidget *parent = 0 );
-    ~CloudRoutesDialog();
+    ~CloudRoutesDialog() override;
     CloudRouteModel *model();
 
-public slots:
+public Q_SLOTS:
     void updateListDownloadProgressbar( qint64 received, qint64 total );
 
-signals:
-    void downloadButtonClicked( QString timestamp );
-    void openButtonClicked( QString timestamp );
-    void deleteButtonClicked( QString timestamp );
-    void removeFromCacheButtonClicked( QString timestamp );
-    void uploadToCloudButtonClicked( QString timestamp );
+Q_SIGNALS:
+    void downloadButtonClicked( const QString& timestamp );
+    void openButtonClicked( const QString& timestamp );
+    void deleteButtonClicked( const QString& timestamp );
+    void removeFromCacheButtonClicked( const QString& timestamp );
+    void uploadToCloudButtonClicked( const QString& timestamp );
 
 private:
     class Private;
     Private *d;
 
-private slots:
+private Q_SLOTS:
     void updateNoRouteLabel();
 };
 

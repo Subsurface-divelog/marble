@@ -14,7 +14,6 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 
 // type is used in wpt, rte and trk to provide some sort of keyword, like "Geocache/traditional cache",
@@ -29,7 +28,7 @@ GPX_DEFINE_TAG_HANDLER(cmt)
 
 GeoNode* GPXcmtTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_cmt));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_cmt)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_wpt))
@@ -42,7 +41,7 @@ GeoNode* GPXcmtTagHandler::parse(GeoParser& parser) const
             QString desc = placemark->description();
             if (!desc.isEmpty())
             {
-                desc.append("<br/>");
+                desc += QLatin1String("<br/>");
             }
             placemark->setDescription(desc.append(cmt.replace(QLatin1Char('\n'),QLatin1String("\n<br/>"))));
             placemark->setDescriptionCDATA(true);

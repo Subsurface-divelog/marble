@@ -37,23 +37,23 @@ void PanoramioModel::setMarbleWidget( MarbleWidget *widget )
 
 void PanoramioModel::getAdditionalItems( const GeoDataLatLonAltBox &box, qint32 number )
 {
-    if ( marbleModel()->planetId() != "earth" ) {
+    if (marbleModel()->planetId() != QLatin1String("earth")) {
         return;
     }
 
     // FIXME: Download a list of constant number, because the parser doesn't support
     // loading a file of an unknown length.
-    QUrl jsonUrl( "http://www.panoramio.com/map/get_panoramas.php?from="
-                  + QString::number( 0 )
-                  + "&order=upload_date"
-                  + "&set=public"
-                  + "&to="   + QString::number( number )
-//                   + "&to=" + QString::number( number )
-                  + "&minx=" + QString::number( box.west() * RAD2DEG )
-                  + "&miny=" + QString::number( box.south() * RAD2DEG )
-                  + "&maxx=" + QString::number( box.east() * RAD2DEG )
-                  + "&maxy=" + QString::number( box.north() * RAD2DEG )
-                  + "&size=small");
+    const QUrl jsonUrl(QLatin1String("http://www.panoramio.com/map/get_panoramas.php?from=")
+                       + QString::number(0)
+                       + QLatin1String("&order=upload_date")
+                       + QLatin1String("&set=public")
+                       + QLatin1String("&to=")   + QString::number(number)
+//                        + QLatin1String("&to=") + QString::number( number )
+                       + QLatin1String("&minx=") + QString::number(box.west() * RAD2DEG)
+                       + QLatin1String("&miny=") + QString::number(box.south() * RAD2DEG)
+                       + QLatin1String("&maxx=") + QString::number(box.east() * RAD2DEG)
+                       + QLatin1String("&maxy=") + QString::number(box.north() * RAD2DEG)
+                       + QLatin1String("&size=small"));
 
     downloadDescriptionFile( jsonUrl );
 }
@@ -91,4 +91,4 @@ void PanoramioModel::parseFile( const QByteArray &file )
     }
 }
 
-#include "PanoramioModel.moc"
+#include "moc_PanoramioModel.cpp"

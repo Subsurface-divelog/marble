@@ -28,6 +28,7 @@
 #include "GeoDataPlacemark.h"
 #include "GeoDataPolygon.h"
 #include "GeoDataMultiGeometry.h"
+#include "GeoDataLinearRing.h"
 
 #include "GeoParser.h"
 
@@ -39,7 +40,7 @@ KML_DEFINE_TAG_HANDLER( LinearRing )
 
 GeoNode* KmlLinearRingTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_LinearRing ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_LinearRing)));
 
     GeoStackItem parentItem = parser.parentElement();
     

@@ -9,14 +9,12 @@
 // Copyright 2012      Thibaut Gridel <tgridel@free.fr>
 //
 
-#ifndef MARBLE_BOOKMARKINFODIALOG_H
-#define MARBLE_BOOKMARKINFODIALOG_H
+#ifndef MARBLE_EDITBOOKMARKDIALOG_H
+#define MARBLE_EDITBOOKMARKDIALOG_H
 
 #include <QDialog>
 
 #include "marble_export.h"
-#include "GeoDataCoordinates.h"
-#include "GeoDataPlacemark.h"
 
 /** @todo FIXME after freeze: Rename to AddBookmarkDialog*/
 
@@ -26,7 +24,8 @@ namespace Marble
 class EditBookmarkDialogPrivate;
 class BookmarkManager;
 class GeoDataFolder;
-class GeoDataLookAt;
+class GeoDataCoordinates;
+class GeoDataPlacemark;
 class MarbleWidget;
 
 class MARBLE_EXPORT EditBookmarkDialog : public QDialog
@@ -37,7 +36,7 @@ class MARBLE_EXPORT EditBookmarkDialog : public QDialog
     explicit EditBookmarkDialog( BookmarkManager *manager, QWidget *parent = 0 );
 
     /** Destructor */
-    ~EditBookmarkDialog();
+    ~EditBookmarkDialog() override;
 
     void setMarbleWidget( MarbleWidget* widget );
 

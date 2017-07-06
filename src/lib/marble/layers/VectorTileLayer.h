@@ -16,60 +16,61 @@
 
 #include "LayerInterface.h"
 #include <QObject>
-#include <QRunnable>
 
 #include "MarbleGlobal.h"
-#include "MarbleModel.h"
-#include "GeoDataDocument.h"
-#include "GeoDataLatLonAltBox.h"
-#include "TileId.h"
-
-#include <QSize>
-
-class QImage;
-class QRegion;
-class QRect;
 
 namespace Marble
 {
 
 class GeoPainter;
+class GeoDataDocument;
 class GeoSceneGroup;
-class GeoSceneVectorTile;
+class GeoSceneVectorTileDataset;
+class GeoDataTreeModel;
+class PluginManager;
 class HttpDownloadManager;
-class SunLocator;
-class TileLoader;
 class ViewportParams;
+class TileId;
 
 class VectorTileLayer : public QObject, public LayerInterface
 {
     Q_OBJECT
 
- public:
-    VectorTileLayer( HttpDownloadManager *downloadManager,
-                  const PluginManager *pluginManager,
-                  GeoDataTreeModel *treeModel);
+public:
+    VectorTileLayer(HttpDownloadManager *downloadManager,
+                    const PluginManager *pluginManager,
+                    GeoDataTreeModel *treeModel);
 
-    ~VectorTileLayer();
+    ~VectorTileLayer() override;
 
-    QStringList renderPosition() const;
+    QStringList renderPosition() const override;
 
-    RenderState renderState() const;
+    RenderState renderState() const override;
 
- public Q_SLOTS:
-    bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString &renderPos = QLatin1String("NONE"),
-                 GeoSceneLayer *layer = 0 );
+    int tileZoomLevel() const;
 
-    void setMapTheme( const QVector<const GeoSceneVectorTile *> &textures, const GeoSceneGroup *textureLayerSettings );
+    QString runtimeTrace() const override;
+
+    bool render(GeoPainter *painter, ViewportParams *viewport,
+                const QString &renderPos = QLatin1String("NONE"),
+                GeoSceneLayer *layer = 0) override;
+
+    void reload();
+
+Q_SIGNALS:
+    void tileLevelChanged(int tileLevel);
+
+public Q_SLOTS:
+    void setMapTheme(const QVector<const GeoSceneVectorTileDataset *> &textures, const GeoSceneGroup *textureLayerSettings);
 
     void reset();
 
- private:
-    Q_PRIVATE_SLOT( d, void updateTextureLayers() )
+private:
+    Q_PRIVATE_SLOT(d, void updateLayerSettings())
+    Q_PRIVATE_SLOT(d, void updateTile(const TileId &tileId, GeoDataDocument* document))
 
 
- private:
+private:
     class Private;
     Private *const d;
 

@@ -15,6 +15,7 @@
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagHandler.h"
 #include "GeoDataModel.h"
+#include "GeoDataMultiGeometry.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataParser.h"
 
@@ -26,7 +27,7 @@ KML_DEFINE_TAG_HANDLER( Model )
 
 GeoNode* KmlModelTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_Model ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Model)));
 
     GeoDataModel *model = new GeoDataModel;
     KmlObjectTagHandler::parseIdentifiers( parser, model );

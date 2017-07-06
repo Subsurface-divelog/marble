@@ -18,7 +18,6 @@
 
 
 #include <QObject>
-#include <QString>
 #include <QColor>
 
 //FIXME: This class shouldn't be exposed but is needed by the worldclock plasmoid
@@ -36,7 +35,7 @@ class MARBLE_EXPORT SunLocator : public QObject
 
  public:
     SunLocator( const MarbleClock *clock, const Planet *planet );
-    virtual ~SunLocator();
+    ~SunLocator() override;
 
     qreal shading(qreal lon, qreal a, qreal c) const;
     void  shadePixel(QRgb& pixcol, qreal shade) const;
@@ -55,6 +54,7 @@ class MARBLE_EXPORT SunLocator : public QObject
 
  private:
     void updatePosition();
+    void updateTwilightZone();
 
     SunLocatorPrivate * const d;
 

@@ -11,7 +11,6 @@
 
 #include "FileManager.h"
 
-#include <QDir>
 #include <QFileInfo>
 #include <QTime>
 #include <QMessageBox>
@@ -24,8 +23,6 @@
 #include "GeoDataDocument.h"
 #include "GeoDataLatLonAltBox.h"
 #include "GeoDataStyle.h"
-#include "GeoWriter.h"
-#include <KmlElementDictionary.h>
 
 
 using namespace Marble;
@@ -44,7 +41,7 @@ public:
 
     ~FileManagerPrivate()
     {
-        foreach ( FileLoader *loader, m_loaderList ) {
+        for ( FileLoader *loader: m_loaderList ) {
             if ( loader ) {
                 loader->wait();
             }
@@ -78,13 +75,13 @@ FileManager::~FileManager()
     delete d;
 }
 
-void FileManager::addFile( const QString& filepath, const QString& property, const GeoDataStyle* style, DocumentRole role, bool recenter )
+void FileManager::addFile( const QString& filepath, const QString& property, const GeoDataStyle::Ptr &style, DocumentRole role, int renderOrder, bool recenter )
 {
     if( d->m_fileItemHash.contains( filepath ) ) {
             return;  // already loaded
     }
 
-    foreach ( const FileLoader *loader, d->m_loaderList ) {
+    for ( const FileLoader *loader: d->m_loaderList ) {
         if ( loader->path() == filepath )
             return;  // currently loading
     }
@@ -92,7 +89,7 @@ void FileManager::addFile( const QString& filepath, const QString& property, con
     mDebug() << "adding container:" << filepath;
     mDebug() << "Starting placemark loading timer";
     d->m_timer.start();
-    FileLoader* loader = new FileLoader( this, d->m_pluginManager, recenter, filepath, property, style, role );
+    FileLoader* loader = new FileLoader( this, d->m_pluginManager, recenter, filepath, property, style, role, renderOrder );
     d->appendLoader( loader );
 }
 
@@ -113,7 +110,7 @@ void FileManagerPrivate::appendLoader( FileLoader *loader )
 
 void FileManager::removeFile( const QString& key )
 {
-    foreach ( FileLoader *loader, d->m_loaderList ) {
+    for ( FileLoader *loader: d->m_loaderList ) {
         if ( loader->path() == key ) {
             disconnect( loader, 0, this, 0 );
             loader->wait();
@@ -140,23 +137,6 @@ void FileManagerPrivate::closeFile( const QString& key )
         delete doc;
         m_fileItemHash.remove( key );
     }
-}
-
-void FileManager::saveFile( const QString &fileName, const GeoDataDocument *document )
-{
-    GeoWriter writer;
-    writer.setDocumentType( kml::kmlTag_nameSpaceOgc22 );
-
-    if (fileName.isEmpty())
-        return;
-
-    QFile file( fileName );
-    if ( !file.open( QIODevice::WriteOnly | QIODevice::Truncate ) ) {
-        return;
-    }
-
-    writer.write( &file, document );
-    file.close();
 }
 
 void FileManager::closeFile( const GeoDataDocument *document )
@@ -228,4 +208,4 @@ void FileManagerPrivate::cleanupLoader( FileLoader* loader )
     }
 }
 
-#include "FileManager.moc"
+#include "moc_FileManager.cpp"

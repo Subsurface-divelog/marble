@@ -5,22 +5,20 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_VOICENAVIGATIONMODEL_H
 #define MARBLE_VOICENAVIGATIONMODEL_H
 
 #include "marble_export.h"
-#include "Route.h"
-#include "Maneuver.h"
-#include "PositionTracking.h"
 
-#include <QAbstractListModel>
-#include <QFileInfo>
+#include <QObject>
 
 namespace Marble
 {
+
+class Route;
 
 class VoiceNavigationModelPrivate;
 
@@ -38,7 +36,7 @@ public:
     explicit VoiceNavigationModel( QObject *parent = 0 );
 
     /** Destructor */
-    ~VoiceNavigationModel();
+    ~VoiceNavigationModel() override;
 
 // Initialization
     QString speaker() const;
@@ -52,9 +50,6 @@ public:
     void reset();
 
 public Q_SLOTS:
-// Continuous updates
-    void handleTrackingStatusChange( PositionProviderStatus status );
-
     void update( const Route &route, qreal distanceManuever, qreal distanceTarget, bool deviated );
 
 // Turn instructions

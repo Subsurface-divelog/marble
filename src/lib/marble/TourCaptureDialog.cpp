@@ -13,7 +13,7 @@
 
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QApplication>
+#include <QTimer>
 
 #include "MarbleWidget.h"
 #include "MovieCapture.h"
@@ -65,15 +65,15 @@ TourCaptureDialog::~TourCaptureDialog()
 
 void TourCaptureDialog::loadDestinationFile()
 {
-    QList<MovieFormat> formats = m_recorder->availableFormats();
+    const QVector<MovieFormat> formats = m_recorder->availableFormats();
     if( formats.isEmpty() ) {
         QMessageBox::warning( this, tr( "Codecs are unavailable" ), tr( "Supported codecs are not found." ) );
         return;
     }
-    QString filter = formats.first().name() + " (*."+formats.first().extension() + ")";
+    QString filter = formats.first().name() + QLatin1String(" (*.") + formats.first().extension() + QLatin1Char(')');
     for( int i = 1; i < formats.size(); i++ )
     {
-        filter.append( ";;"+formats.at( i ).name() + " (*."+formats.at( i ).extension() + ")" );
+        filter += QLatin1String(";;") + formats.at(i).name() + QLatin1String(" (*.") + formats.at(i).extension() + QLatin1Char(')');
     }
     const QString defaultFileName =
             ui->destinationEdit->text().isEmpty() ? m_defaultFileName : ui->destinationEdit->text();
@@ -87,16 +87,18 @@ void TourCaptureDialog::loadDestinationFile()
     }
 
     bool supported = false;
-    foreach(const MovieFormat &format, formats) {
-        if (destination.endsWith('.'+format.extension()))
+    for(const MovieFormat &format: formats) {
+        if (destination.endsWith(QLatin1Char('.') + format.extension())) {
             supported = true;
+            break;
+        }
     }
 
     if (!supported) {
-        QString formatsExtensions = "."+formats.at( 0 ).extension();
+        QString formatsExtensions = QLatin1Char('.') + formats.at(0).extension();
         for( int i = 1; i < formats.size(); ++i )
         {
-            formatsExtensions.append( ", ."+formats.at( i ).extension() );
+            formatsExtensions += QLatin1String(", .") + formats.at(i).extension();
         }
         QMessageBox::warning(this, tr("Filename is not valid"),
                              tr("This file format is not supported. "
@@ -152,7 +154,7 @@ void TourCaptureDialog::recordNextFrame()
         return;
     }
 
-    if( ui->startButton->text() == QString("Start") ) {
+    if (ui->startButton->text() == QLatin1String("Start")) {
         return;
     }
 
@@ -199,4 +201,4 @@ void TourCaptureDialog::handleError()
 
 } // namespace Marble
 
-#include "TourCaptureDialog.moc"
+#include "moc_TourCaptureDialog.cpp"

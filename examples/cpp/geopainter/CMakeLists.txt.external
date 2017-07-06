@@ -1,12 +1,9 @@
-CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
-SET (TARGET geopainter)
-PROJECT (${TARGET})
+cmake_minimum_required(VERSION 2.8.12)
 
-FIND_PACKAGE (Qt4 4.6.0 REQUIRED QtCore QtGui)
-FIND_PACKAGE (Marble REQUIRED)
-INCLUDE (${QT_USE_FILE})
-INCLUDE_DIRECTORIES (${MARBLE_INCLUDE_DIR})
-SET (LIBS ${LIBS} ${MARBLE_LIBRARIES} ${QT_LIBRARIES})
+project(geopainter)
 
-ADD_EXECUTABLE (${TARGET} main.cpp)
-TARGET_LINK_LIBRARIES (${TARGET} ${LIBS})
+find_package(Qt5Widgets REQUIRED)
+find_package(Marble REQUIRED)
+
+add_executable(geopainter  main.cpp)
+target_link_libraries(geopainter  Marble Qt5::Widgets)

@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>350</width>
+    <width>323</width>
     <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Add polygon</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>false</bool>
@@ -46,7 +46,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QTextEdit" name="m_description"/>
+        <widget class="Marble::FormattedTextWidget" name="m_formattedTextWidget" native="true"/>
        </item>
       </layout>
      </widget>
@@ -230,7 +230,6 @@
          <zorder>m_filledColor</zorder>
          <zorder>label_7</zorder>
          <zorder>m_polyColorButton</zorder>
-         <zorder>horizontalSpacer</zorder>
         </widget>
        </item>
        <item>
@@ -259,7 +258,7 @@
           <bool>false</bool>
          </property>
          <attribute name="headerStretchLastSection">
-          <bool>false</bool>
+          <bool>true</bool>
          </attribute>
         </widget>
        </item>
@@ -279,6 +278,14 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>Marble::FormattedTextWidget</class>
+   <extends>QWidget</extends>
+   <header>FormattedTextWidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

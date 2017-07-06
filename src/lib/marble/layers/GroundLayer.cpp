@@ -12,6 +12,7 @@
 
 #include "GeoPainter.h"
 #include "ViewportParams.h"
+#include "RenderState.h"
 
 namespace Marble
 {
@@ -27,7 +28,7 @@ GroundLayer::~GroundLayer()
 
 QStringList GroundLayer::renderPosition() const
 {
-    return QStringList() << "SURFACE";
+    return QStringList(QStringLiteral("SURFACE"));
 }
 
 bool GroundLayer::render( GeoPainter *painter,
@@ -65,7 +66,7 @@ QColor GroundLayer::color() const
 
 RenderState GroundLayer::renderState() const
 {
-    return RenderState( "Ground" );
+    return RenderState(QStringLiteral("Ground"));
 }
 
 }

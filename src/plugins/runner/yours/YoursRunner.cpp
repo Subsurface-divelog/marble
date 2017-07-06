@@ -5,7 +5,8 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2016      Piotr Wójcik <chocimier@tlen.pl>
 //
 
 #include "YoursRunner.h"
@@ -14,18 +15,15 @@
 #include "MarbleLocale.h"
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
-#include "TinyWebBrowser.h"
 #include "GeoDataParser.h"
 #include "GeoDataFolder.h"
+#include "GeoDataLineString.h"
 #include "routing/RouteRequest.h"
 
 #include <QString>
 #include <QVector>
 #include <QUrl>
-#include <QTime>
-#include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QDomDocument>
 #include <QBuffer>
 #include <QTimer>
 
@@ -64,11 +62,24 @@ void YoursRunner::retrieveRoute( const RouteRequest *route )
     //QString base = "http://nroets.dev.openstreetmap.org/demo/gosmore.php";
     QString args = "?flat=%1&flon=%2&tlat=%3&tlon=%4";
     args = args.arg( fLat, 0, 'f', 6 ).arg( fLon, 0, 'f', 6 ).arg( tLat, 0, 'f', 6 ).arg( tLon, 0, 'f', 6 );
-    QString preferences = "&v=motorcar&fast=1&layer=mapnik";
+
+    QHash<QString, QVariant> settings = route->routingProfile().pluginSettings()[QStringLiteral("yours")];
+    QString transport = settings[QStringLiteral("transport")].toString();
+    QString fast;
+
+    if (settings[QStringLiteral("method")] == QLatin1String("shortest")) {
+        fast = "0";
+    } else {
+        fast = "1";
+    }
+
+    QString preferences = "&v=%1&fast=%2&layer=mapnik;";
+    preferences = preferences.arg(transport).arg(fast);
     QString request = base + args + preferences;
     // mDebug() << "GET: " << request;
 
     m_request = QNetworkRequest( QUrl( request ) );
+    m_request.setRawHeader( "X-Yours-client", "Marble" );
 
     QEventLoop eventLoop;
 
@@ -146,8 +157,8 @@ GeoDataDocument* YoursRunner::parse( const QByteArray &content )
 qreal YoursRunner::distance( const GeoDataDocument* document )
 {
     QVector<GeoDataFolder*> folders = document->folderList();
-    foreach( const GeoDataFolder *folder, folders ) {
-        foreach( const GeoDataPlacemark *placemark, folder->placemarkList() ) {
+    for( const GeoDataFolder *folder: folders ) {
+        for( const GeoDataPlacemark *placemark: folder->placemarkList() ) {
             const GeoDataGeometry* geometry = placemark->geometry();
             if ( geometry->geometryId() == GeoDataLineStringId ) {
                 const GeoDataLineString* lineString = dynamic_cast<const GeoDataLineString*>( geometry );
@@ -162,4 +173,4 @@ qreal YoursRunner::distance( const GeoDataDocument* document )
 
 } // namespace Marble
 
-#include "YoursRunner.moc"
+#include "moc_YoursRunner.cpp"

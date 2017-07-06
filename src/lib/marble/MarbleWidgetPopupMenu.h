@@ -15,9 +15,9 @@
 #include "marble_export.h"
 
 #include <QObject>
-#include <QPoint>
 
 class QAction;
+class QPoint;
 
 namespace Marble
 {
@@ -37,7 +37,7 @@ class MARBLE_EXPORT MarbleWidgetPopupMenu  : public QObject
  public:
     MarbleWidgetPopupMenu( MarbleWidget*, const MarbleModel* );
 
-    virtual ~MarbleWidgetPopupMenu();
+    ~MarbleWidgetPopupMenu() override;
 
     /**
       * Adds the action to the menu associated with the specified

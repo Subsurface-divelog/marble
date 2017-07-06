@@ -12,9 +12,12 @@
 #define GPSDPOSITIONPROVIDERPLUGIN_H
 
 #include "PositionProviderPlugin.h"
+#include "GeoDataCoordinates.h"
+#include "GeoDataAccuracy.h"
+
+#include <QDateTime>
 
 #include <libgpsmm.h>
-
 
 
 namespace Marble
@@ -25,33 +28,33 @@ class GpsdThread;
 class GpsdPositionProviderPlugin: public PositionProviderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.GpsdPositionProviderPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.GpsdPositionProviderPlugin")
     Q_INTERFACES( Marble::PositionProviderPluginInterface )
 
  public:
     GpsdPositionProviderPlugin();
-    virtual ~GpsdPositionProviderPlugin();
+    ~GpsdPositionProviderPlugin() override;
 
-    virtual QString name() const;
-    virtual QString nameId() const;
-    virtual QString guiString() const;
-    virtual QString version() const;
-    virtual QString description() const;
-    virtual QString copyrightYears() const;
-    virtual QList<PluginAuthor> pluginAuthors() const;
-    virtual QIcon icon() const;
-    virtual void initialize();
-    virtual bool isInitialized() const;
+    QString name() const override;
+    QString nameId() const override;
+    QString guiString() const override;
+    QString version() const override;
+    QString description() const override;
+    QString copyrightYears() const override;
+    QVector<PluginAuthor> pluginAuthors() const override;
+    QIcon icon() const override;
+    void initialize() override;
+    bool isInitialized() const override;
 
-    virtual PositionProviderPlugin * newInstance() const;
+    PositionProviderPlugin * newInstance() const override;
 
-    virtual PositionProviderStatus status() const;
-    virtual GeoDataCoordinates position() const;
-    virtual GeoDataAccuracy accuracy() const;
-    virtual QString error() const;
-    virtual qreal speed() const;
-    virtual qreal direction() const;
-    virtual QDateTime timestamp() const;
+    PositionProviderStatus status() const override;
+    GeoDataCoordinates position() const override;
+    GeoDataAccuracy accuracy() const override;
+    QString error() const override;
+    qreal speed() const override;
+    qreal direction() const override;
+    QDateTime timestamp() const override;
 
  private:
     GpsdThread* m_thread;
@@ -62,7 +65,7 @@ class GpsdPositionProviderPlugin: public PositionProviderPlugin
     qreal m_track;
     QDateTime m_timestamp;
 
- private slots:
+ private Q_SLOTS:
     void update(gps_data_t data);
 };
 

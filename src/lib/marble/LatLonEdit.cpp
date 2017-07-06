@@ -40,7 +40,7 @@ class LatLonEditPrivate;
 class AbstractInputHandler // TODO: better name
 {
 protected:
-    AbstractInputHandler(LatLonEditPrivate *ui) : m_ui(ui) {}
+    explicit AbstractInputHandler(LatLonEditPrivate *ui) : m_ui(ui) {}
 public:
     virtual ~AbstractInputHandler() {}
 
@@ -60,44 +60,44 @@ protected:
 class DecimalInputHandler : public AbstractInputHandler
 {
 public:
-    DecimalInputHandler(LatLonEditPrivate *ui) : AbstractInputHandler(ui) {}
+    explicit DecimalInputHandler(LatLonEditPrivate *ui) : AbstractInputHandler(ui) {}
 public: // AbstractInputHandler API
-    virtual void setupUi();
-    virtual void setupMinMax(Dimension dimension);
-    virtual void setValue(qreal value);
-    virtual void handleIntEditChange();
-    virtual void handleUIntEditChange();
-    virtual void handleFloatEditChange();
-    virtual qreal calculateValue() const;
+    void setupUi() override;
+    void setupMinMax(Dimension dimension) override;
+    void setValue(qreal value) override;
+    void handleIntEditChange() override;
+    void handleUIntEditChange() override;
+    void handleFloatEditChange() override;
+    qreal calculateValue() const override;
 };
 
 class DMSInputHandler : public AbstractInputHandler
 {
 public:
-    DMSInputHandler(LatLonEditPrivate *ui) : AbstractInputHandler(ui) {}
+    explicit DMSInputHandler(LatLonEditPrivate *ui) : AbstractInputHandler(ui) {}
 public: // AbstractInputHandler API
-    virtual void setupUi();
-    virtual void setupMinMax(Dimension dimension);
-    virtual void setValue(qreal value);
-    virtual void handleIntEditChange();
-    virtual void handleUIntEditChange();
-    virtual void handleFloatEditChange();
-    virtual qreal calculateValue() const;
+    void setupUi() override;
+    void setupMinMax(Dimension dimension) override;
+    void setValue(qreal value) override;
+    void handleIntEditChange() override;
+    void handleUIntEditChange() override;
+    void handleFloatEditChange() override;
+    qreal calculateValue() const override;
 };
 
 class DMInputHandler : public AbstractInputHandler
 {
 public:
-    DMInputHandler(LatLonEditPrivate *ui) : AbstractInputHandler(ui) {}
+    explicit DMInputHandler(LatLonEditPrivate *ui) : AbstractInputHandler(ui) {}
 public: // AbstractInputHandler API
-    virtual void setupUi();
-    virtual void setupMinMax(Dimension dimension);
-    virtual void setValue(qreal value);
-    virtual void handleIntEditChange();
-    virtual void handleUIntEditChange();
-    virtual void handleFloatEditChange();
+    void setupUi() override;
+    void setupMinMax(Dimension dimension) override;
+    void setValue(qreal value) override;
+    void handleIntEditChange() override;
+    void handleUIntEditChange() override;
+    void handleFloatEditChange() override;
 
-    virtual qreal calculateValue() const;
+    qreal calculateValue() const override;
 };
 
 class LatLonEditPrivate : public Ui::LatLonEditPrivate
@@ -569,10 +569,14 @@ void LatLonEdit::setNotation(GeoDataCoordinates::Notation notation)
         break;
     }
 
-    d->m_notation = notation;
-    d->m_inputHandler->setupUi();
-    d->m_inputHandler->setupMinMax(d->m_dimension);
-    d->m_inputHandler->setValue(d->m_value);
+    if (d->m_inputHandler) {
+        d->m_notation = notation;
+        d->m_inputHandler->setupUi();
+        d->m_inputHandler->setupMinMax(d->m_dimension);
+        d->m_inputHandler->setValue(d->m_value);
+    } else {
+        Q_ASSERT(false && "Support for this notation has not been implemented yet");
+    }
 }
 
 void LatLonEdit::checkFloatValueOverflow()
@@ -661,4 +665,4 @@ void LatLonEdit::recalculate()
 }
 
 
-#include "LatLonEdit.moc"
+#include "moc_LatLonEdit.cpp"

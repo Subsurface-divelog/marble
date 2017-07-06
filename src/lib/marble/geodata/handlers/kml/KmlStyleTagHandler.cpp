@@ -38,22 +38,22 @@ KML_DEFINE_TAG_HANDLER( Style )
 
 GeoNode* KmlStyleTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_Style ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Style)));
 
 
     GeoStackItem parentItem = parser.parentElement();
     /// for documents several styles are allowed: document wide styles are saved different!!!!!
     if( parentItem.represents( kmlTag_Document ) ) {
-        GeoDataStyle style;
-        KmlObjectTagHandler::parseIdentifiers( parser, &style );
+        GeoDataStyle::Ptr style(new GeoDataStyle);
+        KmlObjectTagHandler::parseIdentifiers( parser, style.data() );
         parentItem.nodeAs<GeoDataDocument>()->addStyle( style );
-        return &parentItem.nodeAs<GeoDataDocument>()->style( style.id() );
+        return parentItem.nodeAs<GeoDataDocument>()->style( style->id() ).data();
     }
     else if ( parentItem.represents( kmlTag_Placemark ) ) {
-        GeoDataStyle* style = new GeoDataStyle;
-        KmlObjectTagHandler::parseIdentifiers( parser, style );
+        GeoDataStyle::Ptr style(new GeoDataStyle);
+        KmlObjectTagHandler::parseIdentifiers( parser, style.data() );
         parentItem.nodeAs<GeoDataFeature>()->setStyle( style );
-        return style;
+        return style.data();
     }
     // FIXME: KMLStyle can be contained in MultiGeometry as well
     return 0;

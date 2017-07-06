@@ -13,11 +13,14 @@
 
 #include <QList>
 #include <QPainterPath>
+#include <QPixmapCache>
 #include <QRegion>
+#include <qmath.h>
 
 #include "MarbleDebug.h"
 
 #include "GeoDataCoordinates.h"
+#include "GeoDataLatLonAltBox.h"
 #include "GeoDataLineString.h"
 #include "GeoDataLinearRing.h"
 #include "GeoDataPoint.h"
@@ -31,10 +34,11 @@
 
 using namespace Marble;
 
-GeoPainterPrivate::GeoPainterPrivate( const ViewportParams *viewport, MapQuality mapQuality )
+GeoPainterPrivate::GeoPainterPrivate( GeoPainter* q, const ViewportParams *viewport, MapQuality mapQuality )
         : m_viewport( viewport ),
         m_mapQuality( mapQuality ),
-        m_x( new qreal[100] )
+        m_x( new qreal[100] ),
+        m_parent(q)
 {
 }
 
@@ -44,7 +48,7 @@ GeoPainterPrivate::~GeoPainterPrivate()
 }
 
 void GeoPainterPrivate::createAnnotationLayout (  qreal x, qreal y,
-                                                  QSizeF bubbleSize,
+                                                  const QSizeF& bubbleSize,
                                                   qreal bubbleOffsetX, qreal bubbleOffsetY,
                                                   qreal xRnd, qreal yRnd,
                                                   QPainterPath& path, QRectF& rect )
@@ -174,14 +178,33 @@ bool GeoPainterPrivate::doClip( const ViewportParams *viewport )
     return ( radius > viewport->width() / 2 || radius > viewport->height() / 2 );
 }
 
+qreal GeoPainterPrivate::normalizeAngle(qreal angle)
+{
+    angle = fmodf(angle, 360);
+    return angle < 0 ? angle + 360 : angle;
+}
+
+void GeoPainterPrivate::drawTextRotated( const QPointF &startPoint, qreal angle, const QString &text )
+{
+    QRectF textRect(startPoint, m_parent->fontMetrics().size( 0, text));
+    QTransform const oldTransform = m_parent->transform();
+    m_parent->translate(startPoint);
+    m_parent->rotate(angle);
+    m_parent->translate( -startPoint - QPointF(0.0, m_parent->fontMetrics().height()/2.0)  );
+
+    m_parent->drawText( textRect, text);
+    m_parent->setTransform(oldTransform);
+}
+
 // -------------------------------------------------------------------------------------------------
 
 GeoPainter::GeoPainter( QPaintDevice* pd, const ViewportParams *viewport, MapQuality mapQuality )
     : ClipPainter( pd, GeoPainterPrivate::doClip( viewport ) ),
-      d( new GeoPainterPrivate( viewport, mapQuality ) )
+      d( new GeoPainterPrivate( this, viewport, mapQuality ) )
 {
     const bool antialiased = mapQuality == HighQuality || mapQuality == PrintQuality;
     setRenderHint( QPainter::Antialiasing, antialiased );
+    ClipPainter::setScreenClip(false);
 }
 
 
@@ -238,7 +261,7 @@ void GeoPainter::drawPoint (  const GeoDataCoordinates & position )
     if ( visible ) {
         // Draw all the x-repeat-instances of the point on the screen
         for( int it = 0; it < pointRepeatNum; ++it ) {
-            QPainter::drawPoint( d->m_x[it], y );
+            QPainter::drawPoint(QPointF(d->m_x[it], y));
         }
     }
 }
@@ -266,8 +289,8 @@ QRegion GeoPainter::regionFromPoint ( const GeoDataPoint & point,
 
 void GeoPainter::drawText ( const GeoDataCoordinates & position,
                             const QString & text,
-                            int xOffset, int yOffset,
-                            int width, int height,
+                            qreal xOffset, qreal yOffset,
+                            qreal width, qreal height,
                             const QTextOption & option )
 {
     // Of course in theory we could have the "isGeoProjected" parameter used
@@ -285,12 +308,14 @@ void GeoPainter::drawText ( const GeoDataCoordinates & position,
 
     if ( visible ) {
         // Draw all the x-repeat-instances of the point on the screen
+        const qreal posY = y - yOffset;
         for( int it = 0; it < pointRepeatNum; ++it ) {
-            if (width == 0 && height == 0) {
-                QPainter::drawText( d->m_x[it] + xOffset, y + yOffset,  text );
+            const qreal posX = d->m_x[it] + xOffset;
+            if (width == 0.0 && height == 0.0) {
+                QPainter::drawText(QPointF(posX, posY), text);
             }
             else {
-                QRectF boundingRect(d->m_x[it] + xOffset, y + yOffset, width, height);
+                const QRectF boundingRect(posX, posY, width, height);
                 QPainter::drawText( boundingRect, text, option );
             }
         }
@@ -311,9 +336,10 @@ void GeoPainter::drawEllipse ( const GeoDataCoordinates & centerPosition,
 
         if ( visible ) {
             // Draw all the x-repeat-instances of the point on the screen
+            const qreal rx = width / 2.0;
+            const qreal ry = height / 2.0;
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                QPainter::drawEllipse(  d->m_x[it] - width / 2.0,
-                                        y - height / 2.0, width, height  );
+                QPainter::drawEllipse(QPointF(d->m_x[it], y), rx, ry);
             }
         }
     }
@@ -380,13 +406,19 @@ QRegion GeoPainter::regionFromEllipse ( const GeoDataCoordinates & centerPositio
         QRegion regions;
 
         if ( visible ) {
+            // only a hint, a backend could still ignore it, but we cannot know more
+            const bool antialiased = testRenderHint(QPainter::Antialiasing);
+
+            const qreal halfStrokeWidth = strokeWidth/2.0;
+            const int startY = antialiased ? (qFloor(y - halfStrokeWidth)) : (qFloor(y+0.5 - halfStrokeWidth));
+            const int endY = antialiased ? (qCeil(y + height + halfStrokeWidth)) : (qFloor(y+0.5 + height + halfStrokeWidth));
             // Draw all the x-repeat-instances of the point on the screen
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                regions += QRegion( d->m_x[it] - width / 2.0,
-                                    y - height / 2.0,
-                                    width + strokeWidth,
-                                    height + strokeWidth,
-                                    QRegion::Ellipse );
+                const qreal x = d->m_x[it];
+                const int startX = antialiased ? (qFloor(x - halfStrokeWidth)) : (qFloor(x+0.5 - halfStrokeWidth));
+                const int endX = antialiased ? (qCeil(x + width + halfStrokeWidth)) : (qFloor(x+0.5 + width +  halfStrokeWidth));
+
+                regions += QRegion(startX, startY, endX - startX, endY - startY, QRegion::Ellipse);
             }
         }
         return regions;
@@ -453,8 +485,10 @@ void GeoPainter::drawImage ( const GeoDataCoordinates & centerPosition,
 
         if ( visible ) {
             // Draw all the x-repeat-instances of the point on the screen
+            const qreal posY = y - (image.height() / 2.0);
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                QPainter::drawImage( d->m_x[it] - ( image.width() / 2 ), y - ( image.height() / 2 ), image );
+                const qreal posX = d->m_x[it] - (image.width() / 2.0);
+                QPainter::drawImage(QPointF(posX, posY), image);
             }
         }
 //    }
@@ -474,18 +508,47 @@ void GeoPainter::drawPixmap ( const GeoDataCoordinates & centerPosition,
 
         if ( visible ) {
             // Draw all the x-repeat-instances of the point on the screen
+            const qreal posY = y - (pixmap.height() / 2.0);
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                QPainter::drawPixmap( d->m_x[it] - ( pixmap.width() / 2 ),
-                                      y - ( pixmap.height() / 2 ), pixmap );
+                const qreal posX = d->m_x[it] - (pixmap.width() / 2.0);
+                QPainter::drawPixmap(QPointF(posX, posY), pixmap);
             }
         }
 //    }
 }
 
 
-void GeoPainter::drawPolyline ( const GeoDataLineString & lineString,
-                                const QString& labelText,
-                                LabelPositionFlags labelPositionFlags )
+QRegion GeoPainter::regionFromPixmapRect(const GeoDataCoordinates & centerCoordinates,
+                                         int width, int height,
+                                         int margin) const
+{
+    const int fullWidth = width + 2 * margin;
+    const int fullHeight = height + 2 * margin;
+    int pointRepeatNum;
+    qreal y;
+    bool globeHidesPoint;
+
+    const bool visible = d->m_viewport->screenCoordinates(centerCoordinates,
+                                                          d->m_x, y, pointRepeatNum,
+                                                          QSizeF(fullWidth, fullHeight), globeHidesPoint);
+
+    QRegion regions;
+
+    if (visible) {
+        // cmp. GeoPainter::drawPixmap() position calculation
+        // QPainter::drawPixmap seems to qRound the passed position
+        const int posY = qRound(y - (height / 2.0)) - margin;
+        for (int it = 0; it < pointRepeatNum; ++it) {
+            const int posX = qRound(d->m_x[it] - (width / 2.0)) - margin;
+            regions += QRegion(posX, posY, width, height);
+        }
+    }
+
+    return regions;
+}
+
+void GeoPainter::polygonsFromLineString( const GeoDataLineString &lineString,
+                                         QVector<QPolygonF*> &polygons )
 {
     // Immediately leave this method now if:
     // - the object is not visible in the viewport or if
@@ -498,29 +561,147 @@ void GeoPainter::drawPolyline ( const GeoDataLineString & lineString,
         return;
     }
 
-    QVector<QPolygonF*> polygons;
     d->m_viewport->screenCoordinates( lineString, polygons );
+}
 
-    if ( labelText.isEmpty() || labelPositionFlags.testFlag( NoLabel ) ) {
-        foreach( QPolygonF* itPolygon, polygons ) {
-            ClipPainter::drawPolyline( *itPolygon );
-        }
+
+void GeoPainter::drawPolyline ( const GeoDataLineString & lineString,
+                                const QString& labelText,
+                                LabelPositionFlags labelPositionFlags,
+                                const QColor& labelColor)
+{
+    // no labels to draw?
+    // TODO: !labelColor.isValid() || labelColor.alpha() == 0 does not work,
+    // something injects invalid labelColor for city streets
+    if (labelText.isEmpty() || labelPositionFlags.testFlag(NoLabel) ||
+        labelColor == Qt::transparent) {
+        drawPolyline(lineString);
+        return;
     }
-    else {
+
+    QVector<QPolygonF*> polygons;
+    polygonsFromLineString(lineString, polygons);
+    if (polygons.empty()) return;
+
+    for(const QPolygonF* itPolygon: polygons) {
+        ClipPainter::drawPolyline(*itPolygon);
+    }
+
+    drawLabelsForPolygons(polygons,
+                          labelText,
+                          labelPositionFlags,
+                          labelColor);
+
+    qDeleteAll( polygons );
+}
+
+void GeoPainter::drawLabelsForPolygons( const QVector<QPolygonF*> &polygons,
+                                        const QString& labelText,
+                                        LabelPositionFlags labelPositionFlags,
+                                        const QColor& labelColor )
+{
+    if (labelText.isEmpty()) {
+        return;
+    }
+    QPen const oldPen = pen();
+
+    if (labelPositionFlags.testFlag(FollowLine)) {
+        const qreal maximumLabelFontSize = 20;
+        qreal fontSize = pen().widthF() * 0.45;
+        fontSize = qMin( fontSize, maximumLabelFontSize );
+
+        if (fontSize < 6.0 || labelColor == "transparent") {
+            return;
+        }
+        QFont font = this->font();
+        font.setPointSizeF(fontSize);
+        setFont(font);
+        int labelWidth = fontMetrics().width( labelText );
+        if (labelText.size() < 20) {
+            labelWidth *= (20.0 / labelText.size());
+        }
+        setPen(labelColor);
+
+        QVector<QPointF> labelNodes;
+        QRectF viewportRect = QRectF(QPointF(0, 0), d->m_viewport->size());
+        for( QPolygonF* itPolygon: polygons ) {
+            if (!itPolygon->boundingRect().intersects(viewportRect)) {
+                continue;
+            }
+
+            labelNodes.clear();
+
+            QPainterPath path;
+            path.addPolygon(*itPolygon);
+            qreal pathLength = path.length();
+            if (pathLength == 0) continue;
+
+            int maxNumLabels = static_cast<int>(pathLength / labelWidth);
+
+            if (maxNumLabels > 0) {
+                qreal textRelativeLength = labelWidth / pathLength;
+                int numLabels = 1;
+                if (maxNumLabels > 1) {
+                    numLabels = maxNumLabels/2;
+                }
+                qreal offset = (1.0 - numLabels*textRelativeLength)/numLabels;
+                qreal startPercent = offset/2.0;
+
+                for (int k = 0; k < numLabels; ++k, startPercent += textRelativeLength + offset) {
+                    QPointF point = path.pointAtPercent(startPercent);
+                    QPointF endPoint = path.pointAtPercent(startPercent + textRelativeLength);
+
+                    if ( viewport().contains(point.toPoint()) || viewport().contains(endPoint.toPoint()) ) {
+                        qreal angle = -path.angleAtPercent(startPercent);
+                        qreal angle2 = -path.angleAtPercent(startPercent + textRelativeLength);
+                        angle = GeoPainterPrivate::normalizeAngle(angle);
+                        angle2 = GeoPainterPrivate::normalizeAngle(angle2);
+                        bool upsideDown = angle > 90.0 && angle < 270.0;
+
+                        if ( qAbs(angle - angle2) < 3.0 ) {
+                            if ( upsideDown ) {
+                                angle += 180.0;
+                                point = path.pointAtPercent(startPercent + textRelativeLength);
+                            }
+
+                            d->drawTextRotated(point, angle, labelText);
+                        } else {
+                            for (int i = 0; i < labelText.length(); ++i) {
+                                qreal currentGlyphTextLength = fontMetrics().width(labelText.left(i)) / pathLength;
+
+                                if ( !upsideDown ) {
+                                    angle = -path.angleAtPercent(startPercent + currentGlyphTextLength);
+                                    point = path.pointAtPercent(startPercent + currentGlyphTextLength);
+                                }
+                                else {
+                                    angle = -path.angleAtPercent(startPercent + textRelativeLength - currentGlyphTextLength) + 180;
+                                    point = path.pointAtPercent(startPercent + textRelativeLength - currentGlyphTextLength);
+                                }
+
+                                d->drawTextRotated(point, angle, labelText.at(i));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        setPen(labelColor);
+
         int labelWidth = fontMetrics().width( labelText );
         int labelAscent = fontMetrics().ascent();
 
         QVector<QPointF> labelNodes;
-        foreach( QPolygonF* itPolygon, polygons ) {
+        for( QPolygonF* itPolygon: polygons ) {
             labelNodes.clear();
-            ClipPainter::drawPolyline( *itPolygon, labelNodes, labelPositionFlags );
-            if ( !labelNodes.isEmpty() ) {
-                foreach ( const QPointF& labelNode, labelNodes ) {
+            ClipPainter::labelPosition( *itPolygon, labelNodes, labelPositionFlags );
+            if (!labelNodes.isEmpty()) {
+                for ( const QPointF& labelNode: labelNodes ) {
                     QPointF labelPosition = labelNode + QPointF( 3.0, -2.0 );
 
                     // FIXME: This is a Q&D fix.
                     qreal xmax = viewport().width() - 10.0 - labelWidth;
-                    if ( labelPosition.x() > xmax ) labelPosition.setX( xmax ); 
+                    if ( labelPosition.x() > xmax ) labelPosition.setX( xmax );
                     qreal ymin = 10.0 + labelAscent;
                     if ( labelPosition.y() < ymin ) labelPosition.setY( ymin );
                     qreal ymax = viewport().height() - 10.0 - labelAscent;
@@ -531,7 +712,20 @@ void GeoPainter::drawPolyline ( const GeoDataLineString & lineString,
             }
         }
     }
-    qDeleteAll( polygons );
+    setPen(oldPen);
+}
+
+void GeoPainter::drawPolyline(const GeoDataLineString& lineString)
+{
+    QVector<QPolygonF*> polygons;
+    polygonsFromLineString(lineString, polygons);
+    if (polygons.empty()) return;
+
+    for(const QPolygonF* itPolygon: polygons) {
+        ClipPainter::drawPolyline(*itPolygon);
+    }
+
+    qDeleteAll(polygons);
 }
 
 
@@ -549,13 +743,12 @@ QRegion GeoPainter::regionFromPolyline ( const GeoDataLineString & lineString,
         return QRegion();
     }
 
-    QList<QRegion> regions;
     QPainterPath painterPath;
 
     QVector<QPolygonF*> polygons;
     d->m_viewport->screenCoordinates( lineString, polygons );
 
-    foreach( QPolygonF* itPolygon, polygons ) {
+    for( QPolygonF* itPolygon: polygons ) {
         painterPath.addPolygon( *itPolygon );
     }
 
@@ -586,7 +779,7 @@ void GeoPainter::drawPolygon ( const GeoDataLinearRing & linearRing,
     QVector<QPolygonF*> polygons;
     d->m_viewport->screenCoordinates( linearRing, polygons );
 
-    foreach( QPolygonF* itPolygon, polygons ) {
+    for( QPolygonF* itPolygon: polygons ) {
         ClipPainter::drawPolygon( *itPolygon, fillRule );
     }
 
@@ -614,13 +807,13 @@ QRegion GeoPainter::regionFromPolygon ( const GeoDataLinearRing & linearRing,
 
     if ( strokeWidth == 0 ) {
         // This is the faster way
-        foreach( QPolygonF* itPolygon, polygons ) {
+        for( QPolygonF* itPolygon: polygons ) {
             regions += QRegion ( (*itPolygon).toPolygon(), fillRule );
         }
     }
     else {
         QPainterPath painterPath;
-        foreach( QPolygonF* itPolygon, polygons ) {
+        for( QPolygonF* itPolygon: polygons ) {
             painterPath.addPolygon( *itPolygon );
         }
 
@@ -651,61 +844,89 @@ void GeoPainter::drawPolygon ( const GeoDataPolygon & polygon,
     }
     // mDebug() << "Drawing Polygon";
 
-    // Creating the outer screen polygons first
     QVector<QPolygonF*> outerPolygons;
+    QVector<QPolygonF*> innerPolygons;
     d->m_viewport->screenCoordinates( polygon.outerBoundary(), outerPolygons );
 
-    // Now creating the "holes" by cutting away the inner boundaries:
+    QPen const currentPen = pen();
 
-    // In QPathClipper We Trust ...
-    // ... and in the speed of a threesome of nested foreachs!
+    bool const hasInnerBoundaries = !polygon.innerBoundaries().isEmpty();
+    bool innerBoundariesOnScreen = false;
 
-    QVector<QPolygonF> outline;
-    QPen const oldPen = pen();
-    // When inner boundaries exist, the outline of the polygon must be painted
-    // separately to avoid connections between the outer and inner boundaries
-    // To avoid performance penalties the separate painting is only done when
-    // it's really needed. See review 105019 for details.
-    bool const needOutlineWorkaround = !polygon.innerBoundaries().isEmpty();
-    if ( needOutlineWorkaround ) {
-        foreach( QPolygonF* polygon, outerPolygons ) {
-            outline << *polygon;
-        }
-        setPen( QPen( Qt::NoPen ) );
-    }
+    if ( hasInnerBoundaries ) {
+        QVector<GeoDataLinearRing> const & innerBoundaries = polygon.innerBoundaries();
 
-
-    QVector<GeoDataLinearRing> innerBoundaries = polygon.innerBoundaries(); 
-    foreach( const GeoDataLinearRing& itInnerBoundary, innerBoundaries ) {
-        QVector<QPolygonF*> innerPolygons;
-        d->m_viewport->screenCoordinates( itInnerBoundary, innerPolygons );
-
-        if ( needOutlineWorkaround ) {
-            foreach( QPolygonF* polygon, innerPolygons ) {
-                outline << *polygon;
+        const GeoDataLatLonAltBox & viewLatLonAltBox = d->m_viewport->viewLatLonAltBox();
+        for( const GeoDataLinearRing& itInnerBoundary: innerBoundaries ) {
+            if ( viewLatLonAltBox.intersects(itInnerBoundary.latLonAltBox())
+                 && d->m_viewport->resolves(itInnerBoundary.latLonAltBox()), 4 )  {
+                innerBoundariesOnScreen = true;
+                break;
             }
         }
 
-        foreach( QPolygonF* itOuterPolygon, outerPolygons ) {
-            foreach( QPolygonF* itInnerPolygon, innerPolygons ) {
-                *itOuterPolygon = itOuterPolygon->subtracted( *itInnerPolygon );
+        if (innerBoundariesOnScreen) {
+            // Create the inner screen polygons
+            for( const GeoDataLinearRing& itInnerBoundary: innerBoundaries ) {
+                QVector<QPolygonF*> innerPolygonsPerBoundary;
+
+                d->m_viewport->screenCoordinates( itInnerBoundary, innerPolygonsPerBoundary );
+
+                for( QPolygonF* innerPolygonPerBoundary: innerPolygonsPerBoundary ) {
+                    innerPolygons << innerPolygonPerBoundary;
+                }
             }
+
+            setPen(Qt::NoPen);
+            QVector<QPolygonF*> fillPolygons = createFillPolygons( outerPolygons,
+                                                                   innerPolygons );
+
+            for( const QPolygonF* fillPolygon: fillPolygons ) {
+                ClipPainter::drawPolygon(*fillPolygon, fillRule);
+            }
+
+            setPen(currentPen);
+
+            for( const QPolygonF* outerPolygon: outerPolygons ) {
+                ClipPainter::drawPolyline( *outerPolygon );
+            }
+            for( const QPolygonF* innerPolygon: innerPolygons ) {
+                ClipPainter::drawPolyline( *innerPolygon );
+            }
+
+            qDeleteAll(fillPolygons);
         }
-        qDeleteAll( innerPolygons );    
     }
 
-    foreach( QPolygonF* itOuterPolygon, outerPolygons ) {
-        ClipPainter::drawPolygon( *itOuterPolygon, fillRule );
+    if ( !hasInnerBoundaries || !innerBoundariesOnScreen ) {
+        drawPolygon( polygon.outerBoundary(), fillRule );
     }
 
-    if ( needOutlineWorkaround ) {
-        setPen( oldPen );
-        foreach( const QPolygonF &polygon, outline ) {
-            ClipPainter::drawPolyline( polygon );
+    qDeleteAll(outerPolygons);
+    qDeleteAll(innerPolygons);
+}
+
+QVector<QPolygonF*> GeoPainter::createFillPolygons( const QVector<QPolygonF*> & outerPolygons,
+                                                    const QVector<QPolygonF*> & innerPolygons ) const
+{
+    QVector<QPolygonF*> fillPolygons;
+    fillPolygons.reserve(outerPolygons.size());
+
+    for( const QPolygonF* outerPolygon: outerPolygons ) {
+        QPolygonF* fillPolygon = new QPolygonF;
+        *fillPolygon << *outerPolygon;
+        *fillPolygon << outerPolygon->first();
+
+        for( const QPolygonF* innerPolygon: innerPolygons ) {
+            *fillPolygon << *innerPolygon;
+            *fillPolygon << innerPolygon->first();
+            *fillPolygon << outerPolygon->first();
         }
+
+        fillPolygons << fillPolygon;
     }
 
-    qDeleteAll( outerPolygons );    
+    return fillPolygons;
 }
 
 
@@ -723,8 +944,10 @@ void GeoPainter::drawRect ( const GeoDataCoordinates & centerCoordinates,
 
         if ( visible ) {
             // Draw all the x-repeat-instances of the point on the screen
+            const qreal posY = y - height / 2.0;
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                QPainter::drawRect( d->m_x[it] - ( width / 2.0 ), y - ( height / 2.0 ), width, height );
+                const qreal posX = d->m_x[it] - width / 2.0;
+                QPainter::drawRect(QRectF(posX, posY, width, height));
             }
         }
     }
@@ -751,12 +974,18 @@ QRegion GeoPainter::regionFromRect ( const GeoDataCoordinates & centerCoordinate
         QRegion regions;
 
         if ( visible ) {
+            // only a hint, a backend could still ignore it, but we cannot know more
+            const bool antialiased = testRenderHint(QPainter::Antialiasing);
+
+            const qreal halfStrokeWidth = strokeWidth/2.0;
+            const int startY = antialiased ? (qFloor(y - halfStrokeWidth)) : (qFloor(y+0.5 - halfStrokeWidth));
+            const int endY = antialiased ? (qCeil(y + height + halfStrokeWidth)) : (qFloor(y+0.5 + height + halfStrokeWidth));
             // Draw all the x-repeat-instances of the point on the screen
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                regions += QRegion( d->m_x[it] - ( ( width + strokeWidth ) / 2.0 ),
-                                    y - ( ( height + strokeWidth ) / 2.0 ),
-                                    width + strokeWidth,
-                                    height + strokeWidth );
+                const qreal x = d->m_x[it];
+                const int startX = antialiased ? (qFloor(x - halfStrokeWidth)) : (qFloor(x+0.5 - halfStrokeWidth));
+                const int endX = antialiased ? (qCeil(x + width + halfStrokeWidth)) : (qFloor(x+0.5 + width +  halfStrokeWidth));
+                regions += QRegion(startX, startY, endX - startX, endY - startY);
             }
         }
         return regions;
@@ -768,9 +997,9 @@ QRegion GeoPainter::regionFromRect ( const GeoDataCoordinates & centerCoordinate
 }
 
 
-void GeoPainter::drawRoundRect ( const GeoDataCoordinates &centerPosition,
-                                 int width, int height,
-                                 int xRnd, int yRnd )
+void GeoPainter::drawRoundedRect(const GeoDataCoordinates &centerPosition,
+                                 qreal width, qreal height,
+                                 qreal xRnd, qreal yRnd)
 {
         int pointRepeatNum;
         qreal y;
@@ -781,8 +1010,67 @@ void GeoPainter::drawRoundRect ( const GeoDataCoordinates &centerPosition,
 
         if ( visible ) {
             // Draw all the x-repeat-instances of the point on the screen
+            const qreal posY = y - height / 2.0;
             for( int it = 0; it < pointRepeatNum; ++it ) {
-                QPainter::drawRoundRect( d->m_x[it] - ( width / 2 ), y - ( height / 2 ), width, height, xRnd, yRnd );
+                const qreal posX = d->m_x[it] - width / 2.0;
+                QPainter::drawRoundedRect(QRectF(posX, posY, width, height), xRnd, yRnd);
             }
         }
+}
+
+
+void GeoPainter::drawTextFragment(const QPoint &position, const QString &text,
+                                  const qreal fontSize, const QColor &color,
+                                  const Frames &flags)
+{
+    const QString key = text + ":" + QString::number(static_cast<int>(flags));
+
+    QPixmap pixmap;
+
+    if (!QPixmapCache::find(key, &pixmap)) {
+        const bool hasRoundFrame = flags.testFlag(RoundFrame);
+
+        QPixmap pixmap(10,10);
+        QPainter textPainter;
+
+        textPainter.begin(&pixmap);
+        const QFontMetrics metrics = textPainter.fontMetrics();
+        textPainter.end();
+
+        const int width = metrics.width(text);
+        const int height = metrics.height();
+        const QSize size = hasRoundFrame
+                              ? QSize(qMax(1.2*width, 1.1*height), 1.2*height)
+                              : QSize(width, height);
+        pixmap = QPixmap(size);
+        pixmap.fill(Qt::transparent);
+        const QRect labelRect(QPoint(), size);
+        textPainter.begin(&pixmap);
+        QFont textFont = textPainter.font();
+        textFont.setPointSize(fontSize);
+        textPainter.setFont(textFont);
+        textPainter.setRenderHint(QPainter::Antialiasing, true);
+
+        const QColor brushColor = color;
+        if (hasRoundFrame) {
+            QColor lighterColor = brushColor.lighter(110);
+            lighterColor.setAlphaF(0.9);
+            textPainter.setBrush(lighterColor);
+            textPainter.drawRoundedRect(labelRect, 3, 3);
+        }
+
+        textPainter.setBrush(brushColor);
+        textPainter.drawText(labelRect, Qt::AlignHCenter , text);
+
+        if (hasRoundFrame) {
+            textPainter.setBrush(brushColor);
+        }
+
+        textPainter.end();
+        QPixmapCache::insert(key, pixmap);
+    }
+
+    QPainter::drawPixmap(position.x() - pixmap.width()/2,
+                          position.y() - pixmap.height()/2,
+                          pixmap);
 }

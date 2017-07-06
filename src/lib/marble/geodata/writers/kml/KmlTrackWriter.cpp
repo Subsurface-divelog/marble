@@ -10,11 +10,14 @@
 
 #include "KmlTrackWriter.h"
 
+#include "GeoDataCoordinates.h"
 #include "GeoDataTrack.h"
 #include "GeoDataTypes.h"
 #include "GeoWriter.h"
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagWriter.h"
+
+#include <QDateTime>
 
 using namespace Marble;
 
@@ -35,8 +38,9 @@ bool KmlTrackWriter::write( const GeoNode *node, GeoWriter &writer ) const
 
         qreal lon, lat, alt;
         track->coordinatesList().at( i ).geoCoordinates( lon, lat, alt, GeoDataCoordinates::Degree );
-        QString coord = QString::number( lon, 'f', 10 ) + ' '
-                        + QString::number( lat, 'f', 10 ) + ' ' + QString::number( alt, 'f', 10 );
+        const QString coord = QString::number(lon, 'f', 10) + QLatin1Char(' ') +
+                              QString::number(lat, 'f', 10) + QLatin1Char(' ') +
+                              QString::number(alt, 'f', 10);
 
         writer.writeElement( "gx:coord", coord );
     }

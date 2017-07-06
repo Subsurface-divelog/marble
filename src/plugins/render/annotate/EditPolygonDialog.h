@@ -15,10 +15,14 @@
 #include <QColor>
 
 #include "MarbleGlobal.h"
-#include "GeoDataPlacemark.h"
 
 
 namespace Marble {
+
+class GeoDataPlacemark;
+class GeoDataCoordinates;
+class GeoDataFeature;
+class OsmPlacemarkData;
 
 /**
  * @brief As it name says by itself, this class is used to show a couple of
@@ -30,18 +34,28 @@ class EditPolygonDialog : public QDialog
     Q_OBJECT
 
 public:
-    EditPolygonDialog( GeoDataPlacemark *placemark, QWidget *parent = 0 );
-    ~EditPolygonDialog();
+    EditPolygonDialog( GeoDataPlacemark *placemark,
+                       const QHash<qint64, OsmPlacemarkData> *relations = 0,
+                       QWidget *parent = 0 );
+    ~EditPolygonDialog() override;
 
-public slots:
+public Q_SLOTS:
     void handleAddingNode( const GeoDataCoordinates &node );
     void handleItemMoving( GeoDataPlacemark *item );
+    void handleChangingStyle();
+    void updatePolygon();
 
-signals:
+Q_SIGNALS:
     void polygonUpdated( GeoDataFeature *feature );
 
-private slots:
-    void updatePolygon();
+    /**
+     * @brief relationCreated signals the annotate plugin that a new relation has been
+     * created( or modified ) within the relation editor
+     * @param relation the relation's osmData
+     */
+    void relationCreated( const OsmPlacemarkData &relation );
+
+private Q_SLOTS:
     void updateLinesDialog( const QColor &color );
     void updatePolyDialog( const QColor &color );
     void checkFields();

@@ -13,7 +13,6 @@
 #ifndef MARBLE_GEODATALINESTRING_H
 #define MARBLE_GEODATALINESTRING_H
 
-#include <QFlags>
 #include <QVector>
 #include <QMetaType>
 
@@ -21,13 +20,11 @@
 
 #include "geodata_export.h"
 #include "GeoDataGeometry.h"
-#include "GeoDataCoordinates.h"
-#include "GeoDataLatLonAltBox.h"
 
 
 namespace Marble
 {
-
+class GeoDataCoordinates;
 class GeoDataLineStringPrivate;
 
 /*!
@@ -96,7 +93,13 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
 /*!
     \brief Destroys a LineString.
 */
-    virtual ~GeoDataLineString();
+    ~GeoDataLineString() override;
+
+    const char *nodeType() const override;
+
+    EnumGeometryId geometryId() const override;
+
+    GeoDataGeometry *copy() const override;
 
 /*!
     \brief Returns whether a LineString is a closed polygon.
@@ -137,6 +140,11 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
 */
     void setTessellationFlags( TessellationFlags f );
 
+/*!
+    \brief Reverses the LineString.
+    @since 0.26.0
+*/
+     void reverse();
 
 /*!
     \brief Returns the smallest latLonAltBox that contains the LineString.
@@ -144,7 +152,7 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
     \see GeoDataLatLonAltBox
 */
 
-   virtual const GeoDataLatLonAltBox& latLonAltBox() const;
+   const GeoDataLatLonAltBox& latLonAltBox() const override;
 
 /**
   * @brief Returns the length of LineString across a sphere starting from a coordinate in LineString
@@ -238,6 +246,13 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
     GeoDataCoordinates& operator[]( int pos );
 
 
+    /**
+      Returns a sub-string which contains elements from this vector, starting at position pos. If length is -1
+      (the default), all elements after pos are included; otherwise length elements (or all remaining elements if
+      there are less than length elements) are included.
+      */
+    GeoDataLineString mid(int pos, int length = -1) const;
+
 /*!
     \brief Returns a reference to the coordinates of a node at a given position.
     This method does not detach the returned coordinate object from the line string.
@@ -278,11 +293,21 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
 */
     void insert( int index, const GeoDataCoordinates& value );
 
+/*!
+    \brief Attempts to allocate memory for at least \a size coordinates.
+*/
+    void reserve(int size);
 
 /*!
     \brief Appends a given geodesic position as a new node to the LineString.
 */
     void append ( const GeoDataCoordinates& value );
+
+
+/*!
+    \brief Appends a given geodesic position as new nodes to the LineString.
+*/
+    void append(const QVector<GeoDataCoordinates>& values);
 
 
 /*!
@@ -339,14 +364,14 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
 /*!
     \brief Removes the node at the given position and returns it.
 */
-    QVector<GeoDataCoordinates>::Iterator erase ( QVector<GeoDataCoordinates>::Iterator position );
+    QVector<GeoDataCoordinates>::Iterator erase ( const QVector<GeoDataCoordinates>::Iterator& position );
 
 
 /*!
     \brief Removes the nodes within the given range and returns them.
 */
-    QVector<GeoDataCoordinates>::Iterator erase ( QVector<GeoDataCoordinates>::Iterator begin,
-                                                  QVector<GeoDataCoordinates>::Iterator end );
+    QVector<GeoDataCoordinates>::Iterator erase ( const QVector<GeoDataCoordinates>::Iterator& begin,
+                                                  const QVector<GeoDataCoordinates>::Iterator& end );
 
 
 /*!
@@ -354,27 +379,30 @@ class GEODATA_EXPORT GeoDataLineString : public GeoDataGeometry
 */
     void remove ( int i );
 
+    /*!
+        \brief Returns a linestring with detail values assigned to each node.
+    */
+    GeoDataLineString optimized() const;
 
     // Serialization
 /*!
     \brief Serialize the LineString to a stream.
     \param stream the stream.
 */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
 
 /*!
     \brief Unserialize the LineString from a stream.
     \param stream the stream.
 */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
  protected:
-    GeoDataLineString(GeoDataLineStringPrivate* priv);
+    explicit GeoDataLineString(GeoDataLineStringPrivate* priv);
 
  private:
-    GeoDataLineStringPrivate *p();
-    const GeoDataLineStringPrivate *p() const;
+    Q_DECLARE_PRIVATE(GeoDataLineString)
 };
 
 }

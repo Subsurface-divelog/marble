@@ -3,13 +3,8 @@ PROJECT( ShpPlugin )
 INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}
  ${CMAKE_CURRENT_BINARY_DIR}
- ${QT_INCLUDE_DIR}
  ${LIBSHP_INCLUDE_DIR}
 )
-
-if( QT4_FOUND )
-  INCLUDE(${QT_USE_FILE})
-endif()
 
 set( shp_SRCS ShpPlugin.cpp ShpRunner.cpp )
 
@@ -17,14 +12,29 @@ set( ShpPlugin_LIBS ${LIBSHP_LIBRARIES} )
 
 marble_add_plugin( ShpPlugin ${shp_SRCS} )
 
-if(QTONLY)
-  if(WIN32 OR APPLE)
-    # nothing to do
-  else(WIN32 OR APPLE)
-    install(FILES marble_shp.desktop DESTINATION ${APPS_INSTALL_DIR})
-  endif(WIN32 OR APPLE)
-else(QTONLY)
-  install(PROGRAMS marble_shp.desktop DESTINATION ${APPS_INSTALL_DIR})
-  install(FILES marble_part_shp.desktop DESTINATION ${SERVICES_INSTALL_DIR})
-  install(FILES marble_thumbnail_shp.desktop DESTINATION ${SERVICES_INSTALL_DIR})
-endif(QTONLY)
+
+find_package(ECM ${REQUIRED_ECM_VERSION} QUIET)
+if(NOT ECM_FOUND)
+    return()
+endif()
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${ECM_MODULE_PATH})
+
+include(KDEInstallDirs)
+
+macro_optional_find_package(KF5 ${REQUIRED_KF5_VERSION} QUIET COMPONENTS KIO)
+if(NOT KF5_FOUND)
+    return()
+endif()
+
+# register marble part as handler
+# install again once part is fixed to load and show the passed file
+# install(FILES marble_part_shp.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+
+# register thumbnail plugin as handler
+install(FILES marble_thumbnail_shp.desktop DESTINATION ${KDE_INSTALL_KSERVICES5DIR})
+
+if(NOT WIN32 AND NOT APPLE)
+    # register marble app as handler
+    install(FILES marble_shp.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+endif()

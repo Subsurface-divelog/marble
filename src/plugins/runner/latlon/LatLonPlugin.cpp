@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "LatLonPlugin.h"
@@ -31,12 +31,12 @@ QString LatLonPlugin::guiString() const
 
 QString LatLonPlugin::nameId() const
 {
-    return "latlon";
+    return QStringLiteral("latlon");
 }
 
 QString LatLonPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString LatLonPlugin::description() const
@@ -46,13 +46,13 @@ QString LatLonPlugin::description() const
 
 QString LatLonPlugin::copyrightYears() const
 {
-    return "2010";
+    return QStringLiteral("2010");
 }
 
-QList<PluginAuthor> LatLonPlugin::pluginAuthors() const
+QVector<PluginAuthor> LatLonPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
 }
 
 SearchRunner* LatLonPlugin::newRunner() const
@@ -62,6 +62,4 @@ SearchRunner* LatLonPlugin::newRunner() const
 
 }
 
-Q_EXPORT_PLUGIN2( LatLonPlugin, Marble::LatLonPlugin )
-
-#include "LatLonPlugin.moc"
+#include "moc_LatLonPlugin.cpp"

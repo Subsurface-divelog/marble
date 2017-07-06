@@ -11,14 +11,11 @@
 #ifndef MARBLE_JSONPARSER_H
 #define MARBLE_JSONPARSER_H
 
-#include "GeoDataDocument.h"
-
-#include <QScriptEngine>
-#include <QScriptValue>
-#include <QScriptValueIterator>
-#include <QIODevice>
+class QIODevice;
 
 namespace Marble {
+
+class GeoDataDocument;
 
 class JsonParser
 {

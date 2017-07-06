@@ -20,19 +20,21 @@
  */
 
 #include <QSize>
-#include <QPainterPath>
 
-#include "GeoDataLatLonAltBox.h"
-
+#include "GeoDataCoordinates.h"
 #include "Quaternion.h"
 #include "MarbleGlobal.h"
 #include "marble_export.h"
 
 class QPolygonF;
+class QPainterPath;
 
 namespace Marble
 {
 
+class GeoDataLatLonAltBox;
+class GeoDataLatLonBox;
+class GeoDataLineString;
 class AbstractProjection;
 class ViewportParamsPrivate;
 
@@ -76,9 +78,9 @@ class MARBLE_EXPORT ViewportParams
     // represent a single point on the screen already.
     // See angularResolution()
 
-    bool resolves ( const GeoDataLatLonBox &latLonBox ) const;
+    bool resolves ( const GeoDataLatLonBox &latLonBox, qreal pixel = 2.0 ) const;
 
-    bool resolves ( const GeoDataLatLonAltBox &latLonAltBox ) const;
+    bool resolves ( const GeoDataLatLonAltBox &latLonAltBox, qreal pixel = 2.0, qreal altitude = 10000.0 ) const;
 
     // Determines whether two points are located enough apart so that it makes 
     // sense to display them as distinct points. If this is not the case
@@ -96,6 +98,7 @@ class MARBLE_EXPORT ViewportParams
     void setRadius(int radius);
 
     void centerOn( qreal lon, qreal lat );
+    void setHeading( qreal heading );
 
     Quaternion planetAxis() const;
     const matrix &planetAxisMatrix() const;
@@ -106,11 +109,10 @@ class MARBLE_EXPORT ViewportParams
 
     void setWidth(int newWidth);
     void setHeight(int newHeight);
-    void setSize(QSize newSize);
+    void setSize(const QSize& newSize);
 
     qreal centerLongitude() const;
     qreal centerLatitude() const;
-    MARBLE_DEPRECATED( void centerCoordinates( qreal &centerLon, qreal &centerLat ) const );
 
     /**
      * @brief Get the screen coordinates corresponding to geographical coordinates in the map.
@@ -185,6 +187,7 @@ class MARBLE_EXPORT ViewportParams
                          qreal &lon, qreal &lat,
                          GeoDataCoordinates::Unit unit = GeoDataCoordinates::Degree ) const;
 
+    qreal heading() const;
     bool mapCoversViewport() const;
 
     QPainterPath mapShape() const;

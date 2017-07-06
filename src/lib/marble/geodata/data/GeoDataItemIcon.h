@@ -11,16 +11,19 @@
 #ifndef GEODATAITEMICON_H
 #define GEODATAITEMICON_H
 
-#include <QImage>
 #include <QFlags>
 
-#include "GeoDataFeature.h"
+#include "GeoDataObject.h"
+
+class QImage;
 
 namespace Marble
 {
 
 class GeoDataItemIconPrivate;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataItemIcon : public GeoDataObject
 {
     Q_FLAGS( ItemIconState ItemIconStates )
@@ -33,10 +36,10 @@ public:
     bool operator==( const GeoDataItemIcon &other ) const;
     bool operator!=( const GeoDataItemIcon &other ) const;
 
-    ~GeoDataItemIcon();
+    ~GeoDataItemIcon() override;
 
     /** Provides type information for downcasting a GeoNode */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     enum ItemIconState {
         Open = 1 << 0,
@@ -49,7 +52,7 @@ public:
     Q_DECLARE_FLAGS( ItemIconStates, ItemIconState )
 
     ItemIconStates state() const;
-    void setState( const ItemIconStates &state );
+    void setState(ItemIconStates state);
 
     QString iconPath() const;
     void setIconPath( const QString &path );

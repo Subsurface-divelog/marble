@@ -13,15 +13,14 @@
 
 #include "MarbleGlobal.h"
 #include "GeoDataObject.h"
-#include "GeoDataTimeSpan.h"
-#include "GeoDataTimeStamp.h"
-#include "GeoDataCoordinates.h"
 
 #include "geodata_export.h"
 
 namespace Marble
 {
-
+class GeoDataCoordinates;
+class GeoDataTimeSpan;
+class GeoDataTimeStamp;
 class GeoDataAbstractViewPrivate;
 
 /**
@@ -32,11 +31,14 @@ class GEODATA_EXPORT GeoDataAbstractView : public GeoDataObject
  public:
     GeoDataAbstractView();
 
-    ~GeoDataAbstractView();
+    ~GeoDataAbstractView() override;
 
     GeoDataAbstractView( const GeoDataAbstractView &other );
 
     GeoDataAbstractView& operator=( const GeoDataAbstractView &other );
+
+    bool operator==(const GeoDataAbstractView &other) const;
+    inline bool operator!=(const GeoDataAbstractView &other) const { return !(*this == other); }
 
     virtual GeoDataAbstractView *copy() const = 0;
 

@@ -26,6 +26,7 @@
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagHandler.h"
 #include "GeoDataPlacemark.h"
+#include "GeoDataPoint.h"
 #include "GeoDataMultiGeometry.h"
 #include "GeoDataPhotoOverlay.h"
 #include "GeoParser.h"
@@ -38,7 +39,7 @@ KML_DEFINE_TAG_HANDLER( Point )
 
 GeoNode* KmlPointTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_Point ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Point)));
     // FIXME: there needs to be a check that a coordinates subtag is contained
 
     GeoStackItem parentItem = parser.parentElement();

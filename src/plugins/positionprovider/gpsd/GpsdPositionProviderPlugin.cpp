@@ -12,7 +12,10 @@
 
 #include "GpsdThread.h"
 #include "MarbleDebug.h"
-#include <math.h>
+
+#include <QIcon>
+
+#include <cmath>
 
 using namespace Marble;
 /* TRANSLATOR Marble::GpsdPositionProviderPlugin */
@@ -24,7 +27,7 @@ QString GpsdPositionProviderPlugin::name() const
 
 QString GpsdPositionProviderPlugin::nameId() const
 {
-    return QString::fromLatin1( "Gpsd" );
+    return QStringLiteral("Gpsd");
 }
 
 QString GpsdPositionProviderPlugin::guiString() const
@@ -34,7 +37,7 @@ QString GpsdPositionProviderPlugin::guiString() const
 
 QString GpsdPositionProviderPlugin::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString GpsdPositionProviderPlugin::description() const
@@ -44,13 +47,13 @@ QString GpsdPositionProviderPlugin::description() const
 
 QString GpsdPositionProviderPlugin::copyrightYears() const
 {
-    return "2009";
+    return QStringLiteral("2009");
 }
 
-QList<PluginAuthor> GpsdPositionProviderPlugin::pluginAuthors() const
+QVector<PluginAuthor> GpsdPositionProviderPlugin::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( QString::fromUtf8( "Eckhart Wörner" ), "ewoerner@kde.org" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Eckhart Wörner"), QStringLiteral("ewoerner@kde.org"));
 
 }
 
@@ -76,7 +79,7 @@ void GpsdPositionProviderPlugin::update( gps_data_t data )
 {
     PositionProviderStatus oldStatus = m_status;
     GeoDataCoordinates oldPosition = m_position;
-    if ( data.status == STATUS_NO_FIX || isnan( data.fix.longitude ) || isnan( data.fix.latitude ) )
+    if ( data.status == STATUS_NO_FIX || std::isnan( data.fix.longitude ) || std::isnan( data.fix.latitude ) )
         m_status = PositionProviderStatusAcquiring;
     else {
         m_status = PositionProviderStatusAvailable;
@@ -88,29 +91,29 @@ void GpsdPositionProviderPlugin::update( gps_data_t data )
 
         m_accuracy.level = GeoDataAccuracy::Detailed;
 #if defined( GPSD_API_MAJOR_VERSION ) && ( GPSD_API_MAJOR_VERSION >= 3 )
-        if ( !isnan( data.fix.epx ) && !isnan( data.fix.epy ) ) {
+        if ( !std::isnan( data.fix.epx ) && !std::isnan( data.fix.epy ) ) {
             m_accuracy.horizontal = qMax( data.fix.epx, data.fix.epy );
         }
 #else
-        if ( !isnan( data.fix.eph ) ) {
+        if ( !std::isnan( data.fix.eph ) ) {
             m_accuracy.horizontal = data.fix.eph;
         }
 #endif
-        if ( !isnan( data.fix.epv ) ) {
+        if ( !std::isnan( data.fix.epv ) ) {
             m_accuracy.vertical = data.fix.epv;
         }
 
-        if( !isnan(data.fix.speed ) )
+        if( !std::isnan(data.fix.speed ) )
         {
             m_speed = data.fix.speed;
         }
 
-        if( !isnan( data.fix.track ) )
+        if( !std::isnan( data.fix.track ) )
         {
             m_track = data.fix.track;
         }
 
-        if ( !isnan( data.fix.time ) )
+        if ( !std::isnan( data.fix.time ) )
         {
             m_timestamp = QDateTime::fromMSecsSinceEpoch( data.fix.time * 1000 );
         }
@@ -188,9 +191,4 @@ QString GpsdPositionProviderPlugin::error() const
     return m_thread->error();
 }
 
-
-Q_EXPORT_PLUGIN2( GpsdPositionProviderPlugin, Marble::GpsdPositionProviderPlugin )
-
-
-
-#include "GpsdPositionProviderPlugin.moc"
+#include "moc_GpsdPositionProviderPlugin.cpp"

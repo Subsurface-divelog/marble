@@ -20,7 +20,7 @@
 
 using namespace Marble;
 
-const QFont PostalCodeItem::s_font = QFont( "Sans Serif", 10, QFont::Bold );
+const QFont PostalCodeItem::s_font = QFont( QStringLiteral( "Sans Serif" ), 10, QFont::Bold );
 const int PostalCodeItem::s_labelOutlineWidth = 5;
 
 PostalCodeItem::PostalCodeItem( QObject *parent )
@@ -82,4 +82,4 @@ void PostalCodeItem::paint( QPainter *painter )
     painter->restore();
 }
 
-#include "PostalCodeItem.moc"
+#include "moc_PostalCodeItem.cpp"

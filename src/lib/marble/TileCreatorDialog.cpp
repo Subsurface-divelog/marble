@@ -84,10 +84,10 @@ void TileCreatorDialog::setProgress( int progress )
 void TileCreatorDialog::setSummary( const QString& name, 
                                     const QString& description )
 { 
-    const QString summary = "<B>" + tr( name.toUtf8() ) + "</B><BR>" + tr( description.toUtf8() );
+    const QString summary = QLatin1String("<b>") + QCoreApplication::translate("DGML", name.toUtf8().constData()) + QLatin1String("</b><br>") + QCoreApplication::translate("DGML", description.toUtf8().constData());
     d->uiWidget.descriptionLabel->setText( summary );
 }
 
 }
 
-#include "TileCreatorDialog.moc"
+#include "moc_TileCreatorDialog.cpp"

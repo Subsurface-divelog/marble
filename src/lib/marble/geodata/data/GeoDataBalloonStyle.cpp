@@ -11,6 +11,8 @@
 #include "GeoDataBalloonStyle.h"
 #include "GeoDataTypes.h"
 
+#include <QDataStream>
+
 namespace Marble
 {
 
@@ -28,7 +30,6 @@ public:
 GeoDataBalloonStylePrivate::GeoDataBalloonStylePrivate() :
     m_bgColor( Qt::white ),
     m_textColor( Qt::black ),
-    m_text( "" ),
     m_mode( GeoDataBalloonStyle::Default )
 {
 }
@@ -109,7 +110,7 @@ GeoDataBalloonStyle::DisplayMode GeoDataBalloonStyle::displayMode() const
     return d->m_mode;
 }
 
-void GeoDataBalloonStyle::setDisplayMode( const DisplayMode &mode )
+void GeoDataBalloonStyle::setDisplayMode(DisplayMode mode)
 {
     d->m_mode = mode;
 }

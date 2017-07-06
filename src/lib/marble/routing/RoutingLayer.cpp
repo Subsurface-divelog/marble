@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "RoutingLayer.h"
@@ -25,13 +25,12 @@
 #include "AlternativeRoutesModel.h"
 #include "RoutingManager.h"
 #include "Maneuver.h"
+#include "RenderState.h"
 
-#include <QMap>
 #include <QAbstractItemModel>
 #include <QIcon>
 #include <QItemSelectionModel>
-#include <QKeyEvent>
-#include <QMenu>
+#include <QAction>
 #include <QMouseEvent>
 #include <QPixmap>
 #include <QFileDialog>
@@ -74,6 +73,10 @@ public:
     MarbleWidget *const m_marbleWidget;
 
     QPixmap m_targetPixmap;
+
+    QPixmap m_standardRoutePoint;
+
+    QPixmap m_activeRoutePoint;
 
     QRect m_dirtyRect;
 
@@ -122,6 +125,8 @@ public:
     /** Returns the same color as the given one with its alpha channel adjusted to the given value */
     static inline QColor alphaAdjusted( const QColor &color, int alpha );
 
+    static QPixmap createRoutePoint(const QColor &penColor, const QColor &brushColor);
+
     /**
       * Returns the start or destination position if Ctrl key is among the
       * provided modifiers, the cached insert position otherwise
@@ -167,7 +172,12 @@ public:
 
 RoutingLayerPrivate::RoutingLayerPrivate( RoutingLayer *parent, MarbleWidget *widget ) :
         q( parent ), m_movingIndex( -1 ), m_marbleWidget( widget ),
-        m_targetPixmap( ":/data/bitmaps/routing_pick.png" ), m_dragStopOverRightIndex( -1 ),
+        m_targetPixmap(QStringLiteral(":/data/bitmaps/routing_pick.png")),
+        m_standardRoutePoint(createRoutePoint(widget->model()->routingManager()->routeColorStandard(),
+                                              widget->model()->routingManager()->routeColorAlternative())),
+        m_activeRoutePoint(createRoutePoint(widget->model()->routingManager()->routeColorHighlighted(),
+                                            alphaAdjusted(Oxygen::hotOrange4, 200))),
+        m_dragStopOverRightIndex(-1),
         m_routingModel( widget->model()->routingManager()->routingModel() ),
         m_placemarkModel( 0 ),
         m_selectionModel( 0 ),
@@ -227,7 +237,7 @@ void RoutingLayerPrivate::renderPlacemarks( GeoPainter *painter )
                 painter->drawPixmap( pos, pixmap );
             }
 
-            QRegion region = painter->regionFromRect( pos, m_targetPixmap.width(), m_targetPixmap.height() );
+            const QRegion region = painter->regionFromPixmapRect(pos, m_targetPixmap.width(), m_targetPixmap.height());
             m_placemarks.push_back( ModelRegion( index, region ) );
         }
     }
@@ -240,7 +250,7 @@ void RoutingLayerPrivate::renderAlternativeRoutes( GeoPainter *painter )
     painter->setPen( alternativeRoutePen );
 
     for ( int i=0; i<m_alternativeRoutesModel->rowCount(); ++i ) {
-        GeoDataDocument* route = m_alternativeRoutesModel->route( i );
+        const GeoDataDocument *route = m_alternativeRoutesModel->route(i);
         if ( route && route != m_alternativeRoutesModel->currentRoute() ) {
             const GeoDataLineString* points = AlternativeRoutesModel::waypoints( route );
             if ( points ) {
@@ -318,34 +328,36 @@ void RoutingLayerPrivate::renderRoute( GeoPainter *painter )
         return;
     }
 
-    Q_ASSERT( m_routingModel->rowCount() == m_routingModel->route().size() );
-    m_instructionRegions.clear();
-    for ( int i = 0; i < m_routingModel->rowCount(); ++i ) {
-        QModelIndex index = m_routingModel->index( i, 0 );
-        GeoDataCoordinates pos = index.data( MarblePlacemarkModel::CoordinateRole ).value<GeoDataCoordinates>();
+    if( m_routingModel->rowCount() == m_routingModel->route().size() ) {
+        m_instructionRegions.clear();
 
-        painter->setBrush( QBrush( m_marbleWidget->model()->routingManager()->routeColorAlternative() ) );
-        if ( m_selectionModel && m_selectionModel->selection().contains( index ) ) {
-            const RouteSegment &segment = m_routingModel->route().at( i );
-            const GeoDataLineString currentRoutePoints = segment.path();
-
-            QPen activeRouteSegmentPen( m_marbleWidget->model()->routingManager()->routeColorHighlighted() );
-
-            activeRouteSegmentPen.setWidth( 6 );
-            if ( m_marbleWidget->model()->routingManager()->state() == RoutingManager::Downloading ) {
-                activeRouteSegmentPen.setStyle( Qt::DotLine );
-            }
-            painter->setPen( activeRouteSegmentPen );
-            painter->drawPolyline( currentRoutePoints );
-
-            painter->setPen( standardRoutePen );
-            painter->setBrush( QBrush( alphaAdjusted( Oxygen::hotOrange4, 200 ) ) );
+        QPen activeRouteSegmentPen(m_marbleWidget->model()->routingManager()->routeColorHighlighted());
+        activeRouteSegmentPen.setWidth(6);
+        if (m_marbleWidget->model()->routingManager()->state() == RoutingManager::Downloading) {
+            activeRouteSegmentPen.setStyle(Qt::DotLine);
         }
-        painter->drawEllipse( pos, 6, 6 );
+        painter->setPen(activeRouteSegmentPen);
 
-        if ( m_isInteractive ) {
-            QRegion region = painter->regionFromEllipse( pos, 12, 12 );
-            m_instructionRegions.push_front( ModelRegion( index, region ) );
+        for ( int i = 0; i < m_routingModel->rowCount(); ++i ) {
+            QModelIndex index = m_routingModel->index( i, 0 );
+            GeoDataCoordinates pos = index.data( MarblePlacemarkModel::CoordinateRole ).value<GeoDataCoordinates>();
+
+            if ( m_selectionModel && m_selectionModel->selection().contains( index ) ) {
+                const RouteSegment &segment = m_routingModel->route().at( i );
+                const GeoDataLineString currentRoutePoints = segment.path();
+
+                painter->drawPolyline( currentRoutePoints );
+
+                painter->drawPixmap(pos, m_activeRoutePoint);
+            }
+            else {
+                painter->drawPixmap(pos, m_standardRoutePoint);
+            }
+
+            if ( m_isInteractive ) {
+                QRegion region = painter->regionFromEllipse( pos, 12, 12 );
+                m_instructionRegions.push_front( ModelRegion( index, region ) );
+            }
         }
     }
 
@@ -353,8 +365,7 @@ void RoutingLayerPrivate::renderRoute( GeoPainter *painter )
         GeoDataCoordinates location = m_routingModel->route().currentSegment().nextRouteSegment().maneuver().position();
         QString nextInstruction = m_routingModel->route().currentSegment().nextRouteSegment().maneuver().instructionText();
         if( !nextInstruction.isEmpty() ) {
-            painter->setBrush( QBrush( Oxygen::hotOrange4 ) );
-            painter->drawEllipse( location, 6, 6 );
+            painter->drawPixmap(location, m_activeRoutePoint);
         }
     }
 }
@@ -387,7 +398,7 @@ void RoutingLayerPrivate::renderRequest( GeoPainter *painter )
         if ( pos.isValid() ) {
             QPixmap pixmap = m_routeRequest->pixmap( i );
             painter->drawPixmap( pos, pixmap );
-            QRegion region = painter->regionFromRect( pos, pixmap.width(), pixmap.height() );
+            const QRegion region = painter->regionFromPixmapRect(pos, pixmap.width(), pixmap.height());
             m_regions.push_front( RequestRegion( i, region ) );
         }
     }
@@ -413,9 +424,28 @@ QColor RoutingLayerPrivate::alphaAdjusted( const QColor &color, int alpha )
     return result;
 }
 
+QPixmap RoutingLayerPrivate::createRoutePoint(const QColor &penColor, const QColor &brushColor)
+{
+     QPen pen(penColor);
+     pen.setWidth(2);
+
+     const QBrush brush(brushColor);
+
+     QPixmap routePoint(QSize(8, 8));
+     routePoint.fill(Qt::transparent);
+
+     QPainter painter(&routePoint);
+     painter.setRenderHint(QPainter::Antialiasing, true);
+     painter.setPen(pen);
+     painter.setBrush(brush);
+     painter.drawEllipse(1, 1, 6, 6);
+
+     return routePoint;
+}
+
 bool RoutingLayerPrivate::handleMouseButtonPress( QMouseEvent *e )
 {
-    foreach( const RequestRegion &region, m_regions ) {
+    for( const RequestRegion &region: m_regions ) {
         if ( region.region.contains( e->pos() ) ) {
             if ( e->button() == Qt::LeftButton ) {
                 m_movingIndex = region.index;
@@ -434,7 +464,7 @@ bool RoutingLayerPrivate::handleMouseButtonPress( QMouseEvent *e )
         }
     }
 
-    foreach( const ModelRegion &region, m_instructionRegions ) {
+    for( const ModelRegion &region: m_instructionRegions ) {
         if ( region.region.contains( e->pos() ) && m_selectionModel ) {
             if ( e->button() == Qt::LeftButton ) {
                 QItemSelectionModel::SelectionFlag command = QItemSelectionModel::ClearAndSelect;
@@ -478,14 +508,14 @@ bool RoutingLayerPrivate::handleMouseButtonPress( QMouseEvent *e )
         return false;
     }
 
-    foreach( const RequestRegion &region, m_alternativeRouteRegions ) {
+    for( const RequestRegion &region: m_alternativeRouteRegions ) {
         if ( region.region.contains( e->pos() ) ) {
             m_alternativeRoutesModel->setCurrentRoute( region.index );
             return true;
         }
     }
 
-    foreach( const ModelRegion &region, m_placemarks ) {
+    for( const ModelRegion &region: m_placemarks ) {
         if ( region.region.contains( e->pos() ) ) {
             emit q->placemarkSelected( region.index );
             return true;
@@ -578,13 +608,13 @@ bool RoutingLayerPrivate::handleMouseMove( QMouseEvent *e )
 
 bool RoutingLayerPrivate::isInfoPoint( const QPoint &point )
 {
-    foreach( const RequestRegion &region, m_regions ) {
+    for( const RequestRegion &region: m_regions ) {
         if ( region.region.contains( point ) ) {
             return true;
         }
     }
 
-    foreach( const ModelRegion &region, m_instructionRegions ) {
+    for( const ModelRegion &region: m_instructionRegions ) {
         if ( region.region.contains( point ) ) {
             return true;
         }
@@ -595,7 +625,7 @@ bool RoutingLayerPrivate::isInfoPoint( const QPoint &point )
 
  bool RoutingLayerPrivate::isAlternativeRoutePoint( const QPoint &point )
  {
-     foreach( const RequestRegion &region, m_alternativeRouteRegions ) {
+     for( const RequestRegion &region: m_alternativeRouteRegions ) {
          if ( region.region.contains( point ) ) {
              return true;
          }
@@ -628,9 +658,9 @@ RoutingLayer::RoutingLayer( MarbleWidget *widget, QWidget *parent ) :
              this, SLOT(updateRouteState()) );
     connect( widget, SIGNAL(visibleLatLonAltBoxChanged(GeoDataLatLonAltBox)),
             this, SLOT(setViewportChanged()) );
-    connect( widget->model()->routingManager()->alternativeRoutesModel(), SIGNAL(currentRouteChanged(GeoDataDocument*)),
+    connect(widget->model()->routingManager()->alternativeRoutesModel(), SIGNAL(currentRouteChanged(const GeoDataDocument*)),
             this, SLOT(setViewportChanged()) );
-    connect( widget->model()->routingManager()->alternativeRoutesModel(), SIGNAL(currentRouteChanged(GeoDataDocument*)),
+    connect(widget->model()->routingManager()->alternativeRoutesModel(), SIGNAL(currentRouteChanged(const GeoDataDocument*)),
              this, SIGNAL(repaintNeeded()) );
     connect( widget->model()->routingManager()->alternativeRoutesModel(), SIGNAL(rowsInserted(QModelIndex,int,int)),
              this, SLOT(showAlternativeRoutes()) );
@@ -643,7 +673,7 @@ RoutingLayer::~RoutingLayer()
 
 QStringList RoutingLayer::renderPosition() const
 {
-    return QStringList() << "HOVERS_ABOVE_SURFACE";
+    return QStringList(QStringLiteral("HOVERS_ABOVE_SURFACE"));
 }
 
 qreal RoutingLayer::zValue() const
@@ -685,7 +715,7 @@ bool RoutingLayer::render( GeoPainter *painter, ViewportParams *viewport,
 
 RenderState RoutingLayer::renderState() const
 {
-    return RenderState( "Routing", d->m_marbleWidget->model()->routingManager()->state() == RoutingManager::Downloading ? WaitingForUpdate : Complete );
+    return RenderState(QStringLiteral("Routing"), d->m_marbleWidget->model()->routingManager()->state() == RoutingManager::Downloading ? WaitingForUpdate : Complete);
 }
 
 bool RoutingLayer::eventFilter( QObject *obj, QEvent *event )
@@ -790,6 +820,11 @@ bool RoutingLayer::isInteractive() const
     return d->m_isInteractive;
 }
 
+QString RoutingLayer::runtimeTrace() const
+{
+    return QStringLiteral("Routing Layer");
+}
+
 } // namespace Marble
 
-#include "RoutingLayer.moc"
+#include "moc_RoutingLayer.cpp"

@@ -11,13 +11,14 @@
 #include "CloudRoutesDialog.h"
 #include "ui_CloudRoutesDialog.h"
 
+#include "CloudRouteModel.h"
 #include "RouteItemDelegate.h"
 
 #include <QTimer>
 
 namespace Marble {
 
-class CloudRoutesDialog::Private : public Ui::CloudRoutesDialog {
+class Q_DECL_HIDDEN CloudRoutesDialog::Private : public Ui::CloudRoutesDialog {
     public:
         explicit Private( CloudRouteModel *model );
         CloudRouteModel *m_model;
@@ -75,4 +76,4 @@ void CloudRoutesDialog::updateNoRouteLabel() {
 
 }
 
-#include "CloudRoutesDialog.moc"
+#include "moc_CloudRoutesDialog.cpp"

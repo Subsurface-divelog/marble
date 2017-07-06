@@ -27,7 +27,7 @@ namespace Marble
 class EarthquakePlugin : public AbstractDataPlugin, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.EarthquakePlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.EarthquakePlugin")
 
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
@@ -39,37 +39,37 @@ public:
 
     explicit EarthquakePlugin( const MarbleModel *marbleModel );
 
-    virtual void initialize();
+    void initialize() override;
 
-    QString name() const;
+    QString name() const override;
 
-    QString guiString() const;
+    QString guiString() const override;
 
-    QString nameId() const;
+    QString nameId() const override;
 
-    QString version() const;
+    QString version() const override;
 
-    QString description() const;
+    QString description() const override;
 
-    QString copyrightYears() const;
+    QString copyrightYears() const override;
 
-    QList<PluginAuthor> pluginAuthors() const;
+    QVector<PluginAuthor> pluginAuthors() const override;
 
-    QIcon icon() const;
+    QIcon icon() const override;
 
-    QDialog *configDialog();
+    QDialog *configDialog() override;
 
     /**
      * @return: The settings of the item.
      */
-    virtual QHash<QString,QVariant> settings() const;
+    QHash<QString,QVariant> settings() const override;
 
     /**
      * Set the settings of the item.
      */
-    virtual void setSettings( const QHash<QString,QVariant> &settings );
+    void setSettings( const QHash<QString,QVariant> &settings ) override;
 
-public slots:
+public Q_SLOTS:
     void readSettings();
     void writeSettings();
     void updateModel();
@@ -80,9 +80,12 @@ private:
     qreal m_minMagnitude;
     QDateTime m_startDate;
     QDateTime m_endDate;
+    int m_pastDays;
+    bool m_timeRangeNPastDays;
+    int m_numResults;
     int m_maximumNumberOfItems;
-
-private slots:
+    
+private Q_SLOTS:
     void validateDateRange();
 };
 

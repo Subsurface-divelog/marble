@@ -35,11 +35,7 @@ Rectangle {
 
     id: gameOptionsPanel
     objectName: "gameOptionsPanel"
-    width: 200
-    height: 600
-    
     color: "#d3d7cf"
-
     state: "GAMES_VIEW_HIDDEN"
 
     Column {
@@ -197,6 +193,7 @@ Rectangle {
             labelText: qsTr("OK")
             labelSize: parent.width/8
 
+            enabled: slider.value > 0
             onButtonClick: {
                 gamesView.setMaximumQuestionsCounts( slider.value );
                 gameOptionsPanel.state = "GAMES_VIEW_VISIBLE";
@@ -207,13 +204,13 @@ Rectangle {
                  * number of questions he/she wants
                  * to attempt.
                  */
-                if ( gamesView.currentIndex == 0 && slider.value > 0 ) {
+                if ( gamesView.currentIndex == 0) {
                     countryByShapeGameRequested();
                 }
-                if ( gamesView.currentIndex == 1 && slider.value > 0 ) {
+                if ( gamesView.currentIndex == 1) {
                     countryByFlagGameRequested();
                 }
-                if ( gamesView.currentIndex == 2 && slider.value > 0 ) {
+                if ( gamesView.currentIndex == 2) {
                     clickOnThatGameRequested();
                 }
             }

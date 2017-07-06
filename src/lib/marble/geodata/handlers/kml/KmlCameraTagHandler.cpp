@@ -16,8 +16,7 @@
 #include "KmlObjectTagHandler.h"
 #include "GeoDataCamera.h"
 #include "GeoParser.h"
-#include "GeoDataContainer.h"
-#include "GeoDataPlacemark.h"
+#include "GeoDataFeature.h"
 #include "GeoDataFlyTo.h"
 
 namespace Marble
@@ -29,8 +28,7 @@ KML_DEFINE_TAG_HANDLER( Camera )
 
 GeoNode *KmlCameraTagHandler::parse( GeoParser & parser ) const
 {
-    Q_ASSERT (parser.isStartElement()
-              && parser.isValidElement( kmlTag_Camera ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Camera)));
 
     GeoDataCamera* camera = 0;
     GeoStackItem parentItem = parser.parentElement();

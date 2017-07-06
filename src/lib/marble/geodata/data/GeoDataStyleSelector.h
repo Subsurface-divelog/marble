@@ -13,9 +13,6 @@
 #ifndef MARBLE_GEODATASTYLESELECTOR_H
 #define MARBLE_GEODATASTYLESELECTOR_H
 
-
-#include <QString>
-
 #include "GeoDataObject.h"
 
 #include "geodata_export.h"
@@ -40,7 +37,7 @@ class GeoDataStyleSelectorPrivate;
 class GEODATA_EXPORT GeoDataStyleSelector : public GeoDataObject
 {
   public:
-    ~GeoDataStyleSelector();
+    ~GeoDataStyleSelector() override;
 
     /**
     * @brief assignment operator
@@ -54,13 +51,13 @@ class GEODATA_EXPORT GeoDataStyleSelector : public GeoDataObject
      * @brief Serialize the styleselector to a stream
      * @param  stream  the stream
      */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
     /**
      * @brief  Unserialize the styleselector from a stream
      * @param  stream  the stream
      */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
  protected:
     GeoDataStyleSelector();

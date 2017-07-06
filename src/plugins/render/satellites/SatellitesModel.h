@@ -11,11 +11,12 @@
 #ifndef MARBLE_SATELLITESMODEL_H
 #define MARBLE_SATELLITESMODEL_H
 
-#include <QVariant>
 #include <QStringList>
 #include <QVector>
 
 #include "TrackerPluginModel.h"
+
+class QVariant;
 
 namespace Marble {
 
@@ -35,7 +36,7 @@ public:
     void setPlanet( const QString &lcPlanet );
     void updateVisibility();
 
-    void parseFile( const QString &id, const QByteArray &file );
+    void parseFile( const QString &id, const QByteArray &file ) override;
 
 protected:
     /**

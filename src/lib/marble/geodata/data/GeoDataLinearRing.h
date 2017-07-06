@@ -20,6 +20,8 @@
 namespace Marble
 {
 
+class GeoDataLinearRingPrivate;
+
 /*!
     \class GeoDataLinearRing
     \brief A LinearRing that allows to store a closed, contiguous set of line segments.
@@ -62,9 +64,6 @@ namespace Marble
     Some convenience methods have been added that allow to calculate the
     geodesic bounding box or the length of a LinearRing.
 */
-
-class GeoDataLinearRingPrivate;
-
 class GEODATA_EXPORT GeoDataLinearRing : public GeoDataLineString
 {
 
@@ -78,13 +77,19 @@ class GEODATA_EXPORT GeoDataLinearRing : public GeoDataLineString
 /*!
     \brief Creates a LinearRing from an existing geometry object.
 */
-    GeoDataLinearRing( const GeoDataGeometry &other );
+    explicit GeoDataLinearRing(const GeoDataGeometry &other);
 
     
 /*!
     \brief Destroys a LinearRing.
 */
-    virtual ~GeoDataLinearRing();
+    ~GeoDataLinearRing() override;
+
+    const char *nodeType() const override;
+
+    EnumGeometryId geometryId() const override;
+
+    GeoDataGeometry *copy() const override;
 
 
 /*!
@@ -100,7 +105,7 @@ class GEODATA_EXPORT GeoDataLinearRing : public GeoDataLineString
 
     \return <code>true</code> for a LinearRing.
 */
-    virtual bool isClosed() const;
+    bool isClosed() const override;
 
     
 /*!
@@ -115,7 +120,7 @@ class GEODATA_EXPORT GeoDataLinearRing : public GeoDataLineString
     This method can be used as an approximation for the circumference of a
     LinearRing.
 */
-    virtual qreal length( qreal planetRadius, int offset = 0 ) const;
+    qreal length( qreal planetRadius, int offset = 0 ) const override;
 
 /*!
     \brief Returns whether the given coordinates lie within the polygon.

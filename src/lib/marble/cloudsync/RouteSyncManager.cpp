@@ -16,22 +16,18 @@
 #include "GeoDataFolder.h"
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
+#include "CloudRouteModel.h"
 #include "CloudRoutesDialog.h"
 #include "CloudSyncManager.h"
 #include "OwncloudSyncBackend.h"
+#include "RouteItem.h"
 #include "RoutingManager.h"
 
 #include <QDir>
 #include <QUrl>
 #include <QFile>
-#include <QTimer>
+#include <QIcon>
 #include <QPointer>
-#include <QScriptValue>
-#include <QScriptEngine>
-#include <QNetworkReply>
-#include <QTemporaryFile>
-#include <QNetworkRequest>
-#include <QNetworkAccessManager>
 
 namespace Marble
 {
@@ -39,9 +35,10 @@ namespace Marble
 /**
  * Private class for RouteSyncManager.
  */
-class RouteSyncManager::Private {
+class Q_DECL_HIDDEN RouteSyncManager::Private {
 public:
     Private( CloudSyncManager *cloudSyncManager );
+    ~Private();
 
     bool m_routeSyncEnabled;
     CloudSyncManager *m_cloudSyncManager;
@@ -60,7 +57,12 @@ RouteSyncManager::Private::Private( CloudSyncManager *cloudSyncManager ) :
     m_model( new CloudRouteModel() ),
     m_owncloudBackend( cloudSyncManager )
 {
-    m_cacheDir = QDir( MarbleDirs::localPath() + "/cloudsync/cache/routes/" );
+    m_cacheDir = QDir(MarbleDirs::localPath() + QLatin1String("/cloudsync/cache/routes/"));
+}
+
+RouteSyncManager::Private::~Private()
+{
+    delete m_model;
 }
 
 RouteSyncManager::RouteSyncManager(CloudSyncManager *cloudSyncManager) :
@@ -72,7 +74,7 @@ RouteSyncManager::RouteSyncManager(CloudSyncManager *cloudSyncManager) :
     connect( &d->m_owncloudBackend, SIGNAL(routeDownloadProgress(qint64,qint64)), d->m_model, SLOT(updateProgress(qint64,qint64)) );
     connect( &d->m_owncloudBackend, SIGNAL(routeDownloaded()), this, SLOT(prepareRouteList()) );
     connect( &d->m_owncloudBackend, SIGNAL(routeDeleted()), this, SLOT(prepareRouteList()) );
-    connect( &d->m_owncloudBackend, SIGNAL(removedFromCache( QString )), this, SLOT(prepareRouteList()) );
+    connect( &d->m_owncloudBackend, SIGNAL(removedFromCache(QString)), this, SLOT(prepareRouteList()) );
 }
 
 RouteSyncManager::~RouteSyncManager()
@@ -119,7 +121,7 @@ QString RouteSyncManager::saveDisplayedToCache() const
     d->m_cacheDir.mkpath( d->m_cacheDir.absolutePath() );
     
     const QString timestamp = generateTimestamp();
-    const QString filename = d->m_cacheDir.absolutePath() + '/' + timestamp + ".kml";
+    const QString filename = d->m_cacheDir.absolutePath() + QLatin1Char('/') + timestamp + QLatin1String(".kml");
     d->m_routingManager->saveRoute( filename );
     return timestamp;
 }
@@ -135,13 +137,13 @@ QVector<RouteItem> RouteSyncManager::cachedRouteList() const
 {
     QVector<RouteItem> routeList;
     QStringList cachedRoutes = d->m_cacheDir.entryList( QStringList() << "*.kml", QDir::Files );
-    foreach ( const QString &routeFilename, cachedRoutes ) {
-        QFile file( d->m_cacheDir.absolutePath() + '/' + routeFilename );
+    for ( const QString &routeFilename: cachedRoutes ) {
+        QFile file(d->m_cacheDir.absolutePath() + QLatin1Char('/') + routeFilename);
         file.open( QFile::ReadOnly );
 
         GeoDataParser parser( GeoData_KML );
         if( !parser.read( &file ) ) {
-            mDebug() << "Could not read " + routeFilename;
+            mDebug() << QLatin1String("Could not read ") + routeFilename;
         }
 
         file.close();
@@ -151,16 +153,15 @@ QVector<RouteItem> RouteSyncManager::cachedRouteList() const
         GeoDataDocument *container = dynamic_cast<GeoDataDocument*>( geoDoc );
         if ( container && container->size() > 0 ) {
             GeoDataFolder *folder = container->folderList().at( 0 );
-            foreach ( GeoDataPlacemark *placemark, folder->placemarkList() ) {
-                routeName.append( placemark->name() );
-                routeName.append( " - " );
+            for ( GeoDataPlacemark *placemark: folder->placemarkList() ) {
+                routeName += placemark->name() + QLatin1String(" - ");
             }
         }
 
         routeName = routeName.left( routeName.length() - 3 );
         QString timestamp = routeFilename.left( routeFilename.length() - 4 );
-        QString distance = QString('0');
-        QString duration = QString('0');
+        QString distance(QLatin1Char('0'));
+        QString duration(QLatin1Char('0'));
 
         QString previewPath = QString( "%0/preview/%1.jpg" ).arg( d->m_cacheDir.absolutePath(), timestamp );
         QIcon preview;
@@ -198,7 +199,7 @@ void RouteSyncManager::prepareRouteList()
     d->m_routeList.clear();
 
     QVector<RouteItem> cachedRoutes = cachedRouteList();
-    foreach( const RouteItem &item, cachedRoutes ) {
+    for( const RouteItem &item: cachedRoutes ) {
         d->m_routeList.append( item );
     }
 
@@ -250,7 +251,7 @@ void RouteSyncManager::setRouteModelItems( const QVector<RouteItem> &routeList )
 {
     if( d->m_routeList.count() > 0 ) {
         QStringList cloudRoutes;
-        foreach( const RouteItem &item, routeList ) {
+        for( const RouteItem &item: routeList ) {
             cloudRoutes.append( item.identifier() );
         }
 
@@ -261,17 +262,17 @@ void RouteSyncManager::setRouteModelItems( const QVector<RouteItem> &routeList )
         }
 
         QStringList cachedRoutes;
-        foreach( const RouteItem &item, d->m_routeList ) {
+        for( const RouteItem &item: d->m_routeList ) {
             cachedRoutes.append( item.identifier() );
         }
 
-        foreach( const RouteItem &item, routeList ) {
+        for( const RouteItem &item: routeList ) {
             if( !cachedRoutes.contains( item.identifier() ) ) {
                 d->m_routeList.append( item );
             }
         }
     } else {
-        foreach( const RouteItem &item, routeList ) {
+        for( const RouteItem &item: routeList ) {
             d->m_routeList.append( item );
         }
     }
@@ -281,4 +282,4 @@ void RouteSyncManager::setRouteModelItems( const QVector<RouteItem> &routeList )
 
 }
 
-#include "RouteSyncManager.moc"
+#include "moc_RouteSyncManager.cpp"

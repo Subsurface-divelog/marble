@@ -17,7 +17,7 @@
 #include "DialogConfigurationInterface.h"
 #include "SatellitesModel.h"
 
-#include <QObject>
+#include <QHash>
 
 namespace Marble
 {
@@ -32,42 +32,42 @@ class SatellitesPlugin : public RenderPlugin,
                          public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.SatellitesPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.SatellitesPlugin")
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( SatellitesPlugin )
 
 public:
     explicit SatellitesPlugin( const MarbleModel *marbleModel = 0 );
-    virtual ~SatellitesPlugin();
+    ~SatellitesPlugin() override;
     
-    QStringList backendTypes() const;
-    QString renderPolicy() const;
-    QStringList renderPosition() const;
-    QString name() const;
-    QString nameId() const;
-    QString guiString() const;
-    QString version() const;
-    QString description() const;
-    QString copyrightYears() const;
-    QList<PluginAuthor> pluginAuthors() const;
-    QString aboutDataText() const;
-    QIcon icon() const;
-    RenderType renderType() const;
-    void initialize();
-    bool isInitialized() const;
+    QStringList backendTypes() const override;
+    QString renderPolicy() const override;
+    QStringList renderPosition() const override;
+    QString name() const override;
+    QString nameId() const override;
+    QString guiString() const override;
+    QString version() const override;
+    QString description() const override;
+    QString copyrightYears() const override;
+    QVector<PluginAuthor> pluginAuthors() const override;
+    QString aboutDataText() const override;
+    QIcon icon() const override;
+    RenderType renderType() const override;
+    void initialize() override;
+    bool isInitialized() const override;
 
     bool render( GeoPainter *painter,
                  ViewportParams *viewport,
                  const QString &renderPos,
-                 GeoSceneLayer *layer );
+                 GeoSceneLayer *layer ) override;
 
-    bool eventFilter( QObject *object, QEvent *event );
+    bool eventFilter( QObject *object, QEvent *event ) override;
 
-    QHash<QString, QVariant> settings() const;
-    void setSettings( const QHash<QString, QVariant> &settings );
+    QHash<QString, QVariant> settings() const override;
+    void setSettings( const QHash<QString, QVariant> &settings ) override;
 
-    SatellitesConfigDialog *configDialog();
+    SatellitesConfigDialog *configDialog() override;
 
 private Q_SLOTS:
     void activate();

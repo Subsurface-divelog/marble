@@ -5,18 +5,19 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "RoutingModel.h"
 
 #include "Planet.h"
+#include "PlanetFactory.h"
 #include "MarbleMath.h"
 #include "Route.h"
 #include "RouteRequest.h"
 #include "PositionTracking.h"
-#include "MarbleModel.h"
 #include "MarbleGlobal.h"
+#include "GeoDataAccuracy.h"
 
 #include <QPixmap>
 
@@ -33,25 +34,22 @@ public:
         OffRoute
     };
 
-    RoutingModelPrivate( RouteRequest* request );
-    MarbleModel *m_marbleModel;
+    explicit RoutingModelPrivate(PositionTracking *positionTracking, RouteRequest *request);
 
     Route m_route;
 
-    RouteDeviation m_deviation;
-    PositionTracking* m_positionTracking;
+    PositionTracking *const m_positionTracking;
     RouteRequest* const m_request;
-#if QT_VERSION >= 0x050000
     QHash<int, QByteArray> m_roleNames;
-#endif
+    RouteDeviation m_deviation;
 
     void updateViaPoints( const GeoDataCoordinates &position );
 };
 
-RoutingModelPrivate::RoutingModelPrivate( RouteRequest* request )
-    : m_deviation( Unknown ),
-      m_positionTracking( 0 ),
-      m_request( request )
+RoutingModelPrivate::RoutingModelPrivate(PositionTracking *positionTracking, RouteRequest *request) :
+    m_positionTracking(positionTracking),
+    m_request(request),
+    m_deviation(Unknown)
 {
     // nothing to do
 }
@@ -69,11 +67,10 @@ void RoutingModelPrivate::updateViaPoints( const GeoDataCoordinates &position )
     }
 }
 
-RoutingModel::RoutingModel( RouteRequest* request, MarbleModel *model, QObject *parent ) :
-        QAbstractListModel( parent ), d( new RoutingModelPrivate( request ) )
+RoutingModel::RoutingModel(RouteRequest *request, PositionTracking *positionTracking, QObject *parent) :
+    QAbstractListModel(parent),
+    d(new RoutingModelPrivate(positionTracking, request))
 {
-    d->m_marbleModel = model;
-    d->m_positionTracking = model->positionTracking();
     QObject::connect( d->m_positionTracking, SIGNAL(gpsLocation(GeoDataCoordinates,qreal)),
              this, SLOT(updatePosition(GeoDataCoordinates,qreal)) );
 
@@ -82,11 +79,7 @@ RoutingModel::RoutingModel( RouteRequest* request, MarbleModel *model, QObject *
    roles.insert( RoutingModel::TurnTypeIconRole, "turnTypeIcon" );
    roles.insert( RoutingModel::LongitudeRole, "longitude" );
    roles.insert( RoutingModel::LatitudeRole, "latitude" );
-#if QT_VERSION < 0x050000
-   setRoleNames( roles );
-#else
    d->m_roleNames = roles;
-#endif
 }
 
 RoutingModel::~RoutingModel()
@@ -144,10 +137,10 @@ QVariant RoutingModel::data ( const QModelIndex & index, int role ) const
             return QVariant::fromValue( segment.maneuver().position() );
             break;
         case RoutingModel::LongitudeRole:
-            return QVariant::fromValue( segment.maneuver().position().longitude( GeoDataCoordinates::Degree ) );
+            return QVariant(segment.maneuver().position().longitude(GeoDataCoordinates::Degree));
             break;
         case RoutingModel::LatitudeRole:
-            return QVariant::fromValue( segment.maneuver().position().latitude( GeoDataCoordinates::Degree ) );
+            return QVariant(segment.maneuver().position().latitude(GeoDataCoordinates::Degree));
             break;
         case RoutingModel::TurnTypeIconRole:
             return segment.maneuver().directionPixmap();
@@ -160,12 +153,10 @@ QVariant RoutingModel::data ( const QModelIndex & index, int role ) const
     return QVariant();
 }
 
-#if QT_VERSION >= 0x050000
 QHash<int, QByteArray> RoutingModel::roleNames() const
 {
     return d->m_roleNames;
 }
-#endif
 
 void RoutingModel::setRoute( const Route &route )
 {
@@ -179,15 +170,14 @@ void RoutingModel::setRoute( const Route &route )
 
 void RoutingModel::exportGpx( QIODevice *device ) const
 {
-    QString content( "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n" );
-    content += "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" creator=\"Marble\" version=\"1.1\" ";
-    content += "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ";
-    content += "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 ";
-    content += "http://www.topografix.com/GPX/1/1/gpx.xsd\">\n";
-    content += "<metadata>\n  <link href=\"http://edu.kde.org/marble\">\n    ";
-    content += "<text>Marble Virtual Globe</text>\n  </link>\n</metadata>\n";
-
-    content += "  <rte>\n    <name>Route</name>\n";
+    QString content = QLatin1String("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n"
+        "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\" creator=\"Marble\" version=\"1.1\" "
+        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+        "xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 "
+        "http://www.topografix.com/GPX/1/1/gpx.xsd\">\n"
+        "<metadata>\n  <link href=\"http://edu.kde.org/marble\">\n    "
+        "<text>Marble Virtual Globe</text>\n  </link>\n</metadata>\n"
+        "  <rte>\n    <name>Route</name>\n");
     bool hasAltitude = false;
     for ( int i=0; !hasAltitude && i<d->m_route.size(); ++i ) {
         hasAltitude = d->m_route.at( i ).maneuver().position().altitude() != 0.0;
@@ -204,9 +194,8 @@ void RoutingModel::exportGpx( QIODevice *device ) const
         }
         content += QString( "    </rtept>\n" );
     }
-    content += "  </rte>\n";
-
-    content += "<trk>\n  <name>Route</name>\n    <trkseg>\n";
+    content += QLatin1String("  </rte>\n"
+        "<trk>\n  <name>Route</name>\n    <trkseg>\n");
     GeoDataLineString points = d->m_route.path();
     hasAltitude = false;
     for ( int i=0; !hasAltitude && i<points.size(); ++i ) {
@@ -222,8 +211,8 @@ void RoutingModel::exportGpx( QIODevice *device ) const
         }
         content += QString( "      </trkpt>\n" );
     }
-    content += "    </trkseg>\n  </trk>\n";
-    content += "</gpx>\n";
+    content += QLatin1String("    </trkseg>\n  </trk>\n"
+        "</gpx>\n");
 
     device->write( content.toUtf8() );
 }
@@ -292,12 +281,12 @@ int RoutingModel::rightNeighbor( const GeoDataCoordinates &position, RouteReques
     return route->size()-1;
 }
 
-void RoutingModel::updatePosition( GeoDataCoordinates location, qreal /*speed*/ )
+void RoutingModel::updatePosition( const GeoDataCoordinates& location, qreal speed )
 {
     d->m_route.setPosition( location );
 
     d->updateViaPoints( location );
-    qreal planetRadius = d->m_marbleModel->planet()->radius();
+    const qreal planetRadius = PlanetFactory::construct("earth").radius();
     qreal distance = planetRadius * distanceSphere( location, d->m_route.positionOnRoute() );
     emit positionChanged();
 
@@ -305,7 +294,7 @@ void RoutingModel::updatePosition( GeoDataCoordinates location, qreal /*speed*/ 
     if ( d->m_positionTracking && d->m_positionTracking->accuracy().vertical > 0.0 ) {
         deviation = qMax<qreal>( d->m_positionTracking->accuracy().vertical, d->m_positionTracking->accuracy().horizontal );
     }
-    qreal const threshold = deviation + 100.0;
+    qreal const threshold = deviation + qBound(10.0, speed*10.0, 150.0);
 
     RoutingModelPrivate::RouteDeviation const deviated = distance < threshold ? RoutingModelPrivate::OnRoute : RoutingModelPrivate::OffRoute;
     if ( d->m_deviation != deviated ) {
@@ -326,4 +315,4 @@ const Route & RoutingModel::route() const
 
 } // namespace Marble
 
-#include "RoutingModel.moc"
+#include "moc_RoutingModel.cpp"

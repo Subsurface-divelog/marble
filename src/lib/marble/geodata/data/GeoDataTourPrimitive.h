@@ -17,8 +17,13 @@
 namespace Marble
 {
 
+/**
+ */
 class GEODATA_EXPORT GeoDataTourPrimitive : public GeoDataObject
 {
+public:
+    bool operator==(const GeoDataTourPrimitive &other) const;
+    inline bool operator!=(const GeoDataTourPrimitive &other) const { return !(*this == other); }
 };
 
 } // namespace Marble

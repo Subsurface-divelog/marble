@@ -5,17 +5,19 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 // Copyright 2012 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
 #include "RoutingRunnerPlugin.h"
 
+#include <QIcon>
+
 namespace Marble
 {
 
-class RoutingRunnerPlugin::Private
+class Q_DECL_HIDDEN RoutingRunnerPlugin::Private
 {
 public:
     QStringList m_supportedCelestialBodies;
@@ -105,4 +107,4 @@ void RoutingRunnerPlugin::setStatusMessage( const QString &message )
 
 }
 
-#include "RoutingRunnerPlugin.moc"
+#include "moc_RoutingRunnerPlugin.cpp"

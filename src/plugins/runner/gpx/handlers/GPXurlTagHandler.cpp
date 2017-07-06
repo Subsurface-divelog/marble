@@ -14,7 +14,6 @@
 
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataData.h"
 #include "GeoDataExtendedData.h"
@@ -32,18 +31,17 @@ GPX_DEFINE_TAG_HANDLER_10(url)
 // The insertion is done in the urlname element, which is the link text.
 GeoNode* GPXurlTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_url));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_url)));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_wpt))
     {
         GeoDataPlacemark* placemark = parentItem.nodeAs<GeoDataPlacemark>();
 
-        QXmlStreamAttributes attributes = parser.attributes();
         QString url = parser.readElementText().trimmed();
 
         GeoDataExtendedData extendedData = placemark->extendedData();
-        extendedData.addValue(GeoDataData("url", url));
+        extendedData.addValue(GeoDataData(QStringLiteral("url"), url));
         placemark->setExtendedData(extendedData);
     }
 

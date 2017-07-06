@@ -13,7 +13,6 @@
 #include "CountryByShape.h"
 
 // Qt
-#include <QList>
 #include <QVector>
 #include <QTime>
 #include <QVariant>
@@ -21,20 +20,20 @@
 #include <QFileInfo>
 
 // Marble
-#include <MarbleWidget.h>
-#include <MarbleModel.h>
-#include <GeoDataTreeModel.h>
-#include <MarblePlacemarkModel.h>
-#include <GeoDataTypes.h>
+#include <marble/MarbleWidget.h>
+#include <marble/MarbleModel.h>
+#include <marble/GeoDataTreeModel.h>
+#include <marble/MarblePlacemarkModel.h>
 
-#include <GeoDataDocument.h>
-#include <GeoDataPlacemark.h>
-#include <GeoDataGeometry.h>
-#include <GeoDataPolygon.h>
-#include <GeoDataLinearRing.h>
-#include <GeoDataMultiGeometry.h>
-#include <GeoDataPoint.h>
-#include <GeoDataCoordinates.h>
+#include <marble/GeoDataDocument.h>
+#include <marble/GeoDataPlacemark.h>
+#include <marble/GeoDataGeometry.h>
+#include <marble/GeoDataPolygon.h>
+#include <marble/GeoDataLinearRing.h>
+#include <marble/GeoDataMultiGeometry.h>
+#include <marble/GeoDataPoint.h>
+#include <marble/GeoDataCoordinates.h>
+#include <marble/GeoDataLatLonAltBox.h>
 
 namespace Marble
 {
@@ -47,10 +46,15 @@ public:
       m_countryNames( 0 ),
       m_countryBoundaries( 0 )
     {
-        m_continentsAndOceans << "Asia" << "Africa" << "North America" << "South America"
-        << "Antarctica" << "Europe" << "Australia" << "Arctic Ocean" << "Indian Ocean"
-        << "North Atlantic Ocean" << "North Pacific Ocean" << "South Pacific Ocean"
-        << "South Atlantic Ocean" << "Southern Ocean" ;
+        m_continentsAndOceans
+            << QStringLiteral("Asia") << QStringLiteral("Africa")
+            << QStringLiteral("North America") << QStringLiteral("South America")
+            << QStringLiteral("Antarctica") << QStringLiteral("Europe")
+            << QStringLiteral("Australia")
+            << QStringLiteral("Arctic Ocean") << QStringLiteral("Indian Ocean")
+            << QStringLiteral("North Atlantic Ocean") << QStringLiteral("North Pacific Ocean")
+            << QStringLiteral("South Pacific Ocean") << QStringLiteral("South Atlantic Ocean")
+            << QStringLiteral("Southern Ocean");
     }
 
     CountryByShape *m_parent;
@@ -105,10 +109,9 @@ void CountryByShape::initiateGame()
             GeoDataObject *object = qvariant_cast<GeoDataObject*>( data );
             Q_ASSERT_X( object, "CountryByShape::initiateGame",
                         "failed to get valid data from treeModel for GeoDataObject" );
-            if ( object->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
-                GeoDataDocument *doc = static_cast<GeoDataDocument*>( object );
+            if (auto doc = geodata_cast<GeoDataDocument>(object)) {
                 QFileInfo fileInfo( doc->fileName() );
-                if ( fileInfo.fileName() == QString("boundaryplacemarks.cache") ) {
+                if (fileInfo.fileName() == QLatin1String("boundaryplacemarks.cache")) {
                     d->m_countryNames = doc;
                     break;
                 }
@@ -123,10 +126,9 @@ void CountryByShape::initiateGame()
             GeoDataObject *object = qvariant_cast<GeoDataObject*>( data );
             Q_ASSERT_X( object, "MainWindow::initiateGame",
                         "failed to get valid data from treeModel for GeoDataObject" );
-            if ( object->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
-                GeoDataDocument *const doc = static_cast<GeoDataDocument*>( object );
+            if (auto doc = geodata_cast<GeoDataDocument>(object)) {
                 QFileInfo fileInfo( doc->fileName() );
-                if ( fileInfo.fileName() == QString("ne_50m_admin_0_countries.pn2") ) {
+                if (fileInfo.fileName() == QLatin1String("ne_50m_admin_0_countries.pn2")) {
                     d->m_countryBoundaries = doc;
                     break;
                 }
@@ -253,11 +255,11 @@ void CountryByShape::postQuestion( QObject *gameObject )
 
     if ( gameObject ) {
         QMetaObject::invokeMethod( gameObject, "countryByShapeQuestion",
-                                   Q_ARG(QVariant, QVariant::fromValue(answerOptions)),
-                                   Q_ARG(QVariant, QVariant::fromValue(placemark->name())) );
+                                   Q_ARG(QVariant, QVariant(answerOptions)),
+                                   Q_ARG(QVariant, QVariant(placemark->name())) );
     }
 }
 
 }   // namespace Marble
 
-#include "CountryByShape.moc"
+#include "moc_CountryByShape.cpp"

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "KmlPhotoOverlayTagHandler.h"
@@ -27,7 +27,7 @@ KML_DEFINE_TAG_HANDLER( PhotoOverlay )
 
 GeoNode* KmlPhotoOverlayTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_PhotoOverlay ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_PhotoOverlay)));
 
     GeoDataPhotoOverlay *overlay = new GeoDataPhotoOverlay;
     KmlObjectTagHandler::parseIdentifiers( parser, overlay );

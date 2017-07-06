@@ -15,8 +15,6 @@
 #include <QDebug>
 #include <QHelpEvent>
 #include <QRect>
-#include <QPixmap>
-#include <QApplication>
 #include <QPainter>
 #include <QPushButton>
 #include <QMenu>
@@ -29,6 +27,7 @@
 #include "MarbleLocale.h"
 #include "MarbleModel.h"
 #include "ViewportParams.h"
+#include "GeoDataLatLonAltBox.h"
 
 namespace Marble
 {
@@ -53,10 +52,6 @@ MapScaleFloatItem::MapScaleFloatItem( const MarbleModel *marbleModel )
       m_minimized(false),
       m_widthScaleFactor(2)
 {
-#ifdef Q_WS_MAEMO_5
-        setPosition( QPointF( 220.0, 10.5 ) );
-#endif // Q_WS_MAEMO_5
-
     m_minimizeAction = new QAction(tr("Minimize"), this);
     m_minimizeAction->setCheckable(true);
     m_minimizeAction->setChecked(m_minimized);
@@ -69,7 +64,7 @@ MapScaleFloatItem::~MapScaleFloatItem()
 
 QStringList MapScaleFloatItem::backendTypes() const
 {
-    return QStringList( "mapscale" );
+    return QStringList(QStringLiteral("mapscale"));
 }
 
 QString MapScaleFloatItem::name() const
@@ -84,12 +79,12 @@ QString MapScaleFloatItem::guiString() const
 
 QString MapScaleFloatItem::nameId() const
 {
-    return QString( "scalebar" );
+    return QStringLiteral("scalebar");
 }
 
 QString MapScaleFloatItem::version() const
 {
-    return "1.1";
+    return QStringLiteral("1.1");
 }
 
 QString MapScaleFloatItem::description() const
@@ -99,20 +94,20 @@ QString MapScaleFloatItem::description() const
 
 QString MapScaleFloatItem::copyrightYears() const
 {
-    return "2008, 2010, 2012";
+    return QStringLiteral("2008, 2010, 2012");
 }
 
-QList<PluginAuthor> MapScaleFloatItem::pluginAuthors() const
+QVector<PluginAuthor> MapScaleFloatItem::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( "Torsten Rahn", "tackat@kde.org", tr( "Original Developer" ) )
-            << PluginAuthor( "Khanh-Nhan Nguyen", "khanh.nhan@wpi.edu" )
-            << PluginAuthor( "Illya Kovalevskyy", "illya.kovalevskyy@gmail.com" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"), tr("Original Developer"))
+            << PluginAuthor(QStringLiteral("Khanh-Nhan Nguyen"), QStringLiteral("khanh.nhan@wpi.edu"))
+            << PluginAuthor(QStringLiteral("Illya Kovalevskyy"), QStringLiteral("illya.kovalevskyy@gmail.com"));
 }
 
 QIcon MapScaleFloatItem::icon () const
 {
-    return QIcon(":/icons/scalebar.png");
+    return QIcon(QStringLiteral(":/icons/scalebar.png"));
 }
 
 
@@ -206,7 +201,7 @@ void MapScaleFloatItem::paintContent( QPainter *painter )
     }
     iRatio *= power;
     m_ratioString.setNum(iRatio);
-    m_ratioString = m_ratioString = "1 : " + m_ratioString;
+    m_ratioString = QLatin1String("1 : ") + m_ratioString;
 
     painter->setPen(   QColor( Qt::darkGray ) );
     painter->setBrush( QColor( Qt::darkGray ) );
@@ -284,8 +279,9 @@ void MapScaleFloatItem::paintContent( QPainter *painter )
         painter->setFont( font() );
 
         if ( j == 0 ) {
-            painter->drawText( 0, fontHeight, "0 " + unit );
-            lastStringEnds = QFontMetrics( font() ).width( "0 " + unit );
+            const QString text = QLatin1String("0 ") + unit;
+            painter->drawText(0, fontHeight, text);
+            lastStringEnds = QFontMetrics(font()).width(text);
             continue;
         }
 
@@ -381,7 +377,7 @@ void MapScaleFloatItem::contextMenuEvent( QWidget *w, QContextMenuEvent *e )
     if ( !m_contextMenu ) {
         m_contextMenu = contextMenu();
 
-        foreach( QAction *action, m_contextMenu->actions() ) {
+        for( QAction *action: m_contextMenu->actions() ) {
             if ( action->text() == tr( "&Configure..." ) ) {
                 m_contextMenu->removeAction( action );
                 break;
@@ -458,6 +454,4 @@ void MapScaleFloatItem::toggleMinimized()
 
 }
 
-Q_EXPORT_PLUGIN2(MapScaleFloatItem, Marble::MapScaleFloatItem)
-
-#include "MapScaleFloatItem.moc"
+#include "moc_MapScaleFloatItem.cpp"

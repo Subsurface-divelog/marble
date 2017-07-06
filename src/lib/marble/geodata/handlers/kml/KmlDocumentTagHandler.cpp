@@ -26,7 +26,6 @@
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagHandler.h"
 #include "GeoDataDocument.h"
-#include "GeoDataFolder.h"
 #include "GeoDataParser.h"
 
 namespace Marble
@@ -37,7 +36,7 @@ KML_DEFINE_TAG_HANDLER(Document)
 
 GeoNode* KmlDocumentTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(kmlTag_Document));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Document)));
 
     GeoStackItem parentItem = parser.parentElement();
     if( !(parentItem.qualifiedName().first.isNull() && parentItem.qualifiedName().second.isNull()) ) {
@@ -50,8 +49,7 @@ GeoNode* KmlDocumentTagHandler::parse(GeoParser& parser) const
 
             return document;
         }
-        else if ( parentItem.qualifiedName().first == kmlTag_kml)
-        {
+        else if (parentItem.qualifiedName().first == QLatin1String(kmlTag_kml)) {
             GeoDataDocument* doc = geoDataDoc( parser );
             KmlObjectTagHandler::parseIdentifiers( parser, doc );
             return doc;

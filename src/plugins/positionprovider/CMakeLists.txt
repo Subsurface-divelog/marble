@@ -8,26 +8,17 @@ IF(LIBGPS_FOUND)
      ADD_SUBDIRECTORY( gpsd )
 ENDIF(LIBGPS_FOUND)
 
-macro_optional_find_package(liblocation)
-marble_set_package_properties( liblocation PROPERTIES DESCRIPTION "position information on Maemo 5 devices" )
-marble_set_package_properties( liblocation PROPERTIES URL "http://maemo.org/" )
-marble_set_package_properties( liblocation PROPERTIES TYPE OPTIONAL PURPOSE "position information via GPS/WLAN for the Nokia N900 smartphone" )
-IF(liblocation_FOUND)
-     ADD_SUBDIRECTORY( maemo )
-ENDIF(liblocation_FOUND)
-
-if( NOT QT5BUILD )
-  macro_optional_find_package(QtLocation)
-  marble_set_package_properties( QtMobility PROPERTIES DESCRIPTION "a collection of APIs and frameworks" )
-  marble_set_package_properties( QtMobility PROPERTIES URL "http://qt.digia.com/" )
-  marble_set_package_properties( QtMobility PROPERTIES TYPE OPTIONAL PURPOSE "Required for QtLocation to work" )
-  marble_set_package_properties( QtLocation PROPERTIES DESCRIPTION "geographical support for position and map use" )
-  marble_set_package_properties( QtLocation PROPERTIES URL "http://qt.digia.com/" )
-  marble_set_package_properties( QtLocation PROPERTIES TYPE OPTIONAL PURPOSE "position information via QtMobility QtLocation" )
-  IF(QTLOCATION_FOUND)
-     ADD_SUBDIRECTORY( qtmobility )
-  ENDIF(QTLOCATION_FOUND)
+find_package(Qt5 ${REQUIRED_QT_VERSION}
+    COMPONENTS
+        Positioning
+)
+marble_set_package_properties( Qt5Positioning PROPERTIES DESCRIPTION "a collection of APIs and frameworks" )
+marble_set_package_properties( Qt5Positioning PROPERTIES URL "http://qt.digia.com/" )
+marble_set_package_properties( Qt5Positioning PROPERTIES TYPE OPTIONAL PURPOSE "position information via Qt5Positioning" )
+if(Qt5Positioning_FOUND)
+   ADD_SUBDIRECTORY( qtpositioning )
 endif()
+
 
 macro_optional_find_package(libwlocate)
 marble_set_package_properties( libwlocate PROPERTIES DESCRIPTION "WLAN-based geolocation" )

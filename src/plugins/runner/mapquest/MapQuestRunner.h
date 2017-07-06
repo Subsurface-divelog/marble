@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -27,10 +27,10 @@ class MapQuestRunner : public RoutingRunner
 public:
     explicit MapQuestRunner(QObject *parent = 0);
 
-    ~MapQuestRunner();
+    ~MapQuestRunner() override;
 
     // Overriding MarbleAbstractRunner
-    virtual void retrieveRoute( const RouteRequest *request );
+    void retrieveRoute( const RouteRequest *request ) override;
 
 private Q_SLOTS:
     void get();

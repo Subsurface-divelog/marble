@@ -11,7 +11,6 @@
 #ifndef MARBLE_GEOWRITER_H
 #define MARBLE_GEOWRITER_H
 
-#include "GeoDataFeature.h"
 #include "marble_export.h"
 
 #include <QXmlStreamWriter>
@@ -19,6 +18,8 @@
 
 namespace Marble
 {
+
+class GeoNode;
 
 /**
  * @brief Standard Marble way of writing XML
@@ -67,6 +68,12 @@ public:
      **/
     void writeOptionalElement(const QString &key, const QString &value , const QString &defaultValue = QString() );
 
+    /**
+     * @brief writeOptionalAttribute Convenience method to write k=v attributes
+     * if value is not equal to defaultValue
+     */
+    void writeOptionalAttribute( const QString &key, const QString &value, const QString &defaultValue = QString() );
+
     template<class T>
     void writeOptionalElement( const QString &key, const T &value , const T &defaultValue = T() )
     {
@@ -77,6 +84,7 @@ public:
 
 private:
     friend class GeoTagWriter;
+    friend class GeoDataDocumentWriter;
     bool writeElement( const GeoNode* object );
 
 private:

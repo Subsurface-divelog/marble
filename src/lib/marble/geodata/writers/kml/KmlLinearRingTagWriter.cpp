@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2014      Marek Hakala <hakala.marek@gmail.com>
 //
 
@@ -13,6 +13,7 @@
 
 #include "GeoDataLinearRing.h"
 #include "GeoDataTypes.h"
+#include "GeoDataCoordinates.h"
 #include "GeoWriter.h"
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagWriter.h"
@@ -34,6 +35,7 @@ bool KmlLinearRingTagWriter::write( const GeoNode *node, GeoWriter& writer ) con
         writer.writeStartElement( kml::kmlTag_LinearRing );
         KmlObjectTagWriter::writeIdentifiers( writer, ring );
         writer.writeOptionalElement( kml::kmlTag_extrude, QString::number( ring->extrude() ), "0" );
+        writer.writeOptionalElement( kml::kmlTag_tessellate, QString::number( ring->tessellate() ), "0" );
         writer.writeStartElement( "coordinates" );
 
         int size = ring->size() >= 3 && ring->first() != ring->last() ? ring->size() + 1 : ring->size();

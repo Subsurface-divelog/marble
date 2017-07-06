@@ -17,7 +17,6 @@
 
 // Marble
 #include "GeoDataObject.h"
-#include "GeoDataSimpleField.h"
 #include "geodata_export.h"
 
 class QDataStream;
@@ -26,17 +25,20 @@ namespace Marble
 {
 
 class GeoDataSchemaPrivate;
+class GeoDataSimpleField;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataSchema : public GeoDataObject
 {
 public:
     GeoDataSchema();
-    GeoDataSchema( const QHash<QString, GeoDataSimpleField>& simpleFields );
+    explicit GeoDataSchema( const QHash<QString, GeoDataSimpleField>& simpleFields );
     GeoDataSchema( const GeoDataSchema& other );
     GeoDataSchema& operator=( const GeoDataSchema& other );
     bool operator==( const GeoDataSchema& other ) const;
     bool operator!=( const GeoDataSchema& other ) const;
-    ~GeoDataSchema();
+    ~GeoDataSchema() override;
 
     /*
      * @brief Returns the name attribute of schema
@@ -66,11 +68,11 @@ public:
      */
     QList<GeoDataSimpleField> simpleFields() const;
 
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
 private:
     GeoDataSchemaPrivate * const d;

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #include "KmlGroundOverlayTagHandler.h"
@@ -27,7 +27,7 @@ KML_DEFINE_TAG_HANDLER( GroundOverlay )
 
 GeoNode* KmlGroundOverlayTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_GroundOverlay ) );
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_GroundOverlay)));
 
     GeoDataGroundOverlay *overlay = new GeoDataGroundOverlay;
     KmlObjectTagHandler::parseIdentifiers( parser, overlay );
@@ -38,7 +38,7 @@ GeoNode* KmlGroundOverlayTagHandler::parse( GeoParser& parser ) const
         parentItem.represents( kmlTag_Change ) || parentItem.represents( kmlTag_Create ) || parentItem.represents( kmlTag_Delete ) ) {
         parentItem.nodeAs<GeoDataContainer>()->append( overlay );
         return overlay;
-    } else if ( parentItem.qualifiedName().first == kmlTag_kml ) {
+    } else if (parentItem.qualifiedName().first == QLatin1String(kmlTag_kml)) {
         GeoDataDocument* doc = geoDataDoc( parser );
         doc->append( overlay );
         return overlay;

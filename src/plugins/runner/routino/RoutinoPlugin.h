@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 
@@ -14,44 +14,41 @@
 
 #include "RoutingRunnerPlugin.h"
 
-namespace Ui {
-    class RoutinoConfigWidget;
-}
 namespace Marble
 {
 
 class RoutinoPlugin : public RoutingRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.RoutinoPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.RoutinoPlugin")
     Q_INTERFACES( Marble::RoutingRunnerPlugin )
 
 public:
     explicit RoutinoPlugin( QObject *parent = 0 );
 
-    QString name() const;
+    QString name() const override;
 
-    QString guiString() const;
+    QString guiString() const override;
 
-    QString nameId() const;
+    QString nameId() const override;
 
-    QString version() const;
+    QString version() const override;
 
-    QString description() const;
+    QString description() const override;
 
-    QString copyrightYears() const;
+    QString copyrightYears() const override;
 
-    QList<PluginAuthor> pluginAuthors() const;
+    QVector<PluginAuthor> pluginAuthors() const override;
 
-    virtual RoutingRunner *newRunner() const;
+    RoutingRunner *newRunner() const override;
 
-    ConfigWidget* configWidget();
+    ConfigWidget* configWidget() override;
 
-    bool supportsTemplate(RoutingProfilesModel::ProfileTemplate profileTemplate) const;
+    bool supportsTemplate(RoutingProfilesModel::ProfileTemplate profileTemplate) const override;
 
-    QHash< QString, QVariant > templateSettings(RoutingProfilesModel::ProfileTemplate profileTemplate) const;
+    QHash< QString, QVariant > templateSettings(RoutingProfilesModel::ProfileTemplate profileTemplate) const override;
 
-    virtual bool canWork() const;
+    bool canWork() const override;
 };
 
 }

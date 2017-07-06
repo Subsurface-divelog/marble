@@ -14,12 +14,11 @@
 #ifndef MARBLE_GEODATACOLORSTYLE_H
 #define MARBLE_GEODATACOLORSTYLE_H
 
-
-#include <QColor>
-
 #include "GeoDataObject.h"
 
 #include "geodata_export.h"
+
+class QColor;
 
 namespace Marble
 {
@@ -65,7 +64,7 @@ class GEODATA_EXPORT GeoDataColorStyle : public GeoDataObject
 {
   public:
     /// Provides type information for downcasting a GeoData
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     /**
      * @brief  Set a new color
@@ -90,7 +89,7 @@ class GEODATA_EXPORT GeoDataColorStyle : public GeoDataObject
      * @brief  Set a new color mode
      * @param  colorMode  the new color mode value
      */
-    void setColorMode( const ColorMode &colorMode );
+    void setColorMode(ColorMode colorMode);
     /// Return the color mode
     ColorMode colorMode() const;
 
@@ -107,17 +106,22 @@ class GEODATA_EXPORT GeoDataColorStyle : public GeoDataObject
      * @brief Serialize the style to a stream
      * @param  stream  the stream
      */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
     /**
      * @brief  Unserialize the style from a stream
      * @param  stream  the stream
      */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
     GeoDataColorStyle();
     GeoDataColorStyle( const GeoDataColorStyle& other );
 
-    virtual ~GeoDataColorStyle();
+    ~GeoDataColorStyle() override;
+
+    /**
+     * @return Returns a foreground color suitable for e.g. text display on top of the given background color
+     */
+    static QString contrastColor(const QColor &color);
 
   private:
     GeoDataColorStylePrivate * const d;

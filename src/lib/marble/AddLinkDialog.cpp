@@ -13,15 +13,13 @@
 #include "ui_AddLinkDialog.h"
 
 // Qt
-#include <QLineEdit>
-#include <QCloseEvent>
 #include <QMessageBox>
 #include <QPushButton>
 #include <QDebug>
 
 namespace Marble {
 
-class AddLinkDialog::Private : public Ui::UiAddLinkDialog
+class Q_DECL_HIDDEN AddLinkDialog::Private : public Ui::UiAddLinkDialog
 {
 public:
     Private();
@@ -81,4 +79,4 @@ void AddLinkDialog::checkFields()
 
 }
 
-#include "AddLinkDialog.moc"
+#include "moc_AddLinkDialog.cpp"

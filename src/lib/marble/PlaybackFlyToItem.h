@@ -12,22 +12,25 @@
 #define PLAYBACKFLYTOITEM_H
 
 #include "PlaybackItem.h"
-#include "GeoDataFlyTo.h"
-#include "GeoDataCoordinates.h"
+
+#include <QDateTime>
 
 namespace Marble
 {
+class GeoDataCoordinates;
+class GeoDataFlyTo;
+
 class PlaybackFlyToItem : public PlaybackItem
 {
     Q_OBJECT
 public:
-    PlaybackFlyToItem( const GeoDataFlyTo* flyTo );
+    explicit PlaybackFlyToItem( const GeoDataFlyTo* flyTo );
     const GeoDataFlyTo* flyTo() const;
-    double duration() const;
-    void play();
-    void pause();
-    void seek( double position );
-    void stop();
+    double duration() const override;
+    void play() override;
+    void pause() override;
+    void seek( double position ) override;
+    void stop() override;
     void center( double t );
     void setBefore(PlaybackFlyToItem* before);
     void setNext(PlaybackFlyToItem* next);

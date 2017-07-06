@@ -148,15 +148,15 @@ QString MarbleLocale::languageCode()
     const QString lang = QLocale::system().name();
     QString code;
 
-    int index = lang.indexOf ( '_' );
-    if ( lang == "C" ) {
+    int index = lang.indexOf(QLatin1Char('_'));
+    if (lang == QLatin1String("C")) {
         code = "en";
     }
     else if ( index != -1 ) {
         code = lang.left ( index );
     }
     else {
-        index = lang.indexOf ( '@' );
+        index = lang.indexOf(QLatin1Char('@'));
         if ( index != -1 )
             code = lang.left ( index );
         else

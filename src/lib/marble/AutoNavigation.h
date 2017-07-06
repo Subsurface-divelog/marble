@@ -8,20 +8,19 @@
 // Copyright 2010      Siddharth Srivastava <akssps011@gmail.com>
 //
 
-#ifndef ADJUSTNAVIGATION_H
-#define ADJUSTNAVIGATION_H
+#ifndef MARBLE_AUTONAVIGATION_H
+#define MARBLE_AUTONAVIGATION_H
 
 #include "marble_export.h"
-#include "GeoDataCoordinates.h"
+#include "MarbleGlobal.h"
 
-#include <QWidget>
+#include <QObject>
 
 namespace Marble
 {
 
 class GeoDataCoordinates;
 class MarbleModel;
-class PositionTracking;
 class ViewportParams;
 
 class MARBLE_EXPORT AutoNavigation : public QObject
@@ -38,7 +37,7 @@ public:
     explicit AutoNavigation( MarbleModel *model, const ViewportParams *viewport, QObject *parent = 0 );
 
     /** Destructor */
-    ~AutoNavigation();
+    ~AutoNavigation() override;
 
     /**
     * An enum type
@@ -105,4 +104,4 @@ private:
 };
 } //namespace marble
 
-#endif // ADJUSTNAVIGATION_H
+#endif // MARBLE_AUTONAVIGATION_H

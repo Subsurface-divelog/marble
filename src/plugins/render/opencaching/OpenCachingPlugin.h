@@ -12,12 +12,8 @@
 #define OPENCACHINGPLUGIN_H
 
 #include "AbstractDataPlugin.h"
-#include "RenderPlugin.h"
-#include "RenderPluginInterface.h"
 
 #include <QHash>
-#include <QIcon>
-#include <QAbstractButton>
 
 namespace Ui
 {
@@ -33,7 +29,7 @@ namespace Marble
 class OpenCachingPlugin : public AbstractDataPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.OpenCachingPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.OpenCachingPlugin")
 
     Q_INTERFACES( Marble::RenderPluginInterface )
 
@@ -66,7 +62,7 @@ public:
      */
     virtual void setSettings( const QHash<QString,QVariant> &settings );
 
-public slots:
+public Q_SLOTS:
     void readSettings();
     void writeSettings();
     void updateSettings();
@@ -77,7 +73,7 @@ private:
     QDialog *m_configDialog;
     QHash<QString,QVariant> m_settings;
 
-private slots:
+private Q_SLOTS:
     void validateDateRange();
     void validateDifficultyRange();
 };

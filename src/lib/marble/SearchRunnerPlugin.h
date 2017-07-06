@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 
 #ifndef MARBLE_SEARCHRUNNERPLUGIN_H
@@ -31,7 +31,7 @@ public:
     explicit SearchRunnerPlugin( QObject* parent = 0 );
 
     /** Destructor */
-    virtual ~SearchRunnerPlugin();
+    ~SearchRunnerPlugin() override;
 
     /**
      * @brief Returns the string that should appear in the user interface.
@@ -61,7 +61,7 @@ public:
 
     // Overridden methods with default implementations
 
-    virtual QIcon icon() const;
+    QIcon icon() const override;
 
 protected:
     void setSupportedCelestialBodies( const QStringList &celestialBodies );

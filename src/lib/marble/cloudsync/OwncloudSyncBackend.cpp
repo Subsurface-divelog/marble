@@ -21,29 +21,29 @@
 #include "GeoDataParser.h"
 #include "GeoDataFolder.h"
 #include "RoutingManager.h"
+#include "RouteItem.h"
 #include "GeoDataDocument.h"
 #include "CloudRouteModel.h"
 #include "GeoDataPlacemark.h"
 #include "CloudSyncManager.h"
-#include "GeoDataDocument.h"
-#include "GeoDocument.h"
 #include "GeoDataTypes.h"
 #include "GeoDataExtendedData.h"
+#include "GeoDataData.h"
 
 #include <QNetworkAccessManager>
-#include <QScriptValueIterator>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QScriptEngine>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QFileInfo>
 #include <QBuffer>
-#include <QTimer>
 #include <QDir>
 
 namespace Marble
 {
 
-class OwncloudSyncBackend::Private {
+class Q_DECL_HIDDEN OwncloudSyncBackend::Private {
     
     public:
         Private( CloudSyncManager* cloudSyncManager );
@@ -69,7 +69,7 @@ class OwncloudSyncBackend::Private {
 };
 
 OwncloudSyncBackend::Private::Private( CloudSyncManager* cloudSyncManager ) :
-    m_cacheDir( MarbleDirs::localPath() + "/cloudsync/cache/routes/" ),
+    m_cacheDir(MarbleDirs::localPath() + QLatin1String("/cloudsync/cache/routes/")),
     m_network(),
     m_routeUploadReply(),
     m_routeListReply(),
@@ -156,7 +156,7 @@ void OwncloudSyncBackend::uploadRoute( const QString &timestamp )
 
     // Duration part
     double duration =
-            QTime().secsTo( QTime::fromString( placemark->extendedData().value("duration").value().toString(), Qt::ISODate ) ) / 60.0;
+            QTime().secsTo(QTime::fromString(placemark->extendedData().value(QStringLiteral("duration")).value().toString(), Qt::ISODate)) / 60.0;
     mDebug() << "[Owncloud] Duration on write is" << duration;
     data.append( "Content-Disposition: form-data; name=\"duration\"" );
     data.append( "\r\n\r\n" );
@@ -166,7 +166,7 @@ void OwncloudSyncBackend::uploadRoute( const QString &timestamp )
 
     // Distance part
     double distance =
-            placemark->extendedData().value("length").value().toDouble();
+            placemark->extendedData().value(QStringLiteral("length")).value().toDouble();
     mDebug() << "[Owncloud] Distance on write is" << distance;
     data.append( "Content-Disposition: form-data; name=\"distance\"" );
     data.append( "\r\n\r\n" );
@@ -233,12 +233,12 @@ void OwncloudSyncBackend::deleteRoute( const QString &timestamp )
 QPixmap OwncloudSyncBackend::createPreview( const QString &timestamp ) const
 {
     MarbleWidget mapWidget;
-    foreach( RenderPlugin* plugin, mapWidget.renderPlugins() ) {
+    for( RenderPlugin* plugin: mapWidget.renderPlugins() ) {
         plugin->setEnabled( false );
     }
 
     mapWidget.setProjection( Mercator );
-    mapWidget.setMapThemeId( "earth/openstreetmap/openstreetmap.dgml" );
+    mapWidget.setMapThemeId(QStringLiteral("earth/openstreetmap/openstreetmap.dgml"));
     mapWidget.resize( 512, 512 );
 
     RoutingManager* manager = mapWidget.model()->routingManager();
@@ -251,7 +251,7 @@ QPixmap OwncloudSyncBackend::createPreview( const QString &timestamp ) const
 
     QPixmap pixmap = QPixmap::grabWidget( &mapWidget );
     QDir( d->m_cacheDir.absolutePath() ).mkpath( "preview" );
-    pixmap.save( d->m_cacheDir.absolutePath() + "/preview/" + timestamp + ".jpg" );
+    pixmap.save(d->m_cacheDir.absolutePath() + QLatin1String("/preview/") + timestamp + QLatin1String(".jpg"));
 
     return pixmap;
 }
@@ -274,7 +274,7 @@ QString OwncloudSyncBackend::routeName( const QString &timestamp ) const
     GeoDataDocument *container = dynamic_cast<GeoDataDocument*>( geoDoc );
     if ( container && container->size() > 0 ) {
         GeoDataFolder *folder = container->folderList().at( 0 );
-        foreach ( GeoDataPlacemark *placemark, folder->placemarkList() ) {
+        for ( GeoDataPlacemark *placemark: folder->placemarkList() ) {
             routeName.append( placemark->name() );
             routeName.append( " - " );
         }
@@ -316,15 +316,15 @@ void OwncloudSyncBackend::checkAuthReply()
 
     QString result = d->m_authReply->readAll();
 
-    if ( !result.startsWith('{')) {
+    if (!result.startsWith(QLatin1Char('{'))) {
         // not a JSON result
-        if ( result.contains("http://owncloud.org") ) {
+        if (result.contains(QLatin1String("http://owncloud.org"))) {
             // an owncloud login page was returned, marble app is not installed
             d->m_cloudSyncManager->setStatus( tr( "The Marble app is not installed on the ownCloud server" ), CloudSyncManager::Error);
         } else {
             d->m_cloudSyncManager->setStatus( tr( "The server is not an ownCloud server" ), CloudSyncManager::Error);
         }
-    } else if ( result == "{\"message\":\"Current user is not logged in\"}" && statusCode == 401 ) {
+    } else if (result == QLatin1String("{\"message\":\"Current user is not logged in\"}") && statusCode == 401) {
         // credientials were incorrect
         d->m_cloudSyncManager->setStatus( tr( "Username or password are incorrect" ), CloudSyncManager::Error);
     } else if ( result.contains("\"status\":\"success\"") && statusCode == 200 ) {
@@ -340,25 +340,21 @@ void OwncloudSyncBackend::cancelUpload()
 
 void OwncloudSyncBackend::prepareRouteList()
 {
-    QString result = d->m_routeListReply->readAll();
-
-    QScriptEngine engine;
-    QScriptValue response = engine.evaluate( QString( "(%0)" ).arg( result ) );
-    QScriptValue routes = response.property( "data" );
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(d->m_routeListReply->readAll());
+    QJsonValue dataValue = jsonDoc.object().value(QStringLiteral("data"));
 
     d->m_routeList.clear();
-    
-    if( routes.isArray() ) {
-        QScriptValueIterator iterator( routes );
-        
-        while( iterator.hasNext() ) {
-            iterator.next();
-            
+
+    if (dataValue.isArray()) {
+        QJsonArray dataArray = dataValue.toArray();
+        for (int index = 0; index < dataArray.size(); ++index) {
+            QJsonObject dataObject = dataArray[index].toObject();
+
             RouteItem route;
-            route.setIdentifier( iterator.value().property( "timestamp" ).toString() );
-            route.setName ( iterator.value().property( "name" ).toString() );
-            route.setDistance( iterator.value().property( "distance" ).toString() );
-            route.setDuration( iterator.value().property( "duration" ).toString() );
+            route.setIdentifier(dataObject.value(QStringLiteral("timestamp")).toString());
+            route.setName(dataObject.value(QStringLiteral("name")).toString() );
+            route.setDistance(dataObject.value(QStringLiteral("distance")).toString());
+            route.setDuration(dataObject.value(QStringLiteral("duration")).toString());
             route.setPreviewUrl( endpointUrl( d->m_routePreviewEndpoint, route.identifier() ) );
             route.setOnCloud( true );
             
@@ -423,13 +419,13 @@ void OwncloudSyncBackend::saveDownloadedRoute()
 
 QUrl OwncloudSyncBackend::endpointUrl( const QString &endpoint ) const
 {
-    QString endpointUrl = QString( "%0/%1" ).arg( d->m_cloudSyncManager->apiUrl().toString() ).arg( endpoint );
+    const QString endpointUrl = d->m_cloudSyncManager->apiUrl().toString() + QLatin1Char('/') + endpoint;
     return QUrl( endpointUrl );
 }
 
 QUrl OwncloudSyncBackend::endpointUrl( const QString &endpoint, const QString &parameter ) const
 {
-    QString endpointUrl = QString( "%0/%1/%2" ).arg( d->m_cloudSyncManager->apiUrl().toString() ).arg( endpoint ).arg( parameter );
+    const QString endpointUrl = d->m_cloudSyncManager->apiUrl().toString() + QLatin1Char('/') + endpoint + QLatin1Char('/') + parameter;
     return QUrl( endpointUrl );
 }
 
@@ -447,4 +443,4 @@ void OwncloudSyncBackend::removeFromCache( const QDir &cacheDir, const QString &
 
 }
 
-#include "OwncloudSyncBackend.moc"
+#include "moc_OwncloudSyncBackend.cpp"

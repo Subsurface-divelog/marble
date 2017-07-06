@@ -43,7 +43,7 @@ class MARBLE_EXPORT PluginAboutDialog : public QDialog
     };
 
     explicit PluginAboutDialog( QWidget *parent = 0 );
-    virtual ~PluginAboutDialog();
+    ~PluginAboutDialog() override;
 
     /**
      * Sets the name of the plugin.
@@ -67,8 +67,9 @@ class MARBLE_EXPORT PluginAboutDialog : public QDialog
 
     /**
      * Sets the authors working on this plugin.
+     * @since 0.26.0
      */
-    void setAuthors( const QList<PluginAuthor>& authors );
+    void setAuthors(const QVector<PluginAuthor>& authors);
 
     /**
      * Sets the text displayed in the "Authors" tab of the dialog.

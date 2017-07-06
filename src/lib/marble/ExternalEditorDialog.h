@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_EXTERNALEDITORDIALOG_H
@@ -29,7 +29,7 @@ class MARBLE_EXPORT ExternalEditorDialog: public QDialog, private Ui::ExternalEd
 public:
     explicit ExternalEditorDialog( QWidget * parent = 0, Qt::WindowFlags f = 0 );
 
-    ~ExternalEditorDialog();
+    ~ExternalEditorDialog() override;
 
     QString externalEditor() const;
 

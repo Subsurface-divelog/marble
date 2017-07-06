@@ -11,8 +11,6 @@
 #ifndef MARBLE_KMLSCREENOVERLAYWRITER_H
 #define MARBLE_KMLSCREENOVERLAYWRITER_H
 
-#include "GeoTagWriter.h"
-#include "GeoWriter.h"
 #include "GeoDataVec2.h"
 #include "KmlOverlayTagWriter.h"
 
@@ -25,7 +23,7 @@ class KmlScreenOverlayWriter : public KmlOverlayTagWriter
 {
 public:
     KmlScreenOverlayWriter();
-    bool writeMid( const GeoNode *node, GeoWriter& writer ) const;
+    bool writeMid( const GeoNode *node, GeoWriter& writer ) const override;
 
 private:
     static void writeVec2( const QString &element, const GeoDataVec2 &vec2, GeoWriter& writer );

@@ -27,15 +27,12 @@
 #include "layers/PopupLayer.h"
 
 // Qt
-#include <QCoreApplication>
 #include <QDate>
 #include <QHash>
-#include <QObject>
 #include <QString>
 #include <QAction>
-#include <QBrush>
 #include <QIcon>
-#include <QFontMetrics>
+#include <QFont>
 #include <QPushButton>
 #include <QSvgRenderer>
 
@@ -70,7 +67,7 @@ class WeatherItemPrivate
 
         QPushButton *button = new QPushButton();
         button->setStyleSheet( "border-style: outset;" );
-        button->setIcon( QIcon( ":/icons/bookmarks.png" ) );
+        button->setIcon(QIcon(QStringLiteral(":/icons/bookmarks.png")));
         button->setFixedSize( 22, 22 );
         button->setFlat( true );
         button->setCheckable( true );
@@ -139,19 +136,18 @@ class WeatherItemPrivate
                     .arg( m_currentWeather.pressureDevelopmentString() );
 
         if ( !m_forecastWeather.isEmpty() ) {
-            toolTip += '\n';
+            toolTip += QLatin1Char('\n');
 
-            QDate minDate = QDate::currentDate();
-            minDate.addDays( -1 );
-            foreach( const WeatherData& data, m_forecastWeather ) {
+            QDate const minDate = QDate::currentDate();
+            for( const WeatherData& data: m_forecastWeather ) {
                 QDate date = data.dataDate();
                 if( date >= minDate
                     && data.hasValidCondition()
                     && data.hasValidMinTemperature()
                     && data.hasValidMaxTemperature() )
                 {
-                    toolTip += '\n';
-                    toolTip += tr( "%1: %2, %3 to %4", "DayOfWeek: Condition, MinTemp to MaxTemp" )
+                    toolTip += QLatin1Char('\n') +
+                               tr( "%1: %2, %3 to %4", "DayOfWeek: Condition, MinTemp to MaxTemp" )
                                .arg( locale.standaloneDayName( date.dayOfWeek() ) )
                                .arg( data.conditionString() )
                                .arg( data.minTemperatureString( temperatureUnit() ) )
@@ -182,7 +178,7 @@ class WeatherItemPrivate
         if ( isWindDirectionShown() ) {
             QString windDirectionString = m_currentWeather.windDirectionString();
             QSizeF windDirectionImageSize;
-            QSvgRenderer s_windIcons( MarbleDirs::path( "weather/wind-arrows.svgz" ) );
+            QSvgRenderer s_windIcons(MarbleDirs::path(QStringLiteral("weather/wind-arrows.svgz")));
             QSizeF windDirectionSizeF = s_windIcons.boundsOnElement( windDirectionString ).size();
             double windDirectionRatio = windDirectionSizeF.width() / windDirectionSizeF.height();
             if ( windDirectionRatio >= imageSizeRatio ) {
@@ -216,7 +212,7 @@ class WeatherItemPrivate
 
     void updateFavorite()
     {
-        QStringList items = m_settings.value( "favoriteItems" ).toString()
+        QStringList items = m_settings.value(QStringLiteral("favoriteItems")).toString()
                                         .split(QLatin1Char(','), QString::SkipEmptyParts);
         bool favorite = items.contains( m_parent->id() );
 
@@ -234,25 +230,25 @@ class WeatherItemPrivate
     bool isConditionShown() const
     {
         return m_currentWeather.hasValidCondition()
-               && m_settings.value( "showCondition", showConditionDefault ).toBool();
+               && m_settings.value(QStringLiteral("showCondition"), showConditionDefault).toBool();
     }
     
     bool isTemperatureShown() const
     {
         return m_currentWeather.hasValidTemperature()
-               && m_settings.value( "showTemperature", showTemperatureDefault ).toBool();
+               && m_settings.value(QStringLiteral("showTemperature"), showTemperatureDefault).toBool();
     }
     
     bool isWindDirectionShown() const
     {
         return m_currentWeather.hasValidWindDirection()
-               && m_settings.value( "showWindDirection", showWindDirectionDefault ).toBool();
+               && m_settings.value(QStringLiteral("showWindDirection"), showWindDirectionDefault).toBool();
     }
     
     bool isWindSpeedShown() const
     {
         return m_currentWeather.hasValidWindSpeed()
-               && m_settings.value( "showWindSpeed", showWindSpeedDefault ).toBool();
+               && m_settings.value(QStringLiteral("showWindSpeed"), showWindSpeedDefault).toBool();
     }
 
     QString temperatureString() const
@@ -264,7 +260,7 @@ class WeatherItemPrivate
     WeatherData::TemperatureUnit temperatureUnit() const
     {
         WeatherData::TemperatureUnit tUnit
-                = (WeatherData::TemperatureUnit) m_settings.value( "temperatureUnit",
+                = (WeatherData::TemperatureUnit) m_settings.value(QStringLiteral("temperatureUnit"),
                                                                    WeatherData::Celsius ).toInt();
         return tUnit;
     }
@@ -276,7 +272,7 @@ class WeatherItemPrivate
 
     WeatherData::SpeedUnit speedUnit() const
     {
-        return (WeatherData::SpeedUnit) m_settings.value( "windSpeedUnit",
+        return (WeatherData::SpeedUnit) m_settings.value(QStringLiteral("windSpeedUnit"),
                                                           WeatherData::kph ).toInt();
     }
 
@@ -287,7 +283,7 @@ class WeatherItemPrivate
 
     WeatherData::PressureUnit pressureUnit() const
     {
-        return (WeatherData::PressureUnit) m_settings.value( "pressureUnit",
+        return (WeatherData::PressureUnit) m_settings.value(QStringLiteral("pressureUnit"),
                                                              WeatherData::HectoPascal ).toInt();
     }
 
@@ -296,7 +292,7 @@ class WeatherItemPrivate
     WeatherData m_currentWeather;
     QMap<QDate, WeatherData> m_forecastWeather;
 
-    int m_priority;
+    quint8 m_priority;
     QAction m_browserAction;
     QAction m_favoriteAction;
     WeatherItem *m_parent;
@@ -317,9 +313,9 @@ class WeatherItemPrivate
 
 // FIXME: Fonts to be defined globally
 #ifdef Q_OS_MACX
-    QFont WeatherItemPrivate::s_font = QFont( "Sans Serif", 10 );
+    QFont WeatherItemPrivate::s_font = QFont( QStringLiteral( "Sans Serif" ), 10 );
 #else
-    QFont WeatherItemPrivate::s_font = QFont( "Sans Serif", 8 );
+    QFont WeatherItemPrivate::s_font = QFont( QStringLiteral( "Sans Serif" ), 8 );
 #endif
 
 WeatherItem::WeatherItem(QObject *parent )
@@ -423,7 +419,7 @@ void WeatherItem::setForecastWeather( const QMap<QDate, WeatherData>& forecasts 
 
 void WeatherItem::addForecastWeather( const QList<WeatherData>& forecasts )
 {
-    foreach( const WeatherData& data, forecasts ) {
+    for( const WeatherData& data: forecasts ) {
         QDate date = data.dataDate();
         WeatherData other = d->m_forecastWeather.value( date );
         if ( !other.isValid() ) {
@@ -436,16 +432,16 @@ void WeatherItem::addForecastWeather( const QList<WeatherData>& forecasts )
     }
 
     // Remove old items
-    QDate minDate = QDate::currentDate();
-    minDate.addDays( -1 );
+    QDate const minDate = QDate::currentDate();
 
     QMap<QDate, WeatherData>::iterator it = d->m_forecastWeather.begin();
 
     while( it != d->m_forecastWeather.end() ) {
         if ( it.key() < minDate ) {
-            d->m_forecastWeather.remove( it.key() );
+            it = d->m_forecastWeather.erase( it );
+        } else {
+            ++it;
         }
-        ++it;
     }
 
     d->updateToolTip();
@@ -485,10 +481,10 @@ void WeatherItem::openBrowser()
     if (d->m_marbleWidget) {
         PopupLayer *popup = d->m_marbleWidget->popupLayer();
         popup->setCoordinates( coordinate(), Qt::AlignRight | Qt::AlignVCenter );
-        popup->setSize( QSizeF( 610, 550 ) ); // +10 pixels for the width
+        popup->setSize(QSizeF(630, 580)); // +10 pixels for the width
         popup->popup();
 
-        QFile weatherHtmlFile(":/marble/weather/weather.html");
+        QFile weatherHtmlFile(QStringLiteral(":/marble/weather/weather.html"));
         if ( !weatherHtmlFile.open(QIODevice::ReadOnly) ) {
             return;
         }
@@ -506,9 +502,9 @@ QString WeatherItem::createFromTemplate(const QString &templateHtml)
 
     if (!d->m_currentWeather.iconSource().isEmpty()) {
         html.replace("%weather_situation%",
-                     "<img src=\"file://"+d->m_currentWeather.iconSource()+"\" />");
+                     QLatin1String("<img src=\"file://") + d->m_currentWeather.iconSource() + QLatin1String("\" />"));
     } else {
-        html.replace("%weather_situation%", "");
+        html.remove("%weather_situation%");
     }
 
     html.replace("%current_temp%", d->temperatureString());
@@ -526,20 +522,22 @@ QString WeatherItem::createFromTemplate(const QString &templateHtml)
 
     int forecastNumber = 0;
 
-    foreach ( const WeatherData &forecast, d->m_forecastWeather ) {
+    for ( const WeatherData &forecast: d->m_forecastWeather ) {
         forecastNumber++;
         const QString suffix = QString::number(forecastNumber);
         QDate date = forecast.dataDate();
-        html.replace(QLatin1String("%day_f")+suffix+'%', locale.standaloneDayName(date.dayOfWeek()));
-        html.replace(QLatin1String("%weather_situation_f")+suffix+'%', "file://"+forecast.iconSource());
-        html.replace(QLatin1String("%max_temp_f")+suffix+'%',
+        html.replace(QLatin1String("%day_f") + suffix + QLatin1Char('%'),
+                     locale.standaloneDayName(date.dayOfWeek()));
+        html.replace(QLatin1String("%weather_situation_f") + suffix + QLatin1Char('%'),
+                     QLatin1String("file://")+forecast.iconSource());
+        html.replace(QLatin1String("%max_temp_f") + suffix + QLatin1Char('%'),
                       forecast.maxTemperatureString(WeatherData::Celsius));
-        html.replace(QLatin1String("%min_temp_f")+suffix+'%',
+        html.replace(QLatin1String("%min_temp_f") + suffix + QLatin1Char('%'),
                       forecast.minTemperatureString(WeatherData::Celsius));
-        html.replace(QLatin1String("%condition_f")+suffix+'%', forecast.conditionString());
-        html.replace(QLatin1String("%wind_direction_f")+suffix+'%', forecast.windDirectionString());
-        html.replace(QLatin1String("%wind_speed_f")+suffix+'%', forecast.windSpeedString());
-        html.replace(QLatin1String("%publish_time_f")+suffix+'%', forecast.publishingTime().toString());
+        html.replace(QLatin1String("%condition_f") + suffix + QLatin1Char('%'), forecast.conditionString());
+        html.replace(QLatin1String("%wind_direction_f") + suffix + QLatin1Char('%'), forecast.windDirectionString());
+        html.replace(QLatin1String("%wind_speed_f") + suffix + QLatin1Char('%'), forecast.windSpeedString());
+        html.replace(QLatin1String("%publish_time_f") + suffix + QLatin1Char('%'), forecast.publishingTime().toString());
     }
 
     return html;
@@ -579,4 +577,4 @@ double WeatherItem::temperature() const
 
 } // namespace Marble
 
-#include "WeatherItem.moc"
+#include "moc_WeatherItem.cpp"

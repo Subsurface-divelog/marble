@@ -31,33 +31,16 @@ namespace Marble
 
 class GeoDataFolderPrivate : public GeoDataContainerPrivate
 {
-  public:
-    GeoDataFolderPrivate()
-    {
-    }
-
-    virtual GeoDataFeaturePrivate* copy()
-    {
-        GeoDataFolderPrivate* copy = new GeoDataFolderPrivate;
-        *copy = *this;
-        return copy;
-    }
-
-    virtual const char* nodeType() const
-    {
-        return GeoDataTypes::GeoDataFolderType;
-    }
 };
 
 
 GeoDataFolder::GeoDataFolder()
         : GeoDataContainer( new GeoDataFolderPrivate )
 {
-    setVisualCategory( GeoDataFeature::Folder );
 }
 
 GeoDataFolder::GeoDataFolder( const GeoDataFolder& other )
-    : GeoDataContainer( other )
+    : GeoDataContainer(other, new GeoDataFolderPrivate(*other.d_func()))
 {
 }
 
@@ -65,9 +48,14 @@ GeoDataFolder::~GeoDataFolder()
 {
 }
 
-GeoDataFolderPrivate* GeoDataFolder::p() const
+GeoDataFolder& GeoDataFolder::operator=(const GeoDataFolder& other)
 {
-    return static_cast<GeoDataFolderPrivate*>(d);
+    if (this != &other) {
+        Q_D(GeoDataFolder);
+        *d = *other.d_func();
+    }
+
+    return *this;
 }
 
 bool GeoDataFolder::operator==( const GeoDataFolder &other ) const
@@ -78,6 +66,16 @@ bool GeoDataFolder::operator==( const GeoDataFolder &other ) const
 bool GeoDataFolder::operator!=( const GeoDataFolder &other ) const
 {
     return !this->operator==( other );
+}
+
+const char* GeoDataFolder::nodeType() const
+{
+    return GeoDataTypes::GeoDataFolderType;
+}
+
+GeoDataFeature * GeoDataFolder::clone() const
+{
+    return new GeoDataFolder(*this);
 }
 
 }

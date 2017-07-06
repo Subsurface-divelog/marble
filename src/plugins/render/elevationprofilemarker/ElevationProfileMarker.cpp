@@ -11,8 +11,6 @@
 
 #include "ElevationProfileMarker.h"
 
-#include <QRect>
-
 #include "MarbleLocale.h"
 #include "MarbleModel.h"
 #include "GeoDataDocument.h"
@@ -21,6 +19,9 @@
 #include "GeoDataTreeModel.h"
 #include "ViewportParams.h"
 #include "MarbleGraphicsGridLayout.h"
+
+#include <QRect>
+#include <QIcon>
 
 namespace Marble
 {
@@ -50,17 +51,17 @@ ElevationProfileMarker::~ElevationProfileMarker()
 
 QStringList ElevationProfileMarker::backendTypes() const
 {
-    return QStringList( "elevationprofilemarker" );
+    return QStringList(QStringLiteral("elevationprofilemarker"));
 }
 
 QString ElevationProfileMarker::renderPolicy() const
 {
-    return "ALWAYS";
+    return QStringLiteral("ALWAYS");
 }
 
 QStringList ElevationProfileMarker::renderPosition() const
 {
-    return QStringList() << "HOVERS_ABOVE_SURFACE";
+    return QStringList(QStringLiteral("HOVERS_ABOVE_SURFACE"));
 }
 
 qreal ElevationProfileMarker::zValue() const
@@ -80,12 +81,12 @@ QString ElevationProfileMarker::guiString() const
 
 QString ElevationProfileMarker::nameId() const
 {
-    return QString( "elevationprofilemarker" );
+    return QStringLiteral("elevationprofilemarker");
 }
 
 QString ElevationProfileMarker::version() const
 {
-    return "1.0";
+    return QStringLiteral("1.0");
 }
 
 QString ElevationProfileMarker::description() const
@@ -95,24 +96,24 @@ QString ElevationProfileMarker::description() const
 
 QString ElevationProfileMarker::copyrightYears() const
 {
-    return "2011, 2012";
+    return QStringLiteral("2011, 2012");
 }
 
-QList<PluginAuthor> ElevationProfileMarker::pluginAuthors() const
+QVector<PluginAuthor> ElevationProfileMarker::pluginAuthors() const
 {
-    return QList<PluginAuthor>()
-            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" )
-            << PluginAuthor( QString::fromUtf8 ( "Florian Eßer" ), "f.esser@rwth-aachen.de" );
+    return QVector<PluginAuthor>()
+            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"))
+            << PluginAuthor(QStringLiteral("Florian Eßer"), QStringLiteral("f.esser@rwth-aachen.de"));
 }
 
 QIcon ElevationProfileMarker::icon() const
 {
-    return QIcon(":/icons/elevationprofile.png");
+    return QIcon(QStringLiteral(":/icons/elevationprofile.png"));
 }
 
 void ElevationProfileMarker::initialize()
 {
-    m_markerIcon.setImage( QImage( ":/flag-red-mirrored.png" ) );
+    m_markerIcon.setImage(QImage(QStringLiteral(":/flag-red-mirrored.png")));
 
     MarbleGraphicsGridLayout *topLayout = new MarbleGraphicsGridLayout( 1, 2 );
     m_markerItem.setLayout( topLayout );
@@ -159,7 +160,7 @@ bool ElevationProfileMarker::render( GeoPainter* painter, ViewportParams* viewpo
 
             QString intervalStr;
             intervalStr.setNum( m_currentPosition.altitude() * displayScale, 'f', 1 );
-            intervalStr += ' ' + unitString;
+            intervalStr += QLatin1Char(' ') + unitString;
             m_markerText.setText( intervalStr );
         }
     }
@@ -199,10 +200,10 @@ void ElevationProfileMarker::onGeoObjectAdded( GeoDataObject *object )
     if ( !document )
         return;
 
-    if ( document->name() != "Elevation Profile" )
+    if (document->name() != QLatin1String("Elevation Profile"))
         return;
 
-    if ( document->size() < 1 )
+    if (document->isEmpty())
         return;
 
     m_markerPlacemark = dynamic_cast<GeoDataPlacemark *>( document->child( 0 ) );
@@ -216,7 +217,7 @@ void ElevationProfileMarker::onGeoObjectRemoved( GeoDataObject *object )
     if ( !document )
         return;
 
-    if ( document->name() != "Elevation Profile" )
+    if (document->name() != QLatin1String("Elevation Profile"))
         return;
 
     m_markerPlacemark = 0;
@@ -226,6 +227,4 @@ void ElevationProfileMarker::onGeoObjectRemoved( GeoDataObject *object )
 
 }
 
-Q_EXPORT_PLUGIN2(ElevationProfileMarker, Marble::ElevationProfileMarker)
-
-#include "ElevationProfileMarker.moc"
+#include "moc_ElevationProfileMarker.cpp"

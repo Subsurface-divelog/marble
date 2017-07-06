@@ -11,20 +11,20 @@
 #ifndef GEODATALISTSTYLE_H
 #define GEODATALISTSTYLE_H
 
-#include <QImage>
-#include <QFlags>
 #include <QVector>
 
 #include "MarbleGlobal.h"
 #include "GeoDataObject.h"
-#include "GeoDataItemIcon.h"
 #include "geodata_export.h"
 
 namespace Marble
 {
 
 class GeoDataListStylePrivate;
+class GeoDataItemIcon;
 
+/**
+ */
 class GEODATA_EXPORT GeoDataListStyle : public GeoDataObject
 {
 public:
@@ -37,10 +37,10 @@ public:
     bool operator==( const GeoDataListStyle &other ) const;
     bool operator!=( const GeoDataListStyle &other ) const;
 
-    ~GeoDataListStyle();
+    ~GeoDataListStyle() override;
 
     /** Provides type information for downcasting a GeoNode */
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     enum ListItemType {
         Check,
@@ -50,7 +50,7 @@ public:
     };
 
     ListItemType listItemType() const;
-    void setListItemType( const ListItemType &type );
+    void setListItemType(ListItemType type);
 
     QColor backgroundColor() const;
     void setBackgroundColor( const QColor &color );
@@ -84,9 +84,9 @@ public:
     QVector<GeoDataItemIcon*>::ConstIterator constEnd() const;
     void clear();
 
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
 private:
     friend class GeoDataItemIcon;

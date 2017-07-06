@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_KMLLINESTYLETAGWRITER_H
@@ -22,9 +22,9 @@ public:
     KmlLineStyleTagWriter();
 
 protected:
-    virtual bool writeMid( const GeoNode *node, GeoWriter& writer ) const;
+    bool writeMid( const GeoNode *node, GeoWriter& writer ) const override;
 
-    virtual bool isEmpty( const GeoNode *node ) const;
+    bool isEmpty( const GeoNode *node ) const override;
 };
 
 }

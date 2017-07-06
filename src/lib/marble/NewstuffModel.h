@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef MARBLE_NEWSTUFFMODEL_H
@@ -14,7 +14,6 @@
 #include "marble_export.h"
 
 #include <QAbstractListModel>
-#include <QFileInfo>
 
 class QNetworkReply;
 
@@ -62,18 +61,16 @@ public:
     explicit NewstuffModel( QObject *parent = 0 );
 
     /** Destructor */
-    ~NewstuffModel();
+    ~NewstuffModel() override;
 
     /** Overload of QAbstractListModel */
-    int rowCount ( const QModelIndex &parent = QModelIndex() ) const;
+    int rowCount ( const QModelIndex &parent = QModelIndex() ) const override;
 
     /** Overload of QAbstractListModel */
-    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const;
+    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const override;
 
-#if QT_VERSION >= 0x050000
     /** Overload of QAbstractListModel */
-    QHash<int, QByteArray> roleNames() const;
-#endif
+    QHash<int, QByteArray> roleNames() const override;
 
     /** @todo FIXME https://bugreports.qt-project.org/browse/QTCOMPONENTS-1206 */
     int count() const;

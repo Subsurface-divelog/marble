@@ -12,6 +12,7 @@
 #include "GeoDataLinearRing.h"
 #include "GeoDataLinearRing_p.h"
 
+#include "GeoDataTypes.h"
 #include "MarbleMath.h"
 #include "MarbleDebug.h"
 
@@ -30,6 +31,21 @@ GeoDataLinearRing::GeoDataLinearRing( const GeoDataGeometry & other )
 
 GeoDataLinearRing::~GeoDataLinearRing()
 {
+}
+
+const char *GeoDataLinearRing::nodeType() const
+{
+    return GeoDataTypes::GeoDataLinearRingType;
+}
+
+EnumGeometryId GeoDataLinearRing::geometryId() const
+{
+    return GeoDataLinearRingId;
+}
+
+GeoDataGeometry *GeoDataLinearRing::copy() const
+{
+    return new GeoDataLinearRing(*this);
 }
 
 bool GeoDataLinearRing::operator==( const GeoDataLinearRing &other ) const
@@ -67,8 +83,8 @@ bool GeoDataLinearRing::contains( const GeoDataCoordinates &coordinates ) const
     int j = points - 1;
 
     for ( int i=0; i<points; ++i ) {
-        GeoDataCoordinates const & one = at( i );
-        GeoDataCoordinates const & two = at( j );
+        GeoDataCoordinates const & one = operator[]( i );
+        GeoDataCoordinates const & two = operator[]( j );
 
         if ( ( one.longitude() < coordinates.longitude() && two.longitude() >= coordinates.longitude() ) ||
              ( two.longitude() < coordinates.longitude() && one.longitude() >= coordinates.longitude() ) ) {
@@ -85,12 +101,12 @@ bool GeoDataLinearRing::contains( const GeoDataCoordinates &coordinates ) const
 
 bool GeoDataLinearRing::isClockwise() const
 {
-    int n = size();
+    int const n = size();
     qreal area = 0;
-    for ( int i = 1; i < n - 1; ++i ){
-        area += ( at( i ).longitude() - at( i - 1 ).longitude() ) * ( at( i ).latitude() + at( i - 1 ).latitude() );
+    for ( int i = 1; i < n; ++i ){
+        area += ( operator[]( i ).longitude() - operator[]( i - 1 ).longitude() ) * ( operator[]( i ).latitude() + operator[]( i - 1 ).latitude() );
     }
-    area += ( at( 0 ).longitude() - at( n - 2 ).longitude() ) * ( at ( 0 ).latitude() + at( n - 2 ).latitude() );
+    area += ( operator[]( 0 ).longitude() - operator[]( n - 1 ).longitude() ) * ( operator[] ( 0 ).latitude() + operator[]( n - 1 ).latitude() );
 
     return area > 0;
 }

@@ -12,8 +12,6 @@
 #ifndef MARBLE_GEODATALINESTYLE_H
 #define MARBLE_GEODATALINESTYLE_H
 
-
-#include <QFont>
 #include <QVector>
 
 #include "GeoDataColorStyle.h"
@@ -45,7 +43,7 @@ class GEODATA_EXPORT GeoDataLineStyle : public GeoDataColorStyle
      */
     explicit GeoDataLineStyle( const QColor &color );
 
-    ~GeoDataLineStyle();
+    ~GeoDataLineStyle() override;
 
     /**
     * @brief assignment operator
@@ -56,13 +54,13 @@ class GEODATA_EXPORT GeoDataLineStyle : public GeoDataColorStyle
     bool operator!=( const GeoDataLineStyle &other ) const;
 
     /// Provides type information for downcasting a GeoData
-    virtual const char* nodeType() const;
+    const char* nodeType() const override;
 
     /**
      * @brief Set the width of the line
      * @param  width  the new width
      */
-    void setWidth( const float &width );
+    void setWidth(float width);
     /**
      * @brief Return the current width of the line
      * @return the current width
@@ -73,12 +71,22 @@ class GEODATA_EXPORT GeoDataLineStyle : public GeoDataColorStyle
      * @brief Set the physical width of the line (in meters)
      * @param  width  the new width
      */
-    void setPhysicalWidth( const float &realWidth );
+    void setPhysicalWidth(float realWidth);
     /**
      * @brief Return the current physical width of the line
      * @return the current width
      */
     float physicalWidth() const;
+
+    /**
+     * @brief Set whether the line has a cosmetic 1 pixel outline
+     */
+    void setCosmeticOutline( bool enabled );
+    /**
+     * @brief Return whether the line has a cosmetic 1 pixel outline
+     */
+    bool cosmeticOutline() const;
+
     
     /**
      * @brief Set pen cap style
@@ -132,12 +140,12 @@ class GEODATA_EXPORT GeoDataLineStyle : public GeoDataColorStyle
      * @brief  Serialize the style to a stream.
      * @param  stream  the stream
      */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
     /**
      * @brief  Unserialize the style from a stream
      * @param  stream  the stream
      */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
 
   private:
     GeoDataLineStylePrivate * const d;

@@ -16,9 +16,6 @@
 #define MARBLETWITTERPLUGIN_H
 #define RADIANSTODEGREES 57.2957795
 
-#include <QObject>
-#include <QFile>
-#include <QTextStream>
 #include "../lib/HttpDownloadManager.h"
 #include "../lib/CacheStoragePolicy.h"
 #include "jsonparser.h"
@@ -43,7 +40,7 @@ struct twitterStructure
 class twitterPlugin : public RenderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.twitterPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.twitterPlugin")
     Q_INTERFACES(Marble::RenderPluginInterface)
     MARBLE_PLUGIN(twitterPlugin)
 
@@ -73,12 +70,12 @@ public:
 
     ~twitterPlugin();
 
-public slots:
+public Q_SLOTS:
     void slotJsonDownloadComplete(QString , QString);   //completed download of json reply fom panoramio
     void slotGeoCodingReplyRecieved(QString , QString);   //completed download of image
 
-signals:
-    void statusMessageForImageDownloadingProcess(QString);
+Q_SIGNALS:
+    void statusMessageForImageDownloadingProcess(const QString&);
 private:
     CacheStoragePolicy *m_storagePolicy;
     HttpDownloadManager *m_downloadManager;

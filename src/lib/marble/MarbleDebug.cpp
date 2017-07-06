@@ -18,6 +18,25 @@ namespace Marble
 // bool MarbleDebug::m_enabled = true;
 bool MarbleDebug::m_enabled = false;
 
+class NullDevice : public QIODevice
+{
+public:
+    NullDevice()
+    {
+        open( QIODevice::WriteOnly );
+    }
+
+    qint64 readData( char * /*data*/, qint64 /*maxSize*/ ) override
+    {
+        return -1;
+    }
+
+    qint64 writeData( const char * /*data*/, qint64 maxSize ) override
+    {
+        return maxSize;
+    }
+};
+
 QDebug mDebug()
 {
     if ( MarbleDebug::isEnabled() ) {

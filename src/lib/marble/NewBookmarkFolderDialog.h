@@ -9,8 +9,8 @@
 // Copyright 2012      Thibaut Gridel <tgridel@free.fr>
 //
 
-#ifndef MARBLE_NEWBOOKMARKFOLDERINFODIALOG_H
-#define MARBLE_NEWBOOKMARKFOLDERINFODIALOG_H
+#ifndef MARBLE_NEWBOOKMARKFOLDERDIALOG_H
+#define MARBLE_NEWBOOKMARKFOLDERDIALOG_H
 
 #include "ui_NewBookmarkFolderDialog.h"
 #include "marble_export.h"
@@ -26,7 +26,7 @@ class MARBLE_EXPORT NewBookmarkFolderDialog : public QDialog, private Ui::UiNewB
  public:
     explicit NewBookmarkFolderDialog( QWidget *parent = 0 );
 
-    ~NewBookmarkFolderDialog();
+    ~NewBookmarkFolderDialog() override;
 
     void setFolderName( const QString &name );
 

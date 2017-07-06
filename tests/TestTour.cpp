@@ -10,12 +10,12 @@
 
 #include <GeoDataParser.h>
 #include <GeoDataDocument.h>
+#include <GeoDataUpdate.h>
 #include <GeoDataTour.h>
 #include <GeoDataPlaylist.h>
 #include <GeoDataTourControl.h>
 #include <MarbleDebug.h>
 #include <GeoDataFolder.h>
-#include <GeoDataScreenOverlay.h>
 #include <GeoDataAnimatedUpdate.h>
 
 #include <QObject>
@@ -27,7 +27,7 @@ using namespace Marble;
 class TestTour : public QObject
 {
     Q_OBJECT
-private slots:
+private Q_SLOTS:
     void initTestCase();
     void simpleParseTest();
 };

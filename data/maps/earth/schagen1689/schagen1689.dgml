@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+     This xml file is free software licensed under the GNU LGPL. You can
+     find a copy of this license in LICENSE.txt in the top directory of
+     the source code.
+-->
 <dgml xmlns="http://edu.kde.org/marble/dgml/2.0">
     <document>
         <head>
+            <!-- the license here applies to the actual map content, not this dgml file. See the license header above for the dgml file license -->
+            <license short="Public Domain">Source: Wikipedia, License: Public Domain</license>
             <name>Historical Map 1689</name>
             <target>earth</target>
             <theme>schagen1689</theme>
@@ -46,19 +53,16 @@
                     <blending name="SunLightBlending" />
                 </texture>
             </layer>
-
-            <layer name="mwdbii" backend="vector">
-                <vector name="pcoast" feature="coastlines">
-                    <sourcefile> mwdbii/PCOAST.PNT </sourcefile>
-                    <pen color="#ffff00" />
-                    <brush color="transparent" />
-                </vector>
-                <vector name="rivers" feature="waterbodies">
-                    <sourcefile> mwdbii/RIVER.PNT </sourcefile>
-                    <pen color="#ffffff" />
-                </vector>
+            <layer name="naturalearth" backend="geodata">
+                <geodata name="coast" property="coastlines">
+                    <sourcefile> naturalearth/ne_50m_land.pn2 </sourcefile>
+                    <pen color="#ffff00" width="1.5"/>
+                </geodata>
+                <geodata name="lake" property="coastlines">
+                    <sourcefile> naturalearth/ne_50m_lakes.pn2 </sourcefile>
+                    <pen color="#ffff00" width="1.5"/>
+                </geodata>
             </layer>
-                            
             <layer name="standardplaces" backend="geodata">
                 <geodata name="cityplacemarks">
                     <sourcefile>cityplacemarks.cache</sourcefile>

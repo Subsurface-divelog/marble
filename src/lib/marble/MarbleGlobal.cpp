@@ -16,8 +16,13 @@ namespace Marble
 {
 
 MarbleGlobalPrivate::MarbleGlobalPrivate()
-    : m_profiles( MarbleGlobal::Default ) 
+    : m_profiles(MarbleGlobal::Default)
 {
+#ifdef Q_OS_ANDROID
+    m_profiles |= MarbleGlobal::SmallScreen;
+    m_profiles |= MarbleGlobal::HighResolution;
+#endif
+
 }
 
 MarbleGlobalPrivate::~MarbleGlobalPrivate()
@@ -53,23 +58,9 @@ void MarbleGlobal::setProfiles( MarbleGlobal::Profiles profiles ) {
     d->m_profiles = profiles;
 }
 
-MarbleGlobal::Profiles MarbleGlobal::detectProfiles() {
-    MarbleGlobal::Profiles profile = MarbleGlobal::Default;
-    // Checking Qt for maemo flags to find out if we are on a small screen device.
-#ifdef Q_WS_HILDON // flag for Qt 4.5 (diablo and fremantle)
-    profile |= MarbleGlobal::SmallScreen;
-    profile |= MarbleGlobal::HighResolution;
-#endif
-#ifdef Q_WS_MAEMO_5
-    profile |= MarbleGlobal::SmallScreen;
-    profile |= MarbleGlobal::HighResolution;
-#endif
-#ifdef MEEGO_EDITION_HARMATTAN
-    profile |= MarbleGlobal::SmallScreen;
-    profile |= MarbleGlobal::HighResolution;
-#endif
-
-    return profile;
+MarbleGlobal::Profiles MarbleGlobal::detectProfiles()
+{
+    return getInstance()->profiles();
 }
 
 }

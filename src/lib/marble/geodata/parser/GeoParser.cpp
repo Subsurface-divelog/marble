@@ -58,15 +58,15 @@ static void dumpParentStack( const QString& name, int size, bool close )
 
     QString result;
     for ( int i = 0; i < depth; ++i )
-        result += ' ';
+        result += QLatin1Char(' ');
 
     if ( close ) {
         depth--;
-        result += "</";
+        result += QLatin1String("</");
     } else
-        result += '<';
+        result += QLatin1Char('<');
 
-    result += name + "> stack size " + QString::number( size );
+    result += name + QLatin1String("> stack size ") + QString::number(size);
     fprintf( stderr, "%s\n", qPrintable( result ));
 }
 #endif
@@ -95,6 +95,10 @@ bool GeoParser::read( QIODevice* device )
 
                 if ( !m_nodeStack.isEmpty() )
                     raiseError(
+                        // Keep trailing space in both strings, to match translated string
+                        // TODO: check if that space is kept through the tool pipeline
+                        //~ singular Parsing failed line %1. Still %n unclosed tag after document end. 
+                        //~ plural Parsing failed line %1. Still %n unclosed tags after document end. 
                         QObject::tr("Parsing failed line %1. Still %n unclosed tag(s) after document end. ", "",
                                      m_nodeStack.size() ).arg( lineNumber() ) + errorString());
             } else
@@ -104,7 +108,7 @@ bool GeoParser::read( QIODevice* device )
 
     if ( error() ) {
         if ( lineNumber() == 1) {
-            raiseError("");
+            raiseError(QString());
         }
         // Defer the deletion to the dtor
         // This allows the BookmarkManager to recover the broken .kml files it produced in Marble 1.0 and 1.1
@@ -182,10 +186,10 @@ void GeoParser::parseDocument()
     else {
         // This is only used for debugging purposes.
         m_nodeStack.push( stackItem );
-        dumpParentStack( name().toString() + "-discarded", m_nodeStack.size(), false );
+        dumpParentStack(name().toString() + QLatin1String("-discarded"), m_nodeStack.size(), false);
 
         m_nodeStack.pop();
-        dumpParentStack( name().toString() + "-discarded", m_nodeStack.size(), true );
+        dumpParentStack(name().toString() + QLatin1String("-discarded"), m_nodeStack.size(), true);
     }
 #endif
 }
@@ -199,7 +203,7 @@ void GeoParser::raiseWarning( const QString& warning )
 
 QString GeoParser::attribute( const char* attributeName ) const
 {
-    return attributes().value( QString::fromLatin1( attributeName )).toString();
+    return attributes().value(QLatin1String(attributeName)).toString();
 }
 
 GeoDocument* GeoParser::releaseDocument()

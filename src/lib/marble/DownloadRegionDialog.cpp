@@ -33,6 +33,7 @@
 #include "LatLonBoxWidget.h"
 #include "TextureLayer.h"
 #include "TileId.h"
+#include "TileCoordsPyramid.h"
 #include "TileLevelRangeWidget.h"
 #include "TileLoaderHelper.h"
 #include "routing/RoutingManager.h"
@@ -52,7 +53,7 @@ int const minimumRouteOffset = 0;
 int const maximumRouteOffset = 10000;
 int averageTileSize = 13; //The average size of a tile in kilobytes
 
-class DownloadRegionDialog::Private
+class Q_DECL_HIDDEN DownloadRegionDialog::Private
 {
 public:
     Private( MarbleWidget *const widget, QDialog * const dialog );
@@ -329,7 +330,7 @@ QVector<TileCoordsPyramid> DownloadRegionDialog::region() const
         break;
    case RouteDownloadMethod:
         qreal offset = d->m_routeOffsetSpinBox->value();
-        if( d->m_routeOffsetSpinBox->suffix() == " km") {
+        if (d->m_routeOffsetSpinBox->suffix() == QLatin1String(" km")) {
             offset *= KM2METER;
         }
         const GeoDataLineString waypoints = d->m_model->routingManager()->routingModel()->route().path();
@@ -451,9 +452,11 @@ void DownloadRegionDialog::updateTilesCount()
 
     if ( tilesCount > maxTilesCount ) {
         d->m_tileSizeInfo->setToolTip( QString() );
-        d->m_tileSizeInfo->setText( tr( "There is a limit of %n tiles to download.", "",
+        //~ singular There is a limit of %n tile to download.
+        //~ plural There is a limit of %n tiles to download.
+        d->m_tileSizeInfo->setText( tr( "There is a limit of %n tile(s) to download.", "",
                                                maxTilesCount ) );
-    } else if ( themeId == "earth/openstreetmap/openstreetmap.dgml" ) {
+    } else if (themeId == QLatin1String("earth/openstreetmap/openstreetmap.dgml")) {
         qreal tileDownloadSize = tilesCount * averageTileSize;
 
         d->m_tileSizeInfo->setToolTip( tr( "Approximate size of the tiles to be downloaded" ) );
@@ -498,7 +501,7 @@ void DownloadRegionDialog::setOffsetUnit()
         d->m_routeOffsetSpinBox->setValue( offset * METER2KM );
         d->m_routeOffsetSpinBox->setSingleStep( 0.1 );
     }
-    else if( offset <= 1 && d->m_routeOffsetSpinBox->suffix() == " km" ) {
+    else if (offset <= 1 && d->m_routeOffsetSpinBox->suffix() == QLatin1String(" km")) {
         d->m_routeOffsetSpinBox->setSuffix( " m" );
         d->m_routeOffsetSpinBox->setRange( minimumRouteOffset, maximumRouteOffset );
         d->m_routeOffsetSpinBox->setDecimals( 0 );
@@ -509,4 +512,4 @@ void DownloadRegionDialog::setOffsetUnit()
 
 }
 
-#include "DownloadRegionDialog.moc"
+#include "moc_DownloadRegionDialog.cpp"

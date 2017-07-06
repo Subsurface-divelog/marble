@@ -15,10 +15,14 @@
 
 #include <QObject>
 #include <QUrl>
-#include <QLabel>
 
 #include "BillboardGraphicsItem.h"
+
+#ifdef MARBLE_NO_WEBKITWIDGETS
+#include "ui_NullWebPopupWidget.h"
+#else
 #include "ui_WebPopupWidget.h"
+#endif
 
 class QPainter;
 
@@ -39,7 +43,7 @@ class PopupItem : public QObject, public BillboardGraphicsItem
     Q_OBJECT
 public:
     explicit PopupItem( QObject* parent = 0 );
-    ~PopupItem();
+    ~PopupItem() override;
 
     /**
      * @brief Print button visibility indicator
@@ -114,7 +118,7 @@ public:
      */
     void setBackgroundColor( const QColor &color );
 
-    virtual bool eventFilter( QObject *, QEvent *e );
+    bool eventFilter( QObject *, QEvent *e ) override;
 
     void clearHistory();
 
@@ -159,8 +163,14 @@ private Q_SLOTS:
      */
     void goBack();
 
+    /**
+     * @brief Opens clicked URL in external browser.
+     * @param url URL to be opened in external browser
+     */
+    void openUrl(const QUrl &url);
+
 protected:
-    void paint( QPainter *painter );
+    void paint( QPainter *painter ) override;
 
 Q_SIGNALS:
     void repaintNeeded();

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
 // Loosely based on MarblePhysics.cpp
 //
 
@@ -15,8 +15,8 @@
   */
 
 #include <marble/MarbleWidget.h>
-#include <GeoDataCoordinates.h>
-#include <GeoDataLineString.h>
+#include <marble/GeoDataCoordinates.h>
+#include <marble/GeoDataLineString.h>
 #include <marble/RenderPlugin.h>
 #include <marble/Quaternion.h>
 

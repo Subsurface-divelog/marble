@@ -20,8 +20,6 @@
 #include "MarbleModel.h"
 #include "TrackerPluginItem.h"
 
-#include <QTimer>
-
 namespace Marble
 {
 
@@ -33,7 +31,7 @@ public:
           m_enabled( false ),
           m_treeModel( treeModel ),
           m_document( new GeoDataDocument() ),
-          m_storagePolicy( MarbleDirs::localPath() + "/cache/" ),
+          m_storagePolicy(MarbleDirs::localPath() + QLatin1String("/cache/")),
           m_downloadManager( 0 )
     {
     }
@@ -54,7 +52,7 @@ public:
 
     void update()
     {
-        foreach( TrackerPluginItem *item, m_itemVector ) {
+        for( TrackerPluginItem *item: m_itemVector ) {
             item->update();
         }
     }
@@ -63,7 +61,7 @@ public:
     {
         // we cannot use ->clear() since its implementation
         // will delete all items
-        foreach( TrackerPluginItem *item, m_itemVector ) {
+        for( TrackerPluginItem *item: m_itemVector ) {
             int idx = m_document->childPosition( item->placemark() );
             if( item->isEnabled() && idx == -1 ) {
                 m_document->append( item->placemark() );
@@ -87,7 +85,7 @@ TrackerPluginModel::TrackerPluginModel( GeoDataTreeModel *treeModel )
     : d( new TrackerPluginModelPrivate( this, treeModel ) )
 {
     d->m_document->setDocumentRole( TrackingDocument );
-    d->m_document->setName("Satellites");
+    d->m_document->setName(QStringLiteral("Satellites"));
     if( d->m_enabled ) {
         d->m_treeModel->addDocument( d->m_document );
     }
@@ -171,4 +169,4 @@ void TrackerPluginModel::parseFile( const QString &id, const QByteArray &file )
 
 } // namespace Marble
 
-#include "TrackerPluginModel.moc"
+#include "moc_TrackerPluginModel.cpp"

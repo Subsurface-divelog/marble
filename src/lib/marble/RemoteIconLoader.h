@@ -15,6 +15,8 @@
 
 class QString;
 class QByteArray;
+class QImage;
+class QUrl;
 
 namespace Marble
 {
@@ -25,13 +27,13 @@ class RemoteIconLoader : public QObject
     Q_OBJECT;
 public:
     explicit RemoteIconLoader( QObject *parent = 0 );
-    ~RemoteIconLoader();
+    ~RemoteIconLoader() override;
 
     /**
         * Handles the icon request for passed url( whether icon is available
         * in cache or on disk or it should gor for a download
         */
-    QImage load( const QString& url );
+    QImage load( const QUrl& url );
 
 Q_SIGNALS:
     /**

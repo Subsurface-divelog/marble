@@ -22,10 +22,8 @@ class QModelIndex;
 namespace Marble
 {
 
-class FileManager;
 class GeoDataPlacemark;
 class GeoDataLatLonBox;
-class GeoDataTreeModel;
 class MarbleWidget;
 
 class FileViewWidgetPrivate;
@@ -36,7 +34,7 @@ class MARBLE_EXPORT FileViewWidget : public QWidget
 
  public:
     explicit FileViewWidget( QWidget *parent = 0, Qt::WindowFlags f = 0 );
-    ~FileViewWidget();
+    ~FileViewWidget() override;
 
 
     void setMarbleWidget( MarbleWidget *widget );

@@ -5,17 +5,19 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 // Copyright 2012 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
 #include "SearchRunnerPlugin.h"
 
+#include <QIcon>
+
 namespace Marble
 {
 
-class SearchRunnerPlugin::Private
+class Q_DECL_HIDDEN SearchRunnerPlugin::Private
 {
 public:
     QStringList m_supportedCelestialBodies;
@@ -78,4 +80,4 @@ bool SearchRunnerPlugin::canWork() const
 
 }
 
-#include "SearchRunnerPlugin.moc"
+#include "moc_SearchRunnerPlugin.cpp"

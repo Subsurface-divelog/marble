@@ -22,7 +22,6 @@ namespace Marble
 {
 
 class GeoDataAccuracy;
-class GeoDataDocument;
 class GeoDataCoordinates;
 class GeoDataTreeModel;
 class PositionProviderPlugin;
@@ -36,7 +35,7 @@ class MARBLE_EXPORT PositionTracking : public QObject
 
 public:
     explicit PositionTracking( GeoDataTreeModel* model );
-    ~PositionTracking();
+    ~PositionTracking() override;
 
     /**
       * Change the position provider to use. You can provide 0 to disable
@@ -112,7 +111,7 @@ public Q_SLOTS:
     void clearTrack();
 
 Q_SIGNALS:
-    void  gpsLocation( GeoDataCoordinates, qreal );
+    void  gpsLocation( const GeoDataCoordinates&, qreal );
 
     void statusChanged( PositionProviderStatus status );
 

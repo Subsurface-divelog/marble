@@ -29,7 +29,7 @@ namespace Marble
 class GeoCluePositionProviderPlugin: public PositionProviderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.GeoCluePositionProviderPlugin" )
+    Q_PLUGIN_METADATA(IID "org.kde.marble.GeoCluePositionProviderPlugin")
     Q_INTERFACES( Marble::PositionProviderPluginInterface )
 
  public:
@@ -56,7 +56,7 @@ class GeoCluePositionProviderPlugin: public PositionProviderPlugin
     GeoDataCoordinates m_position;
     GeoDataAccuracy m_accuracy;
     
- private slots:
+ private Q_SLOTS:
     void updatePosition(GeoCute::Position newPosition);
     void updateStatus(GeoCute::Status newStatus);
 };

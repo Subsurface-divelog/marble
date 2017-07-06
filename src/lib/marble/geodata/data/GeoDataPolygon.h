@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2008-2009      Patrick Spendrin <ps_ml@gmx.de>
-// Copyright 2008      Inge Wallin <inge@lysator.liu.se>
+// Copyright 2008           Inge Wallin <inge@lysator.liu.se>
 //
 
 
@@ -19,13 +19,13 @@
 
 #include "geodata_export.h"
 #include "GeoDataGeometry.h"
-#include "GeoDataLinearRing.h"
-#include "GeoDataLatLonAltBox.h"
 
 namespace Marble
 {
 
 class GeoDataPolygonPrivate;
+class GeoDataLinearRing;
+class GeoDataCoordinates;
 
 /*!
     \class GeoDataPolygon
@@ -84,7 +84,7 @@ class GEODATA_EXPORT GeoDataPolygon : public GeoDataGeometry
 /*!
     \brief Creates a new Polygon.
 */
-    explicit GeoDataPolygon( TessellationFlags f = Tessellate );
+    explicit GeoDataPolygon( TessellationFlags f = NoTessellation );
 
 
 /*!
@@ -92,12 +92,16 @@ class GEODATA_EXPORT GeoDataPolygon : public GeoDataGeometry
 */
     explicit GeoDataPolygon( const GeoDataGeometry &other );
 
-    
 /*!
     \brief Destroys a Polygon.
 */
-    virtual ~GeoDataPolygon();
+    ~GeoDataPolygon() override;
 
+    const char *nodeType() const override;
+
+    EnumGeometryId geometryId() const override;
+
+    GeoDataGeometry *copy() const override;
 
 /*!
     \brief Returns true/false depending on whether this and other are/are not equal.
@@ -151,7 +155,7 @@ class GEODATA_EXPORT GeoDataPolygon : public GeoDataGeometry
 
     \see GeoDataLatLonAltBox
 */
-    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
+    const GeoDataLatLonAltBox& latLonAltBox() const override;
 
 /*!
     \brief Returns the outer boundary that is represented as a LinearRing.
@@ -208,18 +212,20 @@ class GEODATA_EXPORT GeoDataPolygon : public GeoDataGeometry
     \brief Serialize the Polygon to a stream.
     \param stream the stream.
 */
-    virtual void pack( QDataStream& stream ) const;
+    void pack( QDataStream& stream ) const override;
 
     
 /*!
     \brief Unserialize the Polygon from a stream.
     \param stream the stream.
 */
-    virtual void unpack( QDataStream& stream );
+    void unpack( QDataStream& stream ) override;
+
+    int renderOrder() const;
+    void setRenderOrder(int);
 
  private:
-    GeoDataPolygonPrivate *p();
-    const GeoDataPolygonPrivate *p() const;
+    Q_DECLARE_PRIVATE(GeoDataPolygon)
 };
 
 class GEODATA_EXPORT GeoDataOuterBoundary : public GeoDataPolygon

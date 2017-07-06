@@ -6,21 +6,21 @@
 // the source code.
 //
 // Copyright 2012      Mohammed Nafees <nafees.technocool@gmail.com>
-// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
 //
 
 #ifndef SCREENOVERLAYGRAPHICSITEM_H
 #define SCREENOVERLAYGRAPHICSITEM_H
 
-#include "GeoDataScreenOverlay.h"
 #include "GeoDataVec2.h"
-#include "GeoPainter.h"
 #include "ScreenGraphicsItem.h"
 #include "marble_export.h"
 
 #include <QPixmap>
 
 namespace Marble {
+
+class GeoDataScreenOverlay;
 
 class MARBLE_EXPORT ScreenOverlayGraphicsItem : public ScreenGraphicsItem
 {
@@ -29,10 +29,10 @@ public:
 
     const GeoDataScreenOverlay* screenOverlay() const;
 
-    void setProjection( const ViewportParams *viewport );
+    void setProjection( const ViewportParams *viewport ) override;
 
 protected:
-    virtual void paint( QPainter* painter );
+    void paint( QPainter* painter ) override;
 
 private:
     static qreal pixelValue( GeoDataVec2::Unit unit, qreal screenSize, qreal imageSize, qreal value );

@@ -23,12 +23,13 @@
 #define MARBLE_GEOSCENESETTINGS_H
 
 #include <QObject>
-#include <QString>
 #include <QVector>
 
 #include <geodata_export.h>
 
 #include "GeoDocument.h"
+
+class QString;
 
 namespace Marble
 {
@@ -48,8 +49,8 @@ class GEODATA_EXPORT GeoSceneSettings : public QObject,
 
  public:
     GeoSceneSettings();
-    virtual ~GeoSceneSettings();
-    virtual const char* nodeType() const;
+    ~GeoSceneSettings() override;
+    const char* nodeType() const override;
 
     /**
      * @brief  Get the availability of a property across groups
@@ -123,7 +124,7 @@ class GEODATA_EXPORT GeoSceneSettings : public QObject,
     QVector<GeoSceneProperty*> rootProperties();
 
  Q_SIGNALS:
-    void valueChanged( QString, bool );
+    void valueChanged( const QString&, bool );
 
  private:
     Q_DISABLE_COPY( GeoSceneSettings )

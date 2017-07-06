@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
+// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -25,10 +25,10 @@ class GosmoreRunner : public ReverseGeocodingRunner
 public:
     explicit GosmoreRunner(QObject *parent = 0);
 
-    ~GosmoreRunner();
+    ~GosmoreRunner() override;
 
     // Overriding MarbleAbstractRunner
-    virtual void reverseGeocoding( const GeoDataCoordinates &coordinates );
+    void reverseGeocoding( const GeoDataCoordinates &coordinates ) override;
 
 private:
     GosmoreRunnerPrivate* const d;

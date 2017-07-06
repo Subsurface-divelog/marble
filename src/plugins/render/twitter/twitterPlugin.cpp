@@ -11,8 +11,6 @@
 #include "twitterPlugin.h"
 
 #include <QColor>
-#include <QPixmap>
-#include <QRadialGradient>
 #include <QSize>
 #include <QRegExp>
 
@@ -29,17 +27,17 @@ twitterPlugin::~twitterPlugin()
 
 QStringList twitterPlugin::backendTypes() const
 {
-    return QStringList("twitter");
+    return QStringList(QStringLiteral("twitter"));
 }
 
 QString twitterPlugin::renderPolicy() const
 {
-    return QString("ALWAYS");
+    return QStringLiteral("ALWAYS");
 }
 
 QStringList twitterPlugin::renderPosition() const
 {
-    return QStringList("ALWAYS_ON_TOP");
+    return QStringList(QStringLiteral("ALWAYS_ON_TOP"));
 }
 
 QString twitterPlugin::name() const
@@ -54,7 +52,7 @@ QString twitterPlugin::guiString() const
 
 QString twitterPlugin::nameId() const
 {
-    return QString("twitter");
+    return QStringLiteral("twitter");
 }
 
 QString twitterPlugin::description() const
@@ -71,7 +69,7 @@ QIcon twitterPlugin::icon() const
 void twitterPlugin::initialize()
 {
     privateFlagForRenderingTwitts = 0;
-    m_storagePolicy = new CacheStoragePolicy(MarbleDirs::localPath() + "/cache/");
+    m_storagePolicy = new CacheStoragePolicy(MarbleDirs::localPath() + QLatin1String("/cache/"));
     m_downloadManager = new HttpDownloadManager(QUrl("http://twiter.com"), m_storagePolicy);
     downloadtwitter(0, 0, 0.0, 0.0, 0.0, 0.0);
      mDebug() << "twitter plugin was started";
@@ -96,7 +94,7 @@ bool twitterPlugin::render(GeoPainter *painter, ViewportParams *viewport,
 //painter->drawAnnotation(GeoDataCoordinates(0.0,0.0),"hiiiiiiiiii");            
 
 painter->drawAnnotation(twitsWithLocation[counter].location,
-				    parsedData[counter].user + " said \n"
+				    parsedData[counter].user + QLatin1String(" said \n")
 				    + parsedData[counter].text,
 				    QSize(140, 140)) ;
     } else {
@@ -119,7 +117,7 @@ mDebug()<<"::::::::::::::::slot"<<parsedData[0].text;
 
     connect(m_downloadManager, SIGNAL(downloadComplete(QString,QString)), this, SLOT(slotGeoCodingReplyRecieved(QString,QString)) );
     for (int counter = 0;counter < 10;counter++) {
-       if (parsedData[counter].location != "null") {
+       if (parsedData[counter].location != QLatin1String("null")) {
            parsedData[counter].location.replace(QRegExp("[?,:!/\\s]+"), "+");//remove whitespace and replace it with + for query api
             findLatLonOfStreetAddress(parsedData [ counter ].location) ;   //this will set temp
        }
@@ -141,7 +139,7 @@ mDebug()<<"::::::downloading"<<rangeFrom ;
 
 void twitterPlugin::findLatLonOfStreetAddress(QString streetAddress)
 {
-    m_downloadManager->addJob("http://maps.google.com/maps/geo?q=" + streetAddress + "&output=json&key=ABQIAAAASD_v8YRzG0tBD18730KjmRTxoHoIpYL45xcSRJH0O7cH64DuXRT7rQeRcgCLAhjkteQ8vkWAATM_JQ", streetAddress, streetAddress);
+    m_downloadManager->addJob(QLatin1String("http://maps.google.com/maps/geo?q=") + streetAddress + QLatin1String("&output=json&key=ABQIAAAASD_v8YRzG0tBD18730KjmRTxoHoIpYL45xcSRJH0O7cH64DuXRT7rQeRcgCLAhjkteQ8vkWAATM_JQ"), streetAddress, streetAddress);
     mDebug() << "twitter added Geo Coding job for " << streetAddress;
 }
 
@@ -161,8 +159,4 @@ mDebug()<<"::::::::::::::::::::twitter count has value == " << localCountOfTwitt
         privateFlagForRenderingTwitts = 1;//1 means unblock
 }
 
-
-
-Q_EXPORT_PLUGIN2(twitterPlugin, Marble::twitterPlugin)
-
- #include "twitterPlugin.moc"
+ #include "moc_twitterPlugin.cpp"

@@ -16,8 +16,7 @@
 #include <QObject>
 
 // Marble
-#include <marble_export.h>
-#include <GeoDataCoordinates.h>
+#include <marble/GeoDataCoordinates.h>
 
 namespace Marble
 {
@@ -28,7 +27,7 @@ class ClickOnThat : public QObject
 {
     Q_OBJECT
 public:
-    ClickOnThat( MarbleWidget *marbleWidget );
+    explicit ClickOnThat( MarbleWidget *marbleWidget );
     ~ClickOnThat();
 
     /**
@@ -57,4 +56,3 @@ private:
 }   // namespace Marble
 
 #endif  // MARBLE_CLICK_ON_THAT
-    

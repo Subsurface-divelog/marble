@@ -21,25 +21,23 @@
 #define MARBLE_TILELOADER_H
 
 #include <QObject>
-#include <QString>
-#include <QImage>
 
-#include "TileId.h"
-#include "GeoDataContainer.h"
 #include "PluginManager.h"
 #include "MarbleGlobal.h"
 
 class QByteArray;
 class QImage;
 class QUrl;
+class QString;
 
 namespace Marble
 {
+class TileId;
 class HttpDownloadManager;
 class GeoDataDocument;
-class GeoSceneTiled;
-class GeoSceneTextureTile;
-class GeoSceneVectorTile;
+class GeoSceneTileDataset;
+class GeoSceneTextureTileDataset;
+class GeoSceneVectorTileDataset;
 
 class TileLoader: public QObject
 {
@@ -53,18 +51,19 @@ class TileLoader: public QObject
     };
 
     explicit TileLoader(HttpDownloadManager * const, const PluginManager * );
+    ~TileLoader() override;
 
-    QImage loadTileImage( GeoSceneTextureTile const *textureLayer, TileId const & tileId, DownloadUsage const );
-    GeoDataDocument* loadTileVectorData( GeoSceneVectorTile const *textureLayer, TileId const & tileId, DownloadUsage const usage );
-    void downloadTile( GeoSceneTiled const *textureLayer, TileId const &, DownloadUsage const );
+    QImage loadTileImage( GeoSceneTextureTileDataset const *textureData, TileId const & tileId, DownloadUsage const );
+    GeoDataDocument* loadTileVectorData( GeoSceneVectorTileDataset const *vectorData, TileId const & tileId, DownloadUsage const usage );
+    void downloadTile( GeoSceneTileDataset const *tileData, TileId const &, DownloadUsage const );
 
-    static int maximumTileLevel( GeoSceneTiled const & texture );
+    static int maximumTileLevel( GeoSceneTileDataset const & tileData );
 
     /**
      * Returns whether the mandatory most basic tile level is fully available for
-     * the given @p texture layer.
+     * the given @p layer.
      */
-    static bool baseTilesAvailable( GeoSceneTiled const & texture );
+    static bool baseTilesAvailable( GeoSceneTileDataset const & tileData );
 
     /**
       * Returns the status of the downloaded tile file:
@@ -72,10 +71,11 @@ class TileLoader: public QObject
       * - Expired when it has been downloaded, but is too old (as per .dgml expiration time)
       * - Available when it has been downloaded and is not expired
       */
-    static TileStatus tileStatus( GeoSceneTiled const *textureLayer, const TileId &tileId );
+    static TileStatus tileStatus( GeoSceneTileDataset const *tileData, const TileId &tileId );
 
- public Q_SLOTS:
+ private Q_SLOTS:
     void updateTile( QByteArray const & imageData, QString const & tileId );
+    void updateTile( QString const & fileName, QString const & idStr );
 
  Q_SIGNALS:
     void downloadTile( QUrl const & sourceUrl, QString const & destinationFileName,
@@ -83,15 +83,16 @@ class TileLoader: public QObject
 
     void tileCompleted( TileId const & tileId, QImage const & tileImage );
 
-    void tileCompleted( TileId const & tileId, GeoDataDocument * document, QString const & format );
+    void tileCompleted( TileId const & tileId, GeoDataDocument * document );
 
  private:
-    static QString tileFileName( GeoSceneTiled const * textureLayer, TileId const & );
-    void triggerDownload( GeoSceneTiled const *textureLayer, TileId const &, DownloadUsage const );
-    static QImage scaledLowerLevelTile( GeoSceneTextureTile const * textureLayer, TileId const & );
+    static QString tileFileName( GeoSceneTileDataset const * tileData, TileId const & );
+    void triggerDownload( GeoSceneTileDataset const *tileData, TileId const &, DownloadUsage const );
+    static QImage scaledLowerLevelTile( GeoSceneTextureTileDataset const * textureData, TileId const & );
+    GeoDataDocument* openVectorFile(const QString &filename) const;
 
     // For vectorTile parsing
-    const PluginManager * m_pluginManager;
+    PluginManager const * m_pluginManager;
 };
 
 }

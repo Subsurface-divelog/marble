@@ -111,7 +111,7 @@ void CurrentLocationWidget::setMarbleWidget( MarbleWidget *widget )
 
     const PluginManager* pluginManager = d->m_widget->model()->pluginManager();
     d->m_positionProviderPlugins = pluginManager->positionProviderPlugins();
-    foreach( const PositionProviderPlugin *plugin, d->m_positionProviderPlugins ) {
+    for( const PositionProviderPlugin *plugin: d->m_positionProviderPlugins ) {
         d->m_currentLocationUi.positionTrackingComboBox->addItem( plugin->guiString() );
     }
     if ( d->m_positionProviderPlugins.isEmpty() ) {
@@ -143,7 +143,7 @@ void CurrentLocationWidget::setMarbleWidget( MarbleWidget *widget )
     disconnect( d->m_widget->model(), SIGNAL(trackedPlacemarkChanged(const GeoDataPlacemark*)),
              this, SLOT(trackPlacemark()) );
 
-    //connect CurrentLoctaion signals
+    //connect CurrentLocation signals
     connect( d->m_widget->model()->positionTracking(),
              SIGNAL(gpsLocation(GeoDataCoordinates,qreal)),
              this, SLOT(receiveGpsCoordinates(GeoDataCoordinates,qreal)) );
@@ -216,7 +216,7 @@ void CurrentLocationWidgetPrivate::adjustPositionTrackingStatus( PositionProvide
             break;
     }
 
-    html += "</p></body></html>";
+    html += QLatin1String("</p></body></html>");
     m_currentLocationUi.locationLabel->setEnabled( true );
     m_currentLocationUi.locationLabel->setText( html );
 }
@@ -259,15 +259,15 @@ void CurrentLocationWidgetPrivate::receiveGpsCoordinates( const GeoDataCoordinat
     qreal altitude = 0.0;
     qreal length = m_widget->model()->positionTracking()->length( m_widget->model()->planetRadius() );
 
-    QString html = "<html><body>";
-    html += "<table cellspacing=\"2\" cellpadding=\"2\">";
-    html += "<tr><td>Longitude</td><td><a href=\"http://edu.kde.org/marble\">%1</a></td></tr>";
-    html += "<tr><td>Latitude</td><td><a href=\"http://edu.kde.org/marble\">%2</a></td></tr>";
-    html += "<tr><td>Altitude</td><td>%3</td></tr>";
-    html += "<tr><td>Speed</td><td>%4</td></tr>";
-    html += "<tr><td>Distance</td><td>%5</td></tr>";
-    html += "</table>";
-    html += "</body></html>";
+    QString html = QLatin1String("<html><body>"
+        "<table cellspacing=\"2\" cellpadding=\"2\">"
+        "<tr><td>Longitude</td><td><a href=\"http://edu.kde.org/marble\">%1</a></td></tr>"
+        "<tr><td>Latitude</td><td><a href=\"http://edu.kde.org/marble\">%2</a></td></tr>"
+        "<tr><td>Altitude</td><td>%3</td></tr>"
+        "<tr><td>Speed</td><td>%4</td></tr>"
+        "<tr><td>Distance</td><td>%5</td></tr>"
+        "</table>"
+        "</body></html>");
 
     switch ( MarbleGlobal::getInstance()->locale()->measurementSystem() ) {
     case MarbleLocale::MetricSystem:
@@ -307,8 +307,8 @@ void CurrentLocationWidgetPrivate::receiveGpsCoordinates( const GeoDataCoordinat
     const QString altitudeString = QString( "%1 %2" ).arg( altitude, 0, 'f', 1, QChar(' ') ).arg( altitudeUnitString );
     const QString distanceString = QString( "%1 %2" ).arg( length, 0, 'f', 1, QChar(' ') ).arg( distanceUnitString );
 
-    html = html.arg( position.lonToString() ).arg( position.latToString() );
-    html = html.arg( altitudeString ).arg( speedString + ' ' + unitString );
+    html = html.arg( position.lonToString(), position.latToString() );
+    html = html.arg(altitudeString, speedString + QLatin1Char(' ') + unitString);
     html = html.arg( distanceString );
     m_currentLocationUi.locationLabel->setText( html );
     m_currentLocationUi.showTrackCheckBox->setEnabled( true );
@@ -318,7 +318,7 @@ void CurrentLocationWidgetPrivate::receiveGpsCoordinates( const GeoDataCoordinat
 
 void CurrentLocationWidgetPrivate::changePositionProvider( const QString &provider )
 {
-    foreach( const PositionProviderPlugin* plugin, m_positionProviderPlugins ) {
+    for( const PositionProviderPlugin* plugin: m_positionProviderPlugins ) {
         if ( plugin->guiString() == provider ) {
             m_currentLocationUi.locationLabel->setEnabled( true );
             PositionProviderPlugin* instance = plugin->newInstance();
@@ -373,13 +373,13 @@ void CurrentLocationWidgetPrivate::saveTrack()
 {
     QString suggested = m_lastSavePath;
     QString fileName = QFileDialog::getSaveFileName(m_widget, QObject::tr("Save Track"), // krazy:exclude=qclasses
-                                                    suggested.append('/' + QDateTime::currentDateTime().toString("yyyy-MM-dd_hhmmss") + ".kml"),
+                                                    suggested.append(QLatin1Char('/') + QDateTime::currentDateTime().toString("yyyy-MM-dd_hhmmss") + QLatin1String(".kml")),
                             QObject::tr("KML File (*.kml)"));
     if ( fileName.isEmpty() ) {
         return;
     }
     if ( !fileName.endsWith(QLatin1String( ".kml" ), Qt::CaseInsensitive) ) {
-        fileName.append( ".kml" );
+        fileName += QLatin1String(".kml");
     }
     QFileInfo file( fileName );
     m_lastSavePath = file.absolutePath();
@@ -457,4 +457,4 @@ void CurrentLocationWidget::setLastSavePath( const QString &path )
 
 }
 
-#include "CurrentLocationWidget.moc"
+#include "moc_CurrentLocationWidget.cpp"

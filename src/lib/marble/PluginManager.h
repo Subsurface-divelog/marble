@@ -22,7 +22,6 @@ namespace Marble
 
 class RenderPlugin;
 class PositionProviderPlugin;
-class AbstractFloatItem;
 class PluginManagerPrivate;
 class SearchRunnerPlugin;
 class ReverseGeocodingRunnerPlugin;
@@ -49,7 +48,7 @@ class MARBLE_EXPORT PluginManager : public QObject
  public:
     explicit PluginManager( QObject* parent = 0 );
 
-    ~PluginManager();
+    ~PluginManager() override;
 
     /**
      * @brief Returns all available RenderPlugins.
@@ -135,6 +134,22 @@ class MARBLE_EXPORT PluginManager : public QObject
      */
     void addParseRunnerPlugin( const ParseRunnerPlugin *plugin );
 
+    /**
+     * @brief blacklistPlugin Prevent that a plugin is loaded from the given filename
+     * @param filename The name of the file (excluding prefix and file extension) to blacklist. E.g.
+     * to ignore "libWikipedia.so" on Linux and "Wikipedia.dll" on Windows, pass "Wikipedia"
+     */
+    static void blacklistPlugin(const QString &filename);
+
+    /**
+     * @brief whitelistPlugin Add a plugin to the whitelist of plugins. If the whitelist is not
+     * empty, only whitelisted plugins are loaded. If a plugin is both whitelisted and blacklisted,
+     * it will not be loaded
+     * @param filename The name of the file (excluding prefix and file extension) to whitelist. E.g.
+     * to ignore "libWikipedia.so" on Linux and "Wikipedia.dll" on Windows, pass "Wikipedia"
+     */
+    static void whitelistPlugin(const QString &filename);
+
 Q_SIGNALS:
     void renderPluginsChanged();
 
@@ -150,6 +165,10 @@ Q_SIGNALS:
 
  private:
     Q_DISABLE_COPY( PluginManager )
+
+#ifdef Q_OS_ANDROID
+    void installPluginsFromAssets() const;
+#endif
 
     PluginManagerPrivate  * const d;
 };
