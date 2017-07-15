@@ -22,13 +22,10 @@
 #ifndef MARBLE_GEOSCENEHEAD_H
 #define MARBLE_GEOSCENEHEAD_H
 
+#include <QString>
 #include "GeoDocument.h"
 
 #include <geodata_export.h>
-
-#include <QtGlobal>
-
-class QString;
 
 namespace Marble
 {
@@ -46,9 +43,9 @@ class GEODATA_EXPORT GeoSceneHead : public GeoNode
 {
  public:
     GeoSceneHead();
-    ~GeoSceneHead() override;
+    ~GeoSceneHead();
     
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     QString name() const;
     void setName( const QString& name );

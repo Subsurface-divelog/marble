@@ -12,6 +12,9 @@
 #ifndef MARBLE_GEODATAPOLYSTYLE_H
 #define MARBLE_GEODATAPOLYSTYLE_H
 
+
+#include <QFont>
+
 #include "GeoDataColorStyle.h"
 
 #include "geodata_export.h"
@@ -40,7 +43,7 @@ class GEODATA_EXPORT GeoDataPolyStyle : public GeoDataColorStyle
      */
     explicit GeoDataPolyStyle( const QColor &color );
 
-    ~GeoDataPolyStyle() override;
+    ~GeoDataPolyStyle();
     
     /**
     * @brief assignment operator
@@ -51,13 +54,13 @@ class GEODATA_EXPORT GeoDataPolyStyle : public GeoDataColorStyle
     bool operator!=( const GeoDataPolyStyle &other ) const;
 
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
      * @brief Set whether to fill the polygon
      * @param  fill  
      */
-    void setFill(bool fill);
+    void setFill( const bool &fill );
     /**
      * @brief Return true if polygons get filled
      * @return whether to fill
@@ -68,7 +71,7 @@ class GEODATA_EXPORT GeoDataPolyStyle : public GeoDataColorStyle
      * @brief Set whether to draw the outline
      * @param  outline  
      */
-    void setOutline(bool outline);
+    void setOutline( const bool &outline );
     /**
      * @brief Return true if outlines of polygons get drawn
      * @return whether outline is drawn
@@ -98,22 +101,16 @@ class GEODATA_EXPORT GeoDataPolyStyle : public GeoDataColorStyle
      */
     quint8 colorIndex() const;
 
-    void setTexturePath( const QString &path );
-
-    QString texturePath() const;
-
-    QImage textureImage() const;
-
     /**
      * @brief  Serialize the style to a stream.
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /**
      * @brief  Unserialize the style from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
   private:
     GeoDataPolyStylePrivate * const d;

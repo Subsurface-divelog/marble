@@ -19,6 +19,7 @@
 #include <QSettings>
 #include <QUrl>
 #include <QCloseEvent>
+#include <QTimer>
 #include <QVariant>
 #include <QVector>
 #include <QAction>
@@ -36,7 +37,11 @@
 #include <QPrintDialog>
 #include <QPrinter>
 #include <QDialogButtonBox>
+#include <QHBoxLayout>
+#include <QScrollArea>
 #include <QClipboard>
+#include <QShortcut>
+#include <QDockWidget>
 #include <QNetworkProxy>
 
 #include "EditBookmarkDialog.h"
@@ -51,6 +56,7 @@
 #include "MarbleLocale.h"
 #include "DownloadRegionDialog.h"
 #include "ViewportParams.h"
+#include "AbstractDataPlugin.h"
 #include "AbstractFloatItem.h"
 #include "MarbleModel.h"
 #include "MarbleClock.h"
@@ -59,7 +65,6 @@
 #include "NewBookmarkFolderDialog.h"
 #include "GeoSceneDocument.h"
 #include "GeoSceneHead.h"
-#include "GeoDataLookAt.h"
 #include "GeoDataCoordinates.h"
 #include "GeoDataDocument.h"
 #include "GeoDataFolder.h"
@@ -75,6 +80,7 @@
 #include "PluginManager.h"
 #include "MapThemeDownloadDialog.h"
 #include "MapWizard.h"
+#include "GoToDialog.h"
 #include "MarbleWidgetInputHandler.h"
 #include "Planet.h"
 #include "cloudsync/CloudSyncManager.h"
@@ -82,7 +88,14 @@
 #include "cloudsync/RouteSyncManager.h"
 #include "MovieCaptureDialog.h"
 #include "DataMigration.h"
-#include "TileCoordsPyramid.h"
+
+namespace
+{
+    const char* POSITION_STRING = "Position:";
+    const char* DISTANCE_STRING = "Altitude:";
+    const char* ZOOM_STRING = "Zoom:";
+    const char* DATETIME_STRING = "Time:";
+}
 
 using namespace Marble;
 /* TRANSLATOR Marble::MainWindow */
@@ -142,7 +155,6 @@ MainWindow::MainWindow(const QString& marbleDataPath, const QVariantMap& cmdLine
         m_aboutQtAction( 0 ),
         m_lockFloatItemsAction( 0 ),
         m_handbookAction( 0 ),
-        m_forumAction( 0 ),
 
         // Status Bar
         m_positionLabel( 0 ),
@@ -151,10 +163,6 @@ MainWindow::MainWindow(const QString& marbleDataPath, const QVariantMap& cmdLine
         m_clockLabel( 0 ),
         m_downloadProgressBar( 0 ),
         m_toggleTileLevelAction( 0 ),
-        m_angleDisplayUnitActionGroup( 0 ),
-        m_dmsDegreeAction( 0 ),
-        m_decimalDegreeAction( 0 ),
-        m_utmAction( 0 ),
 
         //Bookmark Menu
         m_addBookmarkAction( 0 ),
@@ -169,13 +177,14 @@ MainWindow::MainWindow(const QString& marbleDataPath, const QVariantMap& cmdLine
         MarbleDirs::setMarbleDataPath( selectedPath );
 
 #ifdef Q_OS_WIN
-	QPointer<DataMigration> migration = new DataMigration(this);
+	DataMigration* migration = new DataMigration(this);
 	migration->exec();
 #endif
 
     m_controlView = new ControlView( this );
 
-    setWindowIcon(QIcon(QStringLiteral(":/icons/marble.png")));
+    setWindowTitle( tr("Marble - Virtual Globe") );
+    setWindowIcon( QIcon(":/icons/marble.png") );
     setCentralWidget( m_controlView );
 
     // Initializing config dialog
@@ -204,14 +213,13 @@ MainWindow::MainWindow(const QString& marbleDataPath, const QVariantMap& cmdLine
     connect( m_controlView->marbleWidget(), SIGNAL(themeChanged(QString)),
              this, SLOT(updateMapEditButtonVisibility(QString)) );
     connect(m_controlView->marbleModel(), SIGNAL(themeChanged(QString)),
-            this, SLOT(updateWindowTitle()));
+            this, SLOT(updateApplicationTitle(QString)));
     connect( m_controlView, SIGNAL(showMapWizard()), this, SLOT(showMapWizard()) );
     connect( m_controlView, SIGNAL(mapThemeDeleted()), this, SLOT(fallBackToDefaultTheme()) );
 
-    updateWindowTitle();
     setUpdatesEnabled( true );
 
-    m_position =  QCoreApplication::translate( "Marble", NOT_AVAILABLE );
+    m_position = tr( NOT_AVAILABLE );
     m_distance = marbleWidget()->distanceString();
     m_zoom = QString::number( marbleWidget()->tileZoomLevel() );
 
@@ -244,7 +252,7 @@ void MainWindow::initObject(const QVariantMap& cmdLineSettings)
     setupStatusBar();
     readSettings(cmdLineSettings);
 
-    for ( const QString &path: m_commandlineFilePaths ) {
+    foreach ( const QString &path, m_commandlineFilePaths ) {
         m_controlView->marbleModel()->addGeoDataFile( path );
     }
 
@@ -257,16 +265,16 @@ void MainWindow::initObject(const QVariantMap& cmdLineSettings)
 
 void MainWindow::createActions()
  {
-     m_openAction = new QAction(QIcon(QStringLiteral(":/icons/document-open.png")), tr("&Open..."), this);
+     m_openAction = new QAction( QIcon(":/icons/document-open.png"), tr( "&Open..."), this );
      m_openAction->setShortcut( tr( "Ctrl+O" ) );
      m_openAction->setStatusTip( tr( "Open a file for viewing on Marble"));
      connect( m_openAction, SIGNAL(triggered()),
               this, SLOT(openFile()) );
 
-     m_downloadAction = new QAction(QIcon(QStringLiteral(":/icons/get-hot-new-stuff.png")), tr("&Download Maps..."), this);
+     m_downloadAction = new QAction( QIcon(":/icons/get-hot-new-stuff.png"), tr("&Download Maps..."), this);
      connect(m_downloadAction, SIGNAL(triggered()), this, SLOT(openMapDialog()));
 
-     m_exportMapAction = new QAction(QIcon(QStringLiteral(":/icons/document-save-as.png")), tr("&Export Map..."), this);
+     m_exportMapAction = new QAction( QIcon(":/icons/document-save-as.png"), tr("&Export Map..."), this);
      m_exportMapAction->setShortcut(tr("Ctrl+S"));
      m_exportMapAction->setStatusTip(tr("Save a screenshot of the map"));
      connect(m_exportMapAction, SIGNAL(triggered()), this, SLOT(exportMapScreenShot()));
@@ -276,26 +284,26 @@ void MainWindow::createActions()
      m_downloadRegionAction->setStatusTip( tr( "Download a map region in different zoom levels for offline usage" ) );
      connect( m_downloadRegionAction, SIGNAL(triggered()), SLOT(showDownloadRegionDialog()) );
 
-     m_printAction = new QAction(QIcon(QStringLiteral(":/icons/document-print.png")), tr("&Print..."), this);
+     m_printAction = new QAction( QIcon(":/icons/document-print.png"), tr("&Print..."), this);
      m_printAction->setShortcut(tr("Ctrl+P"));
      m_printAction->setStatusTip(tr("Print a screenshot of the map"));
      connect(m_printAction, SIGNAL(triggered()), this, SLOT(printMapScreenShot()));
 
-     m_printPreviewAction = new QAction(QIcon(QStringLiteral(":/icons/document-print-preview.png")), tr("Print Previe&w ..."), this);
+     m_printPreviewAction = new QAction( QIcon(":/icons/document-print-preview.png"), tr("Print Previe&w ..."), this);
      m_printPreviewAction->setStatusTip(tr("Print a screenshot of the map"));
      connect(m_printPreviewAction, SIGNAL(triggered()), m_controlView, SLOT(printPreview()));
 
-     m_quitAction = new QAction(QIcon(QStringLiteral(":/icons/application-exit.png")), tr("&Quit"), this);
+     m_quitAction = new QAction( QIcon(":/icons/application-exit.png"), tr("&Quit"), this);
      m_quitAction->setShortcut(tr("Ctrl+Q"));
      m_quitAction->setStatusTip(tr("Quit the Application"));
      connect(m_quitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-     m_copyMapAction = new QAction(QIcon(QStringLiteral(":/icons/edit-copy.png")), tr("&Copy Map"), this);
+     m_copyMapAction = new QAction( QIcon(":/icons/edit-copy.png"), tr("&Copy Map"), this);
      m_copyMapAction->setShortcut(tr("Ctrl+C"));
      m_copyMapAction->setStatusTip(tr("Copy a screenshot of the map"));
      connect(m_copyMapAction, SIGNAL(triggered()), this, SLOT(copyMap()));
 
-     m_osmEditAction = new QAction(QIcon(QStringLiteral(":/icons/edit-map.png")), tr("&Edit Map"), this );
+     m_osmEditAction = new QAction( QIcon(":/icons/edit-map.png"), tr( "&Edit Map" ), this );
      m_osmEditAction->setShortcut(tr( "Ctrl+E" ) );
      m_osmEditAction->setStatusTip(tr( "Edit the current map region in an external editor" ) );
      updateMapEditButtonVisibility( m_controlView->marbleWidget()->mapThemeId() );
@@ -304,26 +312,26 @@ void MainWindow::createActions()
      m_recordMovieAction = new QAction(tr("&Record Movie"), this);
      m_recordMovieAction->setStatusTip(tr("Records a movie of the globe"));
      m_recordMovieAction->setShortcut(QKeySequence("Ctrl+Shift+R"));
-     m_recordMovieAction->setIcon(QIcon(QStringLiteral(":/icons/animator.png")));
+     m_recordMovieAction->setIcon(QIcon(":/icons/animator.png"));
      connect(m_recordMovieAction, SIGNAL(triggered()),
              this, SLOT(showMovieCaptureDialog()));
 
-     m_stopRecordingAction = new QAction( tr("&Stop Recording"), this );
+     m_stopRecordingAction = new QAction( tr("&Stop recording"), this );
      m_stopRecordingAction->setStatusTip( tr("Stop recording a movie of the globe") );
      m_stopRecordingAction->setShortcut(QKeySequence( "Ctrl+Shift+S" ));
      m_stopRecordingAction->setEnabled( false );
      connect( m_stopRecordingAction, SIGNAL(triggered()),
              this, SLOT(stopRecording()) );
 
-     m_configDialogAction = new QAction(QIcon(QStringLiteral(":/icons/settings-configure.png")), tr("&Configure Marble"), this);
+     m_configDialogAction = new QAction( QIcon(":/icons/settings-configure.png"),tr("&Configure Marble"), this);
      m_configDialogAction->setStatusTip(tr("Show the configuration dialog"));
      connect(m_configDialogAction, SIGNAL(triggered()), this, SLOT(editSettings()));
 
-     m_copyCoordinatesAction = new QAction(QIcon(QStringLiteral(":/icons/copy-coordinates.png")), tr("C&opy Coordinates"), this);
+     m_copyCoordinatesAction = new QAction( QIcon(":/icons/copy-coordinates.png"), tr("C&opy Coordinates"), this);
      m_copyCoordinatesAction->setStatusTip(tr("Copy the center coordinates as text"));
      connect(m_copyCoordinatesAction, SIGNAL(triggered()), this, SLOT(copyCoordinates()));
 
-     m_fullScreenAction = new QAction(QIcon(QStringLiteral(":/icons/view-fullscreen.png")), tr("&Full Screen Mode"), this);
+     m_fullScreenAction = new QAction( QIcon(":/icons/view-fullscreen.png"), tr("&Full Screen Mode"), this);
      m_fullScreenAction->setShortcut(tr("Ctrl+Shift+F"));
      m_fullScreenAction->setCheckable( true );
      m_fullScreenAction->setStatusTip(tr("Full Screen Mode"));
@@ -335,21 +343,21 @@ void MainWindow::createActions()
      connect(m_statusBarAction, SIGNAL(triggered(bool)), this, SLOT(showStatusBar(bool)));
 
 
-     m_lockFloatItemsAction = new QAction(QIcon(QStringLiteral(":/icons/unlock.png")), tr("Lock Position"), this);
+     m_lockFloatItemsAction = new QAction( QIcon(":/icons/unlock.png"), tr("Lock Position"),this);
      m_lockFloatItemsAction->setCheckable( true );
      m_lockFloatItemsAction->setStatusTip(tr("Lock Position of Floating Items"));
      connect(m_lockFloatItemsAction, SIGNAL(triggered(bool)), this, SLOT(lockPosition(bool)));
 
-     m_showCloudsAction = new QAction(QIcon(QStringLiteral(":/icons/clouds.png")), tr("&Clouds"), this);
+     m_showCloudsAction = new QAction( QIcon(":/icons/clouds.png"), tr("&Clouds"), this);
      m_showCloudsAction->setCheckable( true );
      m_showCloudsAction->setStatusTip(tr("Show Real Time Cloud Cover"));
      connect(m_showCloudsAction, SIGNAL(triggered(bool)), this, SLOT(showClouds(bool)));
 
-     m_workOfflineAction = new QAction(QIcon(QStringLiteral(":/icons/user-offline.png")), tr("Work Off&line"), this);
+     m_workOfflineAction = new QAction( QIcon(":/icons/user-offline.png"), tr("Work Off&line"), this);
      m_workOfflineAction->setCheckable( true );
      connect(m_workOfflineAction, SIGNAL(triggered(bool)), this, SLOT(workOffline(bool)));
 
-     m_controlTimeAction = new QAction(QIcon(QStringLiteral(":/icons/clock.png")), tr("&Time Control..."), this );
+     m_controlTimeAction = new QAction( QIcon(":/icons/clock.png"), tr( "&Time Control..." ), this );
      m_controlTimeAction->setStatusTip( tr( "Configure Time Control " ) );
      connect( m_controlTimeAction, SIGNAL(triggered()), this, SLOT(controlTime()) );
 
@@ -357,26 +365,22 @@ void MainWindow::createActions()
      m_controlSunAction->setStatusTip( tr( "Configure Sun Control" ) );
      connect( m_controlSunAction, SIGNAL(triggered()), this, SLOT(controlSun()) );
 
-     m_reloadAction = new QAction(QIcon(QStringLiteral(":/icons/view-refresh.png")), tr("&Redisplay"), this);
+     m_reloadAction = new QAction( QIcon(":/icons/view-refresh.png"), tr("&Redisplay"), this);
      m_reloadAction->setShortcut(tr("F5"));
      m_reloadAction->setStatusTip(tr("Reload Current Map"));
      connect(m_reloadAction, SIGNAL(triggered()), this, SLOT(reload()));
 
-     m_handbookAction = new QAction(QIcon(QStringLiteral(":/icons/help-contents.png")), tr("Marble Virtual Globe &Handbook"), this);
+     m_handbookAction = new QAction( QIcon(":/icons/help-contents.png"), tr("Marble Virtual Globe &Handbook"), this);
      m_handbookAction->setShortcut(tr("F1"));
      m_handbookAction->setStatusTip(tr("Show the Handbook for Marble Virtual Globe"));
      connect(m_handbookAction, SIGNAL(triggered()), this, SLOT(handbook()));
 
-     m_whatsThisAction = new QAction(QIcon(QStringLiteral(":/icons/help-whatsthis.png")), tr("What's &This"), this);
+     m_whatsThisAction = new QAction( QIcon(":/icons/help-whatsthis.png"), tr("What's &This"), this);
      m_whatsThisAction->setShortcut(tr("Shift+F1"));
      m_whatsThisAction->setStatusTip(tr("Show a detailed explanation of the action."));
      connect(m_whatsThisAction, SIGNAL(triggered()), this, SLOT(enterWhatsThis()));
 
-     m_forumAction = new QAction( tr("&Community Forum"), this);
-     m_forumAction->setStatusTip(tr("Visit Marble's Community Forum"));
-     connect(m_forumAction, SIGNAL(triggered()), this, SLOT(openForum()));
-
-     m_aboutMarbleAction = new QAction(QIcon(QStringLiteral(":/icons/marble.png")), tr("&About Marble Virtual Globe"), this);
+     m_aboutMarbleAction = new QAction( QIcon(":/icons/marble.png"), tr("&About Marble Virtual Globe"), this);
      m_aboutMarbleAction->setStatusTip(tr("Show the application's About Box"));
      connect(m_aboutMarbleAction, SIGNAL(triggered()), this, SLOT(aboutMarble()));
 
@@ -385,12 +389,12 @@ void MainWindow::createActions()
      connect(m_aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
 
      //Bookmark Actions
-     m_addBookmarkAction = new QAction(QIcon(QStringLiteral(":/icons/bookmark-new.png")), tr("&Add Bookmark"), this);
+     m_addBookmarkAction = new QAction( QIcon(":/icons/bookmark-new.png"), tr("&Add Bookmark"),this);
      m_addBookmarkAction->setShortcut(tr("Ctrl+B"));
      m_addBookmarkAction->setStatusTip(tr("Add Bookmark"));
      connect( m_addBookmarkAction, SIGNAL(triggered()), this, SLOT(openEditBookmarkDialog()) );
 
-     m_setHomeAction = new QAction(QIcon(QStringLiteral(":/icons/go-home.png")), tr("&Set Home Location"), this);
+     m_setHomeAction = new QAction( QIcon(":/icons/go-home.png"), tr( "&Set Home Location" ),this);
      m_setHomeAction->setStatusTip( tr( "&Set Home Location" ) );
      connect( m_setHomeAction, SIGNAL(triggered()), this, SLOT(setHome()) );
 
@@ -399,12 +403,12 @@ void MainWindow::createActions()
      m_toggleBookmarkDisplayAction->setCheckable( true );
      connect( m_toggleBookmarkDisplayAction, SIGNAL(triggered(bool)), this, SLOT(showBookmarks(bool)) );
 
-     m_manageBookmarksAction = new QAction(QIcon(QStringLiteral(":/icons/bookmarks-organize.png")), tr("&Manage Bookmarks"), this);
+     m_manageBookmarksAction = new QAction( QIcon( ":/icons/bookmarks-organize.png" ), tr( "&Manage Bookmarks" ), this);
      m_manageBookmarksAction->setStatusTip( tr( "Manage Bookmarks" ) );
      connect( m_manageBookmarksAction, SIGNAL(triggered()), this, SLOT(manageBookmarks()) );
      
      // Map Wizard action
-     m_mapWizardAction = new QAction(QIcon(QStringLiteral(":/icons/create-new-map.png")), tr("&Create a New Map..."), this);
+     m_mapWizardAction = new QAction( QIcon( ":/icons/create-new-map.png" ), tr("&Create a New Map..."), this );
      m_mapWizardAction->setStatusTip( tr( "A wizard guides you through the creation of your own map theme." ) );
      connect( m_mapWizardAction, SIGNAL(triggered()), SLOT(showMapWizard()) );
 
@@ -415,29 +419,73 @@ void MainWindow::createActions()
      connect( m_toggleTileLevelAction, SIGNAL(triggered(bool)),
               this, SLOT(showZoomLevel(bool)) );
 
-     m_angleDisplayUnitActionGroup = new QActionGroup( statusBar() );
-
-     m_dmsDegreeAction = new QAction( tr( "Degree (DMS)" ), statusBar() );
-     m_dmsDegreeAction->setCheckable( true );
-     m_dmsDegreeAction->setData( (int)DMSDegree );
-     m_angleDisplayUnitActionGroup->addAction(m_dmsDegreeAction);
-
-     m_decimalDegreeAction = new QAction( tr( "Degree (Decimal)" ), statusBar() );
-     m_decimalDegreeAction->setCheckable( true );
-     m_decimalDegreeAction->setData( (int)DecimalDegree );
-     m_angleDisplayUnitActionGroup->addAction(m_decimalDegreeAction);
-
-     m_utmAction = new QAction( tr( "Universal Transverse Mercator (UTM)" ), statusBar() );
-     m_utmAction->setCheckable( true );
-     m_utmAction->setData( (int)UTM );
-     m_angleDisplayUnitActionGroup->addAction(m_utmAction);
-
-     connect( m_angleDisplayUnitActionGroup, SIGNAL(triggered(QAction*)),
-              this, SLOT(changeAngleDisplayUnit(QAction*)) );
-
      // View size actions
-     m_viewSizeActsGroup = ControlView::createViewSizeActionGroup( this );
+     m_viewSizeActsGroup = new QActionGroup( this );
+
+     QAction *actDefault = new QAction( tr( "Default (Resizable)" ), this );
+     actDefault->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actDefault);
+
+     QAction *actSeparator = new QAction(this);
+     actSeparator->setSeparator(true);
+     m_viewSizeActsGroup->addAction(actSeparator);
+
+     QAction *actNtsc = new QAction( tr( "NTSC (720x486)" ), this );
+     actNtsc->setData( QSize( 720, 486 ) );
+     actNtsc->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actNtsc);
+
+     QAction *actPal = new QAction( tr( "PAL (720x576)" ), this );
+     actPal->setData( QSize( 720, 576 ) );
+     actPal->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actPal);
+
+     QAction *actNtsc16x9 = new QAction( tr( "NTSC 16:9 (864x486)" ), this );
+     actNtsc16x9->setData( QSize( 864, 486 ) );
+     actNtsc16x9->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actNtsc16x9);
+
+     QAction *actPal16x9 = new QAction( tr( "PAL 16:9 (1024x576)" ), this );
+     actPal16x9->setData( QSize( 1024, 576 ) );
+     actPal16x9->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actPal16x9);
+
+     QAction *actDvd = new QAction( tr( "DVD (852x480p)" ), this );
+     actDvd->setData( QSize( 852, 480 ) );
+     actDvd->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actDvd);
+
+     QAction *actHd = new QAction( tr( "HD (1280x720p)" ), this );
+     actHd->setData( QSize( 1280, 720 ) );
+     actHd->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actHd);
+
+     QAction *actFullhd = new QAction( tr( "Full HD (1920x1080p)" ), this );
+     actFullhd->setData( QSize( 1920, 1080 ) );
+     actFullhd->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actFullhd);
+
+     QAction *actDc = new QAction( tr( "Digital Cinema (2048x1536)" ), this );
+     actDc->setData( QSize( 2048, 1536 ) );
+     actDc->setCheckable(true);
+     m_viewSizeActsGroup->addAction(actDc);
+
+     /**
+      * FIXME: Needs testing, worked with errors.
+     QAction *act4kuhd = new QAction( tr( "4K UHD (3840x2160)" ), this );
+     act4kuhd->setData( QSize( 3840, 2160 ) );
+     act4kuhd->setCheckable(true);
+     m_viewSizeActsGroup->addAction(act4kuhd);
+
+     QAction *act4k = new QAction( tr( "4K (4096x3072)" ), this );
+     act4k->setData( QSize( 4096, 3072 ) );
+     act4k->setCheckable(true);
+     m_viewSizeActsGroup->addAction(act4k);
+     */
+
      connect( m_viewSizeActsGroup, SIGNAL(triggered(QAction*)), this, SLOT(changeViewSize(QAction*)) );
+
+     actDefault->setChecked( true );
 }
 
 void MainWindow::createMenus( const QList<QAction*> &panelActions )
@@ -464,20 +512,20 @@ void MainWindow::createMenus( const QList<QAction*> &panelActions )
         m_fileMenu->addAction(m_stopRecordingAction);
 
         m_viewMenu = menuBar()->addMenu(tr("&View"));
-        m_infoBoxesMenu = new QMenu(tr("&Info Boxes"), this);
-        m_onlineServicesMenu = new QMenu(tr("&Online Services"), this);
+        m_infoBoxesMenu = new QMenu( "&Info Boxes" );
+        m_onlineServicesMenu = new QMenu( "&Online Services" );
         createPluginsMenus();
 
         m_bookmarkMenu = menuBar()->addMenu(tr("&Bookmarks"));
         createBookmarkMenu();
         connect( m_bookmarkMenu, SIGNAL(aboutToShow()), this, SLOT(createBookmarkMenu()) );
 
-        m_panelMenu = new QMenu(tr("&Panels"), this);
-        for( QAction* action: panelActions ) {
+        m_panelMenu = new QMenu( "&Panels" );
+        foreach( QAction* action, panelActions ) {
             m_panelMenu->addAction( action );
         }
 
-        m_viewSizeMenu = new QMenu(tr("&View Size"), this);
+        m_viewSizeMenu = new QMenu( "&View Size" );
         m_viewSizeMenu->addActions( m_viewSizeActsGroup->actions() );
 
         m_settingsMenu = menuBar()->addMenu(tr("&Settings"));
@@ -491,7 +539,6 @@ void MainWindow::createMenus( const QList<QAction*> &panelActions )
 
         m_helpMenu = menuBar()->addMenu(tr("&Help"));
         m_helpMenu->addAction(m_handbookAction);
-        m_helpMenu->addAction(m_forumAction);
         m_helpMenu->addSeparator();
         m_helpMenu->addAction(m_whatsThisAction);
         m_helpMenu->addSeparator();
@@ -545,7 +592,6 @@ void MainWindow::createPluginsMenus()
             themeActions.append( (*i)->action() );
             break;
         default:
-            mDebug() << "No menu entry created for plugin with unknown render type:" << (*i)->nameId();
             break;
         }
     }
@@ -564,7 +610,7 @@ void MainWindow::createBookmarksListMenu( QMenu *bookmarksListMenu, const GeoDat
 
     QVector<GeoDataPlacemark*> bookmarks = container->placemarkList();
 
-    for ( const GeoDataPlacemark *placemark: bookmarks ) {
+    foreach ( const GeoDataPlacemark *placemark, bookmarks ) {
         QAction *bookmarkAction = new QAction( placemark->name(), this );
         QVariant var;
 
@@ -594,7 +640,7 @@ void MainWindow::createBookmarkMenu()
 
     m_bookmarkMenu->addSeparator();
 
-    m_bookmarkMenu->addAction( QIcon(QStringLiteral(":/icons/go-home.png")), tr("&Home"),
+    m_bookmarkMenu->addAction( QIcon( ":/icons/go-home.png" ), "&Home",
                                m_controlView->marbleWidget(), SLOT(goHome()) );
     createFolderList( m_bookmarkMenu, m_controlView->marbleModel()->bookmarkManager()->document() );
 }
@@ -603,12 +649,12 @@ void MainWindow::createFolderList( QMenu *bookmarksListMenu, const GeoDataContai
 {
     QVector<GeoDataFolder*> folders = container->folderList();
 
-    if ( folders.size() == 1 && folders.first()->name() == tr("Default")) {
+    if ( folders.size() == 1 ) {
         createBookmarksListMenu( bookmarksListMenu, folders.first() );
     }
     else {
-        for ( const GeoDataFolder *folder: folders ) {
-            QMenu *subMenu = bookmarksListMenu->addMenu(QIcon(QStringLiteral(":/icons/folder-bookmark.png")), folder->name());
+        foreach ( const GeoDataFolder *folder, folders ) {
+            QMenu *subMenu = bookmarksListMenu->addMenu( QIcon( ":/icons/folder-bookmark.png" ), folder->name() );
             createFolderList( subMenu, folder );
             connect( subMenu, SIGNAL(triggered(QAction*)),
                                       this, SLOT(lookAtBookmark(QAction*)) );
@@ -640,6 +686,11 @@ void MainWindow::manageBookmarks()
 {
     MarbleModel * const model = m_controlView->marbleModel();
     QPointer<BookmarkManagerDialog> dialog = new BookmarkManagerDialog( model, this );
+#ifdef Q_WS_MAEMO_5
+    dialog->setButtonBoxVisible( false );
+    dialog->setAttribute( Qt::WA_Maemo5StackedWindow );
+    dialog->setWindowFlags( Qt::Window );
+#endif // Q_WS_MAEMO_5
     dialog->exec();
     delete dialog;
 }
@@ -692,12 +743,12 @@ void MainWindow::createPluginMenus()
 
         // menus
         const QList<QActionGroup*> *tmp_actionGroups = (*i)->actionGroups();
-        if ((*i)->enabled() && tmp_actionGroups && (*i)->nameId() != QLatin1String("annotation")) {
-           for( QActionGroup *ag: *tmp_actionGroups ) {
+        if( (*i)->enabled() && tmp_actionGroups && (*i)->nameId() != "annotation" ) {
+           foreach( QActionGroup *ag, *tmp_actionGroups ) {
                if( !ag->actions().isEmpty() ) {
                    m_pluginMenus.append( m_viewMenu->addSeparator() );
                }
-               for( QAction *action: ag->actions() ) {
+               foreach( QAction *action, ag->actions() ) {
                    m_viewMenu->addAction( action );
                    m_pluginMenus.append( action );
                }
@@ -708,9 +759,9 @@ void MainWindow::createPluginMenus()
         const QList<QActionGroup*> *tmp_toolbarActionGroups = (*i)->toolbarActionGroups();
         if ( (*i)->enabled() && tmp_toolbarActionGroups ) {
             QToolBar* toolbar = new QToolBar(this);
-            toolbar->setObjectName(QLatin1String("plugin-toolbar-") + (*i)->nameId());
+            toolbar->setObjectName( QString( "plugin-toolbar-%1" ).arg( (*i)->nameId() ) );
 
-            for( QActionGroup* ag: *tmp_toolbarActionGroups ) {
+            foreach( QActionGroup* ag, *tmp_toolbarActionGroups ) {
                 toolbar->addActions( ag->actions() );
                 if ( tmp_toolbarActionGroups->last() != ag ) {
                     toolbar->addSeparator();
@@ -898,23 +949,13 @@ void MainWindow::handbook()
 {
     const QString code = MarbleLocale::languageCode();
 
-    QUrl handbookLocation(QLatin1String("http://docs.kde.org/stable/") + code + QLatin1String("/kdeedu/marble/index.html"));
+    QUrl handbookLocation( "http://docs.kde.org/stable/" + code + "/kdeedu/marble/index.html" );
 
-    // TODO: this logic seems broken. Should that check "code.isEmpty()" instead?
-    // and how do we konw there is a doc for the code?
     if ( handbookLocation.isEmpty() )
         handbookLocation = QUrl("http://docs.kde.org/stable/en/kdeedu/marble/index.html");
 
     if( !QDesktopServices::openUrl( handbookLocation ) )
     qDebug() << "URL not opened";
-}
-
-void MainWindow::openForum()
-{
-    QUrl forumLocation("https://forum.kde.org/viewforum.php?f=217");
-    if( !QDesktopServices::openUrl( forumLocation ) ) {
-        mDebug() << "Failed to open URL " << forumLocation.toString();
-    }
 }
 
 void MainWindow::showPosition( const QString& position )
@@ -944,28 +985,20 @@ void MainWindow::showDateTime()
 void MainWindow::updateStatusBar()
 {
     if ( m_positionLabel )
-        m_positionLabel->setText(tr("Position: %1").arg(m_position));
+        m_positionLabel->setText( QString( "%1 %2" ).
+        arg( tr( POSITION_STRING ) ).arg( m_position ) );
 
     if ( m_distanceLabel )
-        m_distanceLabel->setText(tr("Altitude: %1").arg(m_distance));
+        m_distanceLabel->setText( QString( "%1 %2" )
+        .arg( tr( DISTANCE_STRING ) ).arg( m_distance ) );
 
     if ( m_zoomLabel )
-        m_zoomLabel->setText(tr("Zoom: %1").arg(m_zoom));
+        m_zoomLabel->setText( QString( "%1 %2" )
+        .arg( tr( ZOOM_STRING ) ).arg( m_zoom ) );
 
     if ( m_clockLabel )
-        m_clockLabel->setText(tr("Time: %1").arg(m_clock));
-
-    switch ( m_configDialog->angleUnit() ) {
-    case DMSDegree:
-        m_dmsDegreeAction->setChecked( true );
-        break;
-    case DecimalDegree:
-        m_decimalDegreeAction->setChecked( true );
-        break;
-    case UTM:
-        m_utmAction->setChecked( true );
-        break;
-    }
+        m_clockLabel->setText( QString( "%1 %2" )
+        .arg( tr( DATETIME_STRING ) ).arg( m_clock ) );
 }
 
 void MainWindow::openFile()
@@ -974,18 +1007,18 @@ void MainWindow::openFile()
 
     QStringList allFileExtensions;
     QStringList filters;
-    for ( const ParseRunnerPlugin *plugin: pluginManager->parsingRunnerPlugins() ) {
-        if (plugin->nameId() == QLatin1String("Cache"))
+    foreach ( const ParseRunnerPlugin *plugin, pluginManager->parsingRunnerPlugins() ) {
+        if ( plugin->nameId() == "Cache" )
             continue;
 
         const QStringList fileExtensions = plugin->fileExtensions().replaceInStrings( QRegExp( "^" ), "*." );
-        const QString filter = plugin->fileFormatDescription() + QLatin1String(" (") + fileExtensions.join(QLatin1Char(' ')) + QLatin1Char(')');
+        const QString filter = QString( "%1 (%2)" ).arg( plugin->fileFormatDescription() ).arg( fileExtensions.join( " " ) );
         filters << filter;
         allFileExtensions << fileExtensions;
     }
 
     allFileExtensions.sort();  // sort since file extensions are visible under Windows
-    const QString allFileTypes = tr("All Supported Files") + QLatin1String(" (") + allFileExtensions.join(QLatin1Char(' ')) + QLatin1Char(')');
+    const QString allFileTypes = QString( "%1 (%2)" ).arg( tr( "All Supported Files" ) ).arg( allFileExtensions.join( " " ) );
 
     filters.sort();
     filters.prepend( allFileTypes );
@@ -998,7 +1031,7 @@ void MainWindow::openFile()
         m_lastFileOpenPath = QFileInfo( firstFile ).absolutePath();
     }
 
-    for( const QString &fileName: fileNames ) {
+    foreach( const QString &fileName, fileNames ) {
         m_controlView->marbleModel()->addGeoDataFile( fileName );
     }
 }
@@ -1009,19 +1042,12 @@ void MainWindow::setupStatusBar()
     statusBar()->setContextMenuPolicy( Qt::ActionsContextMenu );
 
     statusBar()->addAction( m_toggleTileLevelAction );
-
-    QMenu *angleDisplayUnitMenu = new QMenu(this);
-    angleDisplayUnitMenu->addActions( m_angleDisplayUnitActionGroup->actions() );
-    QAction *angleDisplayUnitMenuAction = new QAction( tr("&Angle Display Unit"), statusBar() );
-    angleDisplayUnitMenuAction->setMenu( angleDisplayUnitMenu );
-    statusBar()->addAction( angleDisplayUnitMenuAction );
-
     setupDownloadProgressBar();
 
     m_positionLabel = new QLabel( );
     m_positionLabel->setIndent( 5 );
-    // UTM syntax is used in the template string, as it is longer than the lon/lat one
-    QString templatePositionString = tr("Position: %1").arg(QLatin1String(" 00Z 000000.00 m E, 00000000.00 m N_"));
+    QString templatePositionString =
+        QString( "%1 000\xb0 00\' 00\"_, 000\xb0 00\' 00\"_" ).arg(POSITION_STRING);
     int maxPositionWidth = fontMetrics().boundingRect(templatePositionString).width()
                             + 2 * m_positionLabel->margin() + 2 * m_positionLabel->indent();
     m_positionLabel->setFixedWidth( maxPositionWidth );
@@ -1029,7 +1055,8 @@ void MainWindow::setupStatusBar()
 
     m_distanceLabel = new QLabel( );
     m_distanceLabel->setIndent( 5 );
-    QString templateDistanceString = tr("Altitude: %1").arg(QLatin1String(" 00.000,0 mu"));
+    QString templateDistanceString =
+        QString( "%1 00.000,0 mu" ).arg(DISTANCE_STRING);
     int maxDistanceWidth = fontMetrics().boundingRect(templateDistanceString).width()
                             + 2 * m_distanceLabel->margin() + 2 * m_distanceLabel->indent();
     m_distanceLabel->setFixedWidth( maxDistanceWidth );
@@ -1037,7 +1064,8 @@ void MainWindow::setupStatusBar()
 
     m_zoomLabel = new QLabel( );
     m_zoomLabel->setIndent( 5 );
-    QString templateZoomString = tr("Zoom: %1").arg(QLatin1String(" 00"));
+    QString templateZoomString =
+        QString( "%1 00" ).arg(ZOOM_STRING);
     int maxZoomWidth = fontMetrics().boundingRect(templateZoomString).width()
                             + 2 * m_zoomLabel->margin() + 2 * m_zoomLabel->indent();
     m_zoomLabel->setFixedWidth( maxZoomWidth );
@@ -1045,7 +1073,7 @@ void MainWindow::setupStatusBar()
 
     m_clockLabel = new QLabel( );
     m_clockLabel->setIndent( 5 );
-    QString templateDateTimeString = tr("Time: %1").arg(QLocale().toString(QDateTime::fromString( "01:01:1000", "dd:mm:yyyy"), QLocale::ShortFormat));
+    QString templateDateTimeString = QString( "%1 %2" ).arg( DATETIME_STRING , QLocale().toString( QDateTime::fromString ( "01:01:1000", "dd:mm:yyyy"), QLocale::ShortFormat ) );
     int maxDateTimeWidth = fontMetrics().boundingRect( templateDateTimeString ).width()
                             + 2 * m_clockLabel->margin() + 2 * m_clockLabel->indent();
     m_clockLabel->setFixedWidth( maxDateTimeWidth );
@@ -1072,7 +1100,7 @@ void MainWindow::setupDownloadProgressBar()
     HttpDownloadManager * const downloadManager =
         m_controlView->marbleModel()->downloadManager();
     Q_ASSERT( downloadManager );
-    connect( downloadManager, SIGNAL(progressChanged(int,int)), SLOT(handleProgress(int,int)) );
+    connect( downloadManager, SIGNAL(progressChanged( int, int )), SLOT(handleProgress( int, int )) );
     connect( downloadManager, SIGNAL(jobRemoved()), SLOT(removeProgressItem()) );
 }
 
@@ -1100,18 +1128,10 @@ void MainWindow::removeProgressItem(){
     m_downloadProgressBar->setUpdatesEnabled( true );
 }
 
-void MainWindow::closeEvent( QCloseEvent *event )
+void MainWindow::closeEvent(QCloseEvent *event)
 {
     writeSettings();
-
-    QCloseEvent newEvent;
-    QCoreApplication::sendEvent( m_controlView, &newEvent );
-
-    if ( newEvent.isAccepted() ) {
-        event->accept();
-    } else {
-        event->ignore();
-    }
+    event->accept();
 }
 
 QString MainWindow::readMarbleDataPath()
@@ -1264,11 +1284,11 @@ void MainWindow::readSettings(const QVariantMap& overrideSettings)
             settings.beginGroup( QString( "Profile %0" ).arg(i) );
             QString name = settings.value( "Name", tr( "Unnamed" ) ).toString();
             RoutingProfile profile( name );
-            for ( const QString& pluginName: settings.childGroups() ) {
+            foreach ( const QString& pluginName, settings.childGroups() ) {
                 settings.beginGroup( pluginName );
                 profile.pluginSettings().insert( pluginName, QHash<QString, QVariant>() );
-                for ( const QString& key: settings.childKeys() ) {
-                    if (key != QLatin1String("Enabled")) {
+                foreach ( const QString& key, settings.childKeys() ) {
+                    if ( key != "Enabled" ) {
                         profile.pluginSettings()[ pluginName ].insert( key, settings.value( key ) );
                     }
                 }
@@ -1295,7 +1315,7 @@ void MainWindow::readSettings(const QVariantMap& overrideSettings)
     QString positionProvider = settings.value( "activePositionTrackingPlugin", QString() ).toString();
     if ( !positionProvider.isEmpty() ) {
         const PluginManager* pluginManager = m_controlView->marbleModel()->pluginManager();
-        for( const PositionProviderPlugin* plugin: pluginManager->positionProviderPlugins() ) {
+        foreach( const PositionProviderPlugin* plugin, pluginManager->positionProviderPlugins() ) {
             if ( plugin->nameId() == positionProvider ) {
                 PositionProviderPlugin* instance = plugin->newInstance();
                 tracking->setPositionProviderPlugin( instance );
@@ -1401,16 +1421,16 @@ void MainWindow::writeSettings()
          settings.beginGroup( QString( "Profile %0" ).arg(i) );
          const RoutingProfile& profile = profiles.at( i );
          settings.setValue( "Name", profile.name() );
-         for ( const QString& pluginName: settings.childGroups() ) {
+         foreach ( const QString& pluginName, settings.childGroups() ) {
              settings.beginGroup( pluginName );
-             settings.remove(QString()); //remove all keys
+             settings.remove( "" ); //remove all keys
              settings.endGroup();
          }
-         for ( const QString &key: profile.pluginSettings().keys() ) {
+         foreach ( const QString &key, profile.pluginSettings().keys() ) {
              settings.beginGroup( key );
              settings.setValue( "Enabled", true );
-             for ( const QString& settingKey: profile.pluginSettings()[ key ].keys() ) {
-                 Q_ASSERT(settingKey != QLatin1String("Enabled"));
+             foreach ( const QString& settingKey, profile.pluginSettings()[ key ].keys() ) {
+                 Q_ASSERT( settingKey != "Enabled" );
                  settings.setValue( settingKey, profile.pluginSettings()[ key ][ settingKey ] );
              }
              settings.endGroup();
@@ -1562,14 +1582,7 @@ void MainWindow::printMapScreenShot()
 void MainWindow::updateMapEditButtonVisibility( const QString &mapTheme )
 {
     Q_ASSERT( m_osmEditAction );
-    QStringList osmThemes = QStringList()
-            << "earth/openstreetmap/openstreetmap.dgml"
-            << "earth/hikebikemap/hikebikemap.dgml"
-            << "earth/opencyclemap/opencyclemap.dgml"
-            << "earth/public-transport/public-transport.dgml"
-            << "earth/openseamap/openseamap.dgml"
-            << "earth/vectorosm/vectorosm.dgml";
-    m_osmEditAction->setVisible(osmThemes.contains(mapTheme));
+    m_osmEditAction->setVisible( mapTheme == "earth/openstreetmap/openstreetmap.dgml" );
 }
 
 void MainWindow::showMovieCaptureDialog()
@@ -1596,10 +1609,12 @@ void MainWindow::changeRecordingState()
     m_stopRecordingAction->setEnabled( !m_stopRecordingAction->isEnabled() );
 }
 
-void MainWindow::updateWindowTitle()
+void MainWindow::updateApplicationTitle(const QString&)
 {
     GeoSceneDocument *theme = m_controlView->marbleModel()->mapTheme();
-    setWindowTitle(theme ? theme->head()->name() : QString());
+    if (theme) {
+        setWindowTitle(tr("Marble Virtual Globe") + " - " + theme->head()->name());
+    }
 }
 
 void MainWindow::showMapWizard()
@@ -1634,11 +1649,6 @@ void MainWindow::showZoomLevel(bool show)
     m_toggleTileLevelAction->setChecked( show );
 }
 
-void MainWindow::changeAngleDisplayUnit( QAction *action )
-{
-    m_configDialog->setAngleUnit((Marble::AngleUnit)action->data().toInt());
-}
-
 void MainWindow::fallBackToDefaultTheme()
 {
     m_controlView->marbleWidget()->setMapThemeId( m_controlView->defaultMapThemeId() );
@@ -1663,4 +1673,4 @@ void MainWindow::changeViewSize( QAction* action )
     }
 }
 
-#include "moc_QtMainWindow.cpp"
+#include "QtMainWindow.moc"

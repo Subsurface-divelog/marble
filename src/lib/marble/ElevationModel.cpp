@@ -13,7 +13,7 @@
 #include "GeoSceneLayer.h"
 #include "GeoSceneMap.h"
 #include "GeoSceneDocument.h"
-#include "GeoSceneTextureTileDataset.h"
+#include "GeoSceneTextureTile.h"
 #include "HttpDownloadManager.h"
 #include "Tile.h"
 #include "TileLoader.h"
@@ -21,10 +21,8 @@
 #include "MarbleDebug.h"
 #include "MapThemeManager.h"
 #include "TileId.h"
-#include "PluginManager.h"
 
-#include <QCache>
-#include <QImage>
+#include <QLabel>
 #include <qmath.h>
 
 namespace Marble
@@ -33,36 +31,30 @@ namespace Marble
 class ElevationModelPrivate
 {
 public:
-    ElevationModelPrivate( ElevationModel *_q, HttpDownloadManager *downloadManager, PluginManager* pluginManager )
+    ElevationModelPrivate( ElevationModel *_q, HttpDownloadManager *downloadManager )
         : q( _q ),
-          m_tileLoader( downloadManager, pluginManager ),
-          m_textureLayer( 0 ),
-          m_srtmTheme(0)
+          m_tileLoader( downloadManager, 0 ),
+          m_textureLayer( 0 )
     {
         m_cache.setMaxCost( 10 ); //keep 10 tiles in memory (~17MB)
 
-        m_srtmTheme = MapThemeManager::loadMapTheme( "earth/srtm2/srtm2.dgml" );
-        if ( !m_srtmTheme ) {
+        const GeoSceneDocument *srtmTheme = MapThemeManager::loadMapTheme( "earth/srtm2/srtm2.dgml" );
+        if ( !srtmTheme ) {
             mDebug() << "Failed to load map theme earth/srtm2/srtm2.dgml. Check your installation. No elevation will be returned.";
             return;
         }
 
-        const GeoSceneHead *head = m_srtmTheme->head();
+        const GeoSceneHead *head = srtmTheme->head();
         Q_ASSERT( head );
 
-        const GeoSceneMap *map = m_srtmTheme->map();
+        const GeoSceneMap *map = srtmTheme->map();
         Q_ASSERT( map );
 
         const GeoSceneLayer *sceneLayer = map->layer( head->theme() );
         Q_ASSERT( sceneLayer );
 
-        m_textureLayer = dynamic_cast<GeoSceneTextureTileDataset*>( sceneLayer->datasets().first() );
+        m_textureLayer = dynamic_cast<GeoSceneTextureTile*>( sceneLayer->datasets().first() );
         Q_ASSERT( m_textureLayer );
-    }
-
-    ~ElevationModelPrivate()
-    {
-       delete m_srtmTheme;
     }
 
     void tileCompleted( const TileId & tileId, const QImage &image )
@@ -75,22 +67,16 @@ public:
     ElevationModel *q;
 
     TileLoader m_tileLoader;
-    const GeoSceneTextureTileDataset *m_textureLayer;
+    const GeoSceneTextureTile *m_textureLayer;
     QCache<TileId, const QImage> m_cache;
-    GeoSceneDocument *m_srtmTheme;
 };
 
-ElevationModel::ElevationModel( HttpDownloadManager *downloadManager, PluginManager* pluginManager, QObject *parent ) :
+ElevationModel::ElevationModel( HttpDownloadManager *downloadManager, QObject *parent ) :
     QObject( parent ),
-    d( new ElevationModelPrivate( this, downloadManager, pluginManager ) )
+    d( new ElevationModelPrivate( this, downloadManager ) )
 {
     connect( &d->m_tileLoader, SIGNAL(tileCompleted(TileId,QImage)),
              this, SLOT(tileCompleted(TileId,QImage)) );
-}
-
-ElevationModel::~ElevationModel()
-{
-    delete d;
 }
 
 
@@ -146,12 +132,13 @@ qreal ElevationModel::height( qreal lon, qreal lat ) const
 
         Q_ASSERT( 0 <= dx && dx <= 1 );
         Q_ASSERT( 0 <= dy && dy <= 1 );
-        unsigned int pixel = image->pixel( x % width, y % height ) & 0xffff; // 16 valid bits
-        short int elevation = (short int) pixel; // and signed type, so just cast it
+        unsigned int pixel;
+        pixel = image->pixel( x % width, y % height );
+        pixel -= 0xFF000000; //fully opaque
         //mDebug() << "(1-dx)" << (1-dx) << "(1-dy)" << (1-dy);
         if ( pixel != invalidElevationData ) { //no data?
             //mDebug() << "got at x" << x % width << "y" << y % height << "a height of" << pixel << "** RGB" << qRed(pixel) << qGreen(pixel) << qBlue(pixel);
-            ret += ( qreal )elevation * ( 1 - dx ) * ( 1 - dy );
+            ret += ( qreal )pixel * ( 1 - dx ) * ( 1 - dy );
             hasHeight = true;
         } else {
             //mDebug() << "no data at" <<  x % width << "y" << y % height;
@@ -172,10 +159,10 @@ qreal ElevationModel::height( qreal lon, qreal lat ) const
     return ret;
 }
 
-QVector<GeoDataCoordinates> ElevationModel::heightProfile( qreal fromLon, qreal fromLat, qreal toLon, qreal toLat ) const
+QList<GeoDataCoordinates> ElevationModel::heightProfile( qreal fromLon, qreal fromLat, qreal toLon, qreal toLat ) const
 {
     if ( !d->m_textureLayer ) {
-        return QVector<GeoDataCoordinates>();
+        return QList<GeoDataCoordinates>();
     }
 
     const int tileZoomLevel = TileLoader::maximumTileLevel( *( d->m_textureLayer ) );
@@ -193,7 +180,7 @@ QVector<GeoDataCoordinates> ElevationModel::heightProfile( qreal fromLon, qreal 
     //mDebug() << "fromLon" << fromLon << "fromLat" << fromLat;
     //mDebug() << "diff lon" << ( fromLon - toLon ) << "diff lat" << ( fromLat - toLat );
     //mDebug() << "dirLon" << QString::number(dirLon) << "dirLat" << QString::number(dirLat) << "k" << k;
-    QVector<GeoDataCoordinates> ret;
+    QList<GeoDataCoordinates> ret;
     while ( lat*dirLat <= toLat*dirLat && lon*dirLon <= toLon * dirLon ) {
         //mDebug() << lat << lon;
         qreal h = height( lon, lat );
@@ -218,4 +205,4 @@ QVector<GeoDataCoordinates> ElevationModel::heightProfile( qreal fromLon, qreal 
 
 
 
-#include "moc_ElevationModel.cpp"
+#include "ElevationModel.moc"

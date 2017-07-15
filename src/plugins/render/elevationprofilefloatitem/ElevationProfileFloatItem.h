@@ -21,6 +21,8 @@
 
 #include "GeoDataDocument.h"
 #include "GeoDataLineString.h"
+#include "GeoGraphicsItem.h"
+#include "LabelGraphicsItem.h"
 
 namespace Ui
 {
@@ -36,6 +38,7 @@ class ElevationProfileTrackDataSource;
 class ElevationProfileRouteDataSource;
 class GeoDataPlacemark;
 class MarbleWidget;
+class RoutingModel;
 
 /**
  * @short The class that creates an interactive elvation profile.
@@ -45,7 +48,7 @@ class MarbleWidget;
 class ElevationProfileFloatItem : public AbstractFloatItem, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.ElevationProfileFloatItem")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.ElevationProfileFloatItem" )
 
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
@@ -54,44 +57,44 @@ class ElevationProfileFloatItem : public AbstractFloatItem, public DialogConfigu
 
  public:
     explicit ElevationProfileFloatItem( const MarbleModel *marbleModel = 0 );
-    ~ElevationProfileFloatItem() override;
+    ~ElevationProfileFloatItem();
 
-    QStringList backendTypes() const override;
+    virtual QStringList backendTypes() const;
 
-    qreal zValue() const override; // Overriding LayerInterface to paint on top of the route
+    virtual qreal zValue() const; // Overriding LayerInterface to paint on top of the route
 
-    QString name() const override;
+    virtual QString name() const;
 
-    QString guiString() const override;
+    virtual QString guiString() const;
 
-    QString nameId() const override;
+    virtual QString nameId() const;
 
-    QString version() const override;
+    virtual QString version() const;
 
-    QString description() const override;
+    virtual QString description() const;
 
-    QString copyrightYears() const override;
+    virtual QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    virtual QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon() const override;
+    virtual QIcon icon() const;
 
-    void initialize() override;
+    virtual void initialize();
 
-    bool isInitialized() const override;
+    virtual bool isInitialized() const;
 
-    void setProjection( const ViewportParams *viewport ) override;
+    virtual void setProjection( const ViewportParams *viewport );
 
-    void paintContent( QPainter *painter ) override;
+    virtual void paintContent( QPainter *painter );
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
 protected:
-    bool eventFilter( QObject *object, QEvent *e ) override;
-    void contextMenuEvent( QWidget *w, QContextMenuEvent *e ) override;
+    bool eventFilter( QObject *object, QEvent *e );
+    virtual void contextMenuEvent( QWidget *w, QContextMenuEvent *e );
 
  private Q_SLOTS:
-    void handleDataUpdate(const GeoDataLineString &points, const QVector<QPointF> &eleData);
+    void handleDataUpdate(const GeoDataLineString &points, QList<QPointF> eleData);
     void updateVisiblePoints();
     void forceRepaint();
     void readSettings();
@@ -140,15 +143,15 @@ Q_SIGNALS:
     int               m_firstVisiblePoint;
     int               m_lastVisiblePoint;
     bool              m_zoomToViewport;
-    QVector<QPointF>    m_eleData;
+    QList<QPointF>    m_eleData;
     GeoDataLineString m_points;
     qreal             m_minElevation;
     qreal             m_maxElevation;
     qreal             m_gain;
     qreal             m_loss;
 
-    QVector<QPointF> calculateElevationData(const GeoDataLineString &lineString) const;
-    void calculateStatistics(const QVector<QPointF> &eleData);
+    QList<QPointF> calculateElevationData( const GeoDataLineString &lineString ) const;
+    void calculateStatistics( const QList<QPointF> &eleData );
 };
 
 

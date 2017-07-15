@@ -13,6 +13,8 @@
 
 #include "AbstractDataPlugin.h"
 #include "DialogConfigurationInterface.h"
+#include "RenderPlugin.h"
+#include "RenderPluginInterface.h"
 
 #include <QHash>
 #include <QIcon>
@@ -28,7 +30,7 @@ namespace Marble
 class WikipediaPlugin : public AbstractDataPlugin, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.WikipediaPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.WikipediaPlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( WikipediaPlugin )
@@ -36,42 +38,42 @@ class WikipediaPlugin : public AbstractDataPlugin, public DialogConfigurationInt
  public:
     WikipediaPlugin();
     explicit WikipediaPlugin( const MarbleModel *marbleModel );
-    ~WikipediaPlugin() override;
+    ~WikipediaPlugin();
      
-    void initialize() override;
+    void initialize();
 
-    QString name() const override;
+    QString name() const;
     
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
     
-    QString version() const override;
+    QString version() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QString aboutDataText() const override;
+    QString aboutDataText() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
     /**
      * @return: The settings of the item.
      */
-    QHash<QString,QVariant> settings() const override;
+    virtual QHash<QString,QVariant> settings() const;
 
     /**
      * Set the settings of the item.
      */
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    virtual void setSettings( const QHash<QString,QVariant> &settings );
 
  protected:
-    bool eventFilter( QObject *object, QEvent *event ) override;
+    bool eventFilter( QObject *object, QEvent *event );
 
  private Q_SLOTS:
     void readSettings();

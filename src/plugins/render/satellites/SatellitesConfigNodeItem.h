@@ -12,7 +12,6 @@
 #define MARBLE_SATELLITESCONFIGNODEITEM_H
 
 #include "SatellitesConfigAbstractItem.h"
-#include <QVector>
 
 namespace Marble
 {
@@ -21,20 +20,20 @@ class SatellitesConfigNodeItem : public SatellitesConfigAbstractItem
 {
 public:
     explicit SatellitesConfigNodeItem( const QString &name );
-    ~SatellitesConfigNodeItem() override;
+    ~SatellitesConfigNodeItem();
 
-    void loadSettings(const QHash<QString, QVariant> &settings) override;
+    void loadSettings( QHash<QString, QVariant> settings );
 
-    QVariant data( int column, int role ) const override;
-    bool setData(int column, int role, const QVariant& data) override;
+    QVariant data( int column, int role ) const;
+    bool setData(int column, int role, const QVariant& data);
 
-    bool isLeaf() const override;
-    SatellitesConfigAbstractItem *childAt( int row ) const override;
-    int indexOf( const SatellitesConfigAbstractItem *child ) const override;
-    int childrenCount() const override;
+    bool isLeaf() const;
+    SatellitesConfigAbstractItem *childAt( int row ) const;
+    int indexOf( const SatellitesConfigAbstractItem *child ) const;
+    int childrenCount() const;
 
     void appendChild( SatellitesConfigAbstractItem *item );
-    void clear() override;
+    void clear();
 
 private:
     QVector<SatellitesConfigAbstractItem *> m_children;

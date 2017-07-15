@@ -16,14 +16,19 @@
 #define MARBLEGRATICULEPLUGIN_H
 
 #include <QMap>
+#include <QObject>
+#include <QVector>
 #include <QHash>
 #include <QPen>
 #include <QIcon>
 #include <QColorDialog>
+#include <QAbstractButton>
 
 
 #include "DialogConfigurationInterface.h"
 #include "RenderPlugin.h"
+#include "RenderPluginInterface.h"
+
 
 #include "GeoDataCoordinates.h"
 #include "GeoDataLatLonAltBox.h"
@@ -49,7 +54,7 @@ class GeoDataLatLonAltBox;
 class GraticulePlugin : public RenderPlugin, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.GraticulePlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.GraticulePlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( GraticulePlugin )
@@ -59,41 +64,41 @@ class GraticulePlugin : public RenderPlugin, public DialogConfigurationInterface
 
     explicit GraticulePlugin( const MarbleModel *marbleModel );
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 ) override;
+    virtual bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 );
 
-    qreal zValue() const override;
+    virtual qreal zValue() const;
 
-    QHash<QString,QVariant> settings() const override;
+    virtual QHash<QString,QVariant> settings() const;
 
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    virtual void setSettings( const QHash<QString,QVariant> &settings );
 
 
 
@@ -153,7 +158,7 @@ class GraticulePlugin : public RenderPlugin, public DialogConfigurationInterface
      */
     void renderLatitudeLines( GeoPainter *painter, 
                               const GeoDataLatLonAltBox& viewLatLonAltBox,
-                              qreal step, qreal skipStep,
+                              qreal step,
                               LabelPositionFlags labelPositionFlags = LineCenter
                             );
 
@@ -173,7 +178,7 @@ class GraticulePlugin : public RenderPlugin, public DialogConfigurationInterface
      */
     void renderLongitudeLines( GeoPainter *painter, 
                               const GeoDataLatLonAltBox& viewLatLonAltBox, 
-                              qreal step, qreal skipStep,
+                              qreal step, 
                               qreal northPolarGap = 0.0, qreal southPolarGap = 0.0,
                               LabelPositionFlags labelPositionFlags = LineCenter
                              );

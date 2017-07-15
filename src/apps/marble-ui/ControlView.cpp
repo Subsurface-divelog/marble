@@ -12,8 +12,9 @@
 
 #include "ControlView.h"
 
-#include <QCloseEvent>
 #include <QLayout>
+#include <QSplitter>
+#include <QStringListModel>
 #include <QPrintDialog>
 #include <QPrintPreviewDialog>
 #include <QPrinter>
@@ -32,16 +33,9 @@
 #include <QMainWindow>
 #include <QDockWidget>
 #include <QShortcut>
+#include <QMenu>
 #include <QToolBar>
-#include <QMimeData>
-#include <QPixmap>
 
-#ifdef MARBLE_DBUS
-#include <QDBusConnection>
-#include "MarbleDBusInterface.h"
-#endif
-
-#include "GeoDataLatLonAltBox.h"
 #include "GeoSceneDocument.h"
 #include "GeoSceneHead.h"
 #include "GeoUriParser.h"
@@ -96,17 +90,6 @@ ControlView::ControlView( QWidget *parent )
     m_marbleWidget = new MarbleWidget( this );
     m_marbleWidget->setSizePolicy( QSizePolicy( QSizePolicy::MinimumExpanding,
                                                 QSizePolicy::MinimumExpanding ) );
-#ifdef MARBLE_DBUS
-    new MarbleDBusInterface( m_marbleWidget );
-    QDBusConnection::sessionBus().registerObject( "/Marble", m_marbleWidget );
-    if (!QDBusConnection::sessionBus().registerService( "org.kde.marble" )) {
-        QString const urlWithPid = QString("org.kde.marble-%1").arg( QCoreApplication::applicationPid() );
-        if ( !QDBusConnection::sessionBus().registerService( urlWithPid ) ) {
-            mDebug() << "Failed to register service org.kde.marble and " << urlWithPid << " with the DBus session bus.";
-        }
-    }
-#endif
-
 
     QVBoxLayout* layout = new QVBoxLayout;
     layout->addWidget( m_marbleWidget );
@@ -121,8 +104,6 @@ ControlView::ControlView( QWidget *parent )
     connect( bookmarkSyncManager, SIGNAL(mergeConflict(MergeItem*)), this, SLOT(showConflictDialog(MergeItem*)) );
     connect( bookmarkSyncManager, SIGNAL(syncComplete()), m_conflictDialog, SLOT(stopAutoResolve()) );
     connect( m_conflictDialog, SIGNAL(resolveConflict(MergeItem*)), bookmarkSyncManager, SLOT(resolveConflict(MergeItem*)) );
-
-    setAcceptDrops(true);
 }
 
 ControlView::~ControlView()
@@ -132,7 +113,7 @@ ControlView::~ControlView()
 
 QString ControlView::applicationVersion()
 {
-    return "2.2.20 (2.3 development version)";
+    return "1.11.3 (stable release)";
 }
 
 MapThemeManager *ControlView::mapThemeManager()
@@ -179,7 +160,7 @@ QString ControlView::defaultMapThemeId() const
 
     const QStringList installedThemes = m_mapThemeManager->mapThemeIds();
 
-    for(const QString &fallback: fallBackThemes) {
+    foreach(const QString &fallback, fallBackThemes) {
         if (installedThemes.contains(fallback)) {
             return fallback;
         }
@@ -192,7 +173,7 @@ QString ControlView::defaultMapThemeId() const
     return QString();
 }
 
-void ControlView::printMapScreenShot( const QPointer<QPrintDialog>& printDialog)
+void ControlView::printMapScreenShot( QPointer<QPrintDialog> printDialog)
 {
 #ifndef QT_NO_PRINTER
         PrintOptionsWidget* printOptions = new PrintOptionsWidget( this );
@@ -240,7 +221,7 @@ void ControlView::printMapScreenShot( const QPointer<QPrintDialog>& printDialog)
                 printDrivingInstructionsAdvice( document, text );
             }
 
-            text += QLatin1String("</body></html>");
+            text += "</body></html>";
             document.setHtml( text );
             document.print( printDialog->printer() );
 
@@ -253,14 +234,13 @@ void ControlView::printMapScreenShot( const QPointer<QPrintDialog>& printDialog)
 #endif
 }
 
-bool ControlView::openGeoUri( const QString& geoUriString )
+void ControlView::openGeoUri( const QString& geoUriString )
 {
     GeoUriParser uriParser( geoUriString );
-    const bool success = uriParser.parse();
-    if ( success ) {
+    if ( uriParser.parse() ) {
         if ( uriParser.planet().id() != marbleModel()->planet()->id() ) {
             MapThemeManager *manager = mapThemeManager();
-            for( const QString& planetName: manager->mapThemeIds()) {
+            foreach( const QString& planetName, manager->mapThemeIds()) {
                 if ( planetName.startsWith(uriParser.planet().id(), Qt::CaseInsensitive)) {
                     m_marbleWidget->setMapThemeId(planetName);
                     break;
@@ -273,39 +253,6 @@ bool ControlView::openGeoUri( const QString& geoUriString )
             m_marbleWidget->setDistance( uriParser.coordinates().altitude() * METER2KM );
         }
     }
-    return success;
-}
-
-QActionGroup *ControlView::createViewSizeActionGroup( QObject* parent )
-{
-    QActionGroup* actionGroup = new QActionGroup( parent );
-
-    QAction *defaultAction = new QAction( tr( "Default (Resizable)" ), parent );
-    defaultAction->setCheckable( true );
-    defaultAction->setChecked( true );
-    actionGroup->addAction(defaultAction);
-
-    QAction *separator = new QAction( parent );
-    separator->setSeparator( true );
-    actionGroup->addAction(separator);
-
-    addViewSizeAction( actionGroup, tr("NTSC (%1x%2)"), 720, 486 );
-    addViewSizeAction( actionGroup, tr("PAL (%1x%2)"), 720, 576 );
-    addViewSizeAction( actionGroup, tr("NTSC 16:9 (%1x%2)"), 864, 486 );
-    addViewSizeAction( actionGroup, tr("PAL 16:9 (%1x%2)"), 1024, 576 );
-    // xgettext:no-c-format
-    addViewSizeAction( actionGroup, tr("DVD (%1x%2p)"), 852, 480 );
-    // xgettext:no-c-format
-    addViewSizeAction( actionGroup, tr("HD (%1x%2p)"), 1280, 720 );
-    // xgettext:no-c-format
-    addViewSizeAction( actionGroup, tr("Full HD (%1x%2p)"), 1920, 1080 );
-    addViewSizeAction( actionGroup, tr("Digital Cinema (%1x%2)"), 2048, 1536 );
-    /** FIXME: Needs testing, worked with errors.
-    addViewSizeAction(actionGroup, "4K UHD (%1x%2)", 3840, 2160);
-    addViewSizeAction(actionGroup, "4K (%1x%2)", 4096, 3072);
-    */
-
-    return actionGroup;
 }
 
 void ControlView::printPixmap( QPrinter * printer, const QPixmap& pixmap  )
@@ -416,21 +363,21 @@ void ControlView::printRouteSummary( QTextDocument &document, QString &text)
         summary = summary.arg(destination).arg( distance, 0, 'f', precision ).arg( unit );
         text += summary;
 
-        text += QLatin1String("<table cellpadding=\"2\">");
+        text += "<table cellpadding=\"2\">";
         QString pixmapTemplate = "marble://viaPoint-%1.png";
         for ( int i=0; i<routeRequest->size(); ++i ) {
-            text += QLatin1String("<tr><td>");
+            text += "<tr><td>";
             QPixmap pixmap = routeRequest->pixmap(i);
             QString pixmapResource = pixmapTemplate.arg( i );
             document.addResource(QTextDocument::ImageResource,
                                           QUrl( pixmapResource ), QVariant( pixmap ) );
             QString myimg = "<img src=\"%1\">";
-            text += myimg.arg(pixmapResource) +
-                    QLatin1String("</td><td>");
-                    routeRequest->name(i) +
-                    QLatin1String("</td></tr>");
+            text += myimg.arg( pixmapResource );
+            text += "</td><td>";
+            text += routeRequest->name( i );
+            text += "</td></tr>";
         }
-        text += QLatin1String("</table>");
+        text += "</table>";
     }
 #endif
 }
@@ -446,8 +393,8 @@ void ControlView::printDrivingInstructions( QTextDocument &document, QString &te
 
     GeoDataLineString total = routingModel->route().path();
 
-    text += QLatin1String("<table cellpadding=\"4\">"
-            "<tr><th>No.</th><th>Distance</th><th>Instruction</th></tr>");
+    text += "<table cellpadding=\"4\">";
+    text += "<tr><th>No.</th><th>Distance</th><th>Instruction</th></tr>";
     for ( int i=0; i<routingModel->rowCount(); ++i ) {
         QModelIndex index = routingModel->index(i, 0);
         GeoDataCoordinates coordinates = index.data( RoutingModel::CoordinateRole ).value<GeoDataCoordinates>();
@@ -460,18 +407,18 @@ void ControlView::printDrivingInstructions( QTextDocument &document, QString &te
         }
 
         if ( i%2 == 0 ) {
-            text += QLatin1String("<tr bgcolor=\"lightGray\"><td align=\"right\" valign=\"middle\">");
+            text += "<tr bgcolor=\"lightGray\"><td align=\"right\" valign=\"middle\">";
         }
         else {
-            text += QLatin1String("<tr><td align=\"right\" valign=\"middle\">");
+            text += "<tr><td align=\"right\" valign=\"middle\">";
         }
-        text += QString::number(i+1) +
-                QLatin1String("</td><td align=\"right\" valign=\"middle\">");
+        text += QString::number( i+1 );
+        text += "</td><td align=\"right\" valign=\"middle\">";
 
         qreal planetRadius = marbleModel()->planet()->radius();
-        text += QString::number(accumulator.length(planetRadius) * METER2KM, 'f', 1) +
-                /** @todo: support localization */
-                QLatin1String(" km</td><td valign=\"middle\">");
+        text += QString::number( accumulator.length( planetRadius ) * METER2KM, 'f', 1 );
+        /** @todo: support localization */
+        text += " km</td><td valign=\"middle\">";
 
         QPixmap instructionIcon = index.data( Qt::DecorationRole ).value<QPixmap>();
         if ( !instructionIcon.isNull() ) {
@@ -480,30 +427,21 @@ void ControlView::printDrivingInstructions( QTextDocument &document, QString &te
             text += QString("<img src=\"%1\">").arg(uri);
         }
 
-        text += routingModel->data( index ).toString() +
-                QLatin1String("</td></tr>");
+        text += routingModel->data( index ).toString();
+        text += "</td></tr>";
     }
-    text += QLatin1String("</table>");
+    text += "</table>";
 #endif
 }
 
 void ControlView::printDrivingInstructionsAdvice( QTextDocument &, QString &text )
 {
 #ifndef QT_NO_PRINTER
-    text += QLatin1String("<p>") + tr("The Marble development team wishes you a pleasant and safe journey.") + QLatin1String("</p>") +
-            QLatin1String("<p>") + tr("Caution: Driving instructions may be incomplete or inaccurate.") +
-            QLatin1Char(' ') + tr("Road construction, weather and other unforeseen variables can result in this suggested route not to be the most expedient or safest route to your destination.") +
-            QLatin1Char(' ') + tr("Please use common sense while navigating.") + QLatin1String("</p>");
+    text += "<p>" + tr( "The Marble development team wishes you a pleasant and safe journey." ) + "</p>";
+    text += "<p>" + tr( "Caution: Driving instructions may be incomplete or inaccurate." );
+    text += ' ' + tr( "Road construction, weather and other unforeseen variables can result in this suggested route not to be the most expedient or safest route to your destination." );
+    text += ' ' + tr( "Please use common sense while navigating." ) + "</p>";
 #endif
-}
-
-void ControlView::addViewSizeAction( QActionGroup* actionGroup, const QString &nameTemplate, int width, int height )
-{
-    QString const name = nameTemplate.arg( width ).arg( height );
-    QAction *action = new QAction( name, actionGroup->parent() );
-    action->setCheckable( true );
-    action->setData( QSize( width, height ) );
-    actionGroup->addAction( action );
 }
 
 
@@ -522,11 +460,13 @@ void ControlView::launchExternalMapEditor()
         }
     }
 
-    if (editor == QLatin1String("josm")) {
+    if ( editor == "josm" )
+    {
         // JOSM, the java based editor
         synchronizeWithExternalMapEditor( editor, "--download=%1,%4,%3,%2" );
     }
-    else if (editor == QLatin1String("merkaartor")) {
+    else if ( editor == "merkaartor" )
+    {
         // Merkaartor, a Qt based editor
         QString argument = "osm://download/load_and_zoom?top=%1&right=%2&bottom=%3&left=%4";
         synchronizeWithExternalMapEditor( editor, argument );
@@ -538,7 +478,7 @@ void ControlView::launchExternalMapEditor()
         qreal lon = m_marbleWidget->centerLongitude();
         int zoom = m_marbleWidget->tileZoomLevel();
         url = url.arg( lat, 0, 'f', 8 ).arg( lon, 0, 'f', 8 ).arg( zoom );
-        QDesktopServices::openUrl( QUrl(url) );
+        QDesktopServices::openUrl( url );
     }
 }
 
@@ -693,7 +633,7 @@ QList<QAction*> ControlView::setupDockWidgets( QMainWindow *mainWindow )
     QList<RenderPlugin *>::const_iterator const end = renderPluginList.constEnd();
 
     for (; i != end; ++i ) {
-        if ((*i)->nameId() == QLatin1String("annotation")) {
+        if( (*i)->nameId() == "annotation" ) {
             m_annotationPlugin = *i;
             QObject::connect(m_annotationPlugin, SIGNAL(enabledChanged(bool)),
                              this, SLOT(updateAnnotationDockVisibility()));
@@ -729,7 +669,7 @@ QList<QAction*> ControlView::setupDockWidgets( QMainWindow *mainWindow )
     m_panelActions << m_annotationDock->toggleViewAction();
     m_panelActions << legendDock->toggleViewAction();
     m_panelActions << tourDock->toggleViewAction();
-    for( QAction* action: m_panelActions ) {
+    foreach( QAction* action, m_panelActions ) {
         m_panelVisibility << action->isVisible();
     }
 
@@ -748,7 +688,7 @@ QList<QAction*> ControlView::setupDockWidgets( QMainWindow *mainWindow )
     QList<QAction*> panelMenuActions;
     panelMenuActions << m_togglePanelVisibilityAction;
     panelMenuActions << panelSeparatorAct;
-    for( QAction* action: m_panelActions ) {
+    foreach( QAction* action, m_panelActions ) {
         panelMenuActions << action;
     }
 
@@ -778,7 +718,7 @@ QString ControlView::externalMapEditor() const
     return m_externalEditor;
 }
 
-void ControlView::addGeoDataFile( const QString &filename )
+void ControlView::addGeoDataFile( QString filename )
 {
     QFileInfo const file( filename );
     if ( file.exists() ) {
@@ -826,10 +766,10 @@ void ControlView::updateAnnotationDock()
     QToolBar *firstToolbar = new QToolBar( widget );
     QToolBar *secondToolbar = new QToolBar( widget );
     QSpacerItem *spacer = new QSpacerItem( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding);
+    bool firstToolbarFilled = false;
     if( !tmp_actionGroups->isEmpty() ) {
-        bool firstToolbarFilled = false;
-        for( QAction *action: tmp_actionGroups->first()->actions() ) {
-            if (action->objectName() == QLatin1String("toolbarSeparator")) {
+        foreach( QAction *action, tmp_actionGroups->first()->actions() ) {
+            if( action->objectName() == "toolbarSeparator" ) {
                 firstToolbarFilled = true;
             } else {
                 if( !firstToolbarFilled ) {
@@ -893,90 +833,6 @@ void ControlView::openTour( const QString &filename )
     }
 }
 
-void ControlView::closeEvent( QCloseEvent *event )
-{
-    QCloseEvent newEvent;
-    QCoreApplication::sendEvent( m_tourWidget, &newEvent );
-
-    if ( newEvent.isAccepted() ) {
-        event->accept();
-    } else {
-        event->ignore();
-    }
 }
 
-void ControlView::dragEnterEvent(QDragEnterEvent *event)
-{
-    bool success = false;
-
-    const QMimeData *mimeData = event->mimeData();
-
-    GeoUriParser uriParser;
-
-    // prefer urls
-    if (mimeData->hasUrls()) {
-        // be generous and take the first usable url
-        for(const QUrl& url: mimeData->urls()) {
-            uriParser.setGeoUri(url.url());
-            success = uriParser.parse();
-            if (success) {
-                break;
-            }
-        }
-    }
-
-    // fall back to own string parsing
-    if (!success && mimeData->hasText()) {
-        const QString text = mimeData->text();
-        // first try human readable coordinates
-        GeoDataCoordinates::fromString(text, success);
-        // next geo uri
-        if (!success) {
-            uriParser.setGeoUri(text);
-            success = uriParser.parse();
-        }
-    }
-
-    if (success) {
-        event->acceptProposedAction();
-    }
-}
-
-void ControlView::dropEvent(QDropEvent *event)
-{
-    bool success = false;
-
-    const QMimeData *mimeData = event->mimeData();
-
-    // prefer urls
-    if (mimeData->hasUrls()) {
-        // be generous and take the first usable url
-        for(const QUrl& url: mimeData->urls()) {
-            success = openGeoUri(url.url());
-            if (success) {
-                break;
-            }
-        }
-    }
-
-    // fall back to own string parsing
-    if (!success && mimeData->hasText()) {
-        const QString text = mimeData->text();
-        // first try human readable coordinates
-        const GeoDataCoordinates coordinates = GeoDataCoordinates::fromString(text, success);
-        if (success) {
-            const qreal longitude = coordinates.longitude(GeoDataCoordinates::Degree);
-            const qreal latitude = coordinates.latitude(GeoDataCoordinates::Degree);
-            m_marbleWidget->centerOn(longitude, latitude);
-        } else {
-            success = openGeoUri(text);
-        }
-    }
-    if (success) {
-        event->acceptProposedAction();
-    }
-}
-
-}
-
-#include "moc_ControlView.cpp"
+#include "ControlView.moc"

@@ -16,6 +16,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <QPixmapCache>
+#include <QPainterPath>
 
 namespace Marble
 {
@@ -56,7 +57,7 @@ QPixmap ArrowDiscWidget::pixmap( const QString &id )
 {
     QPixmap result;
     if ( !QPixmapCache::find( id, result ) ) {
-        result = QPixmap(QLatin1String(":/") + id + QLatin1String(".png"));
+        result = QPixmap( QString( ":/%1.png" ).arg( id ) );
         QPixmapCache::insert( id, result );
     }
     return result;
@@ -107,7 +108,7 @@ void ArrowDiscWidget::mouseReleaseEvent( QMouseEvent *mouseEvent )
 
 void ArrowDiscWidget::leaveEvent( QEvent* )
 {
-    if (m_imagePath != QLatin1String("marble/navigation/navigational_arrows")) {
+    if ( m_imagePath != "marble/navigation/navigational_arrows" ) {
         m_imagePath = "marble/navigation/navigational_arrows";
         repaint();
     }
@@ -231,4 +232,4 @@ void ArrowDiscWidget::paintEvent( QPaintEvent * )
 
 }
 
-#include "moc_ArrowDiscWidget.cpp"
+#include "ArrowDiscWidget.moc"

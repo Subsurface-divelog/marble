@@ -15,7 +15,6 @@
 
 // Marble
 #include "GeoDataPlacemark.h"
-#include "GeoDataGeometry.h"
 
 
 namespace Marble
@@ -34,11 +33,6 @@ SceneGraphicsItem::SceneGraphicsItem( GeoDataPlacemark *placemark ) :
 SceneGraphicsItem::~SceneGraphicsItem()
 {
     // nothing to do
-}
-
-const GeoDataLatLonAltBox &SceneGraphicsItem::latLonAltBox() const
-{
-    return m_placemark->geometry()->latLonAltBox();
 }
 
 SceneGraphicsItem::ActionState SceneGraphicsItem::state() const

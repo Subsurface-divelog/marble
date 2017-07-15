@@ -5,55 +5,59 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012 Dennis Nienhüser <earthwings@gentoo.org>
 
 #include "KmzHandler.h"
 #include "MarbleDebug.h"
-#include <MarbleZipReader.h>
 
+#include <QTemporaryFile>
 #include <QDir>
-#include <QUuid>
+
+#include <quazip/quazip.h>
+#include <quazip/quazipfile.h>
 
 namespace Marble {
 
-bool KmzHandler::open(const QString &kmz, QString &error)
+bool KmzHandler::open( const QString &kmz )
 {
-    MarbleZipReader zip( kmz );
-    if ( zip.status() != MarbleZipReader::NoError ) {
-        error = QStringLiteral("Failed to extract %1: error code %2").arg(kmz).arg(zip.status());
-		mDebug() << error;
-		return false;
-    }
-
-	QString const uuid = QUuid::createUuid().toString().mid(1, 8);
-	QString const filename = QDir::tempPath() + QLatin1String("/marble-kmz-") + uuid;
-	if (!QDir::root().mkpath(filename)) {
-        error = QStringLiteral("Failed to create temporary storage %1 for extracting %2").arg(filename).arg(kmz);
-        mDebug() << error;
+    QuaZip zip( kmz );
+    if ( !zip.open( QuaZip::mdUnzip ) ) {
+        mDebug() << "Failed to extract " << kmz;
         return false;
     }
 
-    m_kmzPath = filename + QLatin1Char('/');
-    if (!zip.extractAll( m_kmzPath ))
-    {
-        error = QStringLiteral("Failed to extract kmz file contents to %1").arg(m_kmzPath);
-        mDebug() << error;
+    QTemporaryFile outputDir ( QDir::tempPath() + "/marble-kmz-XXXXXX" );
+    outputDir.setAutoRemove( false );
+    outputDir.open();
+    if ( !QFile::remove( outputDir.fileName() ) || !QDir("/").mkdir( outputDir.fileName() ) ) {
+        mDebug() << "Failed to create temporary storage for extracting " << kmz;
         return false;
     }
 
-    for(const MarbleZipReader::FileInfo &fileInfo: zip.fileInfoList()) {
-        //if (!fileInfo.isFile) {
-        //    continue;
-        //}
-        QString file = filename + QLatin1Char('/') + fileInfo.filePath;
-        m_kmzFiles << fileInfo.filePath;
-        if (file.endsWith(QLatin1String(".kml"), Qt::CaseInsensitive)) {
+    m_kmzPath = outputDir.fileName();
+    QuaZipFile zipFile( &zip );
+    for ( bool moreFiles=zip.goToFirstFile(); moreFiles; moreFiles=zip.goToNextFile() ) {
+        QFileInfo output = QFileInfo( outputDir.fileName() + '/' + zip.getCurrentFileName() );
+        if ( !output.dir().exists() ) {
+            QDir::root().mkpath( output.dir().absolutePath() );
+        }
+
+        QFile outputFile( output.absoluteFilePath() );
+        outputFile.open( QIODevice::WriteOnly );
+        zipFile.open( QIODevice::ReadOnly );
+        outputFile.write( zipFile.readAll() );
+        outputFile.close();
+        zipFile.close();
+        m_kmzFiles << output.absoluteFilePath();
+
+        if ( output.suffix().toLower() == "kml" ) {
             if ( !m_kmlFile.isEmpty() ) {
                 mDebug() << "File" << kmz << "contains more than one .kml files";
             }
-            m_kmlFile = file;
+            m_kmlFile = output.absoluteFilePath();
         }
     }
+    zip.close();
     return true;
 }
 

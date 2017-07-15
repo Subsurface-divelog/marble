@@ -20,11 +20,11 @@
 QString escapeXml( const QString &str )
 {
     QString xml = str;
-    xml.replace(QLatin1Char('&'), QStringLiteral("&amp;"));
-    xml.replace(QLatin1Char('<'), QStringLiteral("&lt;"));
-    xml.replace(QLatin1Char('>'), QStringLiteral("&gt;"));
-    xml.replace(QLatin1Char('\''), QStringLiteral("&apos;"));
-    xml.replace(QLatin1Char('"'), QStringLiteral("&quot;"));
+    xml.replace('&', "&amp;");
+    xml.replace('<', "&lt;");
+    xml.replace('>', "&gt;");
+    xml.replace('\'', "&apos;");
+    xml.replace('"', "&quot;");
 
     return xml;
 }
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
         // QTextStream targetstream( new QString() );
 
         targetstream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?> \n"
-                     << "<kml xmlns=\"http://www.opengis.net/kml/2.2\"> \n"
+                     << "<kml xmlns=\"http://earth.google.com/kml/2.1\"> \n"
                      << "<Document> \n";
         QString  state;
         QString  gmt;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         while ( !sourcestream.atEnd() ) {
 
             const QString rawline = sourcestream.readLine();
-            const QStringList splitline = rawline.split(QLatin1Char('\t'));
+            const QStringList splitline = rawline.split('\t');
 
             const QString name       = splitline[1];
             const QString latstring  = splitline[4];
@@ -101,8 +101,9 @@ int main(int argc, char *argv[])
             supportstream.seek(0);
             while ( !supportstream.atEnd() ) {
                 const QString supportrawline = supportstream.readLine();
-                const QStringList supportsplitline = supportrawline.split(QLatin1Char('\t'));
-                if (supportsplitline[0] == (country + QLatin1Char('.') +statecode)) {
+                const QStringList supportsplitline = supportrawline.split('\t');
+                if(supportsplitline[0] == (country + '.' +statecode))
+                {
                     state = supportsplitline[1];
                     break;
                 }
@@ -112,12 +113,12 @@ int main(int argc, char *argv[])
             timezonestream.readLine();
             while ( !timezonestream.atEnd() ) {
                     const QString timezonerawline = timezonestream.readLine();
-                    const QStringList timezonesplitline = timezonerawline.split(QLatin1Char('\t'));
+                    const QStringList timezonesplitline = timezonerawline.split('\t');
 
-                    if( timezonesplitline[1] == timezone )
+                    if( timezonesplitline[0] == timezone )
                     {
-                        gmt = timezonesplitline[2];
-                        dst = timezonesplitline[3];
+                        gmt = timezonesplitline[1];
+                        dst = timezonesplitline[2];
                         break;
                     }
             }
@@ -125,7 +126,8 @@ int main(int argc, char *argv[])
             const int gmtoffset = ( int ) ( gmt.toFloat() * 100 );
             const int dstoffset = ( int ) ( dst.toFloat() * 100 ) - gmtoffset;
 	
-            if (role != QLatin1String("PPLX")) {
+            if(role != "PPLX")
+            {          
 	            targetstream << "    <Placemark> \n";
          	    targetstream << "        <name>" << escapeXml( name ) << "</name> \n";
                 targetstream << "        <state>" << escapeXml( state ) << "</state> \n";

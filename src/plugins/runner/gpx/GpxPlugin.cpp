@@ -25,12 +25,12 @@ QString GpxPlugin::name() const
 
 QString GpxPlugin::nameId() const
 {
-    return QStringLiteral("Gpx");
+    return "Gpx";
 }
 
 QString GpxPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString GpxPlugin::description() const
@@ -40,13 +40,13 @@ QString GpxPlugin::description() const
 
 QString GpxPlugin::copyrightYears() const
 {
-    return QStringLiteral("2011");
+    return "2011";
 }
 
-QVector<PluginAuthor> GpxPlugin::pluginAuthors() const
+QList<PluginAuthor> GpxPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" );
 }
 
 QString GpxPlugin::fileFormatDescription() const
@@ -56,7 +56,7 @@ QString GpxPlugin::fileFormatDescription() const
 
 QStringList GpxPlugin::fileExtensions() const
 {
-    return QStringList(QStringLiteral("gpx"));
+    return QStringList() << "gpx";
 }
 
 ParsingRunner* GpxPlugin::newRunner() const
@@ -66,4 +66,6 @@ ParsingRunner* GpxPlugin::newRunner() const
 
 }
 
-#include "moc_GpxPlugin.cpp"
+Q_EXPORT_PLUGIN2( GpxPlugin, Marble::GpxPlugin )
+
+#include "GpxPlugin.moc"

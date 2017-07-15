@@ -14,6 +14,7 @@
 #include <QCoreApplication>
 #include <QTime>
 #include <QMessageBox>
+#include <QFileDialog>
 
 #include <MarbleGlobal.h>
 #include <MarbleDebug.h>

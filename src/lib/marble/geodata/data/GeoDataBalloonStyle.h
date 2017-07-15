@@ -20,8 +20,6 @@ namespace Marble
 
 class GeoDataBalloonStylePrivate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataBalloonStyle : public GeoDataColorStyle
 {
 public:
@@ -34,10 +32,10 @@ public:
     bool operator!=( const GeoDataBalloonStyle &other ) const;
 
 
-    ~GeoDataBalloonStyle() override;
+    ~GeoDataBalloonStyle();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     enum DisplayMode {
         Default,
@@ -54,11 +52,11 @@ public:
     void setText( const QString &text );
 
     DisplayMode displayMode() const;
-    void setDisplayMode(DisplayMode mode );
+    void setDisplayMode( const DisplayMode &mode );
 
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
 
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
 private:
     GeoDataBalloonStylePrivate* const d;

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
@@ -14,7 +14,7 @@
 #include <marble/MarbleWidget.h>
 #include <marble/MarbleModel.h>
 #include <marble/SearchRunnerManager.h>
-#include <marble/GeoDataPlacemark.h>
+#include <GeoDataPlacemark.h>
 
 using namespace Marble;
 
@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     MarbleModel model;
     SearchRunnerManager manager( &model );
 
-    QVector<GeoDataPlacemark*> searchResult = manager.searchPlacemarks(QStringLiteral("Karlsruhe"));
+    QVector<GeoDataPlacemark*> searchResult = manager.searchPlacemarks( "Karlsruhe" );
     foreach( const GeoDataPlacemark* placemark, searchResult ) {
         qDebug() << "Found" << placemark->name() << "at" << placemark->coordinate().toString();
     }

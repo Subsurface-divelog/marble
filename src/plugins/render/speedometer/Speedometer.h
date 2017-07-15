@@ -15,6 +15,9 @@
 #ifndef MARBLESpeedometer_H
 #define MARBLESpeedometer_H
 
+#include <QObject>
+#include <QHash>
+
 #include "AbstractFloatItem.h"
 
 #include "ui_Speedometer.h"
@@ -34,39 +37,39 @@ class MarbleLocale;
 class Speedometer : public AbstractFloatItem
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.Speedometer")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.Speedometer" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     MARBLE_PLUGIN( Speedometer )
     
  public:
     Speedometer();
     explicit Speedometer( const MarbleModel *marbleModel );
-    ~Speedometer() override;
+    ~Speedometer();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
- private Q_SLOTS:
-    void updateLocation( const GeoDataCoordinates& coordinates, qreal speed );
+ private slots:
+    void updateLocation( GeoDataCoordinates coordinates, qreal speed );
 
  private:
     MarbleLocale* m_locale;

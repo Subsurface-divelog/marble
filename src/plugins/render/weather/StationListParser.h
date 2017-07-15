@@ -12,6 +12,8 @@
 #define STATIONLISTPARSER_H
 
 // Qt
+#include <QHash>
+#include <QStringList>
 #include <QList>
 #include <QThread>
 #include <QXmlStreamReader>
@@ -28,16 +30,16 @@ class StationListParser : public QThread, public QXmlStreamReader
     Q_OBJECT
 public:
     explicit StationListParser( QObject *parent );
-    ~StationListParser() override;
+    ~StationListParser();
 
     void read();
 
     QList<BBCStation> stationList() const;
 
-    void setPath( const QString& path );
+    void setPath( QString path );
 
 protected:
-    void run() override;
+    void run();
 
 private:
     void readUnknownElement();

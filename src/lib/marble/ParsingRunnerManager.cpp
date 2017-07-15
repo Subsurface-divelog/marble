@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2008 Henry de Valence <hdevalence@gmail.com>
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2010-2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 
@@ -14,6 +14,7 @@
 
 #include "MarbleDebug.h"
 #include "GeoDataDocument.h"
+#include "GeoDataPlacemark.h"
 #include "PluginManager.h"
 #include "ParseRunnerPlugin.h"
 #include "RunnerTask.h"
@@ -22,34 +23,31 @@
 #include <QList>
 #include <QThreadPool>
 #include <QTimer>
-#include <QMutex>
 
 namespace Marble
 {
 
 class MarbleModel;
 
-class Q_DECL_HIDDEN ParsingRunnerManager::Private
+class ParsingRunnerManager::Private
 {
 public:
     Private( ParsingRunnerManager *parent, const PluginManager *pluginManager );
 
     ~Private();
 
-    void cleanupParsingTask();
-    void addParsingResult(GeoDataDocument *document, const QString &error);
+    void addParsingResult( GeoDataDocument *document, const QString &error = QString() );
+    void cleanupParsingTask( ParsingTask *task );
 
     ParsingRunnerManager *const q;
     const PluginManager *const m_pluginManager;
-    QMutex m_parsingTasksMutex;
-    int m_parsingTasks;
+    QList<ParsingTask *> m_parsingTasks;
     GeoDataDocument *m_fileResult;
 };
 
 ParsingRunnerManager::Private::Private( ParsingRunnerManager *parent, const PluginManager *pluginManager ) :
     q( parent ),
     m_pluginManager( pluginManager ),
-    m_parsingTasks(0),
     m_fileResult( 0 )
 {
     qRegisterMetaType<GeoDataDocument*>( "GeoDataDocument*" );
@@ -60,11 +58,22 @@ ParsingRunnerManager::Private::~Private()
     // nothing to do
 }
 
-void ParsingRunnerManager::Private::cleanupParsingTask()
+void ParsingRunnerManager::Private::addParsingResult( GeoDataDocument *document, const QString &error )
 {
-    QMutexLocker locker(&m_parsingTasksMutex);
-    m_parsingTasks = qMax(0, m_parsingTasks-1);
-    if (m_parsingTasks == 0) {
+    if ( document || !error.isEmpty() ) {
+        if (document) {
+            m_fileResult = document;
+        }
+        emit q->parsingFinished( document, error );
+    }
+}
+
+void ParsingRunnerManager::Private::cleanupParsingTask( ParsingTask *task )
+{
+    m_parsingTasks.removeAll( task );
+    mDebug() << "removing task" << m_parsingTasks.size() << " " << (quintptr)task;
+
+    if ( m_parsingTasks.isEmpty() ) {
         emit q->parsingFinished();
     }
 }
@@ -90,26 +99,26 @@ void ParsingRunnerManager::parseFile( const QString &fileName, DocumentRole role
     const QString suffix = fileInfo.suffix().toLower();
     const QString completeSuffix = fileInfo.completeSuffix().toLower();
 
-    d->m_parsingTasks = 0;
-    for( const ParseRunnerPlugin *plugin: plugins ) {
+    foreach( const ParseRunnerPlugin *plugin, plugins ) {
         QStringList const extensions = plugin->fileExtensions();
         if ( extensions.isEmpty() || extensions.contains( suffix ) || extensions.contains( completeSuffix ) ) {
             ParsingTask *task = new ParsingTask( plugin->newRunner(), this, fileName, role );
-            connect( task, SIGNAL(finished()), this, SLOT(cleanupParsingTask()) );
+            connect( task, SIGNAL(finished(ParsingTask*)), this, SLOT(cleanupParsingTask(ParsingTask*)) );
             mDebug() << "parse task " << plugin->nameId() << " " << (quintptr)task;
-            ++d->m_parsingTasks;
-            QThreadPool::globalInstance()->start( task );
+            d->m_parsingTasks << task;
         }
     }
 
-    if (d->m_parsingTasks == 0) {
-        emit parsingFinished();
+    foreach ( ParsingTask *task, d->m_parsingTasks ) {
+        QThreadPool::globalInstance()->start( task );
+    }
+
+    if ( d->m_parsingTasks.isEmpty() ) {
+        d->cleanupParsingTask( 0 );
     }
 }
 
-GeoDataDocument *ParsingRunnerManager::openFile( const QString &fileName, DocumentRole role, int timeout )
-{
-    d->m_fileResult = nullptr;
+GeoDataDocument *ParsingRunnerManager::openFile( const QString &fileName, DocumentRole role, int timeout ) {
     QEventLoop localEventLoop;
     QTimer watchdog;
     watchdog.setSingleShot(true);
@@ -124,16 +133,6 @@ GeoDataDocument *ParsingRunnerManager::openFile( const QString &fileName, Docume
     return d->m_fileResult;
 }
 
-void ParsingRunnerManager::Private::addParsingResult(GeoDataDocument *document, const QString &error)
-{
-    if ( document || !error.isEmpty() ) {
-        if (document) {
-            m_fileResult = document;
-        }
-        emit q->parsingFinished( document, error );
-    }
 }
 
-}
-
-#include "moc_ParsingRunnerManager.cpp"
+#include "ParsingRunnerManager.moc"

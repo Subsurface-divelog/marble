@@ -21,7 +21,7 @@ class PostalCodeModel : public AbstractDataPluginModel
 
  public:
     explicit PostalCodeModel( const MarbleModel *marbleModel, QObject *parent = 0 );
-    ~PostalCodeModel() override;
+    ~PostalCodeModel();
 
  protected:
     /**
@@ -29,13 +29,13 @@ class PostalCodeModel : public AbstractDataPluginModel
      * the @p box surrounding the view and the @p number of files to show.
      **/
     void getAdditionalItems( const GeoDataLatLonAltBox& box,
-                             qint32 number = 10 ) override;
+                             qint32 number = 10 );
 
     /**
      * Parses the @p file which getAdditionalItems downloads and
      * prepares the data for usage.
      **/
-    void parseFile( const QByteArray& file ) override;
+    void parseFile( const QByteArray& file );
 
 private:
     static void addLine( QString* string, const QString &line );

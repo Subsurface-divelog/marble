@@ -10,18 +10,16 @@
 
 #include "TourPlayback.h"
 
+#include <QTimer>
 #include <QList>
-#include <QUrl>
-#include <QPointer>
+#include <QSlider>
+#include <qurl.h>
+#include <QtCore/qnamespace.h>
 
 #include "MarbleDebug.h"
 #include "MarbleWidget.h"
 #include "PopupLayer.h"
-#include "GeoDataPoint.h"
-#include "GeoDataPlacemark.h"
-#include "GeoDataPlaylist.h"
 #include "GeoDataTour.h"
-#include "GeoDataWait.h"
 #include "GeoDataFlyTo.h"
 #include "GeoDataLookAt.h"
 #include "GeoDataTourControl.h"
@@ -29,11 +27,13 @@
 #include "GeoDataAnimatedUpdate.h"
 #include "MarbleModel.h"
 #include "GeoDataTreeModel.h"
+#include "GeoDataTypes.h"
 #include "PlaybackFlyToItem.h"
 #include "PlaybackAnimatedUpdateItem.h"
 #include "PlaybackWaitItem.h"
 #include "PlaybackTourControlItem.h"
 #include "PlaybackSoundCueItem.h"
+#include "PlaybackAnimatedUpdateItem.h"
 #include "SerialTrack.h"
 #include "SoundTrack.h"
 #include "AnimatedUpdateTrack.h"
@@ -53,7 +53,7 @@ public:
     QList<SoundTrack*> m_soundTracks;
     QList<AnimatedUpdateTrack*> m_animatedUpdateTracks;
     GeoDataFlyTo m_mapCenter;
-    QPointer<MarbleWidget> m_widget;
+    MarbleWidget *m_widget;
     QUrl m_baseUrl;
 };
 
@@ -76,12 +76,9 @@ TourPlayback::TourPlayback(QObject *parent) :
     QObject(parent),
     d(new TourPlaybackPrivate())
 {
-    connect( &d->m_mainTrack, SIGNAL(centerOn(GeoDataCoordinates)), this, SLOT(centerOn(GeoDataCoordinates)) );
-    connect( &d->m_mainTrack, SIGNAL(progressChanged(double)), this, SIGNAL(progressChanged(double)) );
-    connect( &d->m_mainTrack, SIGNAL(finished()), this, SLOT(stopTour()) );
-    connect( &d->m_mainTrack, SIGNAL(itemFinished(int)), this, SLOT(handleFinishedItem(int)) );
-
-
+    connect( &d->m_mainTrack, SIGNAL( centerOn( GeoDataCoordinates ) ), this, SLOT( centerOn( GeoDataCoordinates ) ) );
+    connect( &d->m_mainTrack, SIGNAL( progressChanged( double ) ), this, SIGNAL( progressChanged( double ) ) );
+    connect( &d->m_mainTrack, SIGNAL( finished() ), this, SLOT( stopTour() ) );
 }
 
 TourPlayback::~TourPlayback()
@@ -90,14 +87,9 @@ TourPlayback::~TourPlayback()
     delete d;
 }
 
-void TourPlayback::handleFinishedItem( int index )
-{
-    emit itemFinished( index );
-}
-
 void TourPlayback::stopTour()
 {
-    for( SoundTrack* track: d->m_soundTracks ){
+    foreach( SoundTrack* track, d->m_soundTracks ){
         track->stop();
         track->setPaused( false );
     }
@@ -114,7 +106,7 @@ void TourPlayback::showBalloon( GeoDataPlacemark* placemark )
     d->m_widget->popupLayer()->setCoordinates( point->coordinates(), Qt::AlignRight | Qt::AlignVCenter );
     d->m_widget->popupLayer()->setContent( placemark->description(), d->m_baseUrl );
     d->m_widget->popupLayer()->setVisible( true );
-    d->m_widget->popupLayer()->setSize(QSizeF(500, 520));
+    d->m_widget->popupLayer()->setSize( QSizeF( 480, 500 ) );
 }
 
 void TourPlayback::hideBalloon()
@@ -135,8 +127,8 @@ void TourPlayback::setMarbleWidget(MarbleWidget* widget)
 
     connect( this, SIGNAL(added(GeoDataContainer*,GeoDataFeature*,int)),
                       d->m_widget->model()->treeModel(), SLOT(addFeature(GeoDataContainer*,GeoDataFeature*,int)) );
-    connect( this, SIGNAL(removed(GeoDataFeature*)),
-                      d->m_widget->model()->treeModel(), SLOT(removeFeature(GeoDataFeature*)) );
+    connect( this, SIGNAL(removed(const GeoDataFeature*)),
+                      d->m_widget->model()->treeModel(), SLOT(removeFeature(const GeoDataFeature*)) );
     connect( this, SIGNAL(updated(GeoDataFeature*)),
                       d->m_widget->model()->treeModel(), SLOT(updateFeature(GeoDataFeature*)) );
 }
@@ -179,10 +171,10 @@ void TourPlayback::play()
     lookat->setAltitude( lookat->range() );
     d->m_mapCenter.setView( lookat );
     d->m_mainTrack.play();
-    for( SoundTrack* track: d->m_soundTracks) {
+    foreach( SoundTrack* track, d->m_soundTracks) {
         track->play();
     }
-    for( AnimatedUpdateTrack* track: d->m_animatedUpdateTracks) {
+    foreach( AnimatedUpdateTrack* track, d->m_animatedUpdateTracks) {
         track->play();
     }
 }
@@ -191,10 +183,10 @@ void TourPlayback::pause()
 {
     d->m_pause = true;
     d->m_mainTrack.pause();
-    for( SoundTrack* track: d->m_soundTracks) {
+    foreach( SoundTrack* track, d->m_soundTracks) {
         track->pause();
     }
-    for( AnimatedUpdateTrack* track: d->m_animatedUpdateTracks) {
+    foreach( AnimatedUpdateTrack* track, d->m_animatedUpdateTracks) {
         track->pause();
     }
 }
@@ -203,7 +195,7 @@ void TourPlayback::stop()
 {
     d->m_pause = true;
     d->m_mainTrack.stop();
-    for( SoundTrack* track: d->m_soundTracks) {
+    foreach( SoundTrack* track, d->m_soundTracks) {
         track->stop();
     }
     for( int i = d->m_animatedUpdateTracks.size()-1; i >= 0; i-- ){
@@ -216,10 +208,10 @@ void TourPlayback::seek( double value )
 {
     double const offset = qBound( 0.0, value, d->m_mainTrack.duration() );
     d->m_mainTrack.seek( offset );
-    for( SoundTrack* track: d->m_soundTracks ){
+    foreach( SoundTrack* track, d->m_soundTracks ){
         track->seek( offset );
     }
-    for( AnimatedUpdateTrack* track: d->m_animatedUpdateTracks ){
+    foreach( AnimatedUpdateTrack* track, d->m_animatedUpdateTracks ){
         track->seek( offset );
     }
 }
@@ -240,31 +232,38 @@ void TourPlayback::updateTracks()
     double delay = 0;
     for( int i = 0; i < d->m_tour->playlist()->size(); i++){
         GeoDataTourPrimitive* primitive = d->m_tour->playlist()->primitive( i );
-        if (const auto flyTo = geodata_cast<GeoDataFlyTo>(primitive)){
+        if( primitive->nodeType() == GeoDataTypes::GeoDataFlyToType ){
+            const GeoDataFlyTo *flyTo = dynamic_cast<const GeoDataFlyTo*>(primitive);
             d->m_mainTrack.append( new PlaybackFlyToItem( flyTo ) );
             delay += flyTo->duration();
         }
-        else if (const auto wait = geodata_cast<GeoDataWait>(primitive)) {
+        else if( primitive->nodeType() == GeoDataTypes::GeoDataWaitType ){
+            const GeoDataWait *wait = dynamic_cast<const GeoDataWait*>(primitive);
+
             d->m_mainTrack.append( new PlaybackWaitItem( wait ) );
             delay += wait->duration();
         }
-        else if (const auto tourControl = geodata_cast<GeoDataTourControl>(primitive)) {
+        else if( primitive->nodeType() == GeoDataTypes::GeoDataTourControlType ){
+            const GeoDataTourControl *tourControl = dynamic_cast<const GeoDataTourControl*>(primitive);
+
             d->m_mainTrack.append( new PlaybackTourControlItem( tourControl ) );
         }
-        else if (const auto soundCue = geodata_cast<GeoDataSoundCue>(primitive)) {
+        else if( primitive->nodeType() == GeoDataTypes::GeoDataSoundCueType ){
+            const GeoDataSoundCue *soundCue = dynamic_cast<const GeoDataSoundCue*>(primitive);
             PlaybackSoundCueItem *item = new PlaybackSoundCueItem( soundCue );
             SoundTrack *track = new SoundTrack( item );
             track->setDelayBeforeTrackStarts( delay );
             d->m_soundTracks.append( track );
         }
-        else if (const auto animatedUpdate = geodata_cast<GeoDataAnimatedUpdate>(primitive)) {
+        else if( primitive->nodeType() == GeoDataTypes::GeoDataAnimatedUpdateType ){
+            GeoDataAnimatedUpdate *animatedUpdate = dynamic_cast<GeoDataAnimatedUpdate*>(primitive);
             PlaybackAnimatedUpdateItem *item = new PlaybackAnimatedUpdateItem( animatedUpdate );
             AnimatedUpdateTrack *track = new AnimatedUpdateTrack( item );
             track->setDelayBeforeTrackStarts( delay + animatedUpdate->delayedStart() );
             d->m_animatedUpdateTracks.append( track );
-            connect( track, SIGNAL(balloonHidden()), this, SLOT(hideBalloon()) );
-            connect( track, SIGNAL(balloonShown(GeoDataPlacemark*)), this, SLOT(showBalloon(GeoDataPlacemark*)) );
-            connect( track, SIGNAL(updated(GeoDataFeature*)), this, SIGNAL(updated(GeoDataFeature*)) );
+            connect( track, SIGNAL( balloonHidden()), this, SLOT( hideBalloon() ) );
+            connect( track, SIGNAL( balloonShown( GeoDataPlacemark* ) ), this, SLOT( showBalloon( GeoDataPlacemark* ) ) );
+            connect( track, SIGNAL( updated( GeoDataFeature* ) ), this, SIGNAL( updated( GeoDataFeature* ) ) );
             connect( track, SIGNAL(added(GeoDataContainer*,GeoDataFeature*,int)), this, SIGNAL(added(GeoDataContainer*,GeoDataFeature*,int)) );
             connect( track, SIGNAL(removed(const GeoDataFeature*)), this, SIGNAL(removed(const GeoDataFeature*)) );
         }
@@ -308,4 +307,4 @@ double TourPlayback::duration() const
 
 } // namespace Marble
 
-#include "moc_TourPlayback.cpp"
+#include "TourPlayback.moc"

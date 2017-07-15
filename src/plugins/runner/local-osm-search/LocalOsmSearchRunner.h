@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2013      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -16,7 +16,7 @@
 
 #include "OsmDatabase.h"
 #include "OsmPlacemark.h"
-#include "GeoDataPlacemark.h"
+#include "GeoDataFeature.h"
 
 #include <QMap>
 
@@ -29,14 +29,14 @@ class LocalOsmSearchRunner : public SearchRunner
 public:
     explicit LocalOsmSearchRunner( const QStringList &databaseFiles, QObject *parent = 0 );
 
-    ~LocalOsmSearchRunner() override;
+    ~LocalOsmSearchRunner();
 
-    void search( const QString &searchTerm, const GeoDataLatLonBox &preferred ) override;
+    virtual void search( const QString &searchTerm, const GeoDataLatLonBox &preferred );
 
 private:
     OsmDatabase m_database;
 
-    static QMap<OsmPlacemark::OsmCategory, GeoDataPlacemark::GeoDataVisualCategory> m_categoryMap;
+    static QMap<OsmPlacemark::OsmCategory, GeoDataFeature::GeoDataVisualCategory> m_categoryMap;
 };
 
 }

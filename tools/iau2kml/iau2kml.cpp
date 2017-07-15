@@ -21,11 +21,11 @@
 QString escapeXml( const QString &str )
 {
     QString xml = str;
-    xml.replace(QLatin1Char('&'), QStringLiteral("&amp;"));
-    xml.replace(QLatin1Char('<'), QStringLiteral("&lt;"));
-    xml.replace(QLatin1Char('>'), QStringLiteral("&gt;"));
-    xml.replace(QLatin1Char('\''), QStringLiteral("&apos;"));
-    xml.replace(QLatin1Char('"'), QStringLiteral("&quot;"));
+    xml.replace('&', "&amp;");
+    xml.replace('<', "&lt;");
+    xml.replace('>', "&gt;");
+    xml.replace('\'', "&apos;");
+    xml.replace('"', "&quot;");
 
     return xml;
 }
@@ -94,14 +94,14 @@ int main(int argc, char *argv[])
             if ( !rawline.startsWith(QLatin1String( "\"V\"|\"V\"|\"" ) ) ) {
                 continue;
             }
-            rawline.replace(QStringLiteral("\"|"), QStringLiteral("|"));
-            rawline.replace(QStringLiteral("|\""), QStringLiteral("|"));
-            if (rawline.startsWith(QLatin1Char('\"')) && rawline.endsWith(QLatin1Char('\"'))) {
+            rawline = rawline.replace( "\"|", "|" );
+            rawline = rawline.replace( "|\"", "|" );
+            if ( rawline.startsWith('\"') && rawline.endsWith('\"') ) {
                 rawline = rawline.left( rawline.length() - 1 );
                 rawline = rawline.right( rawline.length() - 2 );
             }
 
-            splitline = rawline.split(QLatin1Char('|'));
+            splitline = rawline.split('|');
 
             nameString  = splitline[2];
             latString   = splitline[3];
@@ -110,15 +110,15 @@ int main(int argc, char *argv[])
             roleString  = splitline[18];
             description = splitline[19];
 
-            // if (roleString == QLatin1String("SF")) continue;
+            // if ( roleString == "SF" ) continue;
 
             QString marbleRoleString = QLatin1String( "o" );
 
-            if (roleString == QLatin1String("AA") || roleString == QLatin1String("SF")) marbleRoleString = "c";
-            if (   roleString == QLatin1String("ME") || roleString == QLatin1String("OC")
-                || roleString == QLatin1String("LC") || roleString == QLatin1String("SI")) marbleRoleString = "a";
-            if (roleString == QLatin1String("MO")) marbleRoleString = "m";
-            if (roleString == QLatin1String("VA")) marbleRoleString = "v";
+            if ( roleString == "AA" || roleString == "SF" ) marbleRoleString = "c";
+            if (    roleString == "ME" || roleString == "OC" 
+                 || roleString == "LC" || roleString == "SI" ) marbleRoleString = "a";
+            if ( roleString == "MO" ) marbleRoleString = "m";
+            if ( roleString == "VA" ) marbleRoleString = "v";
 
             population = (int) ( 1000.0 * popString.toFloat() );
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
             lat = latString.toFloat();
 
-            description.remove(QLatin1Char('"'));
+            description = description.remove('"');
 
             targetstream << "    <MarblePlacemark> \n";
             targetstream << "        <name>" << escapeXml( nameString ) << "</name> \n";

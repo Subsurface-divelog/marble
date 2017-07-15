@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_OSMREGION_H
@@ -13,6 +13,7 @@
 
 #include "GeoDataPolygon.h"
 
+#include <QList>
 #include <QString>
 
 namespace Marble

@@ -23,32 +23,25 @@ GeoDataTour::GeoDataTour()
     // nothing to do
 }
 
-GeoDataTour::GeoDataTour(const GeoDataTour& other)
-    : GeoDataFeature(other, new GeoDataTourPrivate(*other.d_func()))
-{
-}
-
 GeoDataTour::~GeoDataTour()
 {
     // nothing to do;
 }
 
-GeoDataTour& GeoDataTour::operator=(const GeoDataTour& other)
+GeoDataTourPrivate *GeoDataTour::p()
 {
-    if (this != &other) {
-        Q_D(GeoDataTour);
-        *d = *other.d_func();
-    }
-
-    return *this;
+    return static_cast<GeoDataTourPrivate*>(d);
 }
 
+const GeoDataTourPrivate *GeoDataTour::p() const
+{
+    return static_cast<GeoDataTourPrivate*>(d);
+}
 
 bool GeoDataTour::operator==(const GeoDataTour& other) const
 {
-    Q_D(const GeoDataTour);
     return equals( other ) &&
-           *d->m_playlist == *other.d_func()->m_playlist;
+           *p()->m_playlist == *other.p()->m_playlist;
 }
 
 bool GeoDataTour::operator!=(const GeoDataTour& other) const
@@ -56,29 +49,22 @@ bool GeoDataTour::operator!=(const GeoDataTour& other) const
     return !this->operator==(other);
 }
 
-GeoDataFeature * GeoDataTour::clone() const
-{
-    return new GeoDataTour(*this);
-}
-
-
 GeoDataPlaylist* GeoDataTour::playlist()
 {
-    Q_D(GeoDataTour);
-    return d->m_playlist;
+    detach();
+    return p()->m_playlist;
 }
 
 const GeoDataPlaylist* GeoDataTour::playlist() const
 {
-    Q_D(const GeoDataTour);
-    return d->m_playlist;
+    return p()->m_playlist;
 }
 
 void GeoDataTour::setPlaylist(GeoDataPlaylist *playlist)
 {
-    Q_D(GeoDataTour);
-    d->m_playlist = playlist;
-    d->m_playlist->setParent(this);
+    detach();
+    p()->m_playlist = playlist;
+    p()->m_playlist->setParent( this );
 }
 
 const char *GeoDataTour::nodeType() const

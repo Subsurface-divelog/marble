@@ -74,30 +74,31 @@ StarsPlugin::StarsPlugin( const MarbleModel *marbleModel )
       m_dsoAction(0),
       m_doRender( false )
 {
-    bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
-    if (smallScreen) m_magnitudeLimit = 5;
-
     prepareNames();
 }
 
 StarsPlugin::~StarsPlugin()
 {
     delete m_contextMenu;
+    delete m_constellationsAction;
+    delete m_sunMoonAction;
+    delete m_planetsAction;
+    delete m_dsoAction;
 }
 
 QStringList StarsPlugin::backendTypes() const
 {
-    return QStringList(QStringLiteral("stars"));
+    return QStringList( "stars" );
 }
 
 QString StarsPlugin::renderPolicy() const
 {
-    return QStringLiteral("SPECIFIED_ALWAYS");
+    return QString( "SPECIFIED_ALWAYS" );
 }
 
 QStringList StarsPlugin::renderPosition() const
 {
-    return QStringList(QStringLiteral("STARS"));
+    return QStringList() << "STARS";
 }
 
 RenderPlugin::RenderType StarsPlugin::renderType() const
@@ -117,12 +118,12 @@ QString StarsPlugin::guiString() const
 
 QString StarsPlugin::nameId() const
 {
-    return QStringLiteral("stars");
+    return QString( "stars" );
 }
 
 QString StarsPlugin::version() const
 {
-    return QStringLiteral("1.2");
+    return "1.2";
 }
 
 QString StarsPlugin::description() const
@@ -132,20 +133,20 @@ QString StarsPlugin::description() const
 
 QString StarsPlugin::copyrightYears() const
 {
-    return QStringLiteral("2008-2012");
+    return "2008-2012";
 }
 
-QVector<PluginAuthor> StarsPlugin::pluginAuthors() const
+QList<PluginAuthor> StarsPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-           << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"))
-           << PluginAuthor(QStringLiteral("Rene Kuettner"), QStringLiteral("rene@bitkanal.net"))
-           << PluginAuthor(QStringLiteral("Timothy Lanzi"), QStringLiteral("trlanzi@gmail.com"));
+    return QList<PluginAuthor>()
+           << PluginAuthor( "Torsten Rahn", "tackat@kde.org" )
+           << PluginAuthor( "Rene Kuettner", "rene@bitkanal.net" )
+           << PluginAuthor( "Timothy Lanzi", "trlanzi@gmail.com" );
 }
 
 QIcon StarsPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/stars.png"));
+    return QIcon(":/icons/stars.png");
 }
 
 void StarsPlugin::initialize()
@@ -196,32 +197,32 @@ QHash<QString, QVariant> StarsPlugin::settings() const
 {
     QHash<QString, QVariant> settings = RenderPlugin::settings();
 
-    settings.insert(QStringLiteral("nameIndex"), m_nameIndex);
-    settings.insert(QStringLiteral("renderStars"), m_renderStars);
-    settings.insert(QStringLiteral("renderConstellationLines"), m_renderConstellationLines);
-    settings.insert(QStringLiteral("renderConstellationLabels"), m_renderConstellationLabels);
-    settings.insert(QStringLiteral("renderDsos"), m_renderDsos);
-    settings.insert(QStringLiteral("renderDsoLabels"), m_renderDsoLabels);
-    settings.insert(QStringLiteral("renderSun"), m_renderSun);
-    settings.insert(QStringLiteral("renderMoon"), m_renderMoon);
+    settings["nameIndex"] = m_nameIndex;
+    settings["renderStars"] = m_renderStars;
+    settings["renderConstellationLines"] = m_renderConstellationLines;
+    settings["renderConstellationLabels"] = m_renderConstellationLabels;
+    settings["renderDsos"] = m_renderDsos;
+    settings["renderDsoLabels"] = m_renderDsoLabels;
+    settings["renderSun"] = m_renderSun;
+    settings["renderMoon"] = m_renderMoon;
 
     QStringList planetState;
-    for (const QString &key: m_renderPlanet.keys())
-        planetState += key + QLatin1Char(':') + QString::number((int)m_renderPlanet[key]);
-    settings.insert(QStringLiteral("renderPlanet"), planetState.join(QLatin1Char('|')));
+    foreach (const QString &key, m_renderPlanet.keys())
+        planetState.append(key+QChar(':')+QString::number((int)m_renderPlanet[key]));
+    settings["renderPlanet"] = planetState.join(QChar('|'));
 
-    settings.insert(QStringLiteral("renderEcliptic"), m_renderEcliptic);
-    settings.insert(QStringLiteral("renderCelestialEquator"), m_renderCelestialEquator);
-    settings.insert(QStringLiteral("renderCelestialPole"), m_renderCelestialPole);
-    settings.insert(QStringLiteral("zoomSunMoon"), m_zoomSunMoon);
-    settings.insert(QStringLiteral("viewSolarSystemLabel"), m_viewSolarSystemLabel);
-    settings.insert(QStringLiteral("magnitudeLimit"), m_magnitudeLimit);
-    settings.insert(QStringLiteral("constellationBrush"), m_constellationBrush.color().rgb());
-    settings.insert(QStringLiteral("constellationLabelBrush"), m_constellationLabelBrush.color().rgb());
-    settings.insert(QStringLiteral("dsoLabelBrush"), m_dsoLabelBrush.color().rgb());
-    settings.insert(QStringLiteral("eclipticBrush"), m_eclipticBrush.color().rgb());
-    settings.insert(QStringLiteral("celestialEaquatorBrush"), m_celestialEquatorBrush.color().rgb());
-    settings.insert(QStringLiteral("celestialPoleBrush"), m_celestialPoleBrush.color().rgb());
+    settings["renderEcliptic"] = m_renderEcliptic;
+    settings["renderCelestialEquator"] = m_renderCelestialEquator;
+    settings["renderCelestialPole"] = m_renderCelestialPole;
+    settings["zoomSunMoon"] = m_zoomSunMoon;
+    settings["viewSolarSystemLabel"] = m_viewSolarSystemLabel;
+    settings["magnitudeLimit"] = m_magnitudeLimit;
+    settings["constellationBrush"] = m_constellationBrush.color().rgb();
+    settings["constellationLabelBrush"] = m_constellationLabelBrush.color().rgb();
+    settings["dsoLabelBrush"] = m_dsoLabelBrush.color().rgb();
+    settings["eclipticBrush"] = m_eclipticBrush.color().rgb();
+    settings["celestialEaquatorBrush"] = m_celestialEquatorBrush.color().rgb();
+    settings["celestialPoleBrush"] = m_celestialPoleBrush.color().rgb();
 
     return settings;
 }
@@ -230,37 +231,37 @@ void StarsPlugin::setSettings( const QHash<QString, QVariant> &settings )
 {
     RenderPlugin::setSettings( settings );
 
-    m_nameIndex = readSetting<int>(settings, QStringLiteral("nameIndex"), 0);
-    m_renderStars = readSetting<bool>(settings, QStringLiteral("renderStars"), true);
-    m_renderConstellationLines = readSetting<bool>(settings, QStringLiteral("renderConstellationLines"), true);
-    m_renderConstellationLabels = readSetting<bool>(settings, QStringLiteral("renderConstellationLabels"), true);
-    m_renderDsos = readSetting<bool>(settings, QStringLiteral("renderDsos"), true);
-    m_renderDsoLabels = readSetting<bool>(settings, QStringLiteral("renderDsoLabels"), true);
-    m_renderSun = readSetting<bool>(settings, QStringLiteral("renderSun"), true);
-    m_renderMoon = readSetting<bool>(settings, QStringLiteral("renderMoon"), true);
+    m_nameIndex = readSetting<int>( settings, "nameIndex", 0 );
+    m_renderStars = readSetting<bool>( settings, "renderStars", true );
+    m_renderConstellationLines = readSetting<bool>( settings, "renderConstellationLines", true );
+    m_renderConstellationLabels = readSetting<bool>( settings, "renderConstellationLabels", true );
+    m_renderDsos = readSetting<bool>( settings, "renderDsos", true );
+    m_renderDsoLabels = readSetting<bool>( settings, "renderDsoLabels", true);
+    m_renderSun = readSetting<bool>( settings, "renderSun", true );
+    m_renderMoon = readSetting<bool>( settings, "renderMoon", true );
 
     m_renderPlanet.clear();
-    const QString renderPlanet = readSetting<QString>(settings, QStringLiteral("renderPlanet"), QString());
-    const QStringList renderStates = renderPlanet.split(QLatin1Char('|'));
-    for(const QString &state: renderStates) {
-        const QStringList stateList = state.split(QLatin1Char(':'));
+    const QString renderPlanet = readSetting<QString>( settings, "renderPlanet", "" );
+    const QStringList renderStates = renderPlanet.split(QChar('|'));
+    foreach(const QString state, renderStates) {
+        const QStringList stateList = state.split(QChar(':'));
         if (stateList.size() == 2)
             m_renderPlanet[stateList[0]] = (bool)stateList[1].toInt();
     }
 
-    m_renderEcliptic = readSetting<bool>(settings, QStringLiteral("renderEcliptic"), true);
-    m_renderCelestialEquator = readSetting<bool>(settings, QStringLiteral("renderCelestialEquator"), true);
-    m_renderCelestialPole = readSetting<bool>(settings, QStringLiteral("renderCelestialPole"), true);
-    m_zoomSunMoon = readSetting<bool>(settings, QStringLiteral("zoomSunMoon"), true);
-    m_viewSolarSystemLabel = readSetting<bool>(settings, QStringLiteral("viewSolarSystemLabel"), true);
-    m_magnitudeLimit = readSetting<int>(settings, QStringLiteral("magnitudeLimit"), 100);
+    m_renderEcliptic = readSetting<bool>( settings, "renderEcliptic", true );
+    m_renderCelestialEquator = readSetting<bool>( settings, "renderCelestialEquator", true );
+    m_renderCelestialPole = readSetting<bool>( settings, "renderCelestialPole", true );
+    m_zoomSunMoon = readSetting<bool>( settings, "zoomSunMoon", true );
+    m_viewSolarSystemLabel = readSetting<bool>( settings, "viewSolarSystemLabel", true );
+    m_magnitudeLimit = readSetting<int>( settings, "magnitudeLimit", 100 );
     QColor const defaultColor = Marble::Oxygen::aluminumGray5;
-    m_constellationBrush = QColor(readSetting<QRgb>(settings, QStringLiteral("constellationBrush"), defaultColor.rgb()));
-    m_constellationLabelBrush = QColor(readSetting<QRgb>(settings, QStringLiteral("constellationLabelBrush"), defaultColor.rgb()));
-    m_dsoLabelBrush = QColor(readSetting<QRgb>(settings, QStringLiteral("dsoLabelBrush"), defaultColor.rgb()));
-    m_eclipticBrush = QColor(readSetting<QRgb>(settings, QStringLiteral("eclipticBrush"), defaultColor.rgb()));
-    m_celestialEquatorBrush = QColor(readSetting<QRgb>(settings, QStringLiteral("celestialEquatorBrush"), defaultColor.rgb()));
-    m_celestialPoleBrush = QColor(readSetting<QRgb>(settings, QStringLiteral("celestialPoleBrush"), defaultColor.rgb()));
+    m_constellationBrush = QColor( readSetting<QRgb>( settings, "constellationBrush", defaultColor.rgb() ) );
+    m_constellationLabelBrush = QColor( readSetting<QRgb>( settings, "constellationLabelBrush", defaultColor.rgb()) );
+    m_dsoLabelBrush = QColor( readSetting<QRgb>( settings, "dsoLabelBrush", defaultColor.rgb() ) );
+    m_eclipticBrush = QColor( readSetting<QRgb>( settings, "eclipticBrush", defaultColor.rgb() ) );
+    m_celestialEquatorBrush = QColor( readSetting<QRgb>( settings, "celestialEquatorBrush", defaultColor.rgb() ) );
+    m_celestialPoleBrush = QColor( readSetting<QRgb>( settings, "celestialPoleBrush", defaultColor.rgb() ) );
 }
 
 QPixmap StarsPlugin::starPixmap(qreal mag, int colorId) const
@@ -291,7 +292,7 @@ QPixmap StarsPlugin::starPixmap(qreal mag, int colorId) const
 void StarsPlugin::prepareNames()
 {
 
-    QFile names(MarbleDirs::path(QStringLiteral("stars/names.csv")));
+    QFile names( MarbleDirs::path( "stars/names.csv" ) );
     if ( !names.open( QIODevice::ReadOnly ) ) {
         return;
     }
@@ -299,9 +300,9 @@ void StarsPlugin::prepareNames()
     QTextStream in( &names );
     while ( !in.atEnd() ) {
         QString line = in.readLine();
-        const QStringList list = line.split(QLatin1Char(';'));
+        QStringList list = line.split( ';' );
         if ( list.size() == 3 ) {
-            m_nativeHash[ list.at( 0 ) ] = QCoreApplication::translate( "StarNames", list.at( 1 ).toUtf8().constData() );
+            m_nativeHash[ list.at( 0 ) ] = tr( list.at( 1 ).toUtf8().constData() );
             m_abbrHash[ list.at( 0 ) ] = list.at( 2 );
         }
     }
@@ -534,7 +535,7 @@ void StarsPlugin::loadStars()
     // Load star data
     m_stars.clear();
 
-    QFile starFile(MarbleDirs::path(QStringLiteral("stars/stars.dat")));
+    QFile starFile( MarbleDirs::path( "stars/stars.dat" ) );
     starFile.open( QIODevice::ReadOnly );
     QDataStream in( &starFile );
 
@@ -595,8 +596,8 @@ void StarsPlugin::loadStars()
 
     // load the Sun pixmap
     // TODO: adjust pixmap size according to distance
-    m_pixmapSun.load(MarbleDirs::path(QStringLiteral("svg/sun.png")));
-    m_pixmapMoon.load(MarbleDirs::path(QStringLiteral("svg/moon.png")));
+    m_pixmapSun.load( MarbleDirs::path( "svg/sun.png" ) );
+    m_pixmapMoon.load( MarbleDirs::path( "svg/moon.png" ) );
 
     m_starsLoaded = true;
 }
@@ -606,23 +607,23 @@ void StarsPlugin::createStarPixmaps()
     // Load star pixmaps
     QVector<QPixmap> pixBigStars;
     pixBigStars.clear();
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_blue.png"))));
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_bluewhite.png"))));
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_white.png"))));
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_yellow.png"))));
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_orange.png"))));
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_red.png"))));
-    pixBigStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_0_garnetred.png"))));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_blue.png")));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_bluewhite.png")));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_white.png")));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_yellow.png")));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_orange.png")));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_red.png")));
+    pixBigStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_0_garnetred.png")));
 
     QVector<QPixmap> pixSmallStars;
     pixSmallStars.clear();
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_blue.png"))));
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_bluewhite.png"))));
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_white.png"))));
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_yellow.png"))));
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_orange.png"))));
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_red.png"))));
-    pixSmallStars.append(QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/stars/star_3_garnetred.png"))));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_blue.png")));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_bluewhite.png")));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_white.png")));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_yellow.png")));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_orange.png")));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_red.png")));
+    pixSmallStars.append(QPixmap(MarbleDirs::path("bitmaps/stars/star_3_garnetred.png")));
 
 
     // Pre-Scale Star Pixmaps
@@ -688,7 +689,7 @@ void StarsPlugin::loadConstellations()
     // Load star data
     m_constellations.clear();
 
-    QFile constellationFile(MarbleDirs::path(QStringLiteral("stars/constellations.dat")));
+    QFile constellationFile( MarbleDirs::path( "stars/constellations.dat" ) );
     constellationFile.open( QIODevice::ReadOnly );
     QTextStream in( &constellationFile );
     QString line;
@@ -704,7 +705,7 @@ void StarsPlugin::loadConstellations()
 
         // Ignore Comment lines in header and
         // between constellation entries
-        if (line.startsWith(QLatin1Char('#'))) {
+        if ( line.startsWith( '#' ) )    {
             continue;
         }
 
@@ -728,7 +729,7 @@ void StarsPlugin::loadDsos()
     // Load star data
     m_dsos.clear();
 
-    QFile dsoFile(MarbleDirs::path(QStringLiteral("stars/dso.dat")));
+    QFile dsoFile( MarbleDirs::path( "stars/dso.dat" ) );
     dsoFile.open( QIODevice::ReadOnly );
     QTextStream in( &dsoFile );
     QString line;
@@ -743,7 +744,7 @@ void StarsPlugin::loadDsos()
 
         // Ignore Comment lines in header and
         // between dso entries
-        if (line.startsWith(QLatin1Char('#'))) {
+        if ( line.startsWith( '#' ) )    {
             continue;
         }
 
@@ -773,7 +774,7 @@ void StarsPlugin::loadDsos()
         m_dsos << dso;
     }
 
-    m_dsoImage.load(MarbleDirs::path(QStringLiteral("stars/deepsky.png")));
+    m_dsoImage.load( MarbleDirs::path( "stars/deepsky.png" ) );
     m_dsosLoaded = true;
 }
 
@@ -786,7 +787,7 @@ bool StarsPlugin::render( GeoPainter *painter, ViewportParams *viewport,
     QString planetId = marbleModel()->planetId();
     const bool doRender = !viewport->mapCoversViewport() &&
                              ( (viewport->projection() == Spherical || viewport->projection() == VerticalPerspective) &&
-                             planetId == QLatin1String("earth")); // So far displaying stars is only supported on earth.
+                             planetId == "earth" ); // So far displaying stars is only supported on earth.
 
     if ( doRender != m_doRender ) {
         if ( doRender ) {
@@ -809,7 +810,7 @@ bool StarsPlugin::render( GeoPainter *painter, ViewportParams *viewport,
                 dateTime.time().hour(), dateTime.time().minute(),
                 (double)dateTime.time().second());
     QString const pname = planetId.at(0).toUpper() + planetId.right(planetId.size() - 1);
-    QByteArray name = pname.toLatin1();
+    QByteArray const name = pname.toLatin1();
     sys.setCentralBody( name.data() );
 
     Vec3 skyVector = sys.getPlanetocentric (0.0, 0.0);
@@ -1117,7 +1118,7 @@ bool StarsPlugin::render( GeoPainter *painter, ViewportParams *viewport,
             qpos.rotateAroundAxis( skyAxisMatrix );
 
             if ( qpos.v[Q_Z] <= 0 ) {
-                QPixmap glow(MarbleDirs::path(QStringLiteral("svg/glow.png")));
+                QPixmap glow(MarbleDirs::path( "svg/glow.png" ));
                 qreal deltaX  = glow.width()  / 2.;
                 qreal deltaY  = glow.height() / 2.;
                 int x = (int)(viewport->width()  / 2 + skyRadius * qpos.v[Q_X]);
@@ -1152,7 +1153,7 @@ bool StarsPlugin::render( GeoPainter *painter, ViewportParams *viewport,
             }
         }
 
-        if ( m_renderMoon && marbleModel()->planetId() == QLatin1String("earth")) {
+        if ( m_renderMoon && marbleModel()->planetId() == "earth" ) {
             // moon
             double ra=0.0;
             double decl=0.0;
@@ -1246,7 +1247,7 @@ bool StarsPlugin::render( GeoPainter *painter, ViewportParams *viewport,
             }
         }
 
-        for(const QString &planet: m_renderPlanet.keys()) {
+        foreach(const QString &planet, m_renderPlanet.keys()) {
             if (m_renderPlanet[planet])
                 renderPlanet(planet, painter, sys, viewport, skyRadius, skyAxisMatrix);
         }
@@ -1268,31 +1269,31 @@ void StarsPlugin::renderPlanet(const QString &planetId,
     int color=0;
 
     // venus, mars, jupiter, uranus, neptune, saturn
-    if (planetId == QLatin1String("venus")) {
+    if (planetId == "venus") {
         sys.getVenus(ra, decl);
         sys.getPhysVenus(diam, mag, phase);
         color = 2;
-    } else if (planetId == QLatin1String("mars")) {
+    } else if (planetId == "mars") {
         sys.getMars(ra, decl);
         sys.getPhysMars(diam, mag, phase);
         color = 5;
-    } else if (planetId == QLatin1String("jupiter")) {
+    } else if (planetId == "jupiter") {
         sys.getJupiter(ra, decl);
         sys.getPhysJupiter(diam, mag, phase);
         color = 2;
-    } else if (planetId == QLatin1String("mercury")) {
+    } else if (planetId == "mercury") {
         sys.getMercury(ra, decl);
         sys.getPhysMercury(diam, mag, phase);
         color = 3;
-    } else if (planetId == QLatin1String("saturn")) {
+    } else if (planetId == "saturn") {
         sys.getSaturn(ra, decl);
         sys.getPhysSaturn(diam, mag, phase);
         color = 3;
-    } else if (planetId == QLatin1String("uranus")) {
+    } else if (planetId == "uranus") {
         sys.getUranus(ra, decl);
         sys.getPhysUranus(diam, mag, phase);
         color = 0;
-    } else if (planetId == QLatin1String("neptune")) {
+    } else if (planetId == "neptune") {
         sys.getNeptune(ra, decl);
         sys.getPhysNeptune(diam, mag, phase);
         color = 0;
@@ -1331,15 +1332,19 @@ void StarsPlugin::requestRepaint()
     emit repaintNeeded( QRegion() );
 }
 
-void StarsPlugin::toggleSunMoon(bool on)
+void StarsPlugin::toggleSunMoon()
 {
-    m_renderSun = on;
-    m_renderMoon = on;
-    if (on) {
+    QAction *sunMoonAction = qobject_cast<QAction*>(sender());
+    sunMoonAction->setChecked(!sunMoonAction->isChecked());
+
+    const bool changed = !(m_renderSun || m_renderMoon);
+    m_renderSun = changed;
+    m_renderMoon = changed;
+    if (changed) {
         m_viewSolarSystemLabel = true;
     }
 
-    const Qt::CheckState state = on ? Qt::Checked : Qt::Unchecked;
+    Qt::CheckState state = changed ? Qt::Checked : Qt::Unchecked;
     if ( m_configDialog ) {
         ui_configWidget->m_solarSystemListWidget->item( 0 )->setCheckState( state );
         ui_configWidget->m_solarSystemListWidget->item( 1 )->setCheckState( state );
@@ -1349,15 +1354,16 @@ void StarsPlugin::toggleSunMoon(bool on)
     requestRepaint();
 }
 
-void StarsPlugin::toggleDsos(bool on)
+void StarsPlugin::toggleDsos()
 {
-    m_renderDsos = on;
-    // only enable lables if set to true
-    if (on) {
-        m_renderDsoLabels = true;
-    }
+    QAction *dsosAction = qobject_cast<QAction*>(sender());
+    dsosAction->setChecked(!dsosAction->isChecked());
 
-    const Qt::CheckState state = on ? Qt::Checked : Qt::Unchecked;
+    const bool changed = !(m_renderDsos || m_renderDsoLabels);
+    m_renderDsos = changed;
+    m_renderDsoLabels = changed;
+
+    Qt::CheckState state = changed ? Qt::Checked : Qt::Unchecked;
     if ( m_configDialog ) {
         ui_configWidget->m_viewDsosCheckbox->setChecked(state);
         ui_configWidget->m_viewDsoLabelCheckbox->setChecked(state);
@@ -1366,12 +1372,16 @@ void StarsPlugin::toggleDsos(bool on)
     requestRepaint();
 }
 
-void StarsPlugin::toggleConstellations(bool on)
+void StarsPlugin::toggleConstellations()
 {
-    m_renderConstellationLines = on;
-    m_renderConstellationLabels = on;
+    QAction *constellationsAction = qobject_cast<QAction*>(sender());
+    constellationsAction->setChecked(!constellationsAction->isChecked());
 
-    const Qt::CheckState state = on ? Qt::Checked : Qt::Unchecked;
+    const bool changed = !(m_renderConstellationLines || m_renderConstellationLabels);
+    m_renderConstellationLines = changed;
+    m_renderConstellationLabels = changed;
+
+    Qt::CheckState state = changed ? Qt::Checked : Qt::Unchecked;
     if ( m_configDialog ) {
         ui_configWidget->m_viewConstellationLinesCheckbox->setChecked( state );
         ui_configWidget->m_viewConstellationLabelsCheckbox->setChecked( state );
@@ -1380,17 +1390,21 @@ void StarsPlugin::toggleConstellations(bool on)
     requestRepaint();
 }
 
-void StarsPlugin::togglePlanets(bool on)
+void StarsPlugin::togglePlanets()
 {
-    m_renderPlanet["venus"] = on;
-    m_renderPlanet["mars"]  = on;
-    m_renderPlanet["jupiter"] = on;
-    m_renderPlanet["mercury"] = on;
-    m_renderPlanet["saturn"] = on;
-    m_renderPlanet["uranus"] = on;
-    m_renderPlanet["neptune"] = on;
+    QAction *planetsAction = qobject_cast<QAction*>(sender());
+    planetsAction->setChecked(!planetsAction->isChecked());
 
-    const Qt::CheckState state = on ? Qt::Checked : Qt::Unchecked;
+    const bool changed = !planetsAction->isChecked();
+    m_renderPlanet["venus"] = changed;
+    m_renderPlanet["mars"]  = changed;
+    m_renderPlanet["jupiter"] = changed;
+    m_renderPlanet["mercury"] = changed;
+    m_renderPlanet["saturn"] = changed;
+    m_renderPlanet["uranus"] = changed;
+    m_renderPlanet["neptune"] = changed;
+
+    Qt::CheckState state = changed ? Qt::Checked : Qt::Unchecked;
     if ( m_configDialog ) {
         // Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune
         ui_configWidget->m_solarSystemListWidget->item(2)->setCheckState(state);
@@ -1404,13 +1418,6 @@ void StarsPlugin::togglePlanets(bool on)
 
     emit settingsChanged( nameId() );
     requestRepaint();
-}
-
-void StarsPlugin::executeConfigDialog()
-{
-    QDialog *dialog = configDialog();
-    Q_ASSERT( dialog );
-    dialog->exec();
 }
 
 bool StarsPlugin::eventFilter( QObject *object, QEvent *e )
@@ -1432,7 +1439,7 @@ bool StarsPlugin::eventFilter( QObject *object, QEvent *e )
                 return false;
             }
 
-            for ( AbstractFloatItem *floatItem: widget->floatItems() ) {
+            foreach ( AbstractFloatItem *floatItem, widget->floatItems() ) {
                 if ( floatItem->enabled() && floatItem->visible()
                      && floatItem->contains( menuEvent->pos() ) )
                 {
@@ -1440,39 +1447,62 @@ bool StarsPlugin::eventFilter( QObject *object, QEvent *e )
                 }
             }
 
+            bool scheduleConfigAction = false;
             if (!m_contextMenu) {
                 m_contextMenu = new QMenu;
-                m_constellationsAction = m_contextMenu->addAction(tr("Show &Constellations"),
-                                                                  this, SLOT(toggleConstellations(bool)));
-                m_constellationsAction->setCheckable(true);
-
-                m_sunMoonAction = m_contextMenu->addAction(tr("Show &Sun and Moon"),
-                                                           this, SLOT(toggleSunMoon(bool)));
-                m_sunMoonAction->setCheckable(true);
-
-                m_planetsAction = m_contextMenu->addAction(tr("Show &Planets"),
-                                                           this, SLOT(togglePlanets(bool)));
-                m_planetsAction->setCheckable(true);
-
-                m_dsoAction = m_contextMenu->addAction(tr("Show &Deep Sky Objects"),
-                                                       this, SLOT(toggleDsos(bool)) );
-                m_dsoAction->setCheckable(true);
-
-                m_contextMenu->addSeparator();
-                m_contextMenu->addAction(tr("&Configure..."),
-                                         this, SLOT(executeConfigDialog()));
+                scheduleConfigAction = true;
             }
 
-            // update action states
-            m_constellationsAction->setChecked(m_renderConstellationLines || m_renderConstellationLabels);
-            m_sunMoonAction->setChecked(m_renderSun || m_renderMoon);
-            m_dsoAction->setChecked(m_renderDsos);
-            const bool isAnyPlanetRendered =
-                m_renderPlanet["venus"] ||   m_renderPlanet["mars"] ||
+            if (!m_constellationsAction) {
+                m_constellationsAction =
+                        m_contextMenu->addAction( tr("Show &Constellations"),
+                                                  this, SLOT(toggleConstellations()) );
+            }
+
+            m_constellationsAction->setCheckable( true );
+            m_constellationsAction->setChecked(
+                        m_renderConstellationLines || m_renderConstellationLabels );
+
+
+            if (!m_sunMoonAction) {
+                m_sunMoonAction = m_contextMenu->addAction( tr("Show &Sun and Moon"),
+                                                            this, SLOT(toggleSunMoon()) );
+            }
+
+            m_sunMoonAction->setCheckable( true );
+            m_sunMoonAction->setChecked( m_renderSun || m_renderMoon || m_viewSolarSystemLabel );
+
+            if (!m_planetsAction) {
+                m_planetsAction = m_contextMenu->addAction( tr("Show &Planets"),
+                                                            this, SLOT(togglePlanets()));
+            }
+
+            m_planetsAction->setCheckable( true );
+            if (m_renderPlanet["venus"] || m_renderPlanet["mars"] ||
                 m_renderPlanet["jupiter"] || m_renderPlanet["mercury"] ||
-                m_renderPlanet["saturn"] ||  m_renderPlanet["uranus"] ||
-                m_renderPlanet["neptune"];
-            m_planetsAction->setChecked(isAnyPlanetRendered);
+                m_renderPlanet["saturn"] || m_renderPlanet["uranus"] ||
+                m_renderPlanet["neptune"]) {
+                // then
+                m_planetsAction->setChecked( true );
+            } else {
+                m_planetsAction->setChecked( false );
+            }
+
+            if (!m_dsoAction) {
+                m_dsoAction = m_contextMenu->addAction( tr("Show &Deep Sky Objects"),
+                                                        this, SLOT(toggleDsos()) );
+            }
+
+            m_dsoAction->setCheckable( true );
+            m_dsoAction->setChecked( m_renderDsos || m_renderDsoLabels );
+
+            if (scheduleConfigAction) {
+                QDialog *dialog = configDialog();
+                Q_ASSERT( dialog );
+                m_contextMenu->addSeparator();
+                QAction *configAction = m_contextMenu->addAction( tr( "&Configure..." ) );
+                connect( configAction, SIGNAL(triggered()), dialog, SLOT(exec()) );
+            }
 
             m_contextMenu->exec(widget->mapToGlobal(menuEvent->pos()));
             return true;
@@ -1485,4 +1515,6 @@ bool StarsPlugin::eventFilter( QObject *object, QEvent *e )
 
 }
 
-#include "moc_StarsPlugin.cpp"
+Q_EXPORT_PLUGIN2( StarsPlugin, Marble::StarsPlugin )
+
+#include "StarsPlugin.moc"

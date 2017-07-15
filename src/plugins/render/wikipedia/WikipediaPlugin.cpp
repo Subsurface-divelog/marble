@@ -20,6 +20,7 @@
 
 // Qt
 #include <QPushButton>
+#include <QLabel>
 
 using namespace Marble;
 /* TRANSLATOR Marble::WikipediaPlugin */
@@ -35,7 +36,7 @@ WikipediaPlugin::WikipediaPlugin()
 
 WikipediaPlugin::WikipediaPlugin( const MarbleModel *marbleModel )
     : AbstractDataPlugin( marbleModel ),
-      m_icon(MarbleDirs::path(QStringLiteral("svg/wikipedia_shadow.svg"))),
+      m_icon( MarbleDirs::path( "svg/wikipedia_shadow.svg" ) ),
       ui_configWidget( 0 ),
       m_configDialog( 0 ),
       m_showThumbnails( true )
@@ -79,12 +80,12 @@ QString WikipediaPlugin::guiString() const
 
 QString WikipediaPlugin::nameId() const
 {
-    return QStringLiteral("wikipedia");
+    return "wikipedia";
 }
 
 QString WikipediaPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString WikipediaPlugin::description() const
@@ -94,13 +95,13 @@ QString WikipediaPlugin::description() const
 
 QString WikipediaPlugin::copyrightYears() const
 {
-    return QStringLiteral("2009");
+    return "2009";
 }
 
-QVector<PluginAuthor> WikipediaPlugin::pluginAuthors() const
+QList<PluginAuthor> WikipediaPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Bastian Holst"), QStringLiteral("bastianholst@gmx.de"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Bastian Holst", "bastianholst@gmx.de" );
 }
 
 QString WikipediaPlugin::aboutDataText() const
@@ -137,8 +138,8 @@ QHash<QString,QVariant> WikipediaPlugin::settings() const
 {
     QHash<QString, QVariant> settings = AbstractDataPlugin::settings();
 
-    settings.insert(QStringLiteral("numberOfItems"), numberOfItems());
-    settings.insert(QStringLiteral("showThumbnails"), m_showThumbnails);
+    settings.insert( "numberOfItems", numberOfItems() );
+    settings.insert( "showThumbnails", m_showThumbnails );
 
     return settings;
 }
@@ -147,8 +148,8 @@ void WikipediaPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractDataPlugin::setSettings( settings );
 
-    setNumberOfItems(qMin<int>(maximumNumberOfItems, settings.value(QStringLiteral("numberOfItems"), 15).toInt()));
-    m_showThumbnails = settings.value(QStringLiteral("showThumbnails"), true).toBool();
+    setNumberOfItems( qMin<int>( maximumNumberOfItems, settings.value( "numberOfItems", 15 ).toInt() ) );
+    m_showThumbnails = settings.value( "showThumbnails", true ).toBool();
 
     readSettings();
     emit settingsChanged( nameId() );
@@ -206,4 +207,6 @@ void WikipediaPlugin::checkNumberOfItems( quint32 number ) {
     readSettings();
 }
 
-#include "moc_WikipediaPlugin.cpp"
+Q_EXPORT_PLUGIN2(WikipediaPlugin, Marble::WikipediaPlugin)
+
+#include "WikipediaPlugin.moc"

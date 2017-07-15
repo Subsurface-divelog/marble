@@ -19,7 +19,6 @@
 #include "WidgetGraphicsItem.h"
 #include "MarbleGraphicsGridLayout.h"
 #include "ViewportParams.h"
-#include "GeoDataAccuracy.h"
 
 namespace Marble
 {
@@ -45,7 +44,7 @@ GpsInfo::~GpsInfo()
 
 QStringList GpsInfo::backendTypes() const
 {
-    return QStringList(QStringLiteral("GpsInfo"));
+    return QStringList( "GpsInfo" );
 }
 
 QString GpsInfo::name() const
@@ -60,12 +59,12 @@ QString GpsInfo::guiString() const
 
 QString GpsInfo::nameId() const
 {
-    return QStringLiteral("GpsInfo");
+    return QString( "GpsInfo" );
 }
 
 QString GpsInfo::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString GpsInfo::description() const
@@ -75,18 +74,18 @@ QString GpsInfo::description() const
 
 QString GpsInfo::copyrightYears() const
 {
-    return QStringLiteral("2011");
+    return "2011";
 }
 
-QVector<PluginAuthor> GpsInfo::pluginAuthors() const
+QList<PluginAuthor> GpsInfo::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" );
 }
 
 QIcon GpsInfo::icon () const
 {
-    return QIcon(QStringLiteral(":/icons/gps.png"));
+    return QIcon(":/icons/gps.png");
 }
 
 void GpsInfo::initialize ()
@@ -114,7 +113,7 @@ bool GpsInfo::isInitialized () const
     return m_widgetItem;
 }
 
-void GpsInfo::updateLocation( const GeoDataCoordinates& coordinates, qreal)
+void GpsInfo::updateLocation( GeoDataCoordinates coordinates, qreal)
 {
     PositionTracking *tracking = marbleModel()->positionTracking();
     qreal speed = tracking->speed();
@@ -173,4 +172,6 @@ void GpsInfo::updateLocation( const GeoDataCoordinates& coordinates, qreal)
 
 }
 
-#include "moc_GpsInfo.cpp"
+Q_EXPORT_PLUGIN2( GpsInfo, Marble::GpsInfo )
+
+#include "GpsInfo.moc"

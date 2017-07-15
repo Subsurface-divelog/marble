@@ -35,7 +35,7 @@ class MARBLE_EXPORT TourPlayback : public QObject
     Q_OBJECT
 public:
     explicit TourPlayback(QObject *parent=0);
-    ~TourPlayback() override;
+    ~TourPlayback();
 
     void setTour(GeoDataTour *tour);
     void setMarbleWidget( MarbleWidget *widget );
@@ -83,15 +83,13 @@ Q_SIGNALS:
     void progressChanged( double );
     void updated( GeoDataFeature* );
     void added( GeoDataContainer *parent, GeoDataFeature *feature, int row );
-    void removed(GeoDataFeature *feature);
-    void itemFinished( int index );
+    void removed( const GeoDataFeature *feature  );
 
 private Q_SLOTS:
     void stopTour();
     void showBalloon( GeoDataPlacemark* );
     void hideBalloon();
     void centerOn( const GeoDataCoordinates &coordinates );
-    void handleFinishedItem( int index );
 
 private:
     TourPlaybackPrivate * const d;

@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
-// Copyright 2013 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MapThemeDownloadDialog.h"
@@ -26,15 +26,13 @@ namespace Marble
 
 class MapItemDelegate : public QStyledItemDelegate
 {
-    Q_OBJECT
-
 public:
     MapItemDelegate( QListView* view, NewstuffModel* newstuffModel, MarbleWidget* marbleWidget );
-    void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
-    QSize sizeHint( const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+    void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const;
+    QSize sizeHint( const QStyleOptionViewItem &option, const QModelIndex &index ) const;
 
 protected:
-    bool editorEvent( QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index ) override;
+    bool editorEvent( QEvent *event, QAbstractItemModel *model, const QStyleOptionViewItem &option, const QModelIndex &index );
 
 private:
     enum Element {
@@ -60,7 +58,7 @@ private:
     MarbleWidget* m_marbleWidget;
 };
 
-class Q_DECL_HIDDEN MapThemeDownloadDialog::Private : public Ui::MapThemeDownloadDialog
+class MapThemeDownloadDialog::Private : public Ui::MapThemeDownloadDialog
 {
 public:
     Private() :
@@ -76,9 +74,9 @@ MapThemeDownloadDialog::MapThemeDownloadDialog( MarbleWidget* marbleWidget ) :
 {
     d->setupUi( this );
 
-    d->m_model.setTargetDirectory(MarbleDirs::localPath() + QLatin1String("/maps"));
-    d->m_model.setProvider( "https://marble.kde.org/maps-v3.xml" );
-    d->m_model.setRegistryFile(MarbleDirs::localPath() + QLatin1String("/newstuff/marble-map-themes.knsregistry"), Marble::NewstuffModel::NameTag);
+    d->m_model.setTargetDirectory( MarbleDirs::localPath() + "/maps" );
+    d->m_model.setProvider( "http://edu.kde.org/marble/newstuff/maps-4.5.xml" );
+    d->m_model.setRegistryFile( MarbleDirs::localPath() + "/newstuff/marble-map-themes.knsregistry", Marble::NewstuffModel::NameTag );
 
     d->listView->setIconSize( QSize( 130, 130 ) );
     d->listView->setAlternatingRowColors( true );
@@ -106,7 +104,7 @@ MapItemDelegate::MapItemDelegate( QListView *view , NewstuffModel *newstuffModel
 
 void MapItemDelegate::paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const
 {
-    QStyleOptionViewItem styleOption = option;
+    QStyleOptionViewItemV4 styleOption = option;
     styleOption.text = QString();
     QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &styleOption, painter);
 
@@ -144,7 +142,7 @@ void MapItemDelegate::paint( QPainter *painter, const QStyleOptionViewItem &opti
         progressBarOption.minimum = 0;
         progressBarOption.maximum = 100;
         progressBarOption.progress = ( 100.0 * progress / total );
-        progressBarOption.text = QString::number(progressBarOption.progress) + QLatin1Char('%');
+        progressBarOption.text = QString::number( progressBarOption.progress ) + '%';
         progressBarOption.textVisible = true;
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
 
@@ -152,9 +150,6 @@ void MapItemDelegate::paint( QPainter *painter, const QStyleOptionViewItem &opti
         QRect installRect = position( CancelButton, option );
         cancelButton.rect = installRect;
         QApplication::style()->drawControl( QStyle::CE_PushButton, &cancelButton, painter );
-        QRect buttonTextRect(installRect);
-        buttonTextRect.adjust(cancelButton.iconSize.width() + 4, 0, 0, 0);
-        painter->drawText(buttonTextRect, Qt::AlignCenter, cancelButton.text);
     } else {
         bool const installed = index.data( NewstuffModel::IsInstalled ).toBool();
         bool const upgradable = index.data( NewstuffModel::IsUpgradable ).toBool();
@@ -166,18 +161,12 @@ void MapItemDelegate::paint( QPainter *painter, const QStyleOptionViewItem &opti
         QRect installRect = position( element, option );
         actionButton.rect = installRect;
         QApplication::style()->drawControl( QStyle::CE_PushButton, &actionButton, painter );
-        QRect buttonTextRect(installRect);
-        buttonTextRect.adjust(actionButton.iconSize.width() + 4, 0, 0, 0);
-        painter->drawText(buttonTextRect, Qt::AlignCenter, actionButton.text);
 
         if ( installed ) {
             QStyleOptionButton removeButton = button( RemoveButton, option );
             QRect removeRect = position( RemoveButton, option );
             removeButton.rect = removeRect;
             QApplication::style()->drawControl( QStyle::CE_PushButton, &removeButton, painter );
-            buttonTextRect = removeRect;
-            buttonTextRect.adjust(removeButton.iconSize.width() + 4, 0, 0 ,0);
-            painter->drawText(buttonTextRect, Qt::AlignCenter, removeButton.text);
         }
     }
 }
@@ -223,7 +212,7 @@ bool MapItemDelegate::editorEvent(QEvent *event, QAbstractItemModel *, const QSt
                 QRect openRect = position( OpenButton, option );
                 if ( openRect.contains( mouseEvent->pos() ) ) {
                     QStringList const files = index.data( NewstuffModel::InstalledFiles ).toStringList();
-                    for( const QString &file: files ) {
+                    foreach( const QString &file, files ) {
                         if ( file.endsWith( QLatin1String( ".dgml" ) ) ) {
                             QFileInfo dgmlFile( file );
                             QDir baseDir = dgmlFile.dir();
@@ -277,17 +266,17 @@ QStyleOptionButton MapItemDelegate::button( Element element, const QStyleOptionV
     switch (element) {
     case InstallButton:
         result.text = tr( "Install" );
-        result.icon = QIcon(QStringLiteral(":/marble/dialog-ok.png"));
+        result.icon = QIcon( ":/marble/dialog-ok.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case UpgradeButton:
         result.text = tr( "Update" );
-        result.icon = QIcon(QStringLiteral(":/marble/system-software-update.png"));
+        result.icon = QIcon( ":/marble/system-software-update.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case OpenButton:
         result.text = tr( "Open" );
-        result.icon = QIcon(QStringLiteral(":/marble/document-open.png"));
+        result.icon = QIcon( ":/marble/document-open.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case CancelButton:
@@ -295,7 +284,7 @@ QStyleOptionButton MapItemDelegate::button( Element element, const QStyleOptionV
         break;
     case RemoveButton:
         result.text = tr( "Remove" );
-        result.icon = QIcon(QStringLiteral(":/marble/edit-delete.png"));
+        result.icon = QIcon( ":/marble/edit-delete.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     default:
@@ -365,4 +354,4 @@ QString MapItemDelegate::text( const QModelIndex &index )
 
 }
 
-#include "MapThemeDownloadDialog.moc" // needed for Q_OBJECT here in source
+#include "MapThemeDownloadDialog.moc"

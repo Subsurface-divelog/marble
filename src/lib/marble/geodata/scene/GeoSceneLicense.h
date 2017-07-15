@@ -40,8 +40,6 @@ class GEODATA_EXPORT GeoSceneLicense : public GeoNode
     void setShortLicense( const QString &license );
     void setAttribution(Attribution attr );
 
-    const char *nodeType() const override;
-
  private:
     QString m_fullLicense;
     QString m_shortLicense;

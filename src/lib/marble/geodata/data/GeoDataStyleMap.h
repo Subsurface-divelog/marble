@@ -16,6 +16,7 @@
 #include <QString>
 #include <QMap>
 
+#include "GeoDataObject.h"
 #include "GeoDataStyleSelector.h"
 
 #include "geodata_export.h"
@@ -39,7 +40,7 @@ class GEODATA_EXPORT GeoDataStyleMap : public GeoDataStyleSelector,
 {
   public:
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
     * @brief return the last key
@@ -52,7 +53,7 @@ class GEODATA_EXPORT GeoDataStyleMap : public GeoDataStyleSelector,
     * and add both to this map
     * @param key the last key
     */
-    void setLastKey( const QString& key );
+    void setLastKey( QString key );
     
     /**
     * @brief assignment operator
@@ -67,16 +68,16 @@ class GEODATA_EXPORT GeoDataStyleMap : public GeoDataStyleSelector,
      * @brief Serialize the stylemap to a stream
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /**
      * @brief  Unserialize the stylemap from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
     GeoDataStyleMap();
     GeoDataStyleMap( const GeoDataStyleMap& other );
-    ~GeoDataStyleMap() override;
+    ~GeoDataStyleMap();
 
   private:
     GeoDataStyleMapPrivate * const d;

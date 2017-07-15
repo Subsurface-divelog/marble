@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 
@@ -20,27 +20,27 @@ namespace Marble
 class LatLonPlugin : public SearchRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.LatLonPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.LatLonPlugin" )
     Q_INTERFACES( Marble::SearchRunnerPlugin )
 
 public:
     explicit LatLonPlugin( QObject *parent = 0 );
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    SearchRunner* newRunner() const override;
+    virtual SearchRunner* newRunner() const;
 };
 
 }

@@ -22,7 +22,7 @@
 #include "LayerInterface.h"
 
 #include <QVector>
-#include <QPainter>
+#include <QColor>
 
 #include "PlacemarkLayout.h"
 
@@ -37,14 +37,7 @@ class GeoPainter;
 class GeoSceneLayer;
 class MarbleClock;
 class ViewportParams;
-class StyleBuilder;
-
-
-struct Fragment
-{
-    QVarLengthArray<QPainter::PixmapFragment, 16> fragments;
-    QPixmap pixmap;
-};
+class VisiblePlacemark;
 
 class PlacemarkLayer : public QObject, public LayerInterface
 {
@@ -54,40 +47,34 @@ class PlacemarkLayer : public QObject, public LayerInterface
     PlacemarkLayer( QAbstractItemModel *placemarkModel,
                     QItemSelectionModel *selectionModel,
                     MarbleClock *clock,
-                    const StyleBuilder *styleBuilder,
                     QObject *parent = 0 );
-    ~PlacemarkLayer() override;
+    ~PlacemarkLayer();
 
     /**
      * @reimp
      */
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
     /**
      * @reimp
      */
-    qreal zValue() const override;
+    qreal zValue() const;
 
     /**
      * @reimp
      */
     bool render( GeoPainter *painter, ViewportParams *viewport,
                  const QString &renderPos = QLatin1String("NONE"),
-                 GeoSceneLayer *layer = 0 ) override;
+                 GeoSceneLayer *layer = 0 );
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
-    QString runtimeTrace() const override;
+    virtual QString runtimeTrace() const;
 
     /**
      * Returns a list of model indexes that are at position @p pos.
      */
     QVector<const GeoDataFeature *> whichPlacemarkAt( const QPoint &pos );
-
-    bool hasPlacemarkAt(const QPoint &pos);
-
-    bool isDebugModeEnabled() const;
-    void setDebugModeEnabled(bool enabled);
 
     static bool m_useXWorkaround;  // Indicates need for an X windows workaround.
  public Q_SLOTS:
@@ -103,18 +90,14 @@ class PlacemarkLayer : public QObject, public LayerInterface
    void setShowMaria( bool show );
 
    void requestStyleReset();
-   void setTileLevel(int tileLevel);
 
  Q_SIGNALS:
    void repaintNeeded();
 
  private:
-    void renderDebug(GeoPainter *painter, ViewportParams *viewport, const QVector<VisiblePlacemark*> & placemarks);
     static bool testXBug();
 
     PlacemarkLayout m_layout;
-    bool m_debugModeEnabled;
-    int m_tileLevel;
 };
 
 }

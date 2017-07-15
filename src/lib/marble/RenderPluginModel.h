@@ -49,7 +49,7 @@ public:
 
     explicit RenderPluginModel( QObject *parent = 0 );
 
-    ~RenderPluginModel() override;
+    ~RenderPluginModel();
 
     /**
      * @brief Set the RenderPlugins the model should manage.
@@ -61,7 +61,7 @@ public:
      */
     void setRenderPlugins( const QList<RenderPlugin *> &renderPlugins );
 
-    QVector<PluginAuthor> pluginAuthors( const QModelIndex &index ) const;
+    QList<PluginAuthor> pluginAuthors( const QModelIndex &index ) const;
 
     DialogConfigurationInterface *pluginDialogConfigurationInterface( const QModelIndex &index );
 

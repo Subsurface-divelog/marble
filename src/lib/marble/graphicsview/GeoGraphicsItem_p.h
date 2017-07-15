@@ -11,13 +11,11 @@
 #ifndef MARBLE_GEOGRAPHICSITEMPRIVATE_H
 #define MARBLE_GEOGRAPHICSITEMPRIVATE_H
 
-#include "GeoGraphicsItem.h"
 
 // Marble
+#include "GeoDataLatLonAltBox.h"
 #include "GeoDataStyle.h"
-#include "StyleBuilder.h"
-
-#include <QSet>
+#include "ViewportParams.h"
 
 namespace Marble
 {
@@ -25,12 +23,14 @@ namespace Marble
 class GeoGraphicsItemPrivate
 {
  public:
-    explicit GeoGraphicsItemPrivate( const GeoDataFeature *feature)
+    explicit GeoGraphicsItemPrivate( const GeoDataFeature *feature )
         : m_zValue( 0 ),
           m_minZoomLevel( 0 ),
           m_feature( feature ),
-          m_styleBuilder(nullptr),
-          m_highlighted( false )
+          m_latLonAltBox(),
+          m_style( 0 ),
+          m_highlighted( false ),
+          m_highlightStyle( 0 )
     {
     }
 
@@ -43,16 +43,12 @@ class GeoGraphicsItemPrivate
 
     int m_minZoomLevel;
     const GeoDataFeature *m_feature;
-    RenderContext m_renderContext;
-    GeoDataStyle::ConstPtr m_style;
-    const StyleBuilder *m_styleBuilder;
-    QVector<const GeoDataRelation*> m_relations;
-
-    QStringList m_paintLayers;
+    GeoDataLatLonAltBox m_latLonAltBox;
+    const GeoDataStyle *m_style;
 
     // To highlight a placemark
     bool m_highlighted;
-    GeoDataStyle::ConstPtr m_highlightStyle;
+    GeoDataStyle *m_highlightStyle;
 };
 
 }

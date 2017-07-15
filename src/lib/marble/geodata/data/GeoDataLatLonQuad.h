@@ -19,9 +19,7 @@ namespace Marble {
 
 class GeoDataLatLonQuadPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataLatLonQuad: public GeoDataObject
+class MARBLE_EXPORT GeoDataLatLonQuad: public GeoDataObject
 {
 public:
     GeoDataLatLonQuad();
@@ -32,10 +30,10 @@ public:
     bool operator==( const GeoDataLatLonQuad &other ) const;
     bool operator!=( const GeoDataLatLonQuad &other ) const;
 
-    ~GeoDataLatLonQuad() override;
+    ~GeoDataLatLonQuad();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     qreal bottomLeftLatitude( GeoDataCoordinates::Unit unit ) const;
     qreal bottomRightLatitude( GeoDataCoordinates::Unit unit ) const;

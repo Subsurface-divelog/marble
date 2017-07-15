@@ -14,6 +14,8 @@
 #include "AbstractDataPluginModel.h"
 
 #include "WeatherData.h"
+#include "GeoDataLatLonAltBox.h"
+#include "MarbleWidget.h"
 
 #include <QStringList>
 
@@ -25,7 +27,6 @@ namespace Marble
 
 class AbstractWeatherService;
 class GeoDataLatLonAltBox;
-class MarbleWidget;
 class MarbleModel;
     
 class WeatherModel : public AbstractDataPluginModel
@@ -34,11 +35,11 @@ class WeatherModel : public AbstractDataPluginModel
     
  public:
     explicit WeatherModel( const MarbleModel *marbleModel, QObject *parent );
-    ~WeatherModel() override;
+    ~WeatherModel();
 
     void setUpdateInterval( quint32 hours );
 
-    void setFavoriteItems( const QStringList& list ) override;
+    void setFavoriteItems( const QStringList& list );
     
  public Q_SLOTS:
     /**
@@ -58,9 +59,9 @@ class WeatherModel : public AbstractDataPluginModel
 
  protected:
     void getAdditionalItems( const GeoDataLatLonAltBox& box,
-                             qint32 number = 10 ) override;
-    void getItem( const QString &id ) override;
-    void parseFile( const QByteArray& file ) override;
+                             qint32 number = 10 );
+    virtual void getItem( const QString &id );
+    void parseFile( const QByteArray& file );
 
  private:
     void addService( AbstractWeatherService *service );

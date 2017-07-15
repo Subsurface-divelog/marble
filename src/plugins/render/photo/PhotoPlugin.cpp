@@ -22,6 +22,7 @@
 
 // Qt
 #include <QPushButton>
+#include <QLabel>
 #include <QStringList>
 
 using namespace Marble;
@@ -80,12 +81,12 @@ QString PhotoPlugin::guiString() const
 
 QString PhotoPlugin::nameId() const
 {
-    return QStringLiteral("photo");
+    return "photo";
 }
 
 QString PhotoPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString PhotoPlugin::description() const
@@ -95,19 +96,19 @@ QString PhotoPlugin::description() const
 
 QString PhotoPlugin::copyrightYears() const
 {
-    return QStringLiteral("2009, 2012");
+    return "2009, 2012";
 }
 
-QVector<PluginAuthor> PhotoPlugin::pluginAuthors() const
+QList<PluginAuthor> PhotoPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Bastian Holst"), QStringLiteral("bastianholst@gmx.de"))
-            << PluginAuthor(QStringLiteral("Mohammed Nafees"), QStringLiteral("nafees.technocool@gmail.com"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Bastian Holst", "bastianholst@gmx.de" )
+            << PluginAuthor( "Mohammed Nafees", "nafees.technocool@gmail.com" );
 }
 
 QIcon PhotoPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/photo.png"));
+    return QIcon(":/icons/photo.png");
 }
 
 QDialog *PhotoPlugin::configDialog()
@@ -186,8 +187,8 @@ QHash<QString,QVariant> PhotoPlugin::settings() const
 {
     QHash<QString, QVariant> settings = AbstractDataPlugin::settings();
 
-    settings.insert(QStringLiteral("numberOfItems"), numberOfItems());
-    settings.insert(QStringLiteral("checkState"), m_checkStateList.join(QLatin1Char(',')));
+    settings.insert( "numberOfItems", numberOfItems() );
+    settings.insert( "checkState", m_checkStateList.join(",") );
 
     return settings;
 }
@@ -196,8 +197,8 @@ void PhotoPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractDataPlugin::setSettings( settings );
 
-    setNumberOfItems(qMin<int>(maximumNumberOfItems, settings.value(QStringLiteral("numberOfItems"), 15).toInt()));
-    m_checkStateList = settings.value(QStringLiteral("checkState"), QStringLiteral("1,2,3,4,5,6,7")).toString().split(QLatin1Char(','), QString::SkipEmptyParts);
+    setNumberOfItems( qMin<int>( maximumNumberOfItems, settings.value( "numberOfItems", 15 ).toInt() ) );
+    m_checkStateList = settings.value( "checkState", "1,2,3,4,5,6,7" ).toString().split( ',', QString::SkipEmptyParts );
 
     updateSettings();
     readSettings();
@@ -253,7 +254,7 @@ void PhotoPlugin::updateSettings()
     }
 
     if ( model() ) {
-        qobject_cast<PhotoPluginModel*>(model())->setLicenseValues(m_checkStateList.join(QLatin1Char(',')));
+        qobject_cast<PhotoPluginModel*>( model() )->setLicenseValues( m_checkStateList.join(",") );
     }
 }
 
@@ -265,4 +266,6 @@ void PhotoPlugin::checkNumberOfItems( quint32 number ) {
     readSettings();
 }
 
-#include "moc_PhotoPlugin.cpp"
+Q_EXPORT_PLUGIN2(PhotoPlugin, Marble::PhotoPlugin)
+
+#include "PhotoPlugin.moc"

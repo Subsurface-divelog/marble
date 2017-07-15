@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef OSMREGIONTREE_H
@@ -25,7 +25,7 @@ public:
 
     const OsmRegion &node() const;
 
-    void setChildren( const QVector<OsmRegionTree>& children );
+    void setChildren( const QVector<OsmRegionTree> children );
 
     const QVector<OsmRegionTree> & children() const;
 

@@ -21,17 +21,17 @@ class SatellitesConfigLeafItem : public SatellitesConfigAbstractItem
 public:
     explicit SatellitesConfigLeafItem( const QString &name,
                                        const QString &id );
-    ~SatellitesConfigLeafItem() override;
+    ~SatellitesConfigLeafItem();
 
-    void loadSettings(const QHash<QString, QVariant> &settings) override;
+    void loadSettings( QHash<QString, QVariant> settings );
 
-    QVariant data( int column, int role ) const override;
-    bool setData(int column, int role, const QVariant& data) override;
+    QVariant data( int column, int role ) const;
+    bool setData(int column, int role, const QVariant& data);
 
-    bool isLeaf() const override;
-    SatellitesConfigAbstractItem *childAt( int row ) const override;
-    int indexOf( const SatellitesConfigAbstractItem *child ) const override;
-    int childrenCount() const override;
+    bool isLeaf() const;
+    SatellitesConfigAbstractItem *childAt( int row ) const;
+    int indexOf( const SatellitesConfigAbstractItem *child ) const;
+    int childrenCount() const;
 
     QString id() const;
     QString url() const;

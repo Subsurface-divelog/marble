@@ -25,45 +25,34 @@
 using namespace Marble;
 
 FrameGraphicsItem::FrameGraphicsItem( MarbleGraphicsItem *parent )
-    : ScreenGraphicsItem(new FrameGraphicsItemPrivate(this, parent))
+        : ScreenGraphicsItem( parent ),
+          d( new FrameGraphicsItemPrivate( this ) )
 {
-    Q_D(FrameGraphicsItem);
-    d->updateSize();
-}
-
-FrameGraphicsItem::FrameGraphicsItem(FrameGraphicsItemPrivate *dd)
-    : ScreenGraphicsItem(dd)
-{
-    Q_D(FrameGraphicsItem);
-    d->updateSize();
 }
 
 FrameGraphicsItem::~FrameGraphicsItem()
 {
+    delete d;
 }
 
 FrameGraphicsItem::FrameType FrameGraphicsItem::frame() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_frame;
 }
 
 void FrameGraphicsItem::setFrame( FrameType type )
 {
-    Q_D(FrameGraphicsItem);
     d->m_frame = type;
     setPadding( padding() );
 }
 
 qreal FrameGraphicsItem::margin() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_margin;
 }
 
 void FrameGraphicsItem::setMargin( qreal margin )
 {
-    Q_D(FrameGraphicsItem);
     d->m_margin = margin;
     d->updateSize();
     update();
@@ -71,13 +60,11 @@ void FrameGraphicsItem::setMargin( qreal margin )
 
 qreal FrameGraphicsItem::marginTop() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_marginTop;
 }
 
 void FrameGraphicsItem::setMarginTop( qreal marginTop )
 {
-    Q_D(FrameGraphicsItem);
     d->m_marginTop = marginTop;
     d->updateSize();
     update();
@@ -85,13 +72,11 @@ void FrameGraphicsItem::setMarginTop( qreal marginTop )
 
 qreal FrameGraphicsItem::marginBottom() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_marginBottom;
 }
 
 void FrameGraphicsItem::setMarginBottom( qreal marginBottom )
 {
-    Q_D(FrameGraphicsItem);
     d->m_marginBottom = marginBottom;
     d->updateSize();
     update();
@@ -99,13 +84,11 @@ void FrameGraphicsItem::setMarginBottom( qreal marginBottom )
 
 qreal FrameGraphicsItem::marginLeft() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_marginLeft;
 }
 
 void FrameGraphicsItem::setMarginLeft( qreal marginLeft )
 {
-    Q_D(FrameGraphicsItem);
     d->m_marginLeft = marginLeft;
     d->updateSize();
     update();
@@ -113,13 +96,11 @@ void FrameGraphicsItem::setMarginLeft( qreal marginLeft )
 
 qreal FrameGraphicsItem::marginRight() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_marginRight;
 }
 
 void FrameGraphicsItem::setMarginRight( qreal marginRight )
 {
-    Q_D(FrameGraphicsItem);
     d->m_marginRight = marginRight;
     d->updateSize();
     update();
@@ -127,13 +108,11 @@ void FrameGraphicsItem::setMarginRight( qreal marginRight )
 
 qreal FrameGraphicsItem::borderWidth() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_borderWidth;
 }
 
 void FrameGraphicsItem::setBorderWidth( qreal width )
 {
-    Q_D(FrameGraphicsItem);
     d->m_borderWidth = width;
     d->updateSize();
     update();
@@ -141,13 +120,11 @@ void FrameGraphicsItem::setBorderWidth( qreal width )
 
 qreal FrameGraphicsItem::padding() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_padding;
 }
 
 void FrameGraphicsItem::setPadding( qreal width )
 {
-    Q_D(FrameGraphicsItem);
     if ( width >= 0 ) {
         d->m_padding = width;
         d->updateSize();
@@ -156,46 +133,39 @@ void FrameGraphicsItem::setPadding( qreal width )
 
 QBrush FrameGraphicsItem::borderBrush() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_borderBrush;
 }
 
 void FrameGraphicsItem::setBorderBrush( const QBrush &brush )
 {
-    Q_D(FrameGraphicsItem);
     d->m_borderBrush = brush;
     update();
 }
 
 Qt::PenStyle FrameGraphicsItem::borderStyle () const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_borderStyle;
 }
 
 void FrameGraphicsItem::setBorderStyle( Qt::PenStyle style )
 {
-    Q_D(FrameGraphicsItem);
     d->m_borderStyle = style;
     update();
 }
 
 QBrush FrameGraphicsItem::background() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_backgroundBrush;
 }
 
 void FrameGraphicsItem::setBackground( const QBrush &background )
 {
-    Q_D(FrameGraphicsItem);
     d->m_backgroundBrush = background;
     update();
 }
 
 QRectF FrameGraphicsItem::contentRect() const
 {
-    Q_D(const FrameGraphicsItem);
     qreal marginTop = ( d->m_marginTop == 0.0 ) ? d->m_margin : d->m_marginTop;
     qreal marginLeft = ( d->m_marginLeft == 0.0 ) ? d->m_margin : d->m_marginLeft;
 
@@ -209,13 +179,11 @@ QRectF FrameGraphicsItem::contentRect() const
 
 QSizeF FrameGraphicsItem::contentSize() const
 {
-    Q_D(const FrameGraphicsItem);
     return d->m_contentSize;
 }
 
 QRectF FrameGraphicsItem::paintedRect() const
 {
-    Q_D(const FrameGraphicsItem);
     qreal marginTop = ( d->m_marginTop == 0.0 ) ? d->m_margin : d->m_marginTop;
     qreal marginBottom = ( d->m_marginBottom == 0.0 ) ? d->m_margin : d->m_marginBottom;
     qreal marginLeft = ( d->m_marginLeft == 0.0 ) ? d->m_margin : d->m_marginLeft;
@@ -231,14 +199,12 @@ QRectF FrameGraphicsItem::paintedRect() const
 
 void FrameGraphicsItem::setContentSize( const QSizeF& size )
 {
-    Q_D(FrameGraphicsItem);
     d->m_contentSize = size;
     d->updateSize();
 }
 
 QPainterPath FrameGraphicsItem::backgroundShape() const
 {
-    Q_D(const FrameGraphicsItem);
     QPainterPath path;
     if ( d->m_frame == RectFrame || d->m_frame == ShadowFrame ) {
         QRectF renderedRect = paintedRect();
@@ -254,7 +220,6 @@ QPainterPath FrameGraphicsItem::backgroundShape() const
 
 void FrameGraphicsItem::paintBackground( QPainter *painter )
 {
-    Q_D(FrameGraphicsItem);
     painter->save();
     painter->setPen( QPen( d->m_borderBrush, d->m_borderWidth, d->m_borderStyle ) );
     painter->setBrush( d->m_backgroundBrush );
@@ -265,7 +230,6 @@ void FrameGraphicsItem::paintBackground( QPainter *painter )
 
 void FrameGraphicsItem::paint( QPainter *painter )
 {
-    Q_D(FrameGraphicsItem);
     painter->save();
 
     // Needs to be done here cause we don't want the margin translation
@@ -273,7 +237,7 @@ void FrameGraphicsItem::paint( QPainter *painter )
     {
         QPixmap shadow;
         if ( !QPixmapCache::find( "marble/frames/shadowframe.png", shadow ) ) {
-            shadow = QPixmap(QStringLiteral(":/marble/frames/shadowframe.png"));
+            shadow = QPixmap( ":/marble/frames/shadowframe.png" );
             QPixmapCache::insert( "marble/frames/shadowframe.png", shadow );
         }
         qDrawBorderPixmap( painter, QRect( QPoint( 0, 0 ), size().toSize() ),

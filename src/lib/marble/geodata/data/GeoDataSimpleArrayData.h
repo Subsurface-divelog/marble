@@ -13,14 +13,12 @@
 
 #include "GeoDataObject.h"
 
-class QVariant;
+#include <QVariant>
 
 namespace Marble {
 
 class GeoDataSimpleArrayDataPrivate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataSimpleArrayData : public GeoDataObject
 {
 
@@ -29,7 +27,7 @@ public:
     GeoDataSimpleArrayData( const GeoDataSimpleArrayData& other );
     bool operator==( const GeoDataSimpleArrayData &other ) const;
     bool operator!=( const GeoDataSimpleArrayData &other) const;
-    ~GeoDataSimpleArrayData() override;
+    ~GeoDataSimpleArrayData();
 
     /**
      * Returns the number of value in the array
@@ -51,9 +49,9 @@ public:
      */
     void append( const QVariant& value );
 
-    const char* nodeType() const override;
-    void pack( QDataStream& stream ) const override;
-    void unpack( QDataStream& stream ) override;
+    virtual const char* nodeType() const;
+    virtual void pack( QDataStream& stream ) const;
+    virtual void unpack( QDataStream& stream );
 
 private:
     GeoDataSimpleArrayDataPrivate *d;

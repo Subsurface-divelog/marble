@@ -19,13 +19,13 @@ class KmlParser : public GeoParser
 {
 public:
     KmlParser();
-    ~KmlParser() override;
+    virtual ~KmlParser();
 
 private:
-    bool isValidElement(const QString& tagName) const override;
-    bool isValidRootElement() override;
+    virtual bool isValidElement(const QString& tagName) const;
+    virtual bool isValidRootElement();
 
-    GeoDocument* createDocument() const override;
+    virtual GeoDocument* createDocument() const;
 
 };
 

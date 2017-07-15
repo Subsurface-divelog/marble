@@ -18,15 +18,15 @@ namespace Marble {
     class AprsTCPIP : public AprsSource
     {
       public:
-        AprsTCPIP( const QString& hostName, int port );
-        ~AprsTCPIP() override;
+        AprsTCPIP( QString hostName, int port );
+        ~AprsTCPIP();
 
-        QString    sourceName() const override;
-        QIODevice *openSocket() override;
+        QString    sourceName() const;
+        QIODevice *openSocket();
         void       checkReadReturn( int length, QIODevice **socket,
-                                    AprsGatherer *gatherer ) override;
+                                    AprsGatherer *gatherer );
 
-        bool       canDoDirect() const override;
+        bool       canDoDirect() const;
 
       private:
         QString m_hostName;

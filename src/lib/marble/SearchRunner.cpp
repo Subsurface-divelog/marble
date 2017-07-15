@@ -29,4 +29,4 @@ const MarbleModel *SearchRunner::model() const
 
 }
 
-#include "moc_SearchRunner.cpp"
+#include "SearchRunner.moc"

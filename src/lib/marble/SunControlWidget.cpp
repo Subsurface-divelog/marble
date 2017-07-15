@@ -114,7 +114,7 @@ void SunControlWidget::showEvent( QShowEvent* event )
         else
         {   
             m_uiWidget->showShadow->setChecked( false );
-            if (m_shadow == QLatin1String("shadow"))
+            if( m_shadow == "shadow" )
             {
                 m_uiWidget->showShadow->setChecked( true );
             }
@@ -128,4 +128,4 @@ void SunControlWidget::showEvent( QShowEvent* event )
     }
 }
 
-#include "moc_SunControlWidget.cpp"
+#include "SunControlWidget.moc"

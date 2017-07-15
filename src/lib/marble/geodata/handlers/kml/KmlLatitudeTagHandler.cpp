@@ -29,7 +29,8 @@ namespace kml
     KML_DEFINE_TAG_HANDLER( latitude )
     GeoNode *KmllatitudeTagHandler::parse( GeoParser & parser ) const
     {
-        Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_latitude)));
+        Q_ASSERT( parser.isStartElement()
+                  && parser.isValidElement( kmlTag_latitude ) );
 
         GeoStackItem parentItem = parser.parentElement();
 

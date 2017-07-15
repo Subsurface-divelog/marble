@@ -4,10 +4,10 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
 
 import QtQuick 1.0
-import org.kde.marble 0.20
+import org.kde.edu.marble 0.11
 
 Rectangle {
     id: screen

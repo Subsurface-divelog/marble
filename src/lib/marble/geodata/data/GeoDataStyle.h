@@ -14,25 +14,25 @@
 #define MARBLE_GEODATASTYLE_H
 
 
+#include <QMetaType>
+#include <QPoint>
+#include <QColor>
+#include <QPixmap>
+#include <QFont>
+
 #include "GeoDataStyleSelector.h"
+#include "GeoDataIconStyle.h"
+#include "GeoDataLabelStyle.h"
+#include "GeoDataPolyStyle.h"
+#include "GeoDataLineStyle.h"
+#include "GeoDataBalloonStyle.h"
+#include "GeoDataListStyle.h"
 
 #include "geodata_export.h"
-
-#include <QSharedPointer>
-#include <QMetaType>
-
-class QFont;
-class QColor;
 
 namespace Marble
 {
 
-class GeoDataBalloonStyle;
-class GeoDataIconStyle;
-class GeoDataLabelStyle;
-class GeoDataLineStyle;
-class GeoDataListStyle;
-class GeoDataPolyStyle;
 class GeoDataStylePrivate;
 
 /**
@@ -55,9 +55,6 @@ class GeoDataStylePrivate;
 class GEODATA_EXPORT GeoDataStyle : public GeoDataStyleSelector
 {
   public:
-    typedef QSharedPointer<GeoDataStyle> Ptr;
-    typedef QSharedPointer<const GeoDataStyle> ConstPtr;
-
     /// Construct a default style
     GeoDataStyle();
     GeoDataStyle( const GeoDataStyle& other );
@@ -67,12 +64,12 @@ class GEODATA_EXPORT GeoDataStyle : public GeoDataStyleSelector
      * @param  font   used to construct the label styles
      * @param  color  used to construct the label styles
      */
-    GeoDataStyle( const QString& iconPath,
+    GeoDataStyle( const QImage& icon,
                   const QFont &font, const QColor &color  );
-    ~GeoDataStyle() override;
+    ~GeoDataStyle();
 
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /// set the icon style
     void setIconStyle( const GeoDataIconStyle& style );
@@ -118,12 +115,12 @@ class GEODATA_EXPORT GeoDataStyle : public GeoDataStyleSelector
      * @brief Serialize the style to a stream
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /**
      * @brief  Unserialize the style from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
   private:
     GeoDataStylePrivate * const d;

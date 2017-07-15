@@ -31,7 +31,7 @@ QMenu *ElevationProfileContextMenu::getMenu()
     if (!m_contextMenu) {
         m_contextMenu = m_floatItem->contextMenu();
 
-        for ( QAction *action: m_contextMenu->actions() ) {
+        foreach ( QAction *action, m_contextMenu->actions() ) {
             if ( action->text() == tr( "&Configure..." ) ) {
                 m_contextMenu->removeAction( action );
                 break;
@@ -59,7 +59,7 @@ void ElevationProfileContextMenu::updateContextMenuEntries()
     }
 
     // completely rebuild selection, TODO could be possibly improved to only add/remove items incrementally
-    for (QAction* action: m_selectionActions) {
+    foreach (QAction* action, m_selectionActions) {
         m_contextMenu->removeAction( action );
     }
 
@@ -99,11 +99,11 @@ void ElevationProfileContextMenu::updateContextMenuEntries()
         m_selectionActions.append(disabledInformationAction);
     }
 
-    for (QAction *action: m_selectionActions) {
+    foreach (QAction *action, m_selectionActions) {
         m_contextMenu->addAction(action);
     }
 }
 
 }
 
-#include "moc_ElevationProfileContextMenu.cpp"
+#include "ElevationProfileContextMenu.moc"

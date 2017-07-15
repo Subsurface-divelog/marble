@@ -16,7 +16,8 @@
 
 // Qt
 #include <QHash>
-#include <QIcon>
+
+class QIcon;
 
 namespace Ui
 {
@@ -29,7 +30,7 @@ namespace Marble
 class WeatherPlugin : public AbstractDataPlugin, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.WeatherPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.WeatherPlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( WeatherPlugin )
@@ -39,42 +40,42 @@ class WeatherPlugin : public AbstractDataPlugin, public DialogConfigurationInter
 
     explicit WeatherPlugin( const MarbleModel *marbleModel );
 
-    ~WeatherPlugin() override;
+    ~WeatherPlugin();
     
-    void initialize() override;
+    void initialize();
 
-    QString name() const override;
+    QString name() const;
     
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
     
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QString aboutDataText() const override;
+    QString aboutDataText() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
-    QHash<QString,QVariant> settings() const override;
+    QHash<QString,QVariant> settings() const;
 
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    void setSettings( const QHash<QString,QVariant> &settings );
 
 protected:
-    bool eventFilter(QObject *object, QEvent *event) override;
+    bool eventFilter(QObject *object, QEvent *event);
 
  private Q_SLOTS:
     void readSettings();
     void writeSettings();
     void updateItemSettings();
-    void favoriteItemsChanged( const QStringList& favoriteItems ) override;
+    void favoriteItemsChanged( const QStringList& favoriteItems );
     
  Q_SIGNALS:
     void changedSettings();

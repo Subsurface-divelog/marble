@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 
 #ifndef MARBLE_RUNNERTASK_H
@@ -43,7 +43,7 @@ public:
     /**
      * @reimp
      */
-    void run() override;
+    void run();
 
 Q_SIGNALS:
     void finished( SearchTask *task );
@@ -65,7 +65,7 @@ public:
     /**
      * @reimp
      */
-    void run() override;
+    void run();
 
 Q_SIGNALS:
     void finished( ReverseGeocodingTask *task );
@@ -87,7 +87,7 @@ public:
     /**
      * @reimp
      */
-    void run() override;
+    void run();
 
 Q_SIGNALS:
     void finished( RoutingTask *task );
@@ -108,17 +108,15 @@ public:
     /**
      * @reimp
      */
-    void run() override;
+    void run();
 
 Q_SIGNALS:
-    void parsed(GeoDataDocument* document, const QString &error);
-    void finished();
+    void finished( ParsingTask *task );
 
 private:
     ParsingRunner *const m_runner;
     QString m_fileName;
     DocumentRole m_role;
-    ParsingRunnerManager* m_manager;
 };
 
 }

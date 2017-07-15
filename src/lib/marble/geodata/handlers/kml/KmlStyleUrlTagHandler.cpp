@@ -38,7 +38,7 @@ KML_DEFINE_TAG_HANDLER( styleUrl )
 
 GeoNode* KmlstyleUrlTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_styleUrl)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_styleUrl ) );
 
     GeoStackItem parentItem = parser.parentElement();
     GeoStackItem grandParentItem = parser.parentElement();
@@ -48,7 +48,7 @@ GeoNode* KmlstyleUrlTagHandler::parse( GeoParser& parser ) const
 
         QString key = parentItem.nodeAs<GeoDataStyleMap>()->lastKey();
         (*parentItem.nodeAs<GeoDataStyleMap>())[ key ] = content;
-        parentItem.nodeAs<GeoDataStyleMap>()->setLastKey(QString());
+        parentItem.nodeAs<GeoDataStyleMap>()->setLastKey( "" );
 
     } else if( parentItem.is<GeoDataFeature>() ) {
         QString content = parser.readElementText().trimmed();

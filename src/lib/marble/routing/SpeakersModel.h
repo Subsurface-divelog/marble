@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_SPEAKERSMODEL_H
@@ -14,6 +14,7 @@
 #include "marble_export.h"
 
 #include <QAbstractListModel>
+#include <QFileInfo>
 
 namespace Marble
 {
@@ -38,16 +39,16 @@ public:
     explicit SpeakersModel( QObject *parent = 0 );
 
     /** Destructor */
-    ~SpeakersModel() override;
+    ~SpeakersModel();
 
     /** Overload of QAbstractListModel */
-    int rowCount ( const QModelIndex &parent = QModelIndex() ) const override;
+    int rowCount ( const QModelIndex &parent = QModelIndex() ) const;
 
     /** Overload of QAbstractListModel */
-    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const override;
+    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const;
 
     /** Overload of QAbstractListModel */
-    QHash<int, QByteArray> roleNames() const override;
+    QHash<int, QByteArray> roleNames() const;
 
     /** @todo FIXME https://bugreports.qt-project.org/browse/QTCOMPONENTS-1206 */
     int count() const;

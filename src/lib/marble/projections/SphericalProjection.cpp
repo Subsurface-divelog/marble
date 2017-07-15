@@ -25,8 +25,6 @@
 #include "MarbleGlobal.h"
 #include "AzimuthalProjection_p.h"
 
-#include <QIcon>
-
 #define SAFE_DISTANCE
 
 namespace Marble
@@ -76,22 +74,21 @@ QString SphericalProjection::description() const
 
 QIcon SphericalProjection::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/map-globe.png"));
+    return QIcon(":/icons/map-globe.png");
 }
 
 bool SphericalProjection::screenCoordinates( const GeoDataCoordinates &coordinates, 
                                              const ViewportParams *viewport,
                                              qreal &x, qreal &y, bool &globeHidesPoint ) const
 {
-    const qreal altitude = coordinates.altitude();
-    const qreal absoluteAltitude = altitude + EARTH_RADIUS;
+    qreal       absoluteAltitude = coordinates.altitude() + EARTH_RADIUS;
     Quaternion  qpos             = coordinates.quaternion();
 
     qpos.rotateAroundAxis( viewport->planetAxisMatrix() );
 
-    const qreal radius = viewport->radius();
-    const qreal pixelAltitude = (radius / EARTH_RADIUS * absoluteAltitude);
-    if (altitude < 10000) {
+    qreal      pixelAltitude = ( ( viewport->radius() ) 
+                                  / EARTH_RADIUS * absoluteAltitude );
+    if ( coordinates.altitude() < 10000 ) {
         // Skip placemarks at the other side of the earth.
         if ( qpos.v[Q_Z] < 0 ) {
             globeHidesPoint = true;
@@ -101,6 +98,7 @@ bool SphericalProjection::screenCoordinates( const GeoDataCoordinates &coordinat
     else {
         qreal  earthCenteredX = pixelAltitude * qpos.v[Q_X];
         qreal  earthCenteredY = pixelAltitude * qpos.v[Q_Y];
+        qreal  radius         = viewport->radius();
 
         // Don't draw high placemarks (e.g. satellites) that aren't visible.
         if ( qpos.v[Q_Z] < 0
@@ -112,15 +110,12 @@ bool SphericalProjection::screenCoordinates( const GeoDataCoordinates &coordinat
         }
     }
 
-    const qreal width = viewport->width();
-    const qreal height = viewport->height();
-
     // Let (x, y) be the position on the screen of the placemark..
-    x = (width  / 2 + pixelAltitude * qpos.v[Q_X]);
-    y = (height / 2 - pixelAltitude * qpos.v[Q_Y]);
+    x = ((qreal)(viewport->width())  / 2 + pixelAltitude * qpos.v[Q_X]);
+    y = ((qreal)(viewport->height()) / 2 - pixelAltitude * qpos.v[Q_Y]);
 
     // Skip placemarks that are outside the screen area
-    if (x < 0 || x >= width || y < 0 || y >= height) {
+    if ( x < 0 || x >= viewport->width() || y < 0 || y >= viewport->height() ) {
         globeHidesPoint = false;
         return false;
     }

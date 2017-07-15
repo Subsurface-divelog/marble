@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013 Dennis Nienhüser <earthwings@gentoo.org>
 
 #ifndef MARBLE_KMLDOCUMENT_H
 #define MARBLE_KMLDOCUMENT_H
@@ -19,7 +19,7 @@ namespace Marble {
 class KmlDocument : public GeoDataDocument
 {
 public:
-    ~KmlDocument() override;
+    ~KmlDocument();
 
     /**
      * @brief Temporary files to delete at destruction

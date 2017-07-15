@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2014 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2014 Abhinav Gangwar <abhgang@gmail.com>
 //
 
@@ -23,6 +23,8 @@
 #include <QDebug>
 #include <QString>
 #include <QVector>
+#include <QTime>
+#include <QVariantList>
 #include <QVBoxLayout>
 #include <QQuickView>
 #include <QQuickItem>
@@ -32,23 +34,25 @@
 #include <QFileInfo>
 
 // Marble
-#include <marble/MarbleDirs.h>
-#include <marble/MarbleWidget.h>
-#include <marble/MarbleMap.h>
-#include <marble/MarbleModel.h>
-#include <marble/GeoDataTreeModel.h>
-#include <marble/RenderPlugin.h>
-#include <marble/MarblePlacemarkModel.h>
+#include <MarbleDirs.h>
+#include <MarbleWidget.h>
+#include <MarbleMap.h>
+#include <MarbleModel.h>
+#include <GeoDataTreeModel.h>
+#include <RenderPlugin.h>
+#include <MarblePlacemarkModel.h>
+#include <AbstractFloatItem.h>
 
-#include <marble/GeoDataDocument.h>
-#include <marble/GeoDataPlacemark.h>
-#include <marble/GeoDataGeometry.h>
-#include <marble/GeoDataMultiGeometry.h>
-#include <marble/GeoDataPoint.h>
-#include <marble/GeoDataCoordinates.h>
-#include <marble/GeoDataPolygon.h>
-#include <marble/GeoDataLinearRing.h>
-#include <marble/GeoDataLatLonAltBox.h>
+#include <GeoDataDocument.h>
+#include <GeoDataPlacemark.h>
+#include <GeoDataGeometry.h>
+#include <GeoDataMultiGeometry.h>
+#include <GeoDataPoint.h>
+#include <GeoDataCoordinates.h>
+#include <GeoDataPolygon.h>
+#include <GeoDataLinearRing.h>
+#include <GeoDataLatLonAltBox.h>
+#include <GeoDataTypes.h>
 
 namespace Marble {
 
@@ -82,19 +86,19 @@ Private::Private(QWidget* parent) :
 
 QString Private::readMarbleDataPath() const
 {
-    return QSettings().value(QStringLiteral("MarbleWidget/marbleDataPath"), QString()).toString();
+    return QSettings().value("MarbleWidget/marbleDataPath", "").toString();
 }
 
 void Private::setupMarbleWidget()
 {
-    m_marbleWidget->setMapThemeId(QStringLiteral( "earth/political/political.dgml"));
+    m_marbleWidget->setMapThemeId( "earth/political/political.dgml" );
 
     foreach ( RenderPlugin *renderPlugin, m_marbleWidget->renderPlugins() ) {
-        if (renderPlugin->nameId() == QLatin1String("stars")
-            || renderPlugin->nameId() == QLatin1String("overviewmap")
-            || renderPlugin->nameId() == QLatin1String("compass")
-            || renderPlugin->nameId() == QLatin1String("scalebar")
-            || renderPlugin->nameId() == QLatin1String("navigation"))
+        if ( renderPlugin->nameId() == "stars"
+            || renderPlugin->nameId() == "overviewmap"
+            || renderPlugin->nameId() == "compass"
+            || renderPlugin->nameId() == "scalebar"
+            || renderPlugin->nameId() == "navigation" )
         {
             renderPlugin->setVisible( false );
         }
@@ -113,7 +117,7 @@ void Private::setupGameSignals()
     if ( root ) {
         m_parent->connect( root, SIGNAL(browseMapButtonClicked()),
                            m_parent, SLOT(browseMapButtonClicked()) );
-        QObject *gameOptions = root->findChild<QObject*>(QStringLiteral("gameOptions"));
+        QObject *gameOptions = root->findChild<QObject*>("gameOptions");
 
         m_parent->connect( gameOptions, SIGNAL(nextButtonClicked()),
                            m_parent, SLOT(createQuestion()) );
@@ -155,7 +159,7 @@ MainWindow::MainWindow( const QString &marbleDataPath, QWidget *parent, Qt::Wind
     d->setupMarbleWidget();
     setCentralWidget( d->m_marbleWidget );
 
-    d->m_view.setSource(QUrl(QStringLiteral("qrc:/Window.qml")));
+    d->m_view.setSource( QUrl( "qrc:/Window.qml" ) );
 
     QWidget *leftPanel = QWidget::createWindowContainer( &d->m_view, d->dockWidgetContents );
     QVBoxLayout *layout = new QVBoxLayout( d->dockWidgetContents );
@@ -177,7 +181,7 @@ MarbleWidget *MainWindow::marbleWidget()
 
 void MainWindow::createQuestion()
 {
-    QObject *gameObject = d->m_view.rootObject()->findChild<QObject*>(QStringLiteral("gameOptions"));
+    QObject *gameObject = d->m_view.rootObject()->findChild<QObject*>("gameOptions");
     if ( gameObject ) {
         emit postQuestion( gameObject );
     }
@@ -185,7 +189,7 @@ void MainWindow::createQuestion()
 
 void MainWindow::browseMapButtonClicked()
 {
-    d->m_marbleWidget->setMapThemeId(QStringLiteral("earth/political/political.dgml"));
+    d->m_marbleWidget->setMapThemeId("earth/political/political.dgml");
 
     /**
      * Now display the country names which
@@ -197,10 +201,11 @@ void MainWindow::browseMapButtonClicked()
         GeoDataObject *object = qvariant_cast<GeoDataObject*>( data );
         Q_ASSERT_X( object, "MainWindow::browseMapButtonClicked",
                     "failed to get valid data from treeModel for GeoDataObject" );
-        if (auto doc = geodata_cast<GeoDataDocument>(object)) {
+        if ( object->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
+            GeoDataDocument *doc = static_cast<GeoDataDocument*>( object );
             QFileInfo fileInfo( doc->fileName() );
             QString fileName = fileInfo.fileName();
-            if (fileName == QLatin1String("boundaryplacemarks.cache")) {
+            if ( fileName == QString("boundaryplacemarks.cache") ) {
                 doc->setVisible( true );
                 d->m_marbleWidget->model()->treeModel()->updateFeature( doc );
                 d->m_marbleWidget->setHighlightEnabled( true );
@@ -258,10 +263,10 @@ void MainWindow::enableClickOnThatGame()
 
 void MainWindow::displayResult(bool result )
 {
-    QObject *gameObject = d->m_view.rootObject()->findChild<QObject*>(QStringLiteral("gameOptions"));
+    QObject *gameObject = d->m_view.rootObject()->findChild<QObject*>("gameOptions");
     if ( gameObject ) {
         QMetaObject::invokeMethod( gameObject, "displayResult",
-                                   Q_ARG(QVariant, QVariant(result)) );
+                                   Q_ARG(QVariant, QVariant::fromValue(result)) );
     }
 }
 
@@ -277,10 +282,10 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
     if ( root ) {
         QMetaObject::invokeMethod( root, "resizeWindow",
-                                   Q_ARG(QVariant, QVariant(size.height()*9/10)) );
+                                   Q_ARG(QVariant, QVariant::fromValue(size.height()*9/10)) );
     }
 }
 
 }   // namespace Marble
 
-#include "moc_GameMainWindow.cpp"
+#include "GameMainWindow.moc"

@@ -40,7 +40,7 @@ class GeoSceneFilter : public GeoNode
 {
  public:
     explicit GeoSceneFilter( const QString& name );
-    ~GeoSceneFilter() override;
+    ~GeoSceneFilter();
 
     QString name() const;
     void setName( const QString& name );
@@ -51,8 +51,6 @@ class GeoSceneFilter : public GeoNode
     QList<const GeoScenePalette*> palette() const;
     void addPalette( const GeoScenePalette *palette );
     int removePalette( const GeoScenePalette *palette ); //returns # of items removed
-
-    const char *nodeType() const override;
 
  private:
     QString m_name;

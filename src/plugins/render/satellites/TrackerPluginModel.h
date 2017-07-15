@@ -12,6 +12,7 @@
 #define MARBLE_TRACKERPLUGINMODEL_H
 
 #include <QObject>
+#include <QHash>
 
 class QUrl;
 
@@ -38,7 +39,7 @@ public:
      */
     explicit TrackerPluginModel( GeoDataTreeModel *treeModel );
 
-    ~TrackerPluginModel() override;
+    virtual ~TrackerPluginModel();
 
     void enable( bool enabled );
 

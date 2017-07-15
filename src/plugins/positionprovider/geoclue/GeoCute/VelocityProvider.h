@@ -31,7 +31,7 @@ class VelocityProvider : public Provider
         ~VelocityProvider();
         Velocity velocity();
         
-    Q_SIGNALS:
+    signals:
         void velocityChanged(GeoCute::Velocity info);
         
     private:

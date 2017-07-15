@@ -16,18 +16,16 @@
 namespace Marble
 {
 
-/**
- */
 class GEODATA_EXPORT GeoDataWait : public GeoDataTourPrimitive
 {
 public:
 
     GeoDataWait();
-    ~GeoDataWait() override;
+    ~GeoDataWait();
 
     bool operator==(const GeoDataWait &other) const;
     bool operator!=(const GeoDataWait &other) const;
-    const char *nodeType() const override;
+    const char *nodeType() const;
 
     double duration() const;
     void setDuration(double duration);

@@ -5,18 +5,17 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTINGMODEL_H
 #define MARBLE_ROUTINGMODEL_H
 
 #include "marble_export.h"
-
 #include <QAbstractListModel>
 #include <QIODevice>
 
-class QIODevice;
+#include "GeoDataCoordinates.h"
 
 /**
   * A QAbstractItemModel that contains a list of routing instructions.
@@ -30,9 +29,7 @@ namespace Marble
 class RoutingModelPrivate;
 class Route;
 class RouteRequest;
-class GeoDataCoordinates;
-class PositionTracking;
-
+class MarbleModel;
 class MARBLE_EXPORT RoutingModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -48,24 +45,26 @@ public:
     };
 
     /** Constructor */
-    explicit RoutingModel(RouteRequest *request, PositionTracking *positionTracking, QObject *parent = 0);
+    explicit RoutingModel( RouteRequest* request, MarbleModel *model, QObject *parent = 0 );
 
     /** Destructor */
-    ~RoutingModel() override;
+    ~RoutingModel();
 
     // Model querying
 
     /** Overload of QAbstractListModel */
-    int rowCount ( const QModelIndex &parent = QModelIndex() ) const override;
+    int rowCount ( const QModelIndex &parent = QModelIndex() ) const;
 
     /** Overload of QAbstractListModel */
-    QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
+    QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 
     /** Overload of QAbstractListModel */
-    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const override;
+    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const;
 
+#if QT_VERSION >= 0x050000
     /** Overload of QAbstractListModel */
-    QHash<int, QByteArray> roleNames() const override;
+    QHash<int, QByteArray> roleNames() const;
+#endif
 
     // Model data filling
 
@@ -103,7 +102,7 @@ public Q_SLOTS:
       */
     void setRoute( const Route &route );
 
-    void updatePosition( const GeoDataCoordinates&, qreal );
+    void updatePosition( GeoDataCoordinates, qreal );
 
 Q_SIGNALS:
    /**

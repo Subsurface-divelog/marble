@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 
@@ -20,7 +20,7 @@
 #include <QNetworkRequest>
 
 class QNetworkReply;
-class QDomNode;
+class QDomNodeList;
 
 namespace Marble
 {
@@ -33,10 +33,10 @@ class OsmNominatimRunner : public ReverseGeocodingRunner
 public:
     explicit OsmNominatimRunner(QObject *parent = 0);
 
-    ~OsmNominatimRunner() override;
+    ~OsmNominatimRunner();
 
     // Overriding MarbleAbstractRunner
-    void reverseGeocoding( const GeoDataCoordinates &coordinates ) override;
+    virtual void reverseGeocoding( const GeoDataCoordinates &coordinates );
 
 private Q_SLOTS:
     // Forward a result to the search or reverse geocoding handler
@@ -47,7 +47,7 @@ private Q_SLOTS:
     void startReverseGeocoding();
 
 private:
-    static void extractChildren(const QDomNode &node, GeoDataPlacemark &placemark);
+    static void addData( const QDomNodeList &node, const QString &key, GeoDataExtendedData *extendedData );
 
     QNetworkAccessManager m_manager;
 

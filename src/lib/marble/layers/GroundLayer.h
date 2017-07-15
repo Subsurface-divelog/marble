@@ -24,23 +24,23 @@ class GroundLayer : public LayerInterface
 
     GroundLayer();
 
-    ~GroundLayer() override;
+    ~GroundLayer();
 
-    QStringList renderPosition() const override;
+    virtual QStringList renderPosition() const;
 
-    bool render( GeoPainter *painter, ViewportParams *viewport,
+    virtual bool render( GeoPainter *painter, ViewportParams *viewport,
                          const QString& renderPos = QLatin1String("NONE"),
-                         GeoSceneLayer * layer = 0 ) override;
+                         GeoSceneLayer * layer = 0 );
 
-    qreal zValue() const override;
+    virtual qreal zValue() const;
 
     void setColor( const QColor &color );
 
     QColor color() const;
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
-    QString runtimeTrace() const override { return QStringLiteral("GroundLayer"); }
+    virtual QString runtimeTrace() const { return "GroundLayer"; }
 
  private:
     QColor m_color;  // Gets the color specified via DGML's <map bgcolor="">

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "LocalDatabasePlugin.h"
@@ -31,12 +31,12 @@ QString LocalDatabasePlugin::guiString() const
 
 QString LocalDatabasePlugin::nameId() const
 {
-    return QStringLiteral("localdatabase");
+    return "localdatabase";
 }
 
 QString LocalDatabasePlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString LocalDatabasePlugin::description() const
@@ -46,13 +46,13 @@ QString LocalDatabasePlugin::description() const
 
 QString LocalDatabasePlugin::copyrightYears() const
 {
-    return QStringLiteral("2010");
+    return "2010";
 }
 
-QVector<PluginAuthor> LocalDatabasePlugin::pluginAuthors() const
+QList<PluginAuthor> LocalDatabasePlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
 }
 
 SearchRunner* LocalDatabasePlugin::newRunner() const
@@ -62,4 +62,6 @@ SearchRunner* LocalDatabasePlugin::newRunner() const
 
 }
 
-#include "moc_LocalDatabasePlugin.cpp"
+Q_EXPORT_PLUGIN2( LocalDatabasePlugin, Marble::LocalDatabasePlugin )
+
+#include "LocalDatabasePlugin.moc"

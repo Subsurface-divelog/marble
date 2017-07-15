@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2013      Mohammed Nafees  <nafees.technocool@gmail.com>
 //
 
@@ -15,34 +15,29 @@
 
 #include "GeoDataOverlay.h"
 #include "MarbleGlobal.h"
-#include "geodata_export.h"
+#include "GeoDataPoint.h"
+#include "GeoDataImagePyramid.h"
+#include "GeoDataViewVolume.h"
+#include "marble_export.h"
 
 namespace Marble {
 
 class GeoDataPhotoOverlayPrivate;
-class GeoDataPoint;
-class GeoDataImagePyramid;
-class GeoDataViewVolume;
 
-/**
- */
-class GEODATA_EXPORT GeoDataPhotoOverlay: public GeoDataOverlay
+class MARBLE_EXPORT GeoDataPhotoOverlay: public GeoDataOverlay
 {
 public:
     GeoDataPhotoOverlay();
 
     GeoDataPhotoOverlay( const GeoDataPhotoOverlay &other );
 
-    ~GeoDataPhotoOverlay() override;
-
     GeoDataPhotoOverlay& operator=( const GeoDataPhotoOverlay &other );
     bool operator==( const GeoDataPhotoOverlay &other ) const;
     bool operator!=( const GeoDataPhotoOverlay &other ) const;
-
-    GeoDataFeature * clone() const override;
+    ~GeoDataPhotoOverlay();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     enum Shape {
         Rectangle,
@@ -69,7 +64,7 @@ public:
     void setShape( Shape shape );
 
 private:
-    Q_DECLARE_PRIVATE(GeoDataPhotoOverlay)
+    GeoDataPhotoOverlayPrivate* const d;
 };
 
 }

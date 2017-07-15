@@ -28,13 +28,13 @@ class PlaybackSoundCueItem : public PlaybackItem
 {
     Q_OBJECT
 public:
-    explicit PlaybackSoundCueItem( const GeoDataSoundCue* soundCue );
+    PlaybackSoundCueItem( const GeoDataSoundCue* soundCue );
     const GeoDataSoundCue* soundCue() const;
-    double duration() const override;
-    void play() override;
-    void pause() override;
-    void seek( double position ) override;
-    void stop() override;
+    double duration() const;
+    void play();
+    void pause();
+    void seek( double position );
+    void stop();
 private:
     const GeoDataSoundCue* m_soundCue;
     QString m_href;

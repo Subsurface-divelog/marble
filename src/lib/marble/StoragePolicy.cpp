@@ -17,4 +17,4 @@ StoragePolicy::StoragePolicy( QObject *parent )
     : QObject( parent )
 {}
 
-#include "moc_StoragePolicy.cpp"
+#include "StoragePolicy.moc"

@@ -15,7 +15,6 @@
 #include "AreaAnnotation.h"
 #include "GeoDataCoordinates.h"
 #include "GeoDataPolygon.h"
-#include "GeoDataLinearRing.h"
 #include "GeoDataPlacemark.h"
 #include "MarbleMath.h"
 
@@ -106,4 +105,4 @@ qreal MergingPolygonNodesAnimation::nodesDistance()
 
 } // namespace Marble
 
-#include "moc_MergingPolygonNodesAnimation.cpp"
+#include "MergingPolygonNodesAnimation.moc"

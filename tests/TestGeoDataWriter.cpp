@@ -27,7 +27,7 @@ using namespace Marble;
 class TestGeoDataWriter : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void countFeatures_data();
     void saveFile_data();
@@ -65,7 +65,7 @@ void TestGeoDataWriter::initTestCase()
 
         // Open the files and verify
         QVERIFY( file.open( QIODevice::ReadOnly ) );
-        QVERIFY2(parser->read(&file), filename.toLatin1().constData());
+        QVERIFY2( parser->read( &file ), filename.toLatin1() );
 
         parsers.insert( filename, parserPointer );
         m_testFiles << filename;

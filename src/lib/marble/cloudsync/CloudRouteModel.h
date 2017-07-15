@@ -11,17 +11,16 @@
 #ifndef CLOUDROUTEMODEL_H
 #define CLOUDROUTEMODEL_H
 
+#include "RouteItem.h"
+
 #include "marble_export.h"
 
 #include <QModelIndex>
+#include <QNetworkReply>
 #include <QAbstractListModel>
-
-class QNetworkReply;
 
 namespace Marble
 {
-
-class RouteItem;
 
 class MARBLE_EXPORT CloudRouteModel : public QAbstractListModel
 {
@@ -40,13 +39,14 @@ public:
     };
 
     explicit CloudRouteModel( QObject *parent = 0 );
-    ~CloudRouteModel() override;
 
-    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const override;
-    int rowCount( const QModelIndex& parent = QModelIndex() ) const override;
+    QVariant data( const QModelIndex& index, int role = Qt::DisplayRole ) const;
+    int rowCount( const QModelIndex& parent = QModelIndex() ) const;
 
+#if QT_VERSION >= 0x050000
     /** Overload of QAbstractListModel */
-    QHash<int, QByteArray> roleNames() const override;
+    QHash<int, QByteArray> roleNames() const;
+#endif
 
     /**
      * Sets the list of routes that will show up in CloudRoutesDialog.
@@ -100,7 +100,7 @@ public:
      */
     QIcon preview( const QModelIndex &index ) const;
 
-public Q_SLOTS:
+public slots:
     void updateProgress( qint64 currentSize, qint64 totalSize );
     void setPreview( QNetworkReply *reply );
 

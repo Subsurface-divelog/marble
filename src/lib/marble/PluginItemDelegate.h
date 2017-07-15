@@ -30,12 +30,12 @@ class PluginItemDelegate : public QAbstractItemDelegate
 
  public:
     explicit PluginItemDelegate( QAbstractItemView *view, QObject * parent = 0 );
-    ~PluginItemDelegate() override;
+    ~PluginItemDelegate();
     
     void paint( QPainter *painter,
                 const QStyleOptionViewItem& option,
-                const QModelIndex& index ) const override;
-    QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex & index ) const override;
+                const QModelIndex& index ) const;
+    QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex & index ) const;
 
     void setAboutIcon( const QIcon& icon );
     void setConfigIcon( const QIcon& icon );
@@ -57,7 +57,7 @@ class PluginItemDelegate : public QAbstractItemDelegate
     bool editorEvent( QEvent *event,
                       QAbstractItemModel *model,
                       const QStyleOptionViewItem &option,
-                      const QModelIndex &index ) override;
+                      const QModelIndex &index );
 
  private:
     enum ButtonType {
@@ -76,7 +76,7 @@ class PluginItemDelegate : public QAbstractItemDelegate
                                        Qt::AlignmentFlag alignment = Qt::AlignLeft ) const;
     static QSize nameSize( const QModelIndex& index );
     
-    static QRect alignRect( const QRect& object, const QRect& frame, int position, Qt::AlignmentFlag alignment );
+    static QRect alignRect( QRect object, QRect frame, int position, Qt::AlignmentFlag alignment );
 
     QModelIndex m_configPressedIndex;
     QModelIndex m_aboutPressedIndex;

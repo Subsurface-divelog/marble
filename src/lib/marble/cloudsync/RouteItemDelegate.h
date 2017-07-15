@@ -1,12 +1,13 @@
 #ifndef ROUTEITEMDELEGATE_H
 #define ROUTEITEMDELEGATE_H
 
+#include "CloudRouteModel.h"
+
+#include <QListView>
+#include <MarbleWidget.h>
 #include <QStyledItemDelegate>
 
-class QListView;
-
 namespace Marble {
-class CloudRouteModel;
 
 class RouteItemDelegate : public QStyledItemDelegate {
     Q_OBJECT
@@ -14,17 +15,17 @@ class RouteItemDelegate : public QStyledItemDelegate {
 public:
     RouteItemDelegate( QListView *view, CloudRouteModel *model );
 
-    void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
-    QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const override;
-    bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index) override;
+    void paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+    QSize sizeHint( const QStyleOptionViewItem& option, const QModelIndex& index ) const;
+    bool editorEvent(QEvent* event, QAbstractItemModel* model, const QStyleOptionViewItem& option, const QModelIndex& index);
 
 
-Q_SIGNALS:
-    void downloadButtonClicked( const QString& timestamp );
-    void openButtonClicked( const QString& timestamp );
-    void deleteButtonClicked( const QString& timestamp );
-    void removeFromCacheButtonClicked( const QString& timestamp );
-    void uploadToCloudButtonClicked( const QString& timestamp );
+signals:
+    void downloadButtonClicked( QString timestamp );
+    void openButtonClicked( QString timestamp );
+    void deleteButtonClicked( QString timestamp );
+    void removeFromCacheButtonClicked( QString timestamp );
+    void uploadToCloudButtonClicked( QString timestamp );
 
 private:
     enum Element {

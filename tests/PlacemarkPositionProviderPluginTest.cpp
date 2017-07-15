@@ -10,7 +10,6 @@
 
 #include "GeoDataTrack.h"
 #include "GeoDataPlacemark.h"
-#include "GeoDataAccuracy.h"
 #include "PositionProviderPlugin.h"
 #include "PluginManager.h"
 #include "MarbleModel.h"
@@ -33,7 +32,7 @@ class PlacemarkPositionProviderPluginTest : public QObject
     static PositionProviderPlugin *createUninitializedPlugin( const PluginManager *pluginManager );
     static PositionProviderPlugin *createInitializedPlugin( const MarbleModel *model );
 
- private Q_SLOTS:
+ private slots:
     void initialize_data();
     void initialize();
 
@@ -53,7 +52,6 @@ PlacemarkPositionProviderPluginTest::PlacemarkPositionProviderPluginTest() :
     m_minTime( QDate( 2000, 1, 1 ), QTime( 0, 0 ) ),
     m_maxTime( QDate( 2000, 1, 2 ), QTime( 23, 59 ) )
 {
-    qRegisterMetaType<GeoDataCoordinates>( "GeoDataCoordinates" );
     qRegisterMetaType<GeoDataAccuracy>( "GeoDataAccuracy" );
     qRegisterMetaType<PositionProviderStatus>( "PositionProviderStatus" );
 
@@ -69,7 +67,7 @@ PlacemarkPositionProviderPluginTest::PlacemarkPositionProviderPluginTest() :
 PositionProviderPlugin *PlacemarkPositionProviderPluginTest::createUninitializedPlugin( const PluginManager *pluginManager )
 {
     foreach ( const PositionProviderPlugin *plugin, pluginManager->positionProviderPlugins() ) {
-        if (plugin->nameId() == QLatin1String("Placemark")) {
+        if ( plugin->nameId() == "Placemark" ) {
             PositionProviderPlugin *instance = plugin->newInstance();
             return instance;
         }

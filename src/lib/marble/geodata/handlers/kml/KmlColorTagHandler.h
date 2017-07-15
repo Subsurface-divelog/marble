@@ -34,7 +34,7 @@ namespace kml
 class KmlcolorTagHandler : public GeoTagHandler
 {
 public:
-    GeoNode* parse(GeoParser&) const override;
+    virtual GeoNode* parse(GeoParser&) const;
 
     static QColor parseColor( const QString &colorString );
 };

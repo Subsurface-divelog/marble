@@ -25,12 +25,12 @@ QString OsmPlugin::name() const
 
 QString OsmPlugin::nameId() const
 {
-    return QStringLiteral("Osm");
+    return "Osm";
 }
 
 QString OsmPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString OsmPlugin::description() const
@@ -40,14 +40,13 @@ QString OsmPlugin::description() const
 
 QString OsmPlugin::copyrightYears() const
 {
-    return QStringLiteral("2011, 2016");
+    return "2011";
 }
 
-QVector<PluginAuthor> OsmPlugin::pluginAuthors() const
+QList<PluginAuthor> OsmPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"))
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" );
 }
 
 QString OsmPlugin::fileFormatDescription() const
@@ -57,7 +56,7 @@ QString OsmPlugin::fileFormatDescription() const
 
 QStringList OsmPlugin::fileExtensions() const
 {
-    return QStringList() << QStringLiteral("osm") << QStringLiteral("osm.zip") << QStringLiteral("o5m");
+    return QStringList() << "osm";
 }
 
 ParsingRunner* OsmPlugin::newRunner() const
@@ -67,4 +66,6 @@ ParsingRunner* OsmPlugin::newRunner() const
 
 }
 
-#include "moc_OsmPlugin.cpp"
+Q_EXPORT_PLUGIN2( OsmPlugin, Marble::OsmPlugin )
+
+#include "OsmPlugin.moc"

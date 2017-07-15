@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef REGION_H
@@ -33,11 +33,11 @@ public:
 
     QString country() const;
 
-    void setName(const QString& arg);
+    void setName(QString arg);
 
-    void setContinent(const QString& arg);
+    void setContinent(QString arg);
 
-    void setCountry(const QString& arg);
+    void setCountry(QString arg);
 
     QString id() const;
 
@@ -55,7 +55,7 @@ public:
 
     static QString fileSize(const QFileInfo &file);
 
-public Q_SLOTS:
+public slots:
 
 private:
     QString m_name;

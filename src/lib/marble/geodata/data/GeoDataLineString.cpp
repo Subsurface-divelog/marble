@@ -14,7 +14,6 @@
 #include "GeoDataLineString_p.h"
 
 #include "GeoDataLinearRing.h"
-#include "GeoDataTypes.h"
 #include "MarbleMath.h"
 #include "Quaternion.h"
 #include "MarbleDebug.h"
@@ -49,19 +48,14 @@ GeoDataLineString::~GeoDataLineString()
 #endif
 }
 
-const char *GeoDataLineString::nodeType() const
+GeoDataLineStringPrivate* GeoDataLineString::p()
 {
-    return GeoDataTypes::GeoDataLineStringType;
+    return static_cast<GeoDataLineStringPrivate*>(d);
 }
 
-EnumGeometryId GeoDataLineString::geometryId() const
+const GeoDataLineStringPrivate* GeoDataLineString::p() const
 {
-    return GeoDataLineStringId;
-}
-
-GeoDataGeometry *GeoDataLineString::copy() const
-{
-    return new GeoDataLineString(*this);
+    return static_cast<GeoDataLineStringPrivate*>(d);
 }
 
 void GeoDataLineStringPrivate::interpolateDateLine( const GeoDataCoordinates & previousCoords,
@@ -138,282 +132,102 @@ GeoDataCoordinates GeoDataLineStringPrivate::findDateLine( const GeoDataCoordina
     return findDateLine( previousCoords, interpolatedCoords, recursionCounter );
 }
 
-quint8 GeoDataLineStringPrivate::levelForResolution(qreal resolution) const {
-    if (m_previousResolution == resolution) return m_level;
-
-    m_previousResolution = resolution;
-
-    if (resolution < 0.0000005) m_level = 17;
-    else if (resolution < 0.0000010) m_level = 16;
-    else if (resolution < 0.0000020) m_level = 15;
-    else if (resolution < 0.0000040) m_level = 14;
-    else if (resolution < 0.0000080) m_level = 13;
-    else if (resolution < 0.0000160) m_level = 12;
-    else if (resolution < 0.0000320) m_level = 11;
-    else if (resolution < 0.0000640) m_level = 10;
-    else if (resolution < 0.0001280) m_level = 9;
-    else if (resolution < 0.0002560) m_level = 8;
-    else if (resolution < 0.0005120) m_level = 7;
-    else if (resolution < 0.0010240) m_level = 6;
-    else if (resolution < 0.0020480) m_level = 5;
-    else if (resolution < 0.0040960) m_level = 4;
-    else if (resolution < 0.0081920) m_level = 3;
-    else if (resolution < 0.0163840) m_level = 2;
-    else m_level =  1;
-
-    return m_level;
-}
-
-qreal GeoDataLineStringPrivate::resolutionForLevel(int level) const {
-    switch (level) {
-        case 0:
-            return 0.0655360;
-            break;
-        case 1:
-            return 0.0327680;
-            break;
-        case 2:
-            return 0.0163840;
-            break;
-        case 3:
-            return 0.0081920;
-            break;
-        case 4:
-            return 0.0040960;
-            break;
-        case 5:
-            return 0.0020480;
-            break;
-        case 6:
-            return 0.0010240;
-            break;
-        case 7:
-            return 0.0005120;
-            break;
-        case 8:
-            return 0.0002560;
-            break;
-        case 9:
-            return 0.0001280;
-            break;
-        case 10:
-            return 0.0000640;
-            break;
-        case 11:
-            return 0.0000320;
-            break;
-        case 12:
-            return 0.0000160;
-            break;
-        case 13:
-            return 0.0000080;
-            break;
-        case 14:
-            return 0.0000040;
-            break;
-        case 15:
-            return 0.0000020;
-            break;
-        case 16:
-            return 0.0000010;
-            break;
-        default:
-        case 17:
-            return 0.0000005;
-            break;
-    }
-}
-
-void GeoDataLineStringPrivate::optimize (GeoDataLineString& lineString) const
-{
-
-    QVector<GeoDataCoordinates>::iterator itCoords = lineString.begin();
-    QVector<GeoDataCoordinates>::const_iterator itEnd = lineString.constEnd();
-
-    if (lineString.size() < 2) return;
-
-    // Calculate the least non-zero detail-level by checking the bounding box
-    quint8 startLevel = levelForResolution( ( lineString.latLonAltBox().width() + lineString.latLonAltBox().height() ) / 2 );
-
-    quint8 currentLevel = startLevel;
-    quint8 maxLevel = startLevel;
-    GeoDataCoordinates currentCoords;
-    lineString.first().setDetail(startLevel);
-
-    // Iterate through the linestring to assign different detail levels to the nodes.
-    // In general the first and last node should have the start level assigned as
-    // a detail level.
-    // Starting from the first node the algorithm picks those nodes which
-    // have a distance from each other that is just above the resolution that is
-    // associated with the start level (which we use as a "current level").
-    // Each of those nodes get the current level assigned as the detail level.
-    // After iterating through the linestring we increment the current level value
-    // and starting again with the first node we assign detail values in a similar way
-    // to the remaining nodes which have no final detail level assigned yet.
-    // We do as many iterations through the lineString as needed and bump up the
-    // current level until all nodes have a non-zero detail level assigned.
-
-    while ( currentLevel  < 16 && currentLevel <= maxLevel + 1 ) {
-        itCoords = lineString.begin();
-
-        currentCoords = *itCoords;
-        ++itCoords;
-
-        for( ; itCoords != itEnd; ++itCoords) {
-            if (itCoords->detail() != 0 && itCoords->detail() < currentLevel) continue;
-
-            if ( currentLevel == startLevel && (itCoords->longitude() == -M_PI || itCoords->longitude() == M_PI
-                || itCoords->latitude() < -89 * DEG2RAD || itCoords->latitude() > 89 * DEG2RAD)) {
-                itCoords->setDetail(startLevel);
-                currentCoords = *itCoords;
-                maxLevel = currentLevel;
-                continue;
-            }
-            if (distanceSphere( currentCoords, *itCoords ) < resolutionForLevel(currentLevel + 1)) {
-                itCoords->setDetail(currentLevel + 1);
-            }
-            else {
-                itCoords->setDetail(currentLevel);
-                currentCoords = *itCoords;
-                maxLevel = currentLevel;
-            }
-        }
-        ++currentLevel;
-    }
-    lineString.last().setDetail(startLevel);
-}
-
 bool GeoDataLineString::isEmpty() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.isEmpty();
+    return p()->m_vector.isEmpty();
 }
 
 int GeoDataLineString::size() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.size();
+    return p()->m_vector.size();
 }
 
 GeoDataCoordinates& GeoDataLineString::at( int pos )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    d->m_dirtyRange = true;
-    d->m_dirtyBox = true;
-    return d->m_vector[pos];
+    GeoDataGeometry::detach();
+    p()->m_dirtyRange = true;
+    p()->m_dirtyBox = true;
+    return p()->m_vector[ pos ];
 }
 
 const GeoDataCoordinates& GeoDataLineString::at( int pos ) const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.at(pos);
+    return p()->m_vector.at( pos );
 }
 
 GeoDataCoordinates& GeoDataLineString::operator[]( int pos )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    d->m_dirtyRange = true;
-    d->m_dirtyBox = true;
-    return d->m_vector[pos];
-}
-
-GeoDataLineString GeoDataLineString::mid(int pos, int length) const
-{
-    GeoDataLineString substring;
-    auto d = substring.d_func();
-    d->m_vector = d_func()->m_vector.mid(pos, length);
-    d->m_dirtyBox = true;
-    d->m_dirtyRange = true;
-    d->m_tessellationFlags = d_func()->m_tessellationFlags;
-    d->m_extrude = d_func()->m_extrude;
-    return substring;
+    GeoDataGeometry::detach();
+    p()->m_dirtyRange = true;
+    p()->m_dirtyBox = true;
+    return p()->m_vector[ pos ];
 }
 
 const GeoDataCoordinates& GeoDataLineString::operator[]( int pos ) const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector[pos];
+    return p()->m_vector[ pos ];
 }
 
 GeoDataCoordinates& GeoDataLineString::last()
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    d->m_dirtyRange = true;
-    d->m_dirtyBox = true;
-    return d->m_vector.last();
+    GeoDataGeometry::detach();
+    p()->m_dirtyRange = true;
+    p()->m_dirtyBox = true;
+    return p()->m_vector.last();
 }
 
 GeoDataCoordinates& GeoDataLineString::first()
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    return d->m_vector.first();
+    GeoDataGeometry::detach();
+    return p()->m_vector.first();
 }
 
 const GeoDataCoordinates& GeoDataLineString::last() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.last();
+    return p()->m_vector.last();
 }
 
 const GeoDataCoordinates& GeoDataLineString::first() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.first();
+    return p()->m_vector.first();
 }
 
 QVector<GeoDataCoordinates>::Iterator GeoDataLineString::begin()
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    return d->m_vector.begin();
+    GeoDataGeometry::detach();
+    return p()->m_vector.begin();
 }
 
 QVector<GeoDataCoordinates>::ConstIterator GeoDataLineString::begin() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.constBegin();
+    return p()->m_vector.constBegin();
 }
 
 QVector<GeoDataCoordinates>::Iterator GeoDataLineString::end()
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    return d->m_vector.end();
+    GeoDataGeometry::detach();
+    return p()->m_vector.end();
 }
 
 QVector<GeoDataCoordinates>::ConstIterator GeoDataLineString::end() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.constEnd();
+    return p()->m_vector.constEnd();
 }
 
 QVector<GeoDataCoordinates>::ConstIterator GeoDataLineString::constBegin() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.constBegin();
+    return p()->m_vector.constBegin();
 }
 
 QVector<GeoDataCoordinates>::ConstIterator GeoDataLineString::constEnd() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_vector.constEnd();
+    return p()->m_vector.constEnd();
 }
 
 void GeoDataLineString::insert( int index, const GeoDataCoordinates& value )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -423,9 +237,8 @@ void GeoDataLineString::insert( int index, const GeoDataCoordinates& value )
 
 void GeoDataLineString::append ( const GeoDataCoordinates& value )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -433,37 +246,10 @@ void GeoDataLineString::append ( const GeoDataCoordinates& value )
     d->m_vector.append( value );
 }
 
-void GeoDataLineString::reserve(int size)
-{
-    Q_D(GeoDataLineString);
-    d->m_vector.reserve(size);
-}
-
-void GeoDataLineString::append(const QVector<GeoDataCoordinates>& values)
-{
-    detach();
-
-    Q_D(GeoDataLineString);
-    delete d->m_rangeCorrected;
-    d->m_rangeCorrected = 0;
-    d->m_dirtyRange = true;
-    d->m_dirtyBox = true;
-
-#if QT_VERSION >= 0x050500
-    d->m_vector.append(values);
-#else
-    d->m_vector.reserve(d->m_vector.size() + values.size());
-    for (const GeoDataCoordinates &coordinates: values) {
-        d->m_vector.append(coordinates);
-    }
-#endif
-}
-
 GeoDataLineString& GeoDataLineString::operator << ( const GeoDataCoordinates& value )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -474,9 +260,8 @@ GeoDataLineString& GeoDataLineString::operator << ( const GeoDataCoordinates& va
 
 GeoDataLineString& GeoDataLineString::operator << ( const GeoDataLineString& value )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -485,7 +270,6 @@ GeoDataLineString& GeoDataLineString::operator << ( const GeoDataLineString& val
     QVector<GeoDataCoordinates>::const_iterator itCoords = value.constBegin();
     QVector<GeoDataCoordinates>::const_iterator itEnd = value.constEnd();
 
-    d->m_vector.reserve(d->m_vector.size() + value.size());
     for( ; itCoords != itEnd; ++itCoords ) {
         d->m_vector.append( *itCoords );
     }
@@ -501,8 +285,8 @@ bool GeoDataLineString::operator==( const GeoDataLineString &other ) const
         return false;
     }
 
-    Q_D(const GeoDataLineString);
-    const GeoDataLineStringPrivate* other_d = other.d_func();
+    const GeoDataLineStringPrivate* d = p();
+    const GeoDataLineStringPrivate* other_d = other.p();
 
     QVector<GeoDataCoordinates>::const_iterator itCoords = d->m_vector.constBegin();
     QVector<GeoDataCoordinates>::const_iterator otherItCoords = other_d->m_vector.constBegin();
@@ -526,9 +310,8 @@ bool GeoDataLineString::operator!=( const GeoDataLineString &other ) const
 
 void GeoDataLineString::clear()
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -544,57 +327,38 @@ bool GeoDataLineString::isClosed() const
 
 bool GeoDataLineString::tessellate() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_tessellationFlags.testFlag(Tessellate);
+    return p()->m_tessellationFlags.testFlag(Tessellate);
 }
 
 void GeoDataLineString::setTessellate( bool tessellate )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
     // According to the KML reference the tesselation of line strings in Google Earth
     // is generally done along great circles. However for subsequent points that share
     // the same latitude the latitude circles are followed. Our Tesselate and RespectLatitude
     // Flags provide this behaviour. For true polygons the latitude circles don't get considered.
 
-    if (tessellate) {
-        d->m_tessellationFlags |= (Tessellate | RespectLatitudeCircle);
+    if ( tessellate ) {
+        p()->m_tessellationFlags |= Tessellate;
+        p()->m_tessellationFlags |= RespectLatitudeCircle;
     } else {
-        d->m_tessellationFlags &= ~(Tessellate | RespectLatitudeCircle);
+        p()->m_tessellationFlags ^= Tessellate;
+        p()->m_tessellationFlags ^= RespectLatitudeCircle;
     }
 }
 
 TessellationFlags GeoDataLineString::tessellationFlags() const
 {
-    Q_D(const GeoDataLineString);
-    return d->m_tessellationFlags;
+    return p()->m_tessellationFlags;
 }
 
 void GeoDataLineString::setTessellationFlags( TessellationFlags f )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-    d->m_tessellationFlags = f;
-}
-
-void GeoDataLineString::reverse()
-{
-    detach();
-
-    Q_D(GeoDataLineString);
-    delete d->m_rangeCorrected;
-    d->m_rangeCorrected = 0;
-    d->m_dirtyRange = true;
-    d->m_dirtyBox = true;
-    std::reverse(begin(), end());
+    p()->m_tessellationFlags = f;
 }
 
 GeoDataLineString GeoDataLineString::toNormalized() const
 {
-    Q_D(const GeoDataLineString);
-
     GeoDataLineString normalizedLineString;
 
     normalizedLineString.setTessellationFlags( tessellationFlags() );
@@ -604,9 +368,9 @@ GeoDataLineString GeoDataLineString::toNormalized() const
 
     // FIXME: Think about how we can avoid unnecessary copies
     //        if the linestring stays the same.
-    QVector<GeoDataCoordinates>::const_iterator end = d->m_vector.constEnd();
+    QVector<GeoDataCoordinates>::const_iterator end = p()->m_vector.constEnd();
     for( QVector<GeoDataCoordinates>::const_iterator itCoords
-          = d->m_vector.constBegin();
+          = p()->m_vector.constBegin();
          itCoords != end;
          ++itCoords ) {
 
@@ -624,45 +388,39 @@ GeoDataLineString GeoDataLineString::toNormalized() const
 
 GeoDataLineString GeoDataLineString::toRangeCorrected() const
 {
-    Q_D(const GeoDataLineString);
+    if ( p()->m_dirtyRange ) {
 
-    if (d->m_dirtyRange) {
-
-        delete d->m_rangeCorrected;
+        delete p()->m_rangeCorrected;
 
         if( isClosed() ) {
-            d->m_rangeCorrected = new GeoDataLinearRing(toPoleCorrected());
+            p()->m_rangeCorrected = new GeoDataLinearRing( toPoleCorrected() );
         } else {
-            d->m_rangeCorrected = new GeoDataLineString(toPoleCorrected());
+            p()->m_rangeCorrected = new GeoDataLineString( toPoleCorrected() );
         }
-        d->m_dirtyRange = false;
+        p()->m_dirtyRange = false;
     }
 
-    return *d->m_rangeCorrected;
+    return *p()->m_rangeCorrected;
 }
 
 QVector<GeoDataLineString*> GeoDataLineString::toDateLineCorrected() const
 {
-    Q_D(const GeoDataLineString);
-
     QVector<GeoDataLineString*> lineStrings;
 
-    d->toDateLineCorrected(*this, lineStrings);
+    p()->toDateLineCorrected( *this, lineStrings );
 
     return lineStrings;
 }
 
 GeoDataLineString GeoDataLineString::toPoleCorrected() const
 {
-    Q_D(const GeoDataLineString);
-
     if( isClosed() ) {
         GeoDataLinearRing poleCorrected;
-        d->toPoleCorrected(*this, poleCorrected);
+        p()->toPoleCorrected( *this, poleCorrected );
         return poleCorrected;
     } else {
         GeoDataLineString poleCorrected;
-        d->toPoleCorrected(*this, poleCorrected);
+        p()->toPoleCorrected( *this, poleCorrected );
         return poleCorrected;
     }
 }
@@ -834,18 +592,16 @@ void GeoDataLineStringPrivate::toDateLineCorrected(
 
 const GeoDataLatLonAltBox& GeoDataLineString::latLonAltBox() const
 {
-    Q_D(const GeoDataLineString);
-
     // GeoDataLatLonAltBox::fromLineString is very expensive
     // that's why we recreate it only if the m_dirtyBox
     // is TRUE.
     // DO NOT REMOVE THIS CONSTRUCT OR MARBLE WILL BE SLOW.
-    if (d->m_dirtyBox) {
-        d->m_latLonAltBox = GeoDataLatLonAltBox::fromLineString(*this);
-        d->m_dirtyBox = false;
+    if ( p()->m_dirtyBox ) {
+        p()->m_latLonAltBox = GeoDataLatLonAltBox::fromLineString( *this );
     }
+    p()->m_dirtyBox = false;
 
-    return d->m_latLonAltBox;
+    return p()->m_latLonAltBox;
 }
 
 qreal GeoDataLineString::length( qreal planetRadius, int offset ) const
@@ -854,11 +610,10 @@ qreal GeoDataLineString::length( qreal planetRadius, int offset ) const
         return 0;
     }
 
-    Q_D(const GeoDataLineString);
     qreal length = 0.0;
-    QVector<GeoDataCoordinates> const & vector = d->m_vector;
+    QVector<GeoDataCoordinates> const & vector = p()->m_vector;
     int const start = qMax(offset+1, 1);
-    int const end = d->m_vector.size();
+    int const end = p()->m_vector.size();
     for( int i=start; i<end; ++i )
     {
         length += distanceSphere( vector[i-1], vector[i] );
@@ -867,11 +622,10 @@ qreal GeoDataLineString::length( qreal planetRadius, int offset ) const
     return planetRadius * length;
 }
 
-QVector<GeoDataCoordinates>::Iterator GeoDataLineString::erase ( const QVector<GeoDataCoordinates>::Iterator& pos )
+QVector<GeoDataCoordinates>::Iterator GeoDataLineString::erase ( QVector<GeoDataCoordinates>::Iterator pos )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -879,12 +633,11 @@ QVector<GeoDataCoordinates>::Iterator GeoDataLineString::erase ( const QVector<G
     return d->m_vector.erase( pos );
 }
 
-QVector<GeoDataCoordinates>::Iterator GeoDataLineString::erase ( const QVector<GeoDataCoordinates>::Iterator& begin,
-                                                                 const QVector<GeoDataCoordinates>::Iterator& end )
+QVector<GeoDataCoordinates>::Iterator GeoDataLineString::erase ( QVector<GeoDataCoordinates>::Iterator begin,
+                                                                 QVector<GeoDataCoordinates>::Iterator end )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     delete d->m_rangeCorrected;
     d->m_rangeCorrected = 0;
     d->m_dirtyRange = true;
@@ -894,43 +647,25 @@ QVector<GeoDataCoordinates>::Iterator GeoDataLineString::erase ( const QVector<G
 
 void GeoDataLineString::remove ( int i )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
+    GeoDataGeometry::detach();
+    GeoDataLineStringPrivate* d = p();
     d->m_dirtyRange = true;
     d->m_dirtyBox = true;
     d->m_vector.remove( i );
 }
 
-GeoDataLineString GeoDataLineString::optimized () const
-{
-    Q_D(const GeoDataLineString);
-
-    if( isClosed() ) {
-        GeoDataLinearRing linearRing(*this);
-        d->optimize(linearRing);
-        return linearRing;
-    } else {
-        GeoDataLineString lineString(*this);
-        d->optimize(lineString);
-        return lineString;
-    }
-}
-
 void GeoDataLineString::pack( QDataStream& stream ) const
 {
-    Q_D(const GeoDataLineString);
-
     GeoDataGeometry::pack( stream );
 
     stream << size();
-    stream << (qint32)(d->m_tessellationFlags);
+    stream << (qint32)(p()->m_tessellationFlags);
 
     for( QVector<GeoDataCoordinates>::const_iterator iterator
-          = d->m_vector.constBegin();
-         iterator != d->m_vector.constEnd();
+          = p()->m_vector.constBegin();
+         iterator != p()->m_vector.constEnd();
          ++iterator ) {
-        mDebug() << "innerRing: size" << d->m_vector.size();
+        mDebug() << "innerRing: size" << p()->m_vector.size();
         GeoDataCoordinates coord = ( *iterator );
         coord.pack( stream );
     }
@@ -939,10 +674,7 @@ void GeoDataLineString::pack( QDataStream& stream ) const
 
 void GeoDataLineString::unpack( QDataStream& stream )
 {
-    detach();
-
-    Q_D(GeoDataLineString);
-
+    GeoDataGeometry::detach();
     GeoDataGeometry::unpack( stream );
     qint32 size;
     qint32 tessellationFlags;
@@ -950,14 +682,12 @@ void GeoDataLineString::unpack( QDataStream& stream )
     stream >> size;
     stream >> tessellationFlags;
 
-    d->m_tessellationFlags = (TessellationFlags)(tessellationFlags);
-
-    d->m_vector.reserve(d->m_vector.size() + size);
+    p()->m_tessellationFlags = (TessellationFlags)(tessellationFlags);
 
     for(qint32 i = 0; i < size; i++ ) {
         GeoDataCoordinates coord;
         coord.unpack( stream );
-        d->m_vector.append( coord );
+        p()->m_vector.append( coord );
     }
 }
 

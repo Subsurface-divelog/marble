@@ -5,21 +5,21 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTEREQUEST_H
 #define MARBLE_ROUTEREQUEST_H
 
 #include "marble_export.h"
+#include "GeoDataCoordinates.h"
 #include "RoutingProfile.h"
 
-#include <QObject>
+#include <QFlags>
 
 namespace Marble
 {
 
-class GeoDataCoordinates;
 class GeoDataPlacemark;
 class RouteRequestPrivate;
 
@@ -38,7 +38,7 @@ public:
     explicit RouteRequest( QObject *parent = 0 );
 
     /** Destructor */
-    ~RouteRequest() override;
+    ~RouteRequest();
 
     /** The first point, or a default constructed if empty */
     GeoDataCoordinates source() const;
@@ -60,11 +60,6 @@ public:
     /** Add the given element at the given position */
     void insert( int index, const GeoDataCoordinates &coordinates, const QString &name = QString() );
 
-    void insert(int index, const GeoDataPlacemark &placemark);
-
-    /** Swaps the given elements at the given positions*/
-    void swap( int index1, int index2 );
-
     /** Change the value of the element at the given position */
     void setPosition( int index, const GeoDataCoordinates &position, const QString &name = QString() );
 
@@ -84,7 +79,6 @@ public:
       * @todo: Minimizing the distance might not always be what the user wants
       */
     void addVia( const GeoDataCoordinates &position );
-    void addVia( const GeoDataPlacemark &placemark );
 
     /** Returns a pixmap which indicates the position of the element */
     QPixmap pixmap( int index, int size=-1, int margin=2 ) const;

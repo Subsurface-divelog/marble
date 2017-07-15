@@ -14,34 +14,15 @@
    <string>File View</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item>
-    <widget class="QTreeView" name="m_treeView">
-     <property name="iconSize">
-      <size>
-       <width>0</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="textElideMode">
-      <enum>Qt::ElideLeft</enum>
-     </property>
-    </widget>
-   </item>
+  <item>
+   <widget class="QTreeView" name="m_treeView"/>
+  </item>
    <item>
     <layout class="QHBoxLayout">
      <property name="spacing">
       <number>6</number>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
-     </property>
-     <property name="topMargin">
-      <number>0</number>
-     </property>
-     <property name="rightMargin">
-      <number>0</number>
-     </property>
-     <property name="bottomMargin">
+     <property name="margin">
       <number>0</number>
      </property>
      <item>

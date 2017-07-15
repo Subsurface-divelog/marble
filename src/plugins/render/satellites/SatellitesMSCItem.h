@@ -24,6 +24,7 @@ namespace Marble {
 
 class GeoDataTrack;
 class MarbleClock;
+class GeoDataPlacemark;
 
 /**
  * An instance of SatellitesMSCItem represents an item of a Marble
@@ -41,7 +42,7 @@ public:
                        int catalogIndex,
                        PlanetarySats *planSat,
                        const MarbleClock *clock );
-    ~SatellitesMSCItem() override;
+    ~SatellitesMSCItem();
 
     QString category() const;
     QString relatedBody() const;
@@ -52,7 +53,7 @@ public:
     const QDateTime& missionStart() const;
     const QDateTime& missionEnd() const;
 
-    void update() override;
+    void update();
 
 private:
     GeoDataTrack *m_track;

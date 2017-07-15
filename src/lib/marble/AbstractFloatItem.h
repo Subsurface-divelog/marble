@@ -14,17 +14,18 @@
 
 #include <QPointF>
 #include <QSizeF>
+#include <QPen>
+#include <QFont>
 
 #include "RenderPlugin.h"
 #include "FrameGraphicsItem.h"
 #include "marble_export.h"
 
+
 class QContextMenuEvent;
 class QHelpEvent;
 class QMenu;
 class QWidget;
-class QFont;
-class QPen;
 
 namespace Marble
 {
@@ -49,12 +50,12 @@ class MARBLE_EXPORT AbstractFloatItem : public RenderPlugin, public FrameGraphic
     explicit AbstractFloatItem( const MarbleModel *marbleModel,
                                 const QPointF &point = QPointF( 10.0, 10.0 ),
                                 const QSizeF &size = QSizeF( 150.0, 50.0 ) );
-    ~AbstractFloatItem() override;
+    virtual ~AbstractFloatItem();
 
-    QHash<QString,QVariant> settings() const override;
-    void setSettings(const QHash<QString, QVariant> &settings) override;
+    virtual QHash<QString,QVariant> settings() const;
+    virtual void setSettings(const QHash<QString, QVariant> &settings);
 
-    RenderType renderType() const override;
+    virtual RenderType renderType() const;
 
     /**
      * @brief current pen for rendering
@@ -80,23 +81,12 @@ class MARBLE_EXPORT AbstractFloatItem : public RenderPlugin, public FrameGraphic
      */
     void setFont( const QFont &font );
 
-    /**
-     * @brief Paints the float item on the map.
-     * @deprecated Do not override this method since it won't be called any longer.
-     *             Override one of FrameGraphicsItem's paint methods instead.
-     */
-    MARBLE_DEPRECATED bool render( GeoPainter *painter, ViewportParams *viewport,
+    bool render( GeoPainter *painter, ViewportParams *viewport,
                  const QString& renderPos = QLatin1String("FLOAT_ITEM"),
-                 GeoSceneLayer * layer = 0 ) override;
+                 GeoSceneLayer * layer = 0 );
+    virtual QString renderPolicy() const;
 
-    QString renderPolicy() const override;
-
-    /**
-     * @brief Returns the rendering position of this float item.
-     * @deprecated The return value of method is ignored. The float item's rendering position
-     *             will always be "FLOAT_ITEM".
-     */
-    MARBLE_DEPRECATED QStringList renderPosition() const override;
+    virtual QStringList renderPosition() const;
 
     /**
      * @brief Set visibility of the float item
@@ -160,7 +150,7 @@ class MARBLE_EXPORT AbstractFloatItem : public RenderPlugin, public FrameGraphic
     void hide();
 
  protected:
-    bool eventFilter(QObject *object, QEvent *e) override;
+    virtual bool eventFilter( QObject *object, QEvent *e );
     virtual void contextMenuEvent ( QWidget *w, QContextMenuEvent *e );
     virtual void toolTipEvent( QHelpEvent *e );
     QMenu* contextMenu();

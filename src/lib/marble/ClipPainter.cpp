@@ -16,6 +16,7 @@
 
 #include "MarbleDebug.h"
 
+// #define DEBUG_DRAW_NODES
 
 namespace Marble
 {
@@ -23,7 +24,7 @@ namespace Marble
 class ClipPainterPrivate
 {
  public:
-    explicit ClipPainterPrivate( ClipPainter * parent );
+    ClipPainterPrivate( ClipPainter * parent );
 
     ClipPainter * q;
 
@@ -75,7 +76,7 @@ class ClipPainterPrivate
                                 bool isClosed ) const;
 
 
-    void labelPosition(const QPolygonF& polygon, QVector<QPointF>& labelNodes,
+    void labelPosition( const QPolygonF & polygon, QVector<QPointF>& labelNodes, 
                                 LabelPositionFlags labelPositionFlags);
 
     bool pointAllowsLabel( const QPointF& point );
@@ -85,14 +86,11 @@ class ClipPainterPrivate
 
     static inline qreal _m( const QPointF & start, const QPointF & end );
 
-    void debugDrawNodes( const QPolygonF & );
+#ifdef DEBUG_DRAW_NODES
+    void debugDrawNodes( const QPolygonF & ); 
+#endif
 
     qreal m_labelAreaMargin;
-
-    int m_debugPenBatchColor;
-    int m_debugBrushBatchColor;
-    int m_debugPolygonsLevel;
-    bool m_debugBatchRender;
 };
 
 }
@@ -138,221 +136,101 @@ bool ClipPainter::hasScreenClip() const
 void ClipPainter::drawPolygon ( const QPolygonF & polygon,
                                 Qt::FillRule fillRule )
 {
+    d->initClipRect();
+
     if ( d->m_doClip ) {	
-        d->initClipRect();
         QVector<QPolygonF> clippedPolyObjects;
 
         d->clipPolyObject( polygon, clippedPolyObjects, true );
 
-        for( const QPolygonF & clippedPolyObject: clippedPolyObjects ) { 
+        foreach( const QPolygonF & clippedPolyObject, clippedPolyObjects ) { 
             if ( clippedPolyObject.size() > 2 ) {
                 // mDebug() << "Size: " << clippedPolyObject.size();
-                if (d->m_debugPolygonsLevel) {
-                    QBrush brush = QPainter::brush();
-                    QBrush originalBrush = brush;
-                    QColor color = brush.color();
-                    color.setAlpha(color.alpha()*0.75);
-                    brush.setColor(color);
-                    QPainter::setBrush(brush);
-
-                    QPainter::drawPolygon ( clippedPolyObject, fillRule );
-
-                    QPainter::setBrush(originalBrush);
-
+                QPainter::drawPolygon ( clippedPolyObject, fillRule );
+                // mDebug() << "done";
+                #ifdef DEBUG_DRAW_NODES
                     d->debugDrawNodes( clippedPolyObject );
-                }
-                else {
-                    QPainter::drawPolygon ( clippedPolyObject, fillRule );
-                }
+                #endif
             }
         }
     }
     else {
-        if (d->m_debugPolygonsLevel) {
-            QBrush brush = QPainter::brush();
-            QBrush originalBrush = brush;
-            QColor color = brush.color();
-            color.setAlpha(color.alpha()*0.75);
-            brush.setColor(color);
-            QPainter::setBrush(brush);
+        QPainter::drawPolygon ( polygon, fillRule );
 
-            QPainter::drawPolygon ( polygon, fillRule );
-
-            QPainter::setBrush(originalBrush);
-
+        #ifdef DEBUG_DRAW_NODES
             d->debugDrawNodes( polygon );
-        }
-        else {
-            QPainter::drawPolygon ( polygon, fillRule );
-        }
+        #endif
     }
 }
 
 void ClipPainter::drawPolyline( const QPolygonF & polygon )
 {
+    d->initClipRect();
+
     if ( d->m_doClip ) {
-        d->initClipRect();
         QVector<QPolygonF> clippedPolyObjects;
 
         d->clipPolyObject( polygon, clippedPolyObjects, false );
 
-        for( const QPolygonF & clippedPolyObject: clippedPolyObjects ) { 
+        foreach( const QPolygonF & clippedPolyObject, clippedPolyObjects ) { 
             if ( clippedPolyObject.size() > 1 ) {
-                if (d->m_debugPolygonsLevel) {
-                    QPen pen = QPainter::pen();
-                    QPen originalPen = pen;
-                    QColor color = pen.color();
-                    color.setAlpha(color.alpha()*0.75);
-                    pen.setColor(color);
-                    QPainter::setPen(pen);
+                // mDebug() << "Size: " << clippedPolyObject.size();
+                QPainter::drawPolyline ( clippedPolyObject );
+                // mDebug() << "done";
 
-                    QPainter::drawPolyline ( clippedPolyObject );
-
-                    QPainter::setPen(originalPen);
-
+                #ifdef DEBUG_DRAW_NODES
                     d->debugDrawNodes( clippedPolyObject );
-                }
-                else {
-                    QPainter::drawPolyline ( clippedPolyObject );
-                }
+                #endif
             }
         }
     }
     else {
-        if (d->m_debugPolygonsLevel) {
-            QPen pen = QPainter::pen();
-            QPen originalPen = pen;
-            QColor color = pen.color();
-            color.setAlpha(color.alpha()*0.75);
-            pen.setColor(color);
-            QPainter::setPen(pen);
+        QPainter::drawPolyline( polygon );
 
-            QPainter::drawPolyline ( polygon );
-
-            QPainter::setPen(originalPen);
-
+        #ifdef DEBUG_DRAW_NODES
             d->debugDrawNodes( polygon );
-        }
-        else {
-            QPainter::drawPolyline ( polygon );
-        }
+        #endif
     }
 }
 
-void ClipPainter::drawPolyline(const QPolygonF & polygon, QVector<QPointF>& labelNodes,
-                               LabelPositionFlags positionFlags)
+void ClipPainter::drawPolyline( const QPolygonF & polygon, QVector<QPointF>& labelNodes,
+                                LabelPositionFlags positionFlags)
 {
+    d->initClipRect();
+
     if ( d->m_doClip ) {
-        d->initClipRect();
+ 
         QVector<QPolygonF> clippedPolyObjects;
 
         d->clipPolyObject( polygon, clippedPolyObjects, false );
 
-        for( const QPolygonF & clippedPolyObject: clippedPolyObjects ) { 
-            if (d->m_debugPolygonsLevel) {
-                QPen pen = QPainter::pen();
-                QPen originalPen = pen;
-                QColor color = pen.color();
-                color.setAlpha(color.alpha()*0.75);
-                pen.setColor(color);
-                QPainter::setPen(pen);
-
+        foreach( const QPolygonF & clippedPolyObject, clippedPolyObjects ) { 
+            if ( clippedPolyObject.size() > 1 ) {
+                // mDebug() << "Size: " << clippedPolyObject.size();
                 QPainter::drawPolyline ( clippedPolyObject );
+                // mDebug() << "done";
 
-                QPainter::setPen(originalPen);
+                #ifdef DEBUG_DRAW_NODES
+                    d->debugDrawNodes( clippedPolyObject );
+                #endif
 
-                d->debugDrawNodes( clippedPolyObject );
-            }
-            else {
-                QPainter::drawPolyline ( clippedPolyObject );
+                d->labelPosition( clippedPolyObject, labelNodes, positionFlags );
             }
         }
     }
     else {
-        if (d->m_debugPolygonsLevel) {
-            QPen pen = QPainter::pen();
-            QPen originalPen = pen;
-            QColor color = pen.color();
-            color.setAlpha(color.alpha()*0.75);
-            pen.setColor(color);
-            QPainter::setPen(pen);
+        QPainter::drawPolyline( polygon );
 
-            QPainter::drawPolyline ( polygon );
-
-            QPainter::setPen(originalPen);
-
+        #ifdef DEBUG_DRAW_NODES
             d->debugDrawNodes( polygon );
-        }
-        else {
-            QPainter::drawPolyline ( polygon );
-        }
+        #endif
 
         d->labelPosition( polygon, labelNodes, positionFlags );
     }
 }
 
-void ClipPainter::labelPosition(const QPolygonF & polygon, QVector<QPointF>& labelNodes,
-                                       LabelPositionFlags labelPositionFlags) {
-    d->labelPosition(polygon, labelNodes, labelPositionFlags);
-}
-
-void ClipPainter::setPen(const QColor &color) {
-    if (d->m_debugBatchRender) {
-        qDebug() << Q_FUNC_INFO;
-    }
-    setPen(QPen(color));
-}
-
-void ClipPainter::setPen(Qt::PenStyle style) {
-    if (d->m_debugBatchRender) {
-        qDebug() << Q_FUNC_INFO;
-    }
-    setPen(QPen(style));
-}
-
-void ClipPainter::setPen(const QPen & pen) {
-    if (d->m_debugBatchRender) {
-        qDebug() << Q_FUNC_INFO;
-        if (pen != QPainter::pen()) {
-            qDebug() << "--" << pen.color()  << QPainter::pen().color() ;
-            QPen newPen = pen;
-            newPen.setColor((Qt::GlobalColor)(d->m_debugPenBatchColor+4));
-            QPainter::setPen(newPen);
-            d->m_debugPenBatchColor++;
-            d->m_debugPenBatchColor %= 14;
-        }
-        else {
-            qDebug() << "++";
-            QPainter::setPen(pen);
-        }
-    }
-    else {
-        QPainter::setPen(pen);
-    }
-}
-
-void ClipPainter::setBrush(const QBrush & brush) {
-    if (d->m_debugBatchRender) {
-        qDebug() << Q_FUNC_INFO;
-        if (brush != QPainter::brush()) {
-            qDebug() << "--" << brush.color()  << QPainter::brush().color() ;
-            QBrush batchColor(QColor((Qt::GlobalColor)(d->m_debugBrushBatchColor)));
-            QPainter::setBrush(batchColor);
-            d->m_debugBrushBatchColor++;
-            d->m_debugBrushBatchColor %= 20;
-        }
-        else {
-            qDebug() << "++";
-            QPainter::setBrush(brush);
-        }
-    }
-    else {
-        QPainter::setBrush(brush);
-    }
-}
-
-void ClipPainterPrivate::labelPosition(const QPolygonF & polygon, QVector<QPointF>& labelNodes,
-                                       LabelPositionFlags labelPositionFlags)
+void ClipPainterPrivate::labelPosition( const QPolygonF & polygon, QVector<QPointF>& labelNodes, 
+                                        LabelPositionFlags labelPositionFlags)
 {
     bool currentAllowsLabel = false;
 
@@ -412,8 +290,11 @@ void ClipPainterPrivate::labelPosition(const QPolygonF & polygon, QVector<QPoint
 bool ClipPainterPrivate::pointAllowsLabel( const QPointF& point )
 {
 
-    return point.x() > m_labelAreaMargin && point.x() < q->viewport().width() - m_labelAreaMargin 
-         && point.y() > m_labelAreaMargin && point.y() < q->viewport().height() - m_labelAreaMargin;
+    if ( point.x() > m_labelAreaMargin && point.x() < q->viewport().width() - m_labelAreaMargin 
+         && point.y() > m_labelAreaMargin && point.y() < q->viewport().height() - m_labelAreaMargin ) {
+        return true;
+    }
+    return false;
 }
 
 QPointF ClipPainterPrivate::interpolateLabelPoint( const QPointF& previousPoint, 
@@ -468,11 +349,7 @@ ClipPainterPrivate::ClipPainterPrivate( ClipPainter * parent )
       m_previousSector(4),
       m_currentPoint(QPointF()),
       m_previousPoint(QPointF()), 
-      m_labelAreaMargin(10.0),
-      m_debugPenBatchColor(0),
-      m_debugBrushBatchColor(0),
-      m_debugPolygonsLevel(0),
-      m_debugBatchRender(false)
+      m_labelAreaMargin(10.0)
 {
     q = parent;
 }
@@ -1233,14 +1110,7 @@ void ClipPainterPrivate::clipOnce( QPolygonF & clippedPolyObject,
 
 }
 
-void ClipPainter::setDebugPolygonsLevel( int level ) {
-    d->m_debugPolygonsLevel = level;
-}
-
-void ClipPainter::setDebugBatchRender( bool enabled ) {
-    d->m_debugBatchRender = enabled;
-}
-
+#ifdef DEBUG_DRAW_NODES
 
 void ClipPainterPrivate::debugDrawNodes( const QPolygonF & polygon )
 {
@@ -1249,57 +1119,46 @@ void ClipPainterPrivate::debugDrawNodes( const QPolygonF & polygon )
     q->setRenderHint( QPainter::Antialiasing, false );
 
     q->setPen( Qt::red );
-    q->setBrush(QBrush("#40FF0000"));
+    q->setBrush( Qt::transparent );
 
     const QVector<QPointF>::const_iterator  itStartPoint = polygon.constBegin();
     const QVector<QPointF>::const_iterator  itEndPoint   = polygon.constEnd();
     QVector<QPointF>::const_iterator        itPoint      = itStartPoint;
 
-    int i = 0;
-
     for (; itPoint != itEndPoint; ++itPoint ) {
-
-        ++i;
         
         if ( itPoint == itStartPoint || itPoint == itStartPoint + 1 || itPoint == itStartPoint + 2 ) {
             q->setPen( Qt::darkGreen );
-            q->setBrush(QBrush("#4000FF00"));
             if ( itPoint == itStartPoint ) {
-                q->drawRect( itPoint->x() - 6.0, itPoint->y() - 6.0 , 12.0, 12.0 );
+                q->drawRect( itPoint->x() - 3.0, itPoint->y() - 3.0 , 6.0, 6.0 );
             }
             else if ( itPoint == itStartPoint + 1 ) {
-                q->drawRect( itPoint->x() - 4.0, itPoint->y() - 4.0 , 8.0, 8.0 );
-            }
-            else {
                 q->drawRect( itPoint->x() - 2.0, itPoint->y() - 2.0 , 4.0, 4.0 );
             }
+            else {
+                q->drawRect( itPoint->x() - 1.0, itPoint->y() - 1.0 , 2.0, 2.0 );
+            }
             q->setPen( Qt::red );
-            q->setBrush(QBrush("#40FF0000"));
         }
         else if ( itPoint == itEndPoint - 1 || itPoint == itEndPoint - 2 || itPoint == itEndPoint - 3 ) {
             q->setPen( Qt::blue );
-            q->setBrush(QBrush("#400000FF"));
             if ( itPoint == itEndPoint - 3 ) {
-                q->drawRect( itPoint->x() - 6.0, itPoint->y() - 6.0 , 12.0, 12.0 );
+                q->drawRect( itPoint->x() - 3.0, itPoint->y() - 3.0 , 6.0, 6.0 );
             }
             else if ( itPoint == itEndPoint - 2 ) {
-                q->drawRect( itPoint->x() - 4.0, itPoint->y() - 4.0 , 8.0, 8.0 );
-            }
-            else {
                 q->drawRect( itPoint->x() - 2.0, itPoint->y() - 2.0 , 4.0, 4.0 );
             }
+            else {
+                q->drawRect( itPoint->x() - 1.0, itPoint->y() - 1.0 , 2.0, 2.0 );
+            }
             q->setPen( Qt::red );
-            q->setBrush(QBrush("#400000FF"));
         }
         else {
-            q->drawRect( itPoint->x() - 4, itPoint->y() - 4 , 8.0, 8.0 );
+            q->drawRect( itPoint->x() - 1.5, itPoint->y() - 1.5 , 3.0, 3.0 );
         }
-        if (m_debugPolygonsLevel == 2) {
-            q->setFont(QFont(QStringLiteral("Sans Serif"), 7));
-            q->setPen("black");
-            q->setBrush(Qt::transparent);
-            q->drawText(itPoint->x() + 6.0, itPoint->y() + (15 - (i * 5) % 30) , QString::number(i));
-        }
+
     }
     q->restore();
 }
+
+#endif

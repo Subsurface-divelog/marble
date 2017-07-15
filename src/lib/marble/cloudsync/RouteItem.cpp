@@ -10,12 +10,9 @@
 
 #include "RouteItem.h"
 
-#include <QUrl>
-#include <QIcon>
-
 namespace Marble {
 
-class Q_DECL_HIDDEN RouteItem::Private {
+class RouteItem::Private {
 
 public:
     QString m_identifier;

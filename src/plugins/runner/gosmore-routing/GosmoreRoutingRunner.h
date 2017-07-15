@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -26,10 +26,10 @@ class GosmoreRunner : public RoutingRunner
 public:
     explicit GosmoreRunner(QObject *parent = 0);
 
-    ~GosmoreRunner() override;
+    ~GosmoreRunner();
 
     // Overriding MarbleAbstractRunner
-    void retrieveRoute( const RouteRequest *request ) override;
+    virtual void retrieveRoute( const RouteRequest *request );
 
 private:
     GosmoreRunnerPrivate* const d;

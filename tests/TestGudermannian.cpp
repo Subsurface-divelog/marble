@@ -20,7 +20,7 @@ class TestGudermannian : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+private slots:
     void testGudermannian_data();
     void testGudermannian();
 };

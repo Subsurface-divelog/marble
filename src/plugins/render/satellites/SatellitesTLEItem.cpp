@@ -19,16 +19,22 @@
 #include "GeoDataStyle.h"
 #include "GeoDataTrack.h"
 
-#include <sgp4ext.h>
+#include "sgp4/sgp4ext.h"
 
 #include <QFile>
 #include <QDateTime>
 #include <QAction>
+#include <QLabel>
+#include <QVBoxLayout>
 #include <QColor>
 
 #include <cmath>
+#include <QDialog>
+#include <QCheckBox>
 
 namespace Marble {
+
+#include "GeoDataPoint.h"
 
 SatellitesTLEItem::SatellitesTLEItem( const QString &name,
                                       elsetrec satrec,
@@ -45,7 +51,7 @@ SatellitesTLEItem::SatellitesTLEItem( const QString &name,
 
     setDescription();
 
-    placemark()->setVisualCategory(GeoDataPlacemark::Satellite);
+    placemark()->setVisualCategory( GeoDataFeature::Satellite );
     placemark()->setZoomLevel( 0 );
     placemark()->setGeometry( m_track );
 
@@ -54,7 +60,7 @@ SatellitesTLEItem::SatellitesTLEItem( const QString &name,
 
 void SatellitesTLEItem::setDescription()
 {
-    QFile templateFile(QStringLiteral(":/marble/satellites/satellite.html"));
+    QFile templateFile(":/marble/satellites/satellite.html");
     if (!templateFile.open(QIODevice::ReadOnly)) {
         placemark()->setDescription(QObject::tr("No info available."));
         return;

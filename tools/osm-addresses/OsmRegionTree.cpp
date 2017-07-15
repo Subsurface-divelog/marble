@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "OsmRegionTree.h"
@@ -24,7 +24,7 @@ const OsmRegion &OsmRegionTree::node() const
     return m_node;
 }
 
-void OsmRegionTree::setChildren( const QVector<OsmRegionTree>& children )
+void OsmRegionTree::setChildren( const QVector<OsmRegionTree> children )
 {
     m_children = children;
 }
@@ -36,13 +36,13 @@ const QVector<OsmRegionTree> & OsmRegionTree::children() const
 
 void OsmRegionTree::append( QList<OsmRegion> &regions )
 {
-    for( const OsmRegion &candidate: regions ) {
+    foreach( const OsmRegion &candidate, regions ) {
         if ( candidate.parentIdentifier() == m_node.identifier() ) {
             m_children << OsmRegionTree( candidate );
         }
     }
 
-    for( const OsmRegionTree & child: m_children ) {
+    foreach( const OsmRegionTree & child, m_children ) {
         regions.removeAll( child.node() );
     }
 
@@ -74,7 +74,7 @@ OsmRegionTree::operator QList<OsmRegion>() const
 void OsmRegionTree::enumerate( QList<OsmRegion> &list ) const
 {
     list << m_node;
-    for( const OsmRegionTree & child: m_children ) {
+    foreach( const OsmRegionTree & child, m_children ) {
         child.enumerate( list );
     }
 }
@@ -89,7 +89,7 @@ int OsmRegionTree::smallestRegionId( const GeoDataCoordinates &coordinates, int 
 {
     int maxLevel = m_node.adminLevel();
     int minId = m_node.identifier();
-    for( const OsmRegionTree & child: m_children ) {
+    foreach( const OsmRegionTree & child, m_children ) {
         if ( child.node().geometry().contains( coordinates ) ) {
             int childLevel = level;
             int id = child.smallestRegionId( coordinates, childLevel );

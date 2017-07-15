@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QCoreApplication>
@@ -16,8 +16,8 @@
 #include <QDebug>
 
 #include "geodata/data/GeoDataLineString.h"
-#include "geodata/data/GeoDataLinearRing.h"
 #include "geodata/data/GeoDataDocument.h"
+#include "geodata/data/GeoDataFolder.h"
 #include "geodata/data/GeoDataPlacemark.h"
 #include "geodata/data/GeoDataMultiGeometry.h"
 #include "geodata/data/GeoDataStyle.h"
@@ -68,13 +68,13 @@ void parseBoundingBox( const QFileInfo &file, const QString &name,
             QString line = stream.readLine().trimmed();
             QStringList entries = line.split( QLatin1Char( ' ' ), QString::SkipEmptyParts );
             if ( entries.size() == 1 ) {
-                if (entries.first() == QLatin1String("END") && inside) {
+                if ( entries.first() == "END" && inside ) {
                     inside = false;
                     if (!box->isEmpty()) {
                         geometry->append(box);
                         box = new GeoDataLinearRing;
                     }
-                } else if (entries.first() == QLatin1String("END") && !inside) {
+                } else if ( entries.first() == "END" && !inside ) {
                     qDebug() << "END not expected here";
                 } else if ( entries.first().startsWith( QLatin1String( "!" ) ) ) {
                     qDebug() << "Warning: Negative polygons not supported, skipping";
@@ -94,22 +94,22 @@ void parseBoundingBox( const QFileInfo &file, const QString &name,
         }
     }
 
-    GeoDataStyle::Ptr style(new GeoDataStyle);
+    GeoDataStyle style;
     GeoDataLineStyle lineStyle;
     QColor color = randomColor();
     color.setAlpha( 200 );
     lineStyle.setColor( color );
     lineStyle.setWidth( 4 );
-    style->setLineStyle(lineStyle);
-    style->setId("border");
+    style.setLineStyle(lineStyle);
+    style.setId("border");
 
     GeoDataStyleMap styleMap;
     styleMap.setId("map-border");
-    styleMap.insert("normal", QLatin1Char('#') + style->id());
+    styleMap.insert("normal", QString("#").append(style.id()));
     document->addStyleMap(styleMap);
     document->addStyle(style);
 
-    placemark->setStyleUrl(QLatin1Char('#') + styleMap.id());
+    placemark->setStyleUrl(QString("#").append(styleMap.id()));
 
     placemark->setName( name );
     if ( !version.isEmpty() ) {
@@ -164,15 +164,15 @@ int main( int argc, char* argv[] )
     QString payload;
     for ( int i=1; i<argc-2; ++i ) {
         QString arg( argv[i] );
-        if (arg == QLatin1String("--name")) {
+        if ( arg == "--name" ) {
             name = argv[++i];
-        } else if (arg == QLatin1String("--version")) {
+        } else if ( arg == "--version" ) {
             version = argv[++i];
-        } else if (arg == QLatin1String("--date")) {
+        } else if ( arg == "--date" ) {
             date = argv[++i];
-        } else if (arg == QLatin1String("--transport")) {
+        } else if ( arg == "--transport" ) {
             transport = argv[++i];
-        } else if (arg == QLatin1String("--payload")) {
+        } else if ( arg == "--payload" ) {
             payload = argv[++i];
         } else {
             usage();

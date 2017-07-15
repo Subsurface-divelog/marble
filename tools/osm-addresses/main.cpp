@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "SqlWriter.h"
@@ -15,8 +15,11 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFileInfo>
+#include <QTime>
 
+#if QT_VERSION >= 0x050000
 #include <QMessageLogContext>
+#endif
 
 using namespace Marble;
 
@@ -28,28 +31,47 @@ enum DebugLevel {
 
 DebugLevel debugLevel = Info;
 
+#if QT_VERSION >= 0x050000
 void debugOutput( QtMsgType type, const QMessageLogContext &context, const QString &msg )
+#else
+void debugOutput( QtMsgType type, const char *msg )
+#endif
 {
     switch ( type ) {
     case QtDebugMsg:
         if ( debugLevel == Debug ) {
+#if QT_VERSION >= 0x050000
             qDebug() << "Debug: " << context.file << ":" << context.line << " " << msg;
+#else
+            fprintf( stderr, "Debug: %s\n", msg );
+#endif
         }
         break;
-    case QtInfoMsg:
     case QtWarningMsg:
         if ( debugLevel < Mute ) {
+#if QT_VERSION >= 0x050000
             qDebug() << "Info: " << context.file << ":" << context.line << " " << msg;
+#else
+            fprintf( stderr, "Info: %s\n", msg );
+#endif
         }
         break;
     case QtCriticalMsg:
         if ( debugLevel < Mute ) {
+#if QT_VERSION >= 0x050000
             qDebug() << "Warning: " << context.file << ":" << context.line << " " << msg;
+#else
+            fprintf( stderr, "Warning: %s\n", msg );
+#endif
         }
         break;
     case QtFatalMsg:
         if ( debugLevel < Mute ) {
+#if QT_VERSION >= 0x050000
             qDebug() << "Fatal: " << context.file << ":" << context.line << " " << msg;
+#else
+            fprintf( stderr, "Fatal: %s\n", msg );
+#endif
             abort();
         }
     }
@@ -86,19 +108,19 @@ int main( int argc, char *argv[] )
     QString payload;
     for ( int i=1; i<argc-3; ++i ) {
         QString arg( argv[i] );
-        if (arg == QLatin1String("-v")) {
+        if ( arg == "-v" ) {
             debugLevel = Debug;
-        } else if (arg == QLatin1String("-q")) {
+        } else if ( arg == "-q" ) {
             debugLevel = Mute;
-        } else if (arg == QLatin1String("--name")) {
+        } else if ( arg == "--name" ) {
             name = argv[++i];
-        } else if (arg == QLatin1String("--version")) {
+        } else if ( arg == "--version" ) {
             version = argv[++i];
-        } else if (arg == QLatin1String("--date")) {
+        } else if ( arg == "--date" ) {
             date = argv[++i];
-        } else if (arg == QLatin1String("--transport")) {
+        } else if ( arg == "--transport" ) {
             transport = argv[++i];
-        } else if (arg == QLatin1String("--payload")) {
+        } else if ( arg == "--payload" ) {
             payload = argv[++i];
         } else {
             usage();
@@ -106,7 +128,11 @@ int main( int argc, char *argv[] )
         }
     }
 
+#if QT_VERSION >= 0x050000
     qInstallMessageHandler( debugOutput );
+#else
+    qInstallMsgHandler( debugOutput );
+#endif
 
     QFileInfo file( inputFile );
     if ( !file.exists() ) {

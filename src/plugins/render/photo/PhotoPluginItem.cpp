@@ -38,6 +38,7 @@
 #include <QFile>
 #include <QHash>
 #include <QUrl>
+#include <QMouseEvent>
 #include <QPixmap>
 
 using namespace Marble;
@@ -78,11 +79,11 @@ bool PhotoPluginItem::initialized() const
 
 void PhotoPluginItem::addDownloadedFile( const QString& url, const QString& type )
 {
-    if (type == QLatin1String("thumbnail")) {
+    if( type == "thumbnail" ) {
         m_smallImage.load( url );
         m_image.setImage( m_smallImage.scaled( QSize( 50, 50 ) ) );
     }
-    else if (type == QLatin1String("info")) {
+    else if ( type == "info" ) {        
         QFile file( url );
         if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
             return;
@@ -186,8 +187,9 @@ void PhotoPluginItem::openBrowser()
     if ( m_marbleWidget ) {
         PopupLayer* popup = m_marbleWidget->popupLayer();
         popup->setCoordinates( coordinate(), Qt::AlignRight | Qt::AlignVCenter );
-        popup->setSize(QSizeF(720, 470));
-        popup->setUrl(QUrl(QLatin1String("http://m.flickr.com/photos/") + owner() + QLatin1Char('/') + id() + QLatin1Char('/')));
+        popup->setSize( QSizeF( 700, 450 ) );
+        popup->setUrl( QUrl( QString( "http://m.flickr.com/photos/%1/%2/" )
+                                  .arg( owner() ).arg( id() ) ) );
         popup->popup();
     } else {
         if( !m_browser ) {
@@ -200,4 +202,4 @@ void PhotoPluginItem::openBrowser()
     }
 }
 
-#include "moc_PhotoPluginItem.cpp"
+#include "PhotoPluginItem.moc"

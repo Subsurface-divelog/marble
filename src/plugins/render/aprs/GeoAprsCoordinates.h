@@ -29,7 +29,7 @@ namespace Marble
         };
 
         GeoAprsCoordinates( qreal lon, qreal lat, int where );
-        ~GeoAprsCoordinates() override;
+        ~GeoAprsCoordinates();
 
         void  addSeenFrom( int where );
         int   seenFrom() const;

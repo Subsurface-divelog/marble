@@ -49,7 +49,7 @@ QString MarbleNavigatorPlugin::group() const
 
 QIcon MarbleNavigatorPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/marble.png"));
+    return QIcon(":/icons/marble.png");
 }
 
 QString MarbleNavigatorPlugin::toolTip() const
@@ -92,4 +92,6 @@ QString MarbleNavigatorPlugin::includeFile() const
     return "MarbleNavigator.h";
 }
 
-#include "moc_MarbleNavigatorPlugin.cpp"
+Q_EXPORT_PLUGIN2(MarbleNavigatorPlugin, MarbleNavigatorPlugin)
+
+#include "MarbleNavigatorPlugin.moc"

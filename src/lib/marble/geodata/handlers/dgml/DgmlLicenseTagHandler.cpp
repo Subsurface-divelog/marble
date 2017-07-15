@@ -26,18 +26,18 @@ DGML_DEFINE_TAG_HANDLER(License)
 GeoNode* DgmlLicenseTagHandler::parse( GeoParser& parser ) const
 {
     // Check whether the tag is valid
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(dgmlTag_License)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( dgmlTag_License ) );
 
     GeoStackItem parentItem = parser.parentElement();
     if( parentItem.represents( dgmlTag_Head ) ) {
         QString const attribution = parser.attribute(dgmlAttr_attribution).trimmed().toLower();
-        if (attribution == QLatin1String("never")) {
+        if ( attribution == "never" ) {
             parentItem.nodeAs<GeoSceneHead>()->license()->setAttribution( GeoSceneLicense::Never );
-        } else if (attribution == QLatin1String("opt-in") || attribution == QLatin1String("optin")) {
+        } else if( attribution == "opt-in" || attribution == "optin" ) {
             parentItem.nodeAs<GeoSceneHead>()->license()->setAttribution( GeoSceneLicense::OptIn );
-        } else if (attribution.isEmpty() || attribution == QLatin1String("opt-out") || attribution == QLatin1String("optout")) {
+        } else if( attribution.isEmpty() || attribution == "opt-out" || attribution == "optout" ) {
             parentItem.nodeAs<GeoSceneHead>()->license()->setAttribution( GeoSceneLicense::OptOut );
-        } else if (attribution == QLatin1String("always")) {
+        } else if ( attribution == "always" ) {
             parentItem.nodeAs<GeoSceneHead>()->license()->setAttribution( GeoSceneLicense::Always );
         } else {
             mDebug() << "Unknown license attribution value " << attribution << ", falling back to 'opt-out'.";

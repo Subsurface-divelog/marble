@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MonavRunner.h"
@@ -20,8 +20,8 @@
 #include "GeoDataData.h"
 #include "GeoDataExtendedData.h"
 #include "GeoDataPlacemark.h"
-#include "GeoDataLineString.h"
 
+#include <QProcess>
 #include <QTime>
 #include <QLocalSocket>
 
@@ -68,7 +68,7 @@ bool MonavRunnerPrivate::retrieveData( const RouteRequest *route, RoutingResult*
     // for performance reasons. Do not merge both.
     QStringList alternatives = m_plugin->mapDirectoriesForRequest( route );
     alternatives.removeOne( mapDir );
-    for( const QString &mapDir: alternatives ) {
+    foreach( const QString &mapDir, alternatives ) {
         if ( retrieveData( route, mapDir, reply ) ) {
             return true;
         }
@@ -155,7 +155,7 @@ int MonavRunnerPrivate::retrieveRoute( const Marble::RouteRequest* route, QVecto
             QString road = reply.nameStrings[reply.pathEdges[i].name];
             QString type = reply.typeStrings[reply.pathEdges[i].type];
             RoutingWaypoint::JunctionType junction = RoutingWaypoint::Other;
-            if (type == QLatin1String("roundabout") && reply.pathEdges[i].branchingPossible) {
+            if ( type == "roundabout" && reply.pathEdges[i].branchingPossible ) {
                 junction = RoutingWaypoint::Roundabout;
             }
             for ( unsigned int l = 0; l < reply.pathEdges[i].length; ++k, ++l ) {
@@ -174,11 +174,11 @@ int MonavRunnerPrivate::retrieveRoute( const Marble::RouteRequest* route, QVecto
             GeoDataPlacemark* placemark = new GeoDataPlacemark( directions[i].instructionText() );
             GeoDataExtendedData extendedData;
             GeoDataData turnType;
-            turnType.setName(QStringLiteral("turnType"));
+            turnType.setName( "turnType" );
             turnType.setValue( qVariantFromValue<int>( int( directions[i].turnType() ) ) );
             extendedData.addValue( turnType );
             GeoDataData roadName;
-            roadName.setName(QStringLiteral("roadName"));
+            roadName.setName( "roadName" );
             roadName.setValue( directions[i].roadName() );
             extendedData.addValue( roadName );
             placemark->setExtendedData( extendedData );
@@ -207,12 +207,12 @@ GeoDataDocument* MonavRunnerPrivate::createDocument( Marble::GeoDataLineString* 
 
     GeoDataDocument* result = new GeoDataDocument;
     GeoDataPlacemark* routePlacemark = new GeoDataPlacemark;
-    routePlacemark->setName(QStringLiteral("Route"));
+    routePlacemark->setName( "Route" );
     routePlacemark->setGeometry( geometry );
     routePlacemark->setExtendedData( data );
     result->append( routePlacemark );
 
-    for( GeoDataPlacemark* placemark: instructions ) {
+    foreach( GeoDataPlacemark* placemark, instructions ) {
         result->append( placemark );
     }
 
@@ -271,4 +271,4 @@ void MonavRunner::reverseGeocoding( const GeoDataCoordinates &coordinates )
 
 } // namespace Marble
 
-#include "moc_MonavRunner.cpp"
+#include "MonavRunner.moc"

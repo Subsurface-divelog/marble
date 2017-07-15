@@ -81,6 +81,14 @@ enum MapQuality
 };
 
 
+enum GraphicsSystem
+{
+    NativeGraphics,
+    RasterGraphics,
+    OpenGLGraphics
+};
+
+
 enum LabelPositionFlag
 {
     NoLabel,

@@ -16,7 +16,6 @@
 #include <GeoDataPlacemark.h>
 #include <GeoDataStyle.h>
 #include <GeoDataListStyle.h>
-#include <GeoDataItemIcon.h>
 #include "TestUtils.h"
 
 using namespace Marble;
@@ -25,7 +24,7 @@ using namespace Marble;
 class TestListStyle : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void simpleParseTest();
 };

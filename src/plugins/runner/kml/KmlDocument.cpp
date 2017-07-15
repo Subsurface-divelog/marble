@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013 Dennis Nienhüser <earthwings@gentoo.org>
 
 #include "KmlDocument.h"
 
@@ -19,7 +19,7 @@ namespace Marble
 
 KmlDocument::~KmlDocument()
 {
-    for( const QString &file: m_files ) {
+    foreach( const QString &file, m_files ) {
         if ( !QFile::remove( file ) ) {
             mDebug() << "Failed to remove temporary file" << file;
         }
@@ -38,8 +38,8 @@ void KmlDocument::setFiles( const QString &path, const QStringList &files )
 void KmlDocument::removeDirectoryRecursively( const QString &path )
 {
     QStringList const subdirs = QDir( path ).entryList( QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot );
-    for( const QString &subdir: subdirs ) {
-        removeDirectoryRecursively(path + QLatin1Char('/') + subdir);
+    foreach( const QString &subdir, subdirs ) {
+        removeDirectoryRecursively( path + '/' + subdir );
     }
     QDir::root().rmdir( path );
 }

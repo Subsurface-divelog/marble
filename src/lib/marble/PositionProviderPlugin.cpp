@@ -21,9 +21,8 @@ public:
     }
 };
 
-PositionProviderPlugin::PositionProviderPlugin(QObject *parent)
-    : QObject(parent),
-      d( new PositionProviderPluginPrivate() )
+PositionProviderPlugin::PositionProviderPlugin()
+    : d( new PositionProviderPluginPrivate() )
 {
 }
 
@@ -34,4 +33,4 @@ PositionProviderPlugin::~PositionProviderPlugin()
 
 }
 
-#include "moc_PositionProviderPlugin.cpp"
+#include "PositionProviderPlugin.moc"

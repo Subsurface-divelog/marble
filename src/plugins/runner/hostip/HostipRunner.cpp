@@ -5,11 +5,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 
 #include "HostipRunner.h"
 
 #include "MarbleDebug.h"
+#include "GeoDataDocument.h"
+#include "GeoDataFeature.h"
 #include "GeoDataPlacemark.h"
 
 #include <QString>
@@ -40,7 +42,7 @@ void HostipRunner::slotNoResults()
 
 void HostipRunner::search( const QString &searchTerm, const GeoDataLatLonBox & )
 {
-    if (!searchTerm.contains(QLatin1Char('.'))) {
+    if( !searchTerm.contains('.') ) {
         // Simple IP/hostname heuristic to avoid requests not needed:
         // String must contain at least one dot.
         slotNoResults();
@@ -115,7 +117,7 @@ void HostipRunner::slotRequestFinished( QNetworkReply* reply )
                                  arg( m_hostInfo.addresses().first().toString() ) );
 
         placemark->setCoordinate( lon * DEG2RAD, lat * DEG2RAD );
-        placemark->setVisualCategory(GeoDataPlacemark::Coordinate);
+        placemark->setVisualCategory( GeoDataFeature::Coordinate );
         placemarks << placemark;
     }
     
@@ -124,4 +126,4 @@ void HostipRunner::slotRequestFinished( QNetworkReply* reply )
 
 } // namespace Marble
 
-#include "moc_HostipRunner.cpp"
+#include "HostipRunner.moc"

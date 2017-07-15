@@ -5,16 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "AlternativeRoutesModel.h"
 
-#include "GeoDataLatLonAltBox.h"
 #include "GeoDataDocument.h"
 #include "GeoDataFolder.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataLineString.h"
 #include "GeoDataPlacemark.h"
 #include "MarbleMath.h"
 
@@ -23,7 +21,7 @@
 
 namespace Marble {
 
-class Q_DECL_HIDDEN AlternativeRoutesModel::Private
+class AlternativeRoutesModel::Private
 {
 public:
     Private();
@@ -249,8 +247,8 @@ qreal AlternativeRoutesModel::Private::instructionScore( const GeoDataDocument* 
 
     QStringList blacklist = QStringList() << "" << "Route" << "Tessellated";
     QVector<GeoDataFolder*> folders = document->folderList();
-    for( const GeoDataFolder *folder: folders ) {
-        for( const GeoDataPlacemark *placemark: folder->placemarkList() ) {
+    foreach( const GeoDataFolder *folder, folders ) {
+        foreach( const GeoDataPlacemark *placemark, folder->placemarkList() ) {
             if ( !blacklist.contains( placemark->name() ) ) {
                 hasInstructions = true;
                 break;
@@ -258,11 +256,11 @@ qreal AlternativeRoutesModel::Private::instructionScore( const GeoDataDocument* 
         }
     }
 
-    for( const GeoDataPlacemark *placemark: document->placemarkList() ) {
+    foreach( const GeoDataPlacemark *placemark, document->placemarkList() ) {
         if ( !blacklist.contains( placemark->name() ) ) {
             hasInstructions = true;
 
-            if (placemark->extendedData().contains(QStringLiteral("turnType"))) {
+            if ( placemark->extendedData().contains( "turnType" ) ) {
                 return 1.0;
             }
         }
@@ -274,8 +272,8 @@ qreal AlternativeRoutesModel::Private::instructionScore( const GeoDataDocument* 
 const GeoDataLineString* AlternativeRoutesModel::Private::waypoints( const GeoDataDocument* document )
 {
     QVector<GeoDataFolder*> folders = document->folderList();
-    for( const GeoDataFolder *folder: folders ) {
-        for( const GeoDataPlacemark *placemark: folder->placemarkList() ) {
+    foreach( const GeoDataFolder *folder, folders ) {
+        foreach( const GeoDataPlacemark *placemark, folder->placemarkList() ) {
             const GeoDataGeometry* geometry = placemark->geometry();
             const GeoDataLineString* lineString = dynamic_cast<const GeoDataLineString*>( geometry );
             if ( lineString ) {
@@ -284,7 +282,7 @@ const GeoDataLineString* AlternativeRoutesModel::Private::waypoints( const GeoDa
         }
     }
 
-    for( const GeoDataPlacemark *placemark: document->placemarkList() ) {
+    foreach( const GeoDataPlacemark *placemark, document->placemarkList() ) {
         const GeoDataGeometry* geometry = placemark->geometry();
         const GeoDataLineString* lineString = dynamic_cast<const GeoDataLineString*>( geometry );
         if ( lineString ) {
@@ -304,7 +302,6 @@ AlternativeRoutesModel::AlternativeRoutesModel( QObject *parent ) :
 
 AlternativeRoutesModel::~AlternativeRoutesModel()
 {
-    clear();
     delete d;
 }
 
@@ -329,7 +326,7 @@ QVariant AlternativeRoutesModel::data ( const QModelIndex &index, int role ) con
     return result;
 }
 
-const GeoDataDocument *AlternativeRoutesModel::route(int index) const
+GeoDataDocument* AlternativeRoutesModel::route( int index )
 {
     if ( index >= 0 && index < d->m_routes.size() ) {
         return d->m_routes.at(index);
@@ -348,9 +345,9 @@ void AlternativeRoutesModel::newRequest( RouteRequest * )
 void AlternativeRoutesModel::addRestrainedRoutes()
 {
     Q_ASSERT( d->m_routes.isEmpty() );
-    std::sort( d->m_restrainedRoutes.begin(), d->m_restrainedRoutes.end(), Private::higherScore );
+    qSort( d->m_restrainedRoutes.begin(), d->m_restrainedRoutes.end(), Private::higherScore );
 
-    for( GeoDataDocument* route: d->m_restrainedRoutes ) {
+    foreach( GeoDataDocument* route, d->m_restrainedRoutes ) {
         if ( !d->filter( route ) ) {
             int affected = d->m_routes.size();
             beginInsertRows( QModelIndex(), affected, affected );
@@ -367,20 +364,24 @@ void AlternativeRoutesModel::addRestrainedRoutes()
 
 void AlternativeRoutesModel::addRoute( GeoDataDocument* document, WritePolicy policy )
 {
-    if (policy != Instant) {
-        if (d->m_routes.isEmpty()) {
-            d->m_restrainedRoutes.push_back(document);
+    if ( policy == Instant ) {
+        int affected = d->m_routes.size();
+        beginInsertRows( QModelIndex(), affected, affected );
+        d->m_routes.push_back( document );
+        endInsertRows();
+        return;
+    }
 
-            if (d->m_restrainedRoutes.isEmpty()) {
-                // First
-                const int responseTime = d->m_responseTime.elapsed();
-                const int timeout = qMin<int>(500, qMax<int>(50, responseTime * 2));
-                QTimer::singleShot(timeout, this, SLOT(addRestrainedRoutes()));
-
-                return;
-            }
-        }
-
+    if ( d->m_routes.isEmpty() && d->m_restrainedRoutes.isEmpty() ) {
+        // First
+        int responseTime = d->m_responseTime.elapsed();
+        d->m_restrainedRoutes.push_back( document );
+        int timeout = qMin<int>( 500, qMax<int>( 50,  responseTime * 2 ) );
+        QTimer::singleShot( timeout, this, SLOT(addRestrainedRoutes()) );
+        return;
+    } else if ( d->m_routes.isEmpty() && !d->m_restrainedRoutes.isEmpty() ) {
+        d->m_restrainedRoutes.push_back( document );
+    } else {
         for ( int i=0; i<d->m_routes.size(); ++i ) {
             qreal similarity = Private::similarity( document, d->m_routes.at( i ) );
             if ( similarity > 0.8 ) {
@@ -393,12 +394,13 @@ void AlternativeRoutesModel::addRoute( GeoDataDocument* document, WritePolicy po
                 return;
             }
         }
-    }
 
-    const int affected = d->m_routes.size();
-    beginInsertRows(QModelIndex(), affected, affected);
-    d->m_routes.push_back(document);
-    endInsertRows();
+        Q_ASSERT( !d->m_routes.isEmpty() );
+        int affected = d->m_routes.size();
+        beginInsertRows( QModelIndex(), affected, affected );
+        d->m_routes.push_back( document );
+        endInsertRows();
+    }
 }
 
 const GeoDataLineString* AlternativeRoutesModel::waypoints( const GeoDataDocument* document )
@@ -415,9 +417,9 @@ void AlternativeRoutesModel::setCurrentRoute( int index )
     }
 }
 
-const GeoDataDocument *AlternativeRoutesModel::currentRoute() const
+GeoDataDocument * AlternativeRoutesModel::currentRoute()
 {
-    const GeoDataDocument *result = 0;
+    GeoDataDocument* result = 0;
     if ( d->m_currentIndex >= 0 && d->m_currentIndex < rowCount() ) {
         result = d->m_routes[d->m_currentIndex];
     }
@@ -437,4 +439,4 @@ void AlternativeRoutesModel::clear()
 
 } // namespace Marble
 
-#include "moc_AlternativeRoutesModel.cpp"
+#include "AlternativeRoutesModel.moc"

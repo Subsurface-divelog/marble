@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2010      Siddharth Srivastava <akssps011@gmail.com>
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTINGPLUGIN_H
@@ -23,7 +23,7 @@ class PositionProviderPlugin;
 class RoutingPlugin : public AbstractFloatItem, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.RoutingPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.RoutingPlugin" )
 
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
@@ -35,37 +35,37 @@ public:
 
     explicit RoutingPlugin( const MarbleModel *marbleModel );
 
-    ~RoutingPlugin() override;
+    ~RoutingPlugin();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    void initialize() override;
+    void initialize();
 
-    bool isInitialized() const override;
+    bool isInitialized() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    bool eventFilter( QObject *object, QEvent *event ) override;
+    bool eventFilter( QObject *object, QEvent *event );
 
-    QHash<QString,QVariant> settings() const override;
+    virtual QHash<QString,QVariant> settings() const;
 
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    virtual void setSettings( const QHash<QString,QVariant> &settings );
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
 private Q_SLOTS:
     /** Write settings */

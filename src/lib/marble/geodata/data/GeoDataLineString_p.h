@@ -25,9 +25,7 @@ class GeoDataLineStringPrivate : public GeoDataGeometryPrivate
         :  m_rangeCorrected( 0 ),
            m_dirtyRange( true ),
            m_dirtyBox( true ),
-           m_tessellationFlags( f ),
-           m_previousResolution( -1 ),
-           m_level( -1 )
+           m_tessellationFlags( f )
     {
     }
 
@@ -38,7 +36,7 @@ class GeoDataLineStringPrivate : public GeoDataGeometryPrivate
     {
     }
 
-    ~GeoDataLineStringPrivate() override
+    ~GeoDataLineStringPrivate()
     {
         delete m_rangeCorrected;
     }
@@ -55,11 +53,21 @@ class GeoDataLineStringPrivate : public GeoDataGeometryPrivate
     }
 
 
-    GeoDataGeometryPrivate *copy() const override
+    virtual GeoDataGeometryPrivate* copy()
     { 
         GeoDataLineStringPrivate* copy = new GeoDataLineStringPrivate;
         *copy = *this;
         return copy;
+    }
+
+    virtual const char* nodeType() const
+    {
+        return GeoDataTypes::GeoDataLineStringType;
+    }
+
+    virtual EnumGeometryId geometryId() const 
+    {
+        return GeoDataLineStringId;
     }
 
     void toPoleCorrected( const GeoDataLineString & q, GeoDataLineString & poleCorrected ) const;
@@ -77,10 +85,6 @@ class GeoDataLineStringPrivate : public GeoDataGeometryPrivate
                        const GeoDataCoordinates & currentCoords,
                        int recursionCounter ) const;
 
-    quint8 levelForResolution(qreal resolution) const;
-    qreal resolutionForLevel(int level) const;
-    void optimize(GeoDataLineString& lineString) const;
-
     QVector<GeoDataCoordinates> m_vector;
 
     mutable GeoDataLineString*  m_rangeCorrected;
@@ -90,9 +94,6 @@ class GeoDataLineStringPrivate : public GeoDataGeometryPrivate
                                             // GeoDataPoints since the LatLonAltBox has 
                                             // been calculated. Saves performance. 
     TessellationFlags           m_tessellationFlags;
-    mutable qreal  m_previousResolution;
-    mutable quint8 m_level;
-
 };
 
 } // namespace Marble

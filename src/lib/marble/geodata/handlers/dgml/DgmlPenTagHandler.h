@@ -32,7 +32,7 @@ namespace dgml
 class DgmlPenTagHandler : public GeoTagHandler
 {
 public:
-    GeoNode* parse(GeoParser&) const override;
+    virtual GeoNode* parse(GeoParser&) const;
 };
 
 }

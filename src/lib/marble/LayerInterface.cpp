@@ -5,12 +5,10 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "LayerInterface.h"
-
-#include "RenderState.h"
 
 namespace Marble
 {

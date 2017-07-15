@@ -11,14 +11,16 @@
 #ifndef MARBLE_POSITIONPROVIDERPLUGININTERFACE_H
 #define MARBLE_POSITIONPROVIDERPLUGININTERFACE_H
 
-#include "PluginInterface.h"
+#include <QDateTime>
 
-class QDateTime;
+#include "PluginInterface.h"
+#include "GeoDataCoordinates.h"
+#include "GeoDataAccuracy.h"
+
+
 
 namespace Marble
 {
-class GeoDataAccuracy;
-class GeoDataCoordinates;
   
 enum PositionProviderStatus {
     PositionProviderStatusError = 0,
@@ -34,7 +36,7 @@ enum PositionProviderStatus {
 class MARBLE_EXPORT PositionProviderPluginInterface: public PluginInterface
 {
   public:
-    ~PositionProviderPluginInterface() override;
+    virtual ~PositionProviderPluginInterface();
 
     virtual void initialize() = 0;
 

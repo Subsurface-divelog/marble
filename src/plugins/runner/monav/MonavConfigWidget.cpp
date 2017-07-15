@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MonavConfigWidget.h"
@@ -18,6 +18,8 @@
 #include <QFile>
 #include <QProcess>
 #include <QSignalMapper>
+#include <QStringListModel>
+#include <QComboBox>
 #include <QPushButton>
 #include <QShowEvent>
 #include <QSortFilterProxyModel>
@@ -211,27 +213,32 @@ void MonavConfigWidgetPrivate::parseNewStuff( const QByteArray &data )
     }
 
     QDomElement root = xml.documentElement();
-    QDomNodeList items = root.elementsByTagName(QStringLiteral("stuff"));
-    for (int i=0 ; i < items.length(); ++i ) {
+    QDomNodeList items = root.elementsByTagName( "stuff" );
+#if QT_VERSION < 0x050000
+    unsigned int i=0;
+#else
+    int i=0;
+#endif
+    for ( ; i < items.length(); ++i ) {
         MonavStuffEntry item;
         QDomNode node = items.item( i );
 
-        QDomNodeList names = node.toElement().elementsByTagName(QStringLiteral("name"));
+        QDomNodeList names = node.toElement().elementsByTagName( "name" );
         if ( names.size() == 1 ) {
             item.setName( names.at( 0 ).toElement().text() );
         }
 
         QString releaseDate;
-        QDomNodeList dates = node.toElement().elementsByTagName(QStringLiteral("releasedate"));
+        QDomNodeList dates = node.toElement().elementsByTagName( "releasedate" );
         if ( dates.size() == 1 ) {
             releaseDate = dates.at( 0 ).toElement().text();
         }
 
         QString filename;
-        QDomNodeList payloads = node.toElement().elementsByTagName(QStringLiteral("payload"));
+        QDomNodeList payloads = node.toElement().elementsByTagName( "payload" );
         if ( payloads.size() == 1 ) {
             QString payload = payloads.at( 0 ).toElement().text();
-            filename = payload.mid(1 + payload.lastIndexOf(QLatin1Char('/')));
+            filename = payload.mid( 1 + payload.lastIndexOf( "/" ) );
             item.setPayload( payload );
         }
 
@@ -250,7 +257,7 @@ void MonavConfigWidgetPrivate::parseNewStuff( const QByteArray &data )
 bool MonavConfigWidgetPrivate::fillComboBox( QStringList items, QComboBox* comboBox )
 {
     comboBox->clear();
-    std::sort( items.begin(), items.end() );
+    qSort( items );
     comboBox->addItems( items );
     return !items.isEmpty();
 }
@@ -258,7 +265,7 @@ bool MonavConfigWidgetPrivate::fillComboBox( QStringList items, QComboBox* combo
 bool MonavConfigWidgetPrivate::updateContinents( QComboBox* comboBox )
 {
     QSet<QString> continents;
-    for( const MonavStuffEntry &map: m_remoteMaps ) {
+    foreach( const MonavStuffEntry &map, m_remoteMaps ) {
         Q_ASSERT( map.isValid() );
         continents << map.continent();
     }
@@ -269,7 +276,7 @@ bool MonavConfigWidgetPrivate::updateContinents( QComboBox* comboBox )
 bool MonavConfigWidgetPrivate::updateStates( const QString &continent, QComboBox* comboBox )
 {
     QSet<QString> states;
-    for( const MonavStuffEntry &map: m_remoteMaps ) {
+    foreach( const MonavStuffEntry &map, m_remoteMaps ) {
         Q_ASSERT( map.isValid() );
         if ( map.continent() == continent ) {
             states << map.state();
@@ -283,7 +290,7 @@ bool MonavConfigWidgetPrivate::updateRegions( const QString &continent, const QS
 {
     comboBox->clear();
     QMap<QString,QString> regions;
-    for( const MonavStuffEntry &map: m_remoteMaps ) {
+    foreach( const MonavStuffEntry &map, m_remoteMaps ) {
         Q_ASSERT( map.isValid() );
         if ( map.continent() == continent && map.state() == state ) {
             QString item = "%1 - %2";
@@ -308,7 +315,7 @@ bool MonavConfigWidgetPrivate::updateRegions( const QString &continent, const QS
 
 MonavStuffEntry MonavConfigWidgetPrivate::map( const QString &continent, const QString &state, const QString &region ) const
 {
-    for( const MonavStuffEntry &entry: m_remoteMaps ) {
+    foreach( const MonavStuffEntry &entry, m_remoteMaps ) {
         if ( continent == entry.continent() && state == entry.state() && region == entry.region() ) {
             return entry;
         }
@@ -353,7 +360,7 @@ MonavConfigWidget::~MonavConfigWidget()
 
 void MonavConfigWidget::loadSettings( const QHash<QString, QVariant> &settings )
 {
-    d->m_transport = settings[QStringLiteral("transport")].toString();
+    d->m_transport = settings["transport"].toString();
     d->updateTransportPreference();
 }
 
@@ -384,7 +391,7 @@ void MonavConfigWidgetPrivate::updateTransportPreference()
 QHash<QString, QVariant> MonavConfigWidget::settings() const
 {
     QHash<QString, QVariant> settings;
-    settings.insert(QStringLiteral("transport"), d->m_transport);
+    settings["transport"] = d->m_transport;
     return settings;
 }
 
@@ -486,14 +493,14 @@ void MonavConfigWidget::cancelOperation()
 void MonavConfigWidgetPrivate::install()
 {
     if ( !m_currentDownload.isEmpty() ) {
-        int const index = m_currentDownload.lastIndexOf(QLatin1Char('/'));
-        const QString localFile = MarbleDirs::localPath() + QLatin1String("/maps") + m_currentDownload.mid(index);
+        int const index = m_currentDownload.lastIndexOf( "/");
+        QString localFile = MarbleDirs::localPath() + "/maps" + m_currentDownload.mid( index );
         m_currentFile.setFileName( localFile );
         if ( m_currentFile.open( QFile::WriteOnly ) ) {
             QFileInfo file( m_currentFile );
             QString message = QObject::tr( "Downloading %1" ).arg( file.fileName() );
             setBusy( true, message );
-            m_currentReply = m_networkAccessManager.get( QNetworkRequest( QUrl ( m_currentDownload ) ) );
+            m_currentReply = m_networkAccessManager.get( QNetworkRequest( m_currentDownload ) );
             QObject::connect( m_currentReply, SIGNAL(readyRead()),
                          m_parent, SLOT(retrieveData()) );
             QObject::connect( m_currentReply, SIGNAL(readChannelFinished()),
@@ -547,8 +554,8 @@ void MonavConfigWidget::updateProgressBar( qint64 bytesReceived, qint64 bytesTot
 
 bool MonavConfigWidgetPrivate::canExecute( const QString &executable )
 {
-    QString path = QProcessEnvironment::systemEnvironment().value(QStringLiteral("PATH"), QStringLiteral("/usr/local/bin:/usr/bin:/bin"));
-    for( const QString &dir: path.split( QLatin1Char( ':' ) ) ) {
+    QString path = QProcessEnvironment::systemEnvironment().value( "PATH", "/usr/local/bin:/usr/bin:/bin" );
+    foreach( const QString &dir, path.split( QLatin1Char( ':' ) ) ) {
         QFileInfo application( QDir( dir ), executable );
         if ( application.exists() ) {
             return true;
@@ -613,7 +620,7 @@ void MonavConfigWidgetPrivate::updateInstalledMapsViewButtons()
     m_upgradeMapSignalMapper.removeMappings( m_parent );
     for( int i=0; i<m_mapsModel->rowCount(); ++i ) {
         {
-            QPushButton* button = new QPushButton(QIcon(QStringLiteral(":/system-software-update.png")), QString());
+            QPushButton* button = new QPushButton( QIcon( ":/system-software-update.png" ), "" );
             button->setAutoFillBackground( true );
             QModelIndex index = m_mapsModel->index( i, 3 );
             m_parent->m_installedMapsListView->setIndexWidget( index, button );
@@ -626,7 +633,7 @@ void MonavConfigWidgetPrivate::updateInstalledMapsViewButtons()
             button->setEnabled( upgradable );
         }
         {
-            QPushButton* button = new QPushButton(QIcon(QStringLiteral(":/edit-delete.png")), QString());
+            QPushButton* button = new QPushButton( QIcon( ":/edit-delete.png" ), "" );
             button->setAutoFillBackground( true );
             QModelIndex index = m_mapsModel->index( i, 4 );
             m_parent->m_installedMapsListView->setIndexWidget( index, button );
@@ -661,8 +668,8 @@ void MonavConfigWidget::upgradeMap( int index )
 {
     QString payload = d->m_mapsModel->payload( index );
     if ( !payload.isEmpty() ) {
-        for( const MonavStuffEntry &entry: d->m_remoteMaps ) {
-            if (entry.payload().endsWith(QLatin1Char('/') + payload)) {
+        foreach( const MonavStuffEntry &entry, d->m_remoteMaps ) {
+            if ( entry.payload().endsWith( '/' + payload ) ) {
                 d->m_currentDownload = entry.payload();
                 d->install();
                 return;
@@ -687,4 +694,4 @@ void MonavConfigWidgetPrivate::setBusy( bool busy, const QString &message ) cons
 
 }
 
-#include "moc_MonavConfigWidget.cpp"
+#include "MonavConfigWidget.moc"

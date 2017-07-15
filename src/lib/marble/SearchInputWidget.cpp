@@ -5,13 +5,12 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012       Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012       Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012       Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
 #include "SearchInputWidget.h"
 
-#include "GeoDataCoordinates.h"
 #include "MarblePlacemarkModel.h"
 
 #include <QCompleter>
@@ -25,7 +24,7 @@ SearchInputWidget::SearchInputWidget( QWidget *parent ) :
     m_areaSearch( false )
 {
     updatePlaceholderText();
-    QPixmap const decorator = QPixmap(QStringLiteral(":/icons/16x16/edit-find.png"));
+    QPixmap const decorator = QPixmap( ":/icons/16x16/edit-find.png" );
     Q_ASSERT( !decorator.isNull() );
     setDecorator( decorator );
 
@@ -102,4 +101,4 @@ void SearchInputWidget::updatePlaceholderText()
 
 }
 
-#include "moc_SearchInputWidget.cpp"
+#include "SearchInputWidget.moc"

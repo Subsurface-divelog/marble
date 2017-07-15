@@ -16,20 +16,15 @@
 
 // Qt
 #include <QTime>
-#include <QImage>
 
 // Marble
 #include "MarbleDebug.h"
-#include "GeoDataPlacemark.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
-#include "GeoDataGeometry.h"
 #include "GeoDataStyle.h"       // In geodata/data/
-#include "GeoDataIconStyle.h"
 
 using namespace Marble;
 
-class Q_DECL_HIDDEN MarblePlacemarkModel::Private
+class MarblePlacemarkModel::Private
 {
 
  public:
@@ -57,26 +52,13 @@ MarblePlacemarkModel::MarblePlacemarkModel( QObject *parent )
 {
     QHash<int,QByteArray> roles;
     roles[DescriptionRole] = "description";
-    roles[Qt::DisplayRole] = "name";
-    roles[Qt::DecorationRole] = "icon";
-    roles[IconPathRole] = "iconPath";
-    roles[PopularityIndexRole] = "zoomLevel";
-    roles[VisualCategoryRole] = "visualCategory";
-    roles[AreaRole] = "area";
-    roles[PopulationRole] = "population";
-    roles[CountryCodeRole] = "countryCode";
-    roles[StateRole] = "state";
-    roles[PopularityRole] = "popularity";
-    roles[GeoTypeRole] = "role";
-    roles[CoordinateRole] = "coordinate";
-    roles[StyleRole] = "style";
-    roles[GmtRole] = "gmt";
-    roles[DstRole] = "dst";
-    roles[GeometryRole] = "geometry";
-    roles[ObjectPointerRole] = "objectPointer";
     roles[LongitudeRole] = "longitude";
     roles[LatitudeRole] = "latitude";
+#if QT_VERSION < 0x050000
+    setRoleNames( roles );
+#else
     m_roleNames = roles;
+#endif
 }
 
 MarblePlacemarkModel::~MarblePlacemarkModel()
@@ -105,10 +87,12 @@ int MarblePlacemarkModel::columnCount( const QModelIndex &parent ) const
         return 0;
 }
 
+#if QT_VERSION >= 0x050000
 QHash<int, QByteArray> MarblePlacemarkModel::roleNames() const
 {
     return m_roleNames;
 }
+#endif
 
 QVariant MarblePlacemarkModel::data( const QModelIndex &index, int role ) const
 {
@@ -122,8 +106,6 @@ QVariant MarblePlacemarkModel::data( const QModelIndex &index, int role ) const
         return d->m_placemarkContainer->at( index.row() )->name();
     } else if ( role == Qt::DecorationRole ) {
           return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->style()->iconStyle().icon() );
-    } else if ( role == IconPathRole ) {
-        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->style()->iconStyle().iconPath() );
     } else if ( role == PopularityIndexRole ) {
         return d->m_placemarkContainer->at( index.row() )->zoomLevel();
     } else if ( role == VisualCategoryRole ) {
@@ -147,11 +129,11 @@ QVariant MarblePlacemarkModel::data( const QModelIndex &index, int role ) const
     } else if ( role == CoordinateRole ) {
         return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->coordinate() );
     } else if ( role == StyleRole ) {
-        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->style().data() );
+        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->style() );
     } else if ( role == GmtRole ) {
-        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->extendedData().value(QStringLiteral("gmt")).value() );
+        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->extendedData().value("gmt").value() );
     } else if ( role == DstRole ) {
-        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->extendedData().value(QStringLiteral("dst")).value() );
+        return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->extendedData().value("dst").value() );
     } else if ( role == GeometryRole ) {
         return qVariantFromValue( d->m_placemarkContainer->at( index.row() )->geometry() );
     } else if ( role == ObjectPointerRole ) {
@@ -237,4 +219,4 @@ void  MarblePlacemarkModel::removePlacemarks( const QString &containerName,
     }
 }
 
-#include "moc_MarblePlacemarkModel.cpp"
+#include "MarblePlacemarkModel.moc"

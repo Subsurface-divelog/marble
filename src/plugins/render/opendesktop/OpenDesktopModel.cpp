@@ -14,14 +14,13 @@
 #include "OpenDesktopItem.h"
 #include "MarbleGlobal.h"
 #include "MarbleModel.h"
-#include "GeoDataLatLonAltBox.h"
 #include "GeoDataCoordinates.h"
 #include <QString>
 #include <QUrl>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-
+#include <QScriptEngine>
+#include <QScriptValue>
+#include <QScriptValueIterator>
+ 
 using namespace Marble;
  
  
@@ -45,45 +44,45 @@ void OpenDesktopModel::getAdditionalItems( const GeoDataLatLonAltBox& box, qint3
 {
     Q_UNUSED( number )
   
-    if (marbleModel()->planetId() != QLatin1String("earth")) {
+    if( marbleModel()->planetId() != "earth" )
         return;
-    }
-
+    
     GeoDataCoordinates coords = box.center();
-
-    const QString openDesktopUrl(QLatin1String("http://api.opendesktop.org/v1/person/data") +
-        QLatin1String("?latitude=")  + QString::number(coords.latitude() * RAD2DEG) +
-        QLatin1String("&longitude=") + QString::number(coords.longitude() * RAD2DEG) +
-        QLatin1String("&format=json"));
+    
+    QString openDesktopUrl( "http://api.opendesktop.org/v1/person/data" );
+    openDesktopUrl += "?latitude="  + QString::number(coords.latitude() * RAD2DEG);
+    openDesktopUrl += "&longitude=" + QString::number(coords.longitude() * RAD2DEG);
+    openDesktopUrl += "&format=json";
     
     downloadDescriptionFile( QUrl( openDesktopUrl ) );
 }
 
 void OpenDesktopModel::parseFile( const QByteArray& file )
 {
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(file);
-    QJsonValue dataValue = jsonDoc.object().value(QStringLiteral("data"));
-
+    QScriptValue data;
+    QScriptEngine engine;
+    data = engine.evaluate( '(' + QString(file) + ')' );
+    
     // Parse if any result exists
-    if (dataValue.isArray()) {
+    if ( data.property( "data" ).isArray() )
+    {  
+    QScriptValueIterator iterator( data.property( "data" ) );
         // Add items to the list
         QList<AbstractDataPluginItem*> items;
-
-        QJsonArray dataArray = dataValue.toArray();
-        for (int index = 0; index < dataArray.size(); ++index) {
-            QJsonObject dataObject = dataArray[index].toObject();
-
-            // Convert profile's properties from JSON to appropriate types
-            const QString personid  = dataObject.value(QStringLiteral("personid")).toString();
-            const QString firstName = dataObject.value(QStringLiteral("firstname")).toString();
-            const QString lastName  = dataObject.value(QStringLiteral("lastname")).toString();
-            const QString city      = dataObject.value(QStringLiteral("city")).toString();
-            const QString country   = dataObject.value(QStringLiteral("country")).toString();
-            const QString role   = dataObject.value(QStringLiteral("communityrole")).toString();
-            const double longitude  = dataObject.value(QStringLiteral("longitude")).toDouble();
-            const double latitude   = dataObject.value(QStringLiteral("latitude")).toDouble();
-            const QUrl avatarUrl(dataObject.value(QStringLiteral("avatarpic")).toString());
-
+        while ( iterator.hasNext() )
+        {
+            iterator.next();
+            // Convert profile's properties from QScriptValue to appropriate types
+            QString personid  = iterator.value().property( "personid" ).toString();
+            QString firstName = iterator.value().property( "firstname" ).toString();
+            QString lastName  = iterator.value().property( "lastname" ).toString();
+            QString city      = iterator.value().property( "city" ).toString();
+            QString country   = iterator.value().property( "country" ).toString();
+            QString role   = iterator.value().property( "communityrole" ).toString();
+            double longitude  = iterator.value().property( "longitude" ).toNumber();
+            double latitude   = iterator.value().property( "latitude" ).toNumber();
+            QUrl avatarUrl( iterator.value().property( "avatarpic" ).toString() );
+            
             if( !itemExists( personid ) )
             {
                 // If it does not exists, create it
@@ -92,8 +91,8 @@ void OpenDesktopModel::parseFile( const QByteArray& file )
                 item->setMarbleWidget(m_marbleWidget);
                 item->setId( personid );
                 item->setCoordinate( coor );
-                item->setFullName(firstName + QLatin1Char(' ') + lastName);
-                item->setLocation(city + QLatin1String(", ") + country);
+                item->setFullName( QString( "%1 %2" ).arg( firstName ).arg( lastName ) );
+                item->setLocation( QString( "%1, %2" ).arg( city ).arg( country ) );
                 item->setRole( !role.isEmpty() ? role : QString( "nothing" ) );
                 downloadItem( avatarUrl, "avatar", item );
                 items << item;
@@ -104,4 +103,4 @@ void OpenDesktopModel::parseFile( const QByteArray& file )
     }
 }
  
-#include "moc_OpenDesktopModel.cpp"
+#include "OpenDesktopModel.moc"

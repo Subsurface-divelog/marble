@@ -14,7 +14,7 @@
 #define SOUNDCUEEDITWIDGET_H
 
 #include <QWidget>
-#include <QPersistentModelIndex>
+#include <QModelIndex>
 
 class QLineEdit;
 class QToolButton;
@@ -29,7 +29,7 @@ class SoundCueEditWidget: public QWidget
     Q_OBJECT
 
 public:
-    explicit SoundCueEditWidget( const QModelIndex& index, QWidget* parent=0 );
+    SoundCueEditWidget( const QModelIndex& index, QWidget* parent=0 );
     bool editable() const;
 
 Q_SIGNALS:

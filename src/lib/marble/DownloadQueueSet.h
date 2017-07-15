@@ -21,10 +21,9 @@
 #include <QObject>
 #include <QSet>
 #include <QStack>
+#include <QUrl>
 
 #include "DownloadPolicy.h"
-
-class QUrl;
 
 namespace Marble
 {
@@ -77,7 +76,7 @@ class DownloadQueueSet: public QObject
  public:
     explicit DownloadQueueSet( QObject * const parent = 0 );
     explicit DownloadQueueSet( const DownloadPolicy& policy, QObject * const parent = 0 );
-    ~DownloadQueueSet() override;
+    ~DownloadQueueSet();
 
     DownloadPolicy downloadPolicy() const;
     void setDownloadPolicy( const DownloadPolicy& );

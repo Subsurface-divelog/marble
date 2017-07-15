@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2013   Illya Kovalevskyy <illya.kovalevskyy@gmail.com>
-// Copyright 2014   Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014   Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MovieCapture.h"
@@ -15,9 +15,6 @@
 
 #include <QProcess>
 #include <QMessageBox>
-#include <QTimer>
-#include <QTime>
-#include <QFile>
 
 namespace Marble
 {
@@ -25,7 +22,7 @@ namespace Marble
 class MovieCapturePrivate
 {
 public:
-    explicit MovieCapturePrivate(MarbleWidget *widget) :
+    MovieCapturePrivate(MarbleWidget *widget) :
         marbleWidget(widget), method(MovieCapture::TimeDriven)
     {}
 
@@ -109,20 +106,20 @@ QString MovieCapture::destination() const
     return d->destinationFile;
 }
 
-QVector<MovieFormat> MovieCapture::availableFormats()
+QList<MovieFormat> MovieCapture::availableFormats()
 {
     Q_D(MovieCapture);
-    static QVector<MovieFormat> availableFormats;
+    static QList<MovieFormat> availableFormats;
     if ( availableFormats.isEmpty() && checkToolsAvailability() ) {
         QProcess encoder(this);
-        for ( const MovieFormat &format: m_supportedFormats ) {
+        foreach ( MovieFormat format, m_supportedFormats ) {
             QString type = format.type();
             QStringList args;
-            args << "-h" << QLatin1String("muxer=") + type;
+            args << "-h" << "muxer=" + type;
             encoder.start( d->encoderExec, args );
             encoder.waitForFinished();
             QString output = encoder.readAll();
-            bool isFormatAvailable = !output.contains(QLatin1String("Unknown format"));
+            bool isFormatAvailable = !output.contains( "Unknown format" );
             if( isFormatAvailable ) {
                 availableFormats << format;
             }
@@ -143,13 +140,13 @@ bool MovieCapture::checkToolsAvailability()
     static bool toolsAvailable = false;
     if (toolsAvailable == false) {
         QProcess encoder(this);
-        encoder.start("avconv", QStringList() << "-version");
+        encoder.start("avconv -version");
         encoder.waitForFinished();
         if ( !encoder.readAll().isEmpty() ) { // avconv have output when it's here
             d->encoderExec = "avconv";
             toolsAvailable = true;
         } else {
-            encoder.start("ffmpeg", QStringList() << "-version");
+            encoder.start("ffmpeg -version");
             encoder.waitForFinished();
             if ( !encoder.readAll().isEmpty() ) {
                 d->encoderExec = "ffmpeg";
@@ -235,4 +232,4 @@ void MovieCapture::processWrittenMovie(int exitCode)
 
 } // namespace Marble
 
-#include "moc_MovieCapture.cpp"
+#include "MovieCapture.moc"

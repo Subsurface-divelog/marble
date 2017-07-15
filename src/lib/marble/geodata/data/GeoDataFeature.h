@@ -13,6 +13,11 @@
 #ifndef MARBLE_GEODATAFEATURE_H
 #define MARBLE_GEODATAFEATURE_H
 
+
+#include <QString>
+#include <QFont>
+#include <QColor>
+
 #include "GeoDataObject.h"
 
 #include "geodata_export.h"
@@ -46,6 +51,9 @@ class GeoDataSnippet;
  * @see GeoDataPlacemark
  * @see GeoDataContainer
  */
+
+// FIXME: Later also add NetworkLink and Overlay
+
 class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
 {
  public:
@@ -55,14 +63,218 @@ class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
 
     GeoDataFeature( const GeoDataFeature& other );
 
-    ~GeoDataFeature() override;
+    virtual ~GeoDataFeature();
 
     GeoDataFeature& operator=( const GeoDataFeature& other );
 
-    bool operator==(const GeoDataFeature &other) const;
-    inline bool operator!=(const GeoDataFeature &other) const { return !(*this == other); }
+    /// Provides type information for downcasting a GeoData
+    virtual const char* nodeType() const;
 
     EnumFeatureId featureId() const;
+    /**
+     * @brief  A categorization of a placemark as defined by ...FIXME.
+     */
+    enum GeoDataVisualCategory {
+        None,
+        Default,
+        Unknown,
+
+        // The order of the cities needs to stay fixed as the
+        // algorithms rely on that.
+        SmallCity,
+        SmallCountyCapital,  
+        SmallStateCapital,   
+        SmallNationCapital,
+        MediumCity,
+        MediumCountyCapital,
+        MediumStateCapital,
+        MediumNationCapital,
+        BigCity,
+        BigCountyCapital,
+        BigStateCapital,
+        BigNationCapital,
+        LargeCity,
+        LargeCountyCapital,
+        LargeStateCapital,
+        LargeNationCapital,
+        Nation,
+
+        // Terrain
+        Mountain,
+        Volcano,
+        Mons,                    // m
+        Valley,                  // v
+        Continent,
+        Ocean,
+        OtherTerrain,            // o
+
+        // Space Terrain
+        Crater,                  // c
+        Mare,                    // a
+
+        // Places of Interest
+        GeographicPole,
+        MagneticPole,
+        ShipWreck,
+        AirPort,
+        Observatory,
+
+        // Runners
+        Wikipedia,
+        OsmSite,
+        Coordinate,
+
+        // Planets
+        MannedLandingSite,       // h
+        RoboticRover,            // r
+        UnmannedSoftLandingSite, // u
+        UnmannedHardLandingSite, // i
+
+        Folder,
+        Bookmark,
+        
+        NaturalWater,
+        NaturalWood,
+
+        // OpenStreetMap highways
+        HighwaySteps,
+        HighwayUnknown,
+        HighwayPath,
+        HighwayTrack,
+        HighwayPedestrian,
+        HighwayService,
+        HighwayRoad,
+        HighwayTertiaryLink,
+        HighwayTertiary,
+        HighwaySecondaryLink,
+        HighwaySecondary,
+        HighwayPrimaryLink,
+        HighwayPrimary,
+        HighwayTrunkLink,
+        HighwayTrunk,
+        HighwayMotorwayLink,
+        HighwayMotorway,
+
+        //OSM building
+        Building,
+        
+        // OpenStreetMap category Accomodation
+        AccomodationCamping,
+        AccomodationHostel,
+        AccomodationHotel,
+        AccomodationMotel,
+        AccomodationYouthHostel,
+
+        // OpenStreetMap category Amenity
+        AmenityLibrary,
+
+        // OpenStreetMap category Education
+        EducationCollege,
+        EducationSchool,
+        EducationUniversity,
+
+        // OpenStreetMap category Food
+        FoodBar,
+        FoodBiergarten,
+        FoodCafe,
+        FoodFastFood,
+        FoodPub,
+        FoodRestaurant,
+
+        // OpenStreetMap category Health
+        HealthDoctors,
+        HealthHospital,
+        HealthPharmacy,
+
+        // OpenStreetMap category Money
+        MoneyAtm,
+        MoneyBank,
+
+        // OpenStreetMap category Shopping
+        ShoppingBeverages,
+        ShoppingHifi,
+        ShoppingSupermarket,
+
+        // OpenStreetMap category Tourist
+        TouristAttraction,
+        TouristCastle,
+        TouristCinema,
+        TouristMonument,
+        TouristMuseum,
+        TouristRuin,
+        TouristTheatre,
+        TouristThemePark,
+        TouristViewPoint,
+        TouristZoo,
+
+        // OpenStreetMap category Transport
+        TransportAerodrome,
+        TransportAirportTerminal,
+        TransportBusStation,
+        TransportBusStop,
+        TransportCarShare,
+        TransportFuel,
+        TransportParking,
+        TransportRentalBicycle,
+        TransportRentalCar,
+        TransportTaxiRank,
+        TransportTrainStation,
+        TransportTramStop,
+
+        // OpenStreetMap category religion
+        ReligionPlaceOfWorship,
+        ReligionBahai,
+        ReligionBuddhist,
+        ReligionChristian,
+        ReligionHindu,
+        ReligionJain,
+        ReligionJewish,
+        ReligionShinto,
+        ReligionSikh,
+        // OpenStreetMap category Leisure
+        LeisurePark,
+
+        LanduseAllotments,
+        LanduseBasin,
+        LanduseCemetery,
+        LanduseCommercial,
+        LanduseConstruction,
+        LanduseFarmland,
+        LanduseFarmyard,
+        LanduseGarages,
+        LanduseGrass,
+        LanduseIndustrial,
+        LanduseLandfill,
+        LanduseMeadow,
+        LanduseMilitary,
+        LanduseQuarry,
+        LanduseRailway,
+        LanduseReservoir,
+        LanduseResidential,
+        LanduseRetail,
+
+        RailwayRail,
+        RailwayTram,
+        RailwayLightRail,
+        RailwayAbandoned,
+        RailwaySubway,
+        RailwayPreserved,
+        RailwayMiniature,
+        RailwayConstruction,
+        RailwayMonorail,
+        RailwayFunicular,
+
+        Satellite,
+
+        // Important: Make sure that this is always the last 
+        // item and just use it to specify the array size
+        LastIndex
+    };
+
+    /**
+     * @brief  Convenience categorization of placemarks for Osm key=value pairs
+     */
+    static GeoDataVisualCategory OsmVisualCategory(const QString &keyValue );
 
     /**
      * @brief The name of the feature
@@ -145,7 +357,7 @@ class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
      * This function sets the visibility, i.e. whether this feature
      * should be shown or not.  This can be changed either from a GUI
      * or through some action of the program.
-     */
+     */ 
     void setVisible( bool value );
 
     /**
@@ -175,22 +387,21 @@ class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
     /**
      * Return the style assigned to the placemark, or a default style if none has been set
      */
-    QSharedPointer<const GeoDataStyle> style() const;
+    const GeoDataStyle* style() const;
     /**
      * Return the style assigned to the placemark with setStyle (can be 0)
      */
-    QSharedPointer<const GeoDataStyle> customStyle() const;
+    const GeoDataStyle* customStyle() const;
     /**
      * Sets the style of the placemark.
      * @param  style  the new style to be used.
      */
-    void setStyle( const QSharedPointer<GeoDataStyle> &style );
+    void setStyle( GeoDataStyle *style );
 
     /**
      * Return the ExtendedData assigned to the feature.
      */
-    GeoDataExtendedData& extendedData();
-    const GeoDataExtendedData& extendedData() const;
+    GeoDataExtendedData& extendedData() const;
 
     /**
      * Sets the ExtendedData of the feature.
@@ -201,8 +412,7 @@ class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
     /**
      * Return the region assigned to the placemark.
      */
-    const GeoDataRegion& region() const;
-    GeoDataRegion& region();
+    GeoDataRegion& region() const;
     /**
      * @brief Sets the region of the placemark.
      * @param region new value for the region
@@ -210,6 +420,16 @@ class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
      * The feature is only shown when the region if active.
      */
     void setRegion( const GeoDataRegion& region );
+
+    /**
+     * Return the symbol index of the placemark.
+     */
+    GeoDataVisualCategory visualCategory() const;
+    /**
+     * Sets the symbol @p index of the placemark.
+     * @param  category  the new category to be used.
+     */
+    void setVisualCategory( GeoDataVisualCategory category );
 
     /**
      * Return the role of the placemark.
@@ -259,26 +479,39 @@ class GEODATA_EXPORT GeoDataFeature : public GeoDataObject
      */
     void setStyleMap( const GeoDataStyleMap* map );
 
-    /// Duplicate into another equal instance
-    virtual GeoDataFeature * clone() const = 0;
 
+    // ----------------------------------------------------------------
+    // The following functions are use for painting, and mostly for placemarks.
+
+    /**
+     * Return the label font of the placemark.
+     */
+    static void resetDefaultStyles();
 
     /// Serialize the contents of the feature to @p stream.
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /// Unserialize the contents of the feature from @p stream.
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
+
+    static QFont defaultFont();
+    static void setDefaultFont( const QFont& font );
+
+    static QColor defaultLabelColor();
+    static void setDefaultLabelColor( const QColor& color );
+
+    virtual void detach();
 
  protected:
     // the d-pointer needs to be protected to be accessible from derived classes
-    GeoDataFeaturePrivate* const d_ptr;
-    explicit GeoDataFeature(GeoDataFeaturePrivate* dd);
-    GeoDataFeature(const GeoDataFeature& other, GeoDataFeaturePrivate* dd);
+    GeoDataFeaturePrivate* d;
+    GeoDataFeature( GeoDataFeaturePrivate* priv );
 
     bool equals( const GeoDataFeature &other ) const;
     using GeoDataObject::equals;
 
  private:
-    Q_DECLARE_PRIVATE(GeoDataFeature)
+    // the private d pointer accessor - use it instead of the d pointer directly
+    GeoDataFeaturePrivate* p() const;
 };
 
 }

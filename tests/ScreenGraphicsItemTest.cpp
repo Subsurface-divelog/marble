@@ -21,7 +21,7 @@ class ScreenGraphicsItemTest : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+ private slots:
     void defaultConstructorValues();
 
     void constructorValuesScreenParent();

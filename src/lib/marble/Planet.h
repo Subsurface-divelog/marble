@@ -14,10 +14,8 @@
 
 #include "marble_export.h"
 
-#include <QtGlobal>
-
-class QStringList;
-class QColor;
+#include <QStringList>
+#include <QColor>
 
 namespace Marble
 {
@@ -34,10 +32,7 @@ public:
      */
     Planet();
 
-    /**
-     * @deprecated Please use PlanetFactory::construct(id) instead.
-     */
-    MARBLE_DEPRECATED explicit Planet(const QString& id);
+    MARBLE_DEPRECATED( explicit Planet( const QString& id ) ); // please use PlanetFactory::construct(id) instead
 
     ///Copy Constructor
     Planet( const Planet& other );
@@ -100,14 +95,8 @@ public:
 
     Planet& operator=( const Planet& rhs );
 
-    /**
-     * @deprecated Please use PlanetFactory::localizedName(id) instead.
-     */
-    MARBLE_DEPRECATED static QString name(const QString& id);
-    /**
-     * @deprecated Please use PlanetFactory::planetList() instead.
-     */
-    MARBLE_DEPRECATED static QStringList planetList();
+    MARBLE_DEPRECATED( static QString name( const QString& id ) ); // please use PlanetFactory::localizedName(id) instead
+    MARBLE_DEPRECATED( static QStringList planetList() );  // please use PlanetFactory::planetList() instead
 
     bool hasAtmosphere() const;
     void setHasAtmosphere( bool enabled );

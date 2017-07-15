@@ -147,4 +147,4 @@ void NasaWorldWindToOpenStreetMapConverter::incNextCluster()
     }
 }
 
-#include "moc_NasaWorldWindToOpenStreetMapConverter.cpp"
+#include "NasaWorldWindToOpenStreetMapConverter.moc"

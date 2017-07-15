@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2014      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 /**
@@ -15,25 +15,25 @@
 
 #include <marble/MarbleWidget.h>
 #include <marble/MarbleMath.h>
-#include <marble/GeoDataCoordinates.h>
-#include <marble/GeoDataLineString.h>
+#include <GeoDataCoordinates.h>
+#include <GeoDataLineString.h>
 #include <marble/RenderPlugin.h>
 #include <marble/MarbleModel.h>
-#include <marble/Route.h>
-#include <marble/RoutingManager.h>
-#include <marble/RoutingModel.h>
+#include <marble/routing/Route.h>
+#include <marble/routing/RoutingManager.h>
+#include <marble/routing/RoutingModel.h>
 #include <marble/TourPlayback.h>
-#include <marble/GeoDataTour.h>
-#include <marble/GeoDataPlaylist.h>
-#include <marble/GeoDataFlyTo.h>
-#include <marble/GeoDataLookAt.h>
+#include <marble/geodata/data/GeoDataTour.h>
+#include <marble/geodata/data/GeoDataPlaylist.h>
+#include <marble/geodata/data/GeoDataFlyTo.h>
+#include <marble/geodata/data/GeoDataLookAt.h>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <QTimeLine>
 #include <QApplication>
 #include <QThread>
-#include <QDebug>
 
 #include <cstdio>
 
@@ -106,8 +106,8 @@ void animatedFlight( MarbleWidget *mapWidget, GeoDataTour* tour )
     TourPlayback* playback = new TourPlayback;
     playback->setMarbleWidget( mapWidget );
     playback->setTour( tour );
-    QObject::connect( playback, SIGNAL(centerOn(GeoDataCoordinates)),
-                      mapWidget, SLOT(centerOn(GeoDataCoordinates)) );
+    QObject::connect( playback, SIGNAL( centerOn( GeoDataCoordinates ) ),
+                      mapWidget, SLOT( centerOn( GeoDataCoordinates ) ) );
 
     double const shift = 1.0 / fps;
     double const duration = playback->duration();

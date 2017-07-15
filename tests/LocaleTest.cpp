@@ -22,7 +22,7 @@ class LocaleTest : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void meterToCustomUnit();
     void meterToCustomUnit_data();

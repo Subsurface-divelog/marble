@@ -13,7 +13,7 @@
 #ifndef MARBLE_GEODATAHOTSPOT_H
 #define MARBLE_GEODATAHOTSPOT_H
 
-#include <QPointF>
+#include <QPoint>
 
 #include "GeoDataObject.h"
 
@@ -24,8 +24,6 @@ namespace Marble
 
 class GeoDataHotSpotPrivate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataHotSpot : public GeoDataObject
 {
   public:
@@ -34,14 +32,14 @@ class GEODATA_EXPORT GeoDataHotSpot : public GeoDataObject
     GeoDataHotSpot( const QPointF& hotSpot = QPointF( 0.5, 0.5 ),
                     Units xunits = Fraction, Units yunits = Fraction );
     GeoDataHotSpot( const GeoDataHotSpot& other );
-    ~GeoDataHotSpot() override;
+    ~GeoDataHotSpot();
 
     GeoDataHotSpot& operator=( const GeoDataHotSpot& other );
-    bool operator==( const GeoDataHotSpot& other ) const;
-    bool operator!=( const GeoDataHotSpot& other ) const;
+    bool operator==( const GeoDataHotSpot& other );
+    bool operator!=( const GeoDataHotSpot& other );
 
     /// Provides type information for downcasting a GeoData
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
     * @brief this function returns the hotspot and the units the hotspot is measured in
@@ -55,9 +53,9 @@ class GEODATA_EXPORT GeoDataHotSpot : public GeoDataObject
                      Units xunits = Fraction, Units yunits = Fraction );
 
     /// Serialize the contents of the feature to @p stream.
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /// Unserialize the contents of the feature from @p stream.
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
   private:
     GeoDataHotSpotPrivate *const d;

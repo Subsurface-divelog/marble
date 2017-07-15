@@ -25,24 +25,24 @@
 class MarbleWidgetPlugin : public QObject, public QDesignerCustomWidgetInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.MarbleWidgetPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.MarbleWidgetPlugin" )
     Q_INTERFACES(QDesignerCustomWidgetInterface)
 
 public:
     explicit MarbleWidgetPlugin(QObject *parent = 0);
 
-    bool isContainer() const override;
-    bool isInitialized() const override;
-    QIcon icon() const override;
-    QString domXml() const override;
-    QString name() const override;
-    QString group() const override;
-    QString includeFile() const override;
-    QString toolTip() const override;
-    QString whatsThis() const override;
-    QWidget *createWidget(QWidget *parent) override;
+    bool isContainer() const;
+    bool isInitialized() const;
+    QIcon icon() const;
+    QString domXml() const;
+    QString name() const;
+    QString group() const;
+    QString includeFile() const;
+    QString toolTip() const;
+    QString whatsThis() const;
+    QWidget *createWidget(QWidget *parent);
 
-    void initialize(QDesignerFormEditorInterface *core) override;
+    void initialize(QDesignerFormEditorInterface *core);
 
 private:
     bool m_initialized;

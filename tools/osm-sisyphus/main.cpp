@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "jobmanager.h"
@@ -33,12 +33,12 @@ int main(int argc, char *argv[])
     bool uploadFiles(true);
     for (int i=1; i<argc; ++i) {
         QString const arg = argv[i];
-        if (arg == QLatin1String("-h") || arg == QLatin1String("--help")) {
+        if (arg == "-h" || arg == "--help") {
             usage(argv[0]);
             return 0;
-        } else if (arg == QLatin1String("-cd") || arg == QLatin1String("--cache-data")) {
+        } else if (arg == "-cd" || arg == "--cache-data") {
             cacheData = true;
-        } else if (arg == QLatin1String("-nu") || arg == QLatin1String("--no-uploads")) {
+        } else if (arg == "-nu" || arg == "--no-uploads") {
             uploadFiles = false;
         } else {
             arguments << arg;

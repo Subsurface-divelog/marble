@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2013      Sanjiban Bairagya <sanjiban22393@gmail.com>
 
 
@@ -19,9 +19,7 @@ namespace Marble {
 
 class GeoDataLinkPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataLink: public GeoDataObject
+class MARBLE_EXPORT GeoDataLink: public GeoDataObject
 {
 public:
     enum RefreshMode {
@@ -45,14 +43,14 @@ public:
     bool operator==( const GeoDataLink &other ) const;
     bool operator!=( const GeoDataLink &other ) const;
 
-    ~GeoDataLink() override;
+    ~GeoDataLink();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     QString href() const;
 
-    void setHref( const QString& href );
+    void setHref( QString href );
 
     RefreshMode refreshMode() const;
 

@@ -25,6 +25,9 @@
 #include "MarbleGlobal.h"
 
 // Qt
+#include <QFile>
+#include <QList>
+#include <QTime>
 #include <QUrl>
 
 using namespace Marble;
@@ -61,7 +64,7 @@ void BBCWeatherService::getAdditionalItems( const GeoDataLatLonAltBox& box,
         m_parsingStarted = true;
 
         m_parser = new StationListParser( this );
-        m_parser->setPath(MarbleDirs::path(QStringLiteral("weather/bbc-stations.xml")));
+        m_parser->setPath( MarbleDirs::path( "weather/bbc-stations.xml" ) );
         connect( m_parser, SIGNAL(finished()),
                  this,     SLOT(fetchStationList()) );
         if ( m_parser->wait( 100 ) ) {
@@ -100,7 +103,7 @@ void BBCWeatherService::fetchStationList()
     m_parser = 0;
 }
 
-void BBCWeatherService::createItem( const BBCStation& station )
+void BBCWeatherService::createItem( BBCStation station )
 {
     BBCWeatherItem *item = new BBCWeatherItem( this );
     item->setMarbleWidget( marbleWidget() );
@@ -113,4 +116,4 @@ void BBCWeatherService::createItem( const BBCStation& station )
     emit requestedDownload( item->forecastUrl(),    "bbcforecast",    item );
 }
 
-#include "moc_BBCWeatherService.cpp"
+#include "BBCWeatherService.moc"

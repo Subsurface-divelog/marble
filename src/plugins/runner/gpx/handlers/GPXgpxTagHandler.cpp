@@ -28,9 +28,6 @@
 
 #include "GeoDataDocument.h"
 #include "GeoDataStyle.h"
-#include "GeoDataIconStyle.h"
-#include "GeoDataLabelStyle.h"
-#include "GeoDataLineStyle.h"
 #include "GeoDataStyleMap.h"
 #include "GeoDataHotSpot.h"
 #include "MarbleDirs.h"
@@ -46,52 +43,52 @@ GeoNode* GPXgpxTagHandler::parse(GeoParser& parser) const
 {
     GeoDataDocument* doc = geoDataDoc( parser );
 
-    GeoDataStyle::Ptr style(new GeoDataStyle);
+    GeoDataStyle style;
     GeoDataLineStyle lineStyle;
     QColor transparentRed = Oxygen::brickRed6;
     transparentRed.setAlpha( 200 );
     lineStyle.setColor( transparentRed );
     lineStyle.setWidth( 4 );
-    style->setLineStyle(lineStyle);
-    style->setId(QStringLiteral("track"));
+    style.setLineStyle(lineStyle);
+    style.setId("track");
 
     GeoDataStyleMap styleMap;
-    styleMap.setId(QStringLiteral("map-track"));
-    styleMap.insert(QStringLiteral("normal"), QLatin1Char('#') + style->id());
+    styleMap.setId("map-track");
+    styleMap.insert("normal", QString("#").append(style.id()));
     doc->addStyleMap(styleMap);
     doc->addStyle(style);
 
     // create a style for routes
-    GeoDataStyle::Ptr routestyle(new GeoDataStyle);
+    GeoDataStyle routestyle;
     GeoDataLineStyle routeLineStyle;
     QColor skyBlue = Oxygen::skyBlue6;
     skyBlue.setAlpha( 200 );
     routeLineStyle.setColor( skyBlue );
     routeLineStyle.setWidth( 5 );
-    routestyle->setLineStyle(routeLineStyle);
-    routestyle->setId(QStringLiteral("route"));
+    routestyle.setLineStyle(routeLineStyle);
+    routestyle.setId("route");
 
     GeoDataStyleMap routeStyleMap;
-    routeStyleMap.setId(QStringLiteral("map-route"));
-    routeStyleMap.insert(QStringLiteral("normal"), QLatin1Char('#') + routestyle->id());
+    routeStyleMap.setId("map-route");
+    routeStyleMap.insert("normal", QString("#").append(routestyle.id()));
     doc->addStyleMap(routeStyleMap);
     doc->addStyle(routestyle);
 
     // create a default style for waypoint icons
-    GeoDataStyle::Ptr waypointStyle(new GeoDataStyle);
-    waypointStyle->setId(QStringLiteral("waypoint"));
+    GeoDataStyle waypointStyle;
+    waypointStyle.setId("waypoint");
     GeoDataIconStyle iconStyle;
-    iconStyle.setIconPath(MarbleDirs::path(QStringLiteral("bitmaps/flag.png")));
+    iconStyle.setIconPath(MarbleDirs::path("bitmaps/flag.png"));
     iconStyle.setHotSpot(QPointF(0.12,0.03), GeoDataHotSpot::Fraction, GeoDataHotSpot::Fraction);
-    waypointStyle->setIconStyle(iconStyle);
+    waypointStyle.setIconStyle(iconStyle);
 
     GeoDataLabelStyle waypointLabelStyle;
     waypointLabelStyle.setAlignment(GeoDataLabelStyle::Corner);
-    waypointStyle->setLabelStyle(waypointLabelStyle);
+    waypointStyle.setLabelStyle(waypointLabelStyle);
 
     GeoDataStyleMap waypointStyleMap;
-    waypointStyleMap.setId(QStringLiteral("map-waypoint"));
-    waypointStyleMap.insert(QStringLiteral("normal"), QLatin1Char('#') + waypointStyle->id());
+    waypointStyleMap.setId("map-waypoint");
+    waypointStyleMap.insert("normal", QString("#").append(waypointStyle.id()));
     doc->addStyleMap(waypointStyleMap);
     doc->addStyle(waypointStyle);
 

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "jobmanager.h"
@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <QProcess>
 #include <QDomDocument>
 
 JobManager::JobManager(QObject *parent) :
@@ -52,7 +53,7 @@ void JobManager::setRegionsFile(const QString &filename)
 
     QDomElement root = xml.documentElement();
     QDomNodeList regions = root.elementsByTagName( "region" );
-    for ( int i = 0; i < int(regions.length()); ++i ) {
+    for ( unsigned int i = 0; i < regions.length(); ++i ) {
         Region region;
         QDomNode node = regions.item( i );
         if (!node.namedItem("continent").isNull()) {
@@ -74,19 +75,19 @@ void JobManager::setRegionsFile(const QString &filename)
             region.setPbfFile(node.namedItem("pbf").toElement().text());
         }
         if (!node.namedItem("transport").isNull()) {
-            QStringList input = node.namedItem("transport").toElement().text().split(QLatin1Char(','), QString::SkipEmptyParts);
-            for( const QString &value: input ) {
+            QStringList input = node.namedItem("transport").toElement().text().split(',', QString::SkipEmptyParts);
+            foreach( const QString &value, input ) {
                 if (!region.continent().isEmpty() && !region.name().isEmpty()) {
                     PendingJob job;
                     job.m_region = region;
                     job.m_transport = value.trimmed();
-                    if (job.m_transport == QLatin1String("Motorcar")) {
+                    if (job.m_transport == "Motorcar") {
                         job.m_profile = "motorcar";
                         m_pendingJobs << job;
-                    } else if (job.m_transport == QLatin1String("Bicycle")) {
+                    } else if (job.m_transport == "Bicycle") {
                         job.m_profile = "bicycle";
                         m_pendingJobs << job;
-                    } else if (job.m_transport == QLatin1String("Pedestrian")) {
+                    } else if (job.m_transport == "Pedestrian") {
                         job.m_profile = "foot";
                         m_pendingJobs << job;
                     } else {
@@ -112,7 +113,7 @@ void JobManager::setJobParameters(const JobParameters &parameters)
 void JobManager::update()
 {
     bool resume = m_resumeId.isEmpty();
-    for(const PendingJob &job: m_pendingJobs) {
+    foreach(const PendingJob &job, m_pendingJobs) {
         resume = resume || job.m_region.id() == m_resumeId;
         if (resume) {
             addJob(job);
@@ -132,4 +133,4 @@ void JobManager::addJob(const PendingJob &job)
     m_queue.addJob(countryJob);
 }
 
-#include "moc_jobmanager.cpp"
+#include "jobmanager.moc"

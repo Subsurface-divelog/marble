@@ -20,8 +20,6 @@ namespace Marble
 {
     class GeoDataLookAtPrivate;
 
-    /**
-     */
     class GEODATA_EXPORT GeoDataLookAt : public GeoDataAbstractView
     {
     public:
@@ -34,9 +32,9 @@ namespace Marble
         bool operator==(const GeoDataLookAt &other) const;
         bool operator!=(const GeoDataLookAt &other) const;
 
-        ~GeoDataLookAt() override;
+        ~GeoDataLookAt();
 
-        GeoDataAbstractView *copy() const override;
+        GeoDataAbstractView *copy() const;
 
         /**
          * @brief set the altitude in a GeoDataLookAt object
@@ -112,7 +110,7 @@ namespace Marble
         void setCoordinates( const GeoDataCoordinates& coordinates );
 
         /// Provides type information for downcasting a GeoNode
-        const char* nodeType() const override;
+        virtual const char* nodeType() const;
 
         void detach();
     private:

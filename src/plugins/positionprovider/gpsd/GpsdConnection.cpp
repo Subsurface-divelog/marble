@@ -15,7 +15,7 @@
 
 #include <QTime>
 
-#include <cerrno>
+#include <errno.h>
 #include <clocale>
 
 using namespace Marble;
@@ -141,4 +141,4 @@ QString GpsdConnection::error() const
     return m_error;
 }
 
-#include "moc_GpsdConnection.cpp"
+#include "GpsdConnection.moc"

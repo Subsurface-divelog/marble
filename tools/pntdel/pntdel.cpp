@@ -13,6 +13,7 @@
 #include <QDataStream>
 #include <QFile>
 #include <QDebug>
+#include <QStringList>
 
 int main(int argc, char *argv[])
 {

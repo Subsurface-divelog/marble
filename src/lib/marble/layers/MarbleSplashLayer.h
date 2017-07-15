@@ -13,7 +13,6 @@
 
 #include "LayerInterface.h"
 
-#include <QString>
 
 namespace Marble
 {
@@ -23,15 +22,15 @@ class MarbleSplashLayer : public LayerInterface
 public:
     MarbleSplashLayer();
 
-    QStringList renderPosition() const override;
+    virtual QStringList renderPosition() const;
 
-    bool render( GeoPainter *painter, ViewportParams *viewport,
+    virtual bool render( GeoPainter *painter, ViewportParams *viewport,
                          const QString &renderPos = QLatin1String("SURFACE"),
-                         GeoSceneLayer *layer = 0 ) override;
+                         GeoSceneLayer *layer = 0 );
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
-    QString runtimeTrace() const override { return QStringLiteral("SplashLayer"); }
+    virtual QString runtimeTrace() const { return "SplashLayer"; }
 
 };
 

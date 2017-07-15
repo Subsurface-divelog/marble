@@ -15,6 +15,9 @@
 namespace Marble
 {
 
+class MarbleModel;
+class ParsingRunnerManager;
+
 class GpsbabelRunner : public ParsingRunner
 {
     Q_OBJECT
@@ -22,8 +25,7 @@ class GpsbabelRunner : public ParsingRunner
 public:
     explicit GpsbabelRunner( QObject *parent = 0 );
 
-    GeoDataDocument* parseFile( const QString &fileName, DocumentRole role, QString& error ) override;
-
+    virtual void parseFile( const QString &fileName, DocumentRole role );
 };
 
 }

@@ -10,50 +10,97 @@
 
 #include "GeoPolygonGraphicsItem.h"
 
-#include "BuildingGeoPolygonGraphicsItem.h"
-#include "GeoDataPlacemark.h"
-#include "StyleBuilder.h"
+#include "GeoDataLinearRing.h"
+#include "GeoDataPolygon.h"
+#include "GeoPainter.h"
+#include "ViewportParams.h"
+#include "GeoDataStyle.h"
 
 namespace Marble
 {
 
-AbstractGeoPolygonGraphicsItem *GeoPolygonGraphicsItem::createGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataPolygon *polygon)
+GeoPolygonGraphicsItem::GeoPolygonGraphicsItem( const GeoDataFeature *feature, const GeoDataPolygon* polygon )
+        : GeoGraphicsItem( feature ),
+          m_polygon( polygon ),
+          m_ring( 0 )
 {
-    if (placemark->visualCategory() == GeoDataPlacemark::Building) {
-        return new BuildingGeoPolygonGraphicsItem(placemark, polygon);
+}
+
+GeoPolygonGraphicsItem::GeoPolygonGraphicsItem( const GeoDataFeature *feature, const GeoDataLinearRing* ring )
+        : GeoGraphicsItem( feature ),
+          m_polygon( 0 ),
+          m_ring( ring )
+{
+}
+
+const GeoDataLatLonAltBox& GeoPolygonGraphicsItem::latLonAltBox() const
+{
+    if( m_polygon ) {
+        return m_polygon->latLonAltBox();
+    } else if ( m_ring ) {
+        return m_ring->latLonAltBox();
+    } else {
+        return GeoGraphicsItem::latLonAltBox();
     }
-    return new GeoPolygonGraphicsItem(placemark, polygon);
 }
 
-AbstractGeoPolygonGraphicsItem *GeoPolygonGraphicsItem::createGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataLinearRing *ring)
+void GeoPolygonGraphicsItem::paint( GeoPainter* painter, const ViewportParams* viewport )
 {
-    if (placemark->visualCategory() == GeoDataPlacemark::Building) {
-        return new BuildingGeoPolygonGraphicsItem(placemark, ring);
+    Q_UNUSED( viewport );
+
+    painter->save();
+
+    if ( !style() ) {
+        painter->setPen( QPen() );
     }
-    return new GeoPolygonGraphicsItem(placemark, ring);
-}
+    else {
+        QPen currentPen = painter->pen();
 
+        if ( !style()->polyStyle().outline() ) {
+            currentPen.setColor( Qt::transparent );
+        }
+        else {
+            if ( currentPen.color() != style()->lineStyle().paintedColor() ||
+                currentPen.widthF() != style()->lineStyle().width() ) {
+                currentPen.setColor( style()->lineStyle().paintedColor() );
+                currentPen.setWidthF( style()->lineStyle().width() );
+            }
 
-GeoPolygonGraphicsItem::GeoPolygonGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataPolygon *polygon) :
-    AbstractGeoPolygonGraphicsItem(placemark, polygon)
-{
-    const int elevation = extractElevation(*placemark);
-    setZValue(zValue() + elevation);
+            if ( currentPen.capStyle() != style()->lineStyle().capStyle() )
+                currentPen.setCapStyle( style()->lineStyle().capStyle() );
 
-    const GeoDataPlacemark::GeoDataVisualCategory visualCategory = placemark->visualCategory();
-    const QString paintLayer = QLatin1String("Polygon/") + StyleBuilder::visualCategoryName(visualCategory);
-    setPaintLayers(QStringList(paintLayer));
-}
+            if ( currentPen.style() != style()->lineStyle().penStyle() )
+                currentPen.setStyle( style()->lineStyle().penStyle() );
 
-GeoPolygonGraphicsItem::GeoPolygonGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataLinearRing *ring) :
-    AbstractGeoPolygonGraphicsItem(placemark, ring)
-{
-    const int elevation = extractElevation(*placemark);
-    setZValue(zValue() + elevation);
+            if ( painter->mapQuality() != Marble::HighQuality
+                    && painter->mapQuality() != Marble::PrintQuality ) {
+                QColor penColor = currentPen.color();
+                penColor.setAlpha( 255 );
+                currentPen.setColor( penColor );
+            }
+        }
 
-    const GeoDataPlacemark::GeoDataVisualCategory visualCategory = placemark->visualCategory();
-    const QString paintLayer = QLatin1String("Polygon/") + StyleBuilder::visualCategoryName(visualCategory);
-    setPaintLayers(QStringList(paintLayer));
+        if ( painter->pen() != currentPen )
+            painter->setPen( currentPen );
+
+        if ( !style()->polyStyle().fill() ) {
+            if ( painter->brush().color() != Qt::transparent )
+                painter->setBrush( QColor( Qt::transparent ) );
+        }
+        else {
+            if ( painter->brush().color() != style()->polyStyle().paintedColor() ) {
+                painter->setBrush( style()->polyStyle().paintedColor() );
+            }
+        }
+    }
+
+    if ( m_polygon ) {
+        painter->drawPolygon( *m_polygon );
+    } else if ( m_ring ) {
+        painter->drawPolygon( *m_ring );
+    }
+
+    painter->restore();
 }
 
 }

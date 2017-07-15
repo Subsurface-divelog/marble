@@ -21,7 +21,7 @@ namespace dgml
 class DgmlLicenseTagHandler : public GeoTagHandler
 {
 public:
-    GeoNode* parse( GeoParser &parser ) const override;
+    virtual GeoNode* parse( GeoParser &parser ) const;
 };
 
 }

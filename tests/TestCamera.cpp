@@ -5,13 +5,15 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013   Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013   Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QObject>
 
 #include <GeoDataDocument.h>
+#include <GeoDataTour.h>
 #include <MarbleDebug.h>
+#include <GeoDataFolder.h>
 #include <GeoDataCamera.h>
 #include "TestUtils.h"
 
@@ -20,7 +22,7 @@ using namespace Marble;
 class TestCamera : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void simpleParseTest();
 };

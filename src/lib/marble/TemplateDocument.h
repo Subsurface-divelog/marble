@@ -11,9 +11,7 @@
 #ifndef MARBLE_TEMPLATEDOCUMENT_H
 #define MARBLE_TEMPLATEDOCUMENT_H
 
-#include <QtGlobal>
-
-class QString;
+#include <Qt>
 
 namespace Marble
 {

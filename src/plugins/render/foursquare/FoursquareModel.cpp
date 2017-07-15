@@ -20,9 +20,9 @@
 #include "MarbleMath.h"
 
 #include <QUrl>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
+#include <QScriptEngine>
+#include <QScriptValue>
+#include <QScriptValueIterator>
 
 namespace Marble
 {
@@ -39,7 +39,7 @@ FoursquareModel::~FoursquareModel()
 
 void FoursquareModel::getAdditionalItems( const GeoDataLatLonAltBox& box, qint32 number )
 {
-    if (marbleModel()->planetId() != QLatin1String("earth")) {
+    if( marbleModel()->planetId() != "earth" ) {
         return;
     }
     
@@ -52,65 +52,59 @@ void FoursquareModel::getAdditionalItems( const GeoDataLatLonAltBox& box, qint32
     qreal const area = distanceLon * distanceLat;
     if ( area > 10 * 1000 * KM2METER * KM2METER ) {
         // Large area (> 10.000 km^2) => too large for bbox queries
-        apiUrl += QLatin1String("?ll=") + QString::number(box.center().latitude(Marble::GeoDataCoordinates::Degree)) +
-                  QLatin1Char(',') + QString::number(box.center().longitude(Marble::GeoDataCoordinates::Degree)) +
-                  QLatin1String("&intent=checkin");
+        apiUrl += "?ll=" + QString::number( box.center().latitude(Marble::GeoDataCoordinates::Degree) );
+        apiUrl += ',' + QString::number( box.center().longitude(Marble::GeoDataCoordinates::Degree) );
+        apiUrl += "&intent=checkin";
     } else {
-        apiUrl += QLatin1String("?ne=") + QString::number(box.north(Marble::GeoDataCoordinates::Degree)) +
-                  QLatin1Char(',') + QString::number(box.east(Marble::GeoDataCoordinates::Degree)) +
-                  QLatin1String("&sw=") + QString::number(box.south(Marble::GeoDataCoordinates::Degree)) +
-                  QLatin1Char(',') + QString::number(box.west(Marble::GeoDataCoordinates::Degree)) +
-                  QLatin1String("&intent=browse");
+        apiUrl += "?ne=" + QString::number( box.north(Marble::GeoDataCoordinates::Degree) );
+        apiUrl += ',' + QString::number( box.east(Marble::GeoDataCoordinates::Degree) );
+        apiUrl += "&sw=" + QString::number( box.south(Marble::GeoDataCoordinates::Degree) );
+        apiUrl += ',' + QString::number( box.west(Marble::GeoDataCoordinates::Degree) );
+        apiUrl += "&intent=browse";
     }
-    apiUrl += QLatin1String("&limit=") + QString::number(number) +
-              QLatin1String("&client_id=") + clientId +
-              QLatin1String("&client_secret=") + clientSecret +
-              QLatin1String("&v=20120601");
+    apiUrl += "&limit=" + QString::number( number );
+    apiUrl += "&client_id=" + clientId;
+    apiUrl += "&client_secret=" + clientSecret;
+    apiUrl += "&v=20120601";
     downloadDescriptionFile( QUrl( apiUrl ) );
 }
 
 void FoursquareModel::parseFile( const QByteArray& file )
 {
-    const QJsonDocument jsonDoc = QJsonDocument::fromJson(file);
-    const QJsonObject responseObject = jsonDoc.object().value(QStringLiteral("response")).toObject();
-    const QJsonValue venuesValue = responseObject.value(QStringLiteral("response"));
-
+    QScriptValue data;
+    QScriptEngine engine;
+    // Qt requires parentheses around JSON
+    data = engine.evaluate( '(' + QString::fromUtf8( file ) + ')' );
+    data = data.property("response");
+    
     // Parse if any result exists
-    if (venuesValue.isArray()) {
+    if ( data.property( "venues" ).isArray() ) {
+        QScriptValueIterator iterator( data.property( "venues" ) );
         // Add items to the list
         QList<AbstractDataPluginItem*> items;
-
-        const QJsonArray venueArray = venuesValue.toArray();
-        for (int venueIndex = 0; venueIndex < venueArray.size(); ++venueIndex) {
-            const QJsonObject venueObject = venueArray[venueIndex].toObject();
-
-            const QJsonObject firstCategoryObject = venueObject.value(QStringLiteral("categories")).toArray().at(0).toObject();
-
-            const QString id = venueObject.value(QStringLiteral("id")).toString();
-            const QString name = venueObject.value(QStringLiteral("name")).toString();
-            const QString category = firstCategoryObject.value(QStringLiteral("name")).toString();
-            const QJsonObject locationObject = venueObject.value(QStringLiteral("location")).toObject();
-            const QString address = locationObject.value(QStringLiteral("address")).toString();
-            const QString city = locationObject.value(QStringLiteral("city")).toString();
-            const QString country = locationObject.value(QStringLiteral("country")).toString();
-            const double latitude = locationObject.value(QStringLiteral("lat")).toString().toDouble();
-            const double longitude = locationObject.value(QStringLiteral("lng")).toString().toDouble();
-            const int usersCount = venueObject.value(QStringLiteral("stats")).toObject().value(QStringLiteral("usersCount")).toInt();
-
-            const QJsonValue categoryIconValue = firstCategoryObject.value(QStringLiteral("icon"));
+        do {
+            iterator.next();
+            QString id = iterator.value().property( "id" ).toString();
+            QString name = iterator.value().property( "name" ).toString();
+            QString category = iterator.value().property( "categories" ).property( 0 ).property( "name" ).toString();
+            QString address = iterator.value().property( "location" ).property( "address" ).toString();
+            QString city = iterator.value().property( "location" ).property( "city" ).toString();
+            QString country = iterator.value().property( "location" ).property( "country" ).toString();
+            double latitude = iterator.value().property( "location" ).property( "lat" ).toString().toDouble();
+            double longitude = iterator.value().property( "location" ).property( "lng" ).toString().toDouble();
+            int usersCount = iterator.value().property( "stats" ).property( "usersCount" ).toInteger();
+            
+            QScriptValue categoryIcon = iterator.value().property( "categories" ).property( 0 ).property( "icon" );
             QString iconUrl;
             QString largeIconUrl;
-            if (categoryIconValue.isObject()) {
-                const QJsonObject categoryIconObject = categoryIconValue.toObject();
-                const QString iconPrefix = categoryIconObject.value(QStringLiteral("prefix")).toString();
-                const QString iconName = categoryIconObject.value(QStringLiteral("name")).toString();
-                iconUrl = iconPrefix
-                        + QLatin1String("32") // That's the icon size hardcoded
-                        + iconName;
-
-                largeIconUrl = iconPrefix
-                        + QLatin1String("64") // Larger icon
-                        + iconName;
+            if ( categoryIcon.isValid() ) {
+                iconUrl = categoryIcon.property( "prefix" ).toString()
+                        + "32" // That's the icon size hardcoded
+                        + categoryIcon.property( "name" ).toString();
+                        
+                largeIconUrl = categoryIcon.property( "prefix" ).toString()
+                        + "64" // Larger icon
+                        + categoryIcon.property( "name" ).toString();
             }
 
             if( !itemExists( id ) ) {
@@ -130,10 +124,11 @@ void FoursquareModel::parseFile( const QByteArray& file )
                 items << item;
             }
         }
+        while ( iterator.hasNext() );
         addItemsToList( items );
     }
 }
 
 }
 
-#include "moc_FoursquareModel.cpp"
+#include "FoursquareModel.moc"

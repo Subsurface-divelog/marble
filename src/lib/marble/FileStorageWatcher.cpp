@@ -90,12 +90,12 @@ void FileStorageWatcherThread::getCurrentCacheSize()
 {
     mDebug() << "FileStorageWatcher: Creating cache size";
     quint64 dataSize = 0;
-    const QString basePath = m_dataDirectory + QLatin1String("/maps");
+    QString basePath = m_dataDirectory + "/maps";
     QDirIterator it( basePath,
                      QDir::Files | QDir::Writable,
                      QDirIterator::Subdirectories );
     
-    const int basePathDepth = basePath.split(QLatin1Char('/')).size();
+    int basePathDepth = basePath.split("/").size();
     while( it.hasNext() && !m_willQuit ) {
         it.next();
         QFileInfo file = it.fileInfo();
@@ -103,15 +103,15 @@ void FileStorageWatcherThread::getCurrentCacheSize()
         // FIXME, when vectortiling I suppose also vector tiles will have
         // to be deleted
         QString suffix = file.suffix().toLower();
-        const QStringList path = file.path().split(QLatin1Char('/'));
+        QStringList path = file.path().split("/");
 
         // planet/theme/tilelevel should be deeper than 4
         if ( ( path.size() > basePathDepth + 3 ) &&
              ( path[basePathDepth + 2].toInt() >= maxBaseTileLevel ) &&
-             ((suffix == QLatin1String("jpg") ||
-               suffix == QLatin1String("png") ||
-               suffix == QLatin1String("gif") ||
-               suffix == QLatin1String("svg")))) {
+               ( ( suffix == "jpg"
+                || suffix == "png"
+                || suffix == "gif"
+                || suffix == "svg" ) ) ) {
             dataSize += file.size();
             m_filesCache.insert(file.lastModified(), file.absoluteFilePath());
         }
@@ -186,7 +186,7 @@ FileStorageWatcher::FileStorageWatcher( const QString &dataDirectory, QObject * 
       m_dataDirectory( dataDirectory )
 {
     if ( m_dataDirectory.isEmpty() )
-        m_dataDirectory = MarbleDirs::localPath() + QLatin1String("/cache/");
+        m_dataDirectory = MarbleDirs::localPath() + "/cache/";
  
     if ( ! QDir( m_dataDirectory ).exists() ) 
         QDir::root().mkpath( m_dataDirectory );
@@ -275,4 +275,4 @@ void FileStorageWatcher::run()
 }
 // End of all methods
 
-#include "moc_FileStorageWatcher.cpp"
+#include "FileStorageWatcher.moc"

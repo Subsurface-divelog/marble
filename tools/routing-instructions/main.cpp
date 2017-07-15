@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "routing/instructions/WaypointParser.h"
@@ -27,9 +27,9 @@ QString adjustGosmoreVersion( QTextStream &stream, WaypointParser &parser )
 {
     QString content = stream.readAll();
     if ( !QCoreApplication::instance()->arguments().contains( "--routino" ) ) {
-        QStringList lines = content.split(QLatin1Char('\r'));
+        QStringList lines = content.split( '\r' );
         if ( lines.size() > 2 ) {
-            QStringList fields = lines.at( lines.size()-2 ).split(QLatin1Char(','));
+            QStringList fields = lines.at( lines.size()-2 ).split(',');
             parser.setFieldIndex( WaypointParser::RoadType, fields.size()-3 );
             parser.setFieldIndex( WaypointParser::TotalSecondsRemaining, fields.size()-2 );
             parser.setFieldIndex( WaypointParser::RoadName, fields.size()-1 );
@@ -43,15 +43,15 @@ void loadTranslations( QCoreApplication &app, QTranslator &translator )
     const QString lang = QLocale::system().name();
     QString code;
 
-    int index = lang.indexOf(QLatin1Char('_'));
-    if (lang == QLatin1String("C")) {
+    int index = lang.indexOf ( '_' );
+    if ( lang == "C" ) {
         code = "en";
     }
     else if ( index != -1 ) {
         code = lang.left ( index );
     }
     else {
-        index = lang.indexOf(QLatin1Char('@'));
+        index = lang.indexOf ( '@' );
         if ( index != -1 )
             code = lang.left ( index );
         else
@@ -59,11 +59,10 @@ void loadTranslations( QCoreApplication &app, QTranslator &translator )
     }
 
     QString const i18nDir = "/usr/share/marble/translations";
-    QString const relativeDir = app.applicationDirPath() + QLatin1String("/translations");
-    auto const paths = QStringList() << i18nDir << relativeDir << QDir::currentPath();
-    for( const QString &path: paths ) {
-        for( const QString &lang: QStringList() << lang << code ) {
-            QFileInfo translations = QFileInfo( path + QLatin1String("/routing-instructions_") + lang + QLatin1String(".qm"));
+    QString const relativeDir = app.applicationDirPath() + "/translations";
+    foreach( const QString &path, QStringList() << i18nDir << relativeDir << QDir::currentPath() ) {
+        foreach( const QString &lang, QStringList() << lang << code ) {
+            QFileInfo translations = QFileInfo( path + "/routing-instructions_" + lang + ".qm" );
             if ( translations.exists() && translator.load( translations.absoluteFilePath() ) ) {
                 app.installTranslator( &translator );
                 return;
@@ -114,7 +113,7 @@ int main( int argc, char* argv[] )
     if ( arguments.contains( "--routino" ) )
     {
         parser.setLineSeparator( "\n" );
-        parser.setFieldSeparator(QLatin1Char('\t'));
+        parser.setFieldSeparator( '\t' );
         parser.setFieldIndex( WaypointParser::RoadName, 10 );
     }
     else

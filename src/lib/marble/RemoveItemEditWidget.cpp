@@ -12,12 +12,13 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QComboBox>
+#include <QLineEdit>
 
 #include "RemoveItemEditWidget.h"
 #include "MarbleWidget.h"
 #include "geodata/data/GeoDataAnimatedUpdate.h"
-#include "GeoDataUpdate.h"
-#include "GeoDataDelete.h"
+#include "geodata/data/GeoDataFeature.h"
+#include "GeoDataTypes.h"
 #include "MarblePlacemarkModel.h"
 
 namespace Marble {
@@ -32,7 +33,7 @@ RemoveItemEditWidget::RemoveItemEditWidget( const QModelIndex &index, QWidget *p
     layout->setSpacing( 5 );
 
     QLabel* iconLabel = new QLabel;
-    iconLabel->setPixmap(QPixmap(QStringLiteral(":/icons/remove.png")));
+    iconLabel->setPixmap( QPixmap( ":/marble/player-time.png" ) );
     layout->addWidget( iconLabel );
 
     QLabel* comboBoxLabel = new QLabel;
@@ -41,7 +42,7 @@ RemoveItemEditWidget::RemoveItemEditWidget( const QModelIndex &index, QWidget *p
 
     layout->addWidget( m_comboBox );
 
-    m_button->setIcon(QIcon(QStringLiteral(":/marble/document-save.png")));
+    m_button->setIcon( QIcon( ":/marble/document-save.png" ) );
     connect(m_button, SIGNAL(clicked()), this, SLOT(save()));
     layout->addWidget( m_button );
 
@@ -84,11 +85,10 @@ GeoDataAnimatedUpdate* RemoveItemEditWidget::animatedUpdateElement()
 {
     GeoDataObject *object = qvariant_cast<GeoDataObject*>(m_index.data( MarblePlacemarkModel::ObjectPointerRole ) );
     Q_ASSERT( object );
-    auto animatedUpdate = geodata_cast<GeoDataAnimatedUpdate>(object);
-    Q_ASSERT(animatedUpdate);
-    return animatedUpdate;
+    Q_ASSERT( object->nodeType() == GeoDataTypes::GeoDataAnimatedUpdateType );
+    return static_cast<GeoDataAnimatedUpdate*>( object );
 }
 
 } // namespace Marble
 
-#include "moc_RemoveItemEditWidget.cpp"
+#include "RemoveItemEditWidget.moc"

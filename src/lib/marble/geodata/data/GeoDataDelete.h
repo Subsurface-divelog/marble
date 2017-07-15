@@ -11,37 +11,36 @@
 #ifndef GEODATADELETE_H
 #define GEODATADELETE_H
 
+#include <QString>
+#include <QDateTime>
+
 #include "GeoDataContainer.h"
-#include "geodata_export.h"
+#include "marble_export.h"
 
 namespace Marble
 {
 
 class GeoDataDeletePrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataDelete : public GeoDataContainer
+class MARBLE_EXPORT GeoDataDelete : public GeoDataContainer
 {
 public:
     GeoDataDelete();
 
     GeoDataDelete( const GeoDataDelete &other );
 
-    ~GeoDataDelete() override;
-
     GeoDataDelete& operator=( const GeoDataDelete &other );
 
     bool operator==( const GeoDataDelete &other ) const;
     bool operator!=( const GeoDataDelete &other ) const;
 
-    GeoDataFeature * clone() const override;
+    ~GeoDataDelete();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
 private:
-    Q_DECLARE_PRIVATE(GeoDataDelete)
+    GeoDataDeletePrivate* const d;
 };
 
 }

@@ -65,11 +65,7 @@ class GEODATA_EXPORT GeoDataPoint : public GeoDataGeometry
     GeoDataPoint( qreal lon, qreal lat, qreal alt = 0,
                   GeoDataPoint::Unit _unit = GeoDataCoordinates::Radian );
 
-    ~GeoDataPoint() override;
-
-    EnumGeometryId geometryId() const override;
-
-    GeoDataGeometry *copy() const override;
+    ~GeoDataPoint();
 
     bool operator==( const GeoDataPoint &other ) const;
     bool operator!=( const GeoDataPoint &other ) const;
@@ -79,21 +75,23 @@ class GEODATA_EXPORT GeoDataPoint : public GeoDataGeometry
     const GeoDataCoordinates& coordinates() const;
 
     /// Provides type information for downcasting a GeoData
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     // Type definitions
     typedef QVector<GeoDataPoint> Vector;
 
 
     // Serialize the Placemark to @p stream
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     // Unserialize the Placemark from @p stream
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
     virtual void detach();
 
  private:
-    Q_DECLARE_PRIVATE(GeoDataPoint)
+    GeoDataPointPrivate* p();
+    const GeoDataPointPrivate* p() const;
+
 };
 
 }

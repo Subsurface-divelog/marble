@@ -14,15 +14,13 @@
 
 #include "RenderPlugin.h"
 
-#include <QPixmap>
-
 namespace Marble
 {
 
 class AtmospherePlugin : public RenderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.AtmospherePlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.AtmospherePlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     MARBLE_PLUGIN( AtmospherePlugin )
 
@@ -31,40 +29,40 @@ public:
 
     explicit AtmospherePlugin( const MarbleModel *marbleModel );
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
-    RenderType renderType() const override;
+    virtual RenderType renderType() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    qreal zValue() const override;
+    qreal zValue() const;
 
-    void initialize() override;
+    void initialize();
 
-    bool isInitialized() const override;
+    bool isInitialized() const;
 
-    bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 ) override;
+    bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 );
     void repaintPixmap(const ViewportParams *viewParams);
 
-public Q_SLOTS:
+public slots:
     void updateTheme();
 
 private:

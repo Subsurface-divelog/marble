@@ -29,9 +29,8 @@
 #include "ViewParams.h"
 #include "ViewportParams.h"
 #include "MathHelper.h"
-#include "GeoDataLinearRing.h"
-#include "GeoDataPolygon.h"
 #include "GeoDataFeature.h"
+#include "GeoDataTypes.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataDocument.h"
 #include "AbstractProjection.h"
@@ -39,30 +38,33 @@
 namespace Marble
 {
 
-// 4 uchar long queue
 class EmbossFifo
 {
 public:
     EmbossFifo()
-        : data( 0 )
+        : x1( 0 )
+        , x2( 0 )
+        , x3( 0 )
+        , x4( 0 )
     {}
 
-    inline uchar head() const
-    {
-        // return least significant byte as head of queue
-        return data & 0x000000FF;
-    }
+    inline uchar head() const { return x1; }
 
-    inline void enqueue(uchar value)
+    inline EmbossFifo &operator<<( uchar value )
     {
-        // drop current head by shifting by one byte
-        // and append new value as most significant byte to queue
-        data = ((data >> 8) & 0x00FFFFFF) | (value << 24);
+        x1 = x2;
+        x2 = x3;
+        x3 = x4;
+        x4 = value;
+
+        return *this;
     }
 
 private:
-    // 4 byte long queue
-    quint32 data;
+    uchar  x1;
+    uchar  x2;
+    uchar  x3;
+    uchar  x4;
 };
 
 
@@ -92,7 +94,7 @@ TextureColorizer::TextureColorizer( const QString &seafile,
     QStringList  filelist;
     filelist << seafile << landfile;
 
-    for ( const QString &filename: filelist ) {
+    foreach ( const QString &filename, filelist ) {
 
         QLinearGradient  gradient( 0, 0, 256, 0 );
 
@@ -104,9 +106,9 @@ TextureColorizer::TextureColorizer( const QString &seafile,
 
         while ( !stream.atEnd() ) {
             stream >> evalstrg;
-            if (!evalstrg.isEmpty() && evalstrg.contains(QLatin1Char('='))) {
-                QString  colorValue = evalstrg.left(evalstrg.indexOf(QLatin1Char('=')));
-                QString  colorPosition = evalstrg.mid(evalstrg.indexOf(QLatin1Char('=')) + 1);
+            if ( !evalstrg.isEmpty() && evalstrg.contains( '=' ) ) {
+                QString  colorValue = evalstrg.left( evalstrg.indexOf( '=' ) );
+                QString  colorPosition = evalstrg.mid( evalstrg.indexOf( '=' ) + 1 );
                 gradient.setColorAt( colorPosition.toDouble(),
                                      QColor( colorValue ) );
             }
@@ -184,17 +186,23 @@ void TextureColorizer::drawIndividualDocument( GeoPainter *painter, const GeoDat
     QVector<GeoDataFeature*>::ConstIterator end = document->constEnd();
 
     for ( ; i != end; ++i ) {
-        if (const GeoDataPlacemark *placemark = geodata_cast<GeoDataPlacemark>(*i)) {
-            if (const GeoDataLineString *child = geodata_cast<GeoDataLineString>(placemark->geometry())) {
+        if ( (*i)->nodeType() == GeoDataTypes::GeoDataPlacemarkType ) {
+
+            const GeoDataPlacemark *placemark = static_cast<const GeoDataPlacemark*>( *i );
+
+            if ( placemark->geometry()->nodeType() == GeoDataTypes::GeoDataLineStringType ) {
+                const GeoDataLineString *child = static_cast<const GeoDataLineString*>( placemark->geometry() );
                 const GeoDataLinearRing ring( *child );
                 painter->drawPolygon( ring );
             }
 
-            if (const GeoDataPolygon *child = geodata_cast<GeoDataPolygon>(placemark->geometry())) {
+            if ( placemark->geometry()->nodeType() == GeoDataTypes::GeoDataPolygonType ) {
+                const GeoDataPolygon *child = static_cast<const GeoDataPolygon*>( placemark->geometry() );
                 painter->drawPolygon( *child );
             }
 
-            if (const GeoDataLinearRing *child = geodata_cast<GeoDataLinearRing>(placemark->geometry())) {
+            if ( placemark->geometry()->nodeType() == GeoDataTypes::GeoDataLinearRingType ) {
+                const GeoDataLinearRing *child = static_cast<const GeoDataLinearRing*>( placemark->geometry() );
                 painter->drawPolygon( *child );
             }
         }
@@ -203,13 +211,13 @@ void TextureColorizer::drawIndividualDocument( GeoPainter *painter, const GeoDat
 
 void TextureColorizer::drawTextureMap( GeoPainter *painter )
 {
-    for( const GeoDataDocument *doc: m_landDocuments ) {
+    foreach( const GeoDataDocument *doc, m_landDocuments ) {
         painter->setPen( QPen( Qt::NoPen ) );
         painter->setBrush( QBrush( m_landColor ) );
         drawIndividualDocument( painter, doc );
     }
 
-    for( const GeoDataDocument *doc: m_seaDocuments ) {
+    foreach( const GeoDataDocument *doc, m_seaDocuments ) {
         if ( doc->isVisible() ) {
             painter->setPen( Qt::NoPen );
             painter->setBrush( QBrush( m_seaColor ) );
@@ -283,13 +291,10 @@ void TextureColorizer::colorize( QImage *origimg, const ViewportParams *viewport
                 uchar&  grey = *readData; // qBlue(*data);
 
                 if ( m_showRelief ) {
-                    emboss.enqueue(grey);
+                    emboss << grey;
                     bump = ( emboss.head() + 8 - grey );
-                    if (bump < 0) {
-                        bump = 0;
-                    } else if (bump > 15) {
-                        bump = 15;
-                    }
+                    if ( bump  < 0 )  bump = 0;
+                    if ( bump  > 15 ) bump = 15;
                 }
                 setPixel( coastData, writeData, bump, grey );
             }
@@ -328,13 +333,10 @@ void TextureColorizer::colorize( QImage *origimg, const ViewportParams *viewport
                 uchar& grey = *readData; // qBlue(*data);
 
                 if ( m_showRelief ) {
-                    emboss.enqueue(grey);
+                    emboss << grey;
                     bump = ( emboss.head() + 16 - grey ) >> 1;
-                    if (bump < 0) {
-                        bump = 0;
-                    } else if (bump > 15) {
-                        bump = 15;
-                    }
+                    if ( bump > 15 ) bump = 15;
+                    if ( bump < 0 )  bump = 0;
                 }
                 setPixel( coastData, writeData, bump, grey );
             }

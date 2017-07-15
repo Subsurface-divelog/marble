@@ -14,6 +14,8 @@
 #include "MarbleDebug.h"
 
 #include <QColor>
+#include <QPixmap>
+#include <QTimer>
 #include <QAction>
 #include <QMutexLocker>
 #include <QTcpSocket>
@@ -31,12 +33,20 @@
 
 #include <aprsconfig.h>
 
-#ifdef HAVE_QTSERIALPORT
+#ifdef HAVE_QEXTSERIALPORT
 #include "AprsTTY.h"
 #endif
 
 using namespace Marble;
 /* TRANSLATOR Marble::AprsPlugin */
+
+AprsPlugin::AprsPlugin()
+    : RenderPlugin( 0 ),
+      m_mutex( 0 ),
+      m_configDialog( 0 ),
+      ui_configWidget( 0 )
+{
+}
 
 AprsPlugin::AprsPlugin( const MarbleModel *marbleModel )
     : RenderPlugin( marbleModel ),
@@ -63,7 +73,7 @@ AprsPlugin::AprsPlugin( const MarbleModel *marbleModel )
 {
     setEnabled( true );
     setVisible( false );
-
+    
     setSettings( QHash<QString,QVariant>() );
 
     connect( this, SIGNAL(visibilityChanged(bool,QString)),
@@ -109,17 +119,17 @@ RenderPlugin::RenderType AprsPlugin::renderType() const
 
 QStringList AprsPlugin::backendTypes() const
 {
-    return QStringList(QStringLiteral("aprs"));
+    return QStringList( "aprs" );
 }
 
 QString AprsPlugin::renderPolicy() const
 {
-    return QStringLiteral("ALWAYS");
+    return QString( "ALWAYS" );
 }
 
 QStringList AprsPlugin::renderPosition() const
 {
-    return QStringList(QStringLiteral("HOVERS_ABOVE_SURFACE"));
+    return QStringList( "HOVERS_ABOVE_SURFACE" );
 }
 
 QString AprsPlugin::name() const
@@ -134,12 +144,12 @@ QString AprsPlugin::guiString() const
 
 QString AprsPlugin::nameId() const
 {
-    return QStringLiteral("aprs-plugin");
+    return QString( "aprs-plugin" );
 }
 
 QString AprsPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString AprsPlugin::description() const
@@ -149,18 +159,18 @@ QString AprsPlugin::description() const
 
 QString AprsPlugin::copyrightYears() const
 {
-    return QStringLiteral("2009, 2010");
+    return "2009, 2010";
 }
 
-QVector<PluginAuthor> AprsPlugin::pluginAuthors() const
+QList<PluginAuthor> AprsPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Wes Hardaker"), QStringLiteral("hardaker@users.sourceforge.net"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Wes Hardaker", "hardaker@users.sourceforge.net" );
 }
 
 QIcon AprsPlugin::icon () const
 {
-    return QIcon(QStringLiteral(":/icons/aprs.png"));
+    return QIcon(":/icons/aprs.png");
 }
 
 void AprsPlugin::stopGatherers()
@@ -170,25 +180,25 @@ void AprsPlugin::stopGatherers()
     if ( m_tcpipGatherer )
         m_tcpipGatherer->shutDown();
 
-#ifdef HAVE_QTSERIALPORT
+#ifdef HAVE_QEXTSERIALPORT
     if ( m_ttyGatherer )
         m_ttyGatherer->shutDown();
 #endif
-
+    
     if ( m_fileGatherer )
         m_fileGatherer->shutDown();
-
+    
     // now wait for them for at least 2 seconds (it shouldn't take that long)
     if ( m_tcpipGatherer )
         if ( m_tcpipGatherer->wait(2000) )
             delete m_tcpipGatherer;
 
-#ifdef HAVE_QTSERIALPORT
+#ifdef HAVE_QEXTSERIALPORT
     if ( m_ttyGatherer )
         if ( m_ttyGatherer->wait(2000) )
             delete m_ttyGatherer;
 #endif
-
+    
     if ( m_fileGatherer )
         if ( m_fileGatherer->wait(2000) )
             delete m_fileGatherer;
@@ -213,7 +223,7 @@ void AprsPlugin::restartGatherers()
         mDebug() << "started TCPIP gatherer";
     }
 
-#ifdef HAVE_QTSERIALPORT
+#ifdef HAVE_QEXTSERIALPORT
     if ( m_useTty ) {
         m_ttyGatherer =
             new AprsGatherer( new AprsTTY( m_tncTty ),
@@ -227,9 +237,9 @@ void AprsPlugin::restartGatherers()
     }
 #endif
 
-
+    
     if ( m_useFile ) {
-        m_fileGatherer =
+        m_fileGatherer = 
             new AprsGatherer( new AprsFile( m_aprsFile ),
                               &m_objects, m_mutex, NULL);
 
@@ -276,7 +286,7 @@ void AprsPlugin::readSettings()
         return;
     }
 
-#ifndef HAVE_QTSERIALPORT
+#ifndef HAVE_QEXTSERIALPORT
     ui_configWidget->tabWidget->setTabEnabled( ui_configWidget->tabWidget->indexOf(
                                                    ui_configWidget->Device ), false );
 #endif
@@ -356,18 +366,18 @@ QHash<QString,QVariant> AprsPlugin::settings() const
 {
     QHash<QString, QVariant> result = RenderPlugin::settings();
 
-    result.insert(QStringLiteral("useInternet"), m_useInternet);
-    result.insert(QStringLiteral("useTTY"), m_useTty);
-    result.insert(QStringLiteral("useFile"), m_useFile);
-    result.insert(QStringLiteral("APRSHost"), m_aprsHost);
-    result.insert(QStringLiteral("APRSPort"), m_aprsPort);
-    result.insert(QStringLiteral("TNCTTY"), m_tncTty);
-    result.insert(QStringLiteral("FileName"), m_aprsFile);
-    result.insert(QStringLiteral("TCPIPDump"), m_dumpTcpIp);
-    result.insert(QStringLiteral("TTYDump"), m_dumpTty);
-    result.insert(QStringLiteral("FileDump"), m_dumpFile);
-    result.insert(QStringLiteral("fadeTime"), m_fadeTime);
-    result.insert(QStringLiteral("hideTime"), m_hideTime);
+    result.insert( "useInternet", m_useInternet );
+    result.insert( "useTTY", m_useTty );
+    result.insert( "useFile", m_useFile );
+    result.insert( "APRSHost", m_aprsHost );
+    result.insert( "APRSPort", m_aprsPort );
+    result.insert( "TNCTTY", m_tncTty );
+    result.insert( "FileName", m_aprsFile );
+    result.insert( "TCPIPDump", m_dumpTcpIp );
+    result.insert( "TTYDump", m_dumpTty );
+    result.insert( "FileDump", m_dumpFile );
+    result.insert( "fadeTime", m_fadeTime );
+    result.insert( "hideTime", m_hideTime );
 
     return result;
 }
@@ -376,21 +386,21 @@ void AprsPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     RenderPlugin::setSettings( settings );
 
-    m_useInternet =  settings.value(QStringLiteral("useInternet"), true).toBool();
-    m_useTty = settings.value(QStringLiteral("useTTY"), false).toBool();
-    m_useFile = settings.value(QStringLiteral("useFile"), false).toBool();
+    m_useInternet =  settings.value( "useInternet", true ).toBool();
+    m_useTty = settings.value( "useTTY", false ).toBool();
+    m_useFile = settings.value( "useFile", false ).toBool();
 
-    m_aprsHost = settings.value(QStringLiteral("APRSHost"), QStringLiteral("rotate.aprs.net")).toString();
-    m_aprsPort = settings.value(QStringLiteral("APRSPort"), 10253).toInt();
-    m_tncTty = settings.value(QStringLiteral("TNCTTY"), QStringLiteral("/dev/ttyUSB0")).toString();
-    m_aprsFile = settings.value(QStringLiteral("FileName"), QString()).toString();
+    m_aprsHost = settings.value( "APRSHost", "rotate.aprs.net" ).toString();
+    m_aprsPort = settings.value( "APRSPort", 10253 ).toInt();
+    m_tncTty = settings.value( "TNCTTY", "/dev/ttyUSB0" ).toString();
+    m_aprsFile = settings.value( "FileName", "" ).toString();
 
-    m_dumpTcpIp = settings.value(QStringLiteral("TCPIPDump"), false).toBool();
-    m_dumpTty = settings.value(QStringLiteral("TTYDump"), false).toBool();
-    m_dumpFile = settings.value(QStringLiteral("FileDump"), false).toBool();
+    m_dumpTcpIp = settings.value( "TCPIPDump", false ).toBool();
+    m_dumpTty = settings.value( "TTYDump", false ).toBool();
+    m_dumpFile = settings.value( "FileDump", false ).toBool();
 
-    m_fadeTime = settings.value(QStringLiteral("fadeTime"), 10).toInt();
-    m_hideTime = settings.value(QStringLiteral("hideTime"), 45).toInt();
+    m_fadeTime = settings.value( "fadeTime", 10 ).toInt();
+    m_hideTime = settings.value( "hideTime", 45 ).toInt();
 
     readSettings();
     emit settingsChanged( nameId() );
@@ -413,17 +423,17 @@ bool AprsPlugin::render( GeoPainter *painter, ViewportParams *viewport, const QS
 
     if ( !( viewport->viewLatLonAltBox() == m_lastBox ) ) {
         m_lastBox = viewport->viewLatLonAltBox();
-        QString towrite = QLatin1String("#filter a/") +
-            QString::number(m_lastBox.north(GeoDataCoordinates::Degree)) + QLatin1Char('/') +
-            QString::number(m_lastBox.west(GeoDataCoordinates::Degree))  + QLatin1Char('/') +
-            QString::number(m_lastBox.south(GeoDataCoordinates::Degree)) + QLatin1Char('/') +
-            QString::number(m_lastBox.east(GeoDataCoordinates::Degree))  + QLatin1Char('\n');
+        QString towrite = "#filter a/" + 
+            QString().number( m_lastBox.north( GeoDataCoordinates::Degree ) ) +'/' +
+            QString().number( m_lastBox.west( GeoDataCoordinates::Degree ) )  +'/' +
+            QString().number( m_lastBox.south( GeoDataCoordinates::Degree ) ) +'/' +
+            QString().number( m_lastBox.east( GeoDataCoordinates::Degree ) )  +'\n';
         mDebug() << "upating filter: " << towrite.toLocal8Bit().data();
 
         QMutexLocker locker( m_mutex );
         m_filter = towrite;
     }
-
+    
 
     QMutexLocker locker( m_mutex );
     QMap<QString, AprsObject *>::ConstIterator obj;
@@ -446,4 +456,6 @@ QAction* AprsPlugin::action() const
     return m_action;
 }
 
-#include "moc_AprsPlugin.cpp"
+Q_EXPORT_PLUGIN2( AprsPlugin, Marble::AprsPlugin )
+
+#include "AprsPlugin.moc"

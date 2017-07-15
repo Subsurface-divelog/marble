@@ -16,7 +16,6 @@
 #include "GeoDataScale.h"
 #include "GeoDataGeometry.h"
 #include "GeoDataModel.h"
-#include "GeoDataResourceMap.h"
 #include "GeoDataParser.h"
 
 namespace Marble
@@ -27,7 +26,7 @@ KML_DEFINE_TAG_HANDLER( ResourceMap )
 
 GeoNode* KmlResourceMapTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_ResourceMap)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_ResourceMap ) );
 
     GeoDataResourceMap map;
     GeoStackItem parentItem = parser.parentElement();

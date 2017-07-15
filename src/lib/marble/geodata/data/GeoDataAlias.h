@@ -12,16 +12,14 @@
 #ifndef MARBLE_GEODATAALIAS_H
 #define MARBLE_GEODATAALIAS_H
 
-#include "GeoDocument.h"
+#include "GeoDataObject.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
 class GeoDataAliasPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataAlias: public GeoNode
+class MARBLE_EXPORT GeoDataAlias: public GeoNode
 {
 
 public:
@@ -36,10 +34,10 @@ public:
 
     bool operator!=( const GeoDataAlias &other ) const;
 
-    ~GeoDataAlias() override;
+    ~GeoDataAlias();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     QString sourceHref() const;
 

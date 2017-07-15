@@ -71,4 +71,4 @@ quint64 CacheStoragePolicy::cacheLimit() const
     return m_cache.cacheLimit();
 }
 
-#include "moc_CacheStoragePolicy.cpp"
+#include "CacheStoragePolicy.moc"

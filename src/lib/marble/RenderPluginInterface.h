@@ -12,10 +12,10 @@
 #ifndef MARBLE_RENDERPLUGININTERFACE_H
 #define MARBLE_RENDERPLUGININTERFACE_H
 
+#include <QStringList>
+
 #include "PluginInterface.h"
 #include "LayerInterface.h"
-
-class QStringList;
 
 namespace Marble
 {
@@ -30,7 +30,7 @@ class RenderPlugin;
 class RenderPluginInterface: public PluginInterface, public LayerInterface
 {
  public:
-    ~RenderPluginInterface() override;
+    virtual ~RenderPluginInterface();
 
     virtual void initialize() = 0;
 

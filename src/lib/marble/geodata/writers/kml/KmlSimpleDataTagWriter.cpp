@@ -8,6 +8,8 @@
 // Copyright 2014 Abhinav Gangwar <abhgang@gmail.com>
 //
 
+#include <QString>
+
 #include "KmlSimpleDataTagWriter.h"
 #include "KmlElementDictionary.h"
 

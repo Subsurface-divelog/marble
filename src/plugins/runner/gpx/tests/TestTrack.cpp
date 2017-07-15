@@ -13,11 +13,11 @@
 
 #include "GeoDataPoint.h"
 #include "GeoDataLinearRing.h"
-#include "GeoDataMultiGeometry.h"
 #include <GeoDataParser.h>
 #include <GeoDataDocument.h>
 #include <GeoDataPlacemark.h>
 #include <MarbleDebug.h>
+#include <GeoDataFolder.h>
 #include <GeoDataTrack.h>
 #include <GeoDataExtendedData.h>
 #include <GeoDataSimpleArrayData.h>
@@ -29,7 +29,7 @@ using namespace Marble;
 class TestTrack : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void simpleParseTest();
     void withoutTimeTest();

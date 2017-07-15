@@ -14,11 +14,10 @@
 #include "DiscCache.h"
 #include "StoragePolicy.h"
 
+#include <QByteArray>
 #include <QString>
 
 #include "marble_export.h"
-
-class QByteArray;
 
 namespace Marble
 {
@@ -38,27 +37,27 @@ class MARBLE_EXPORT CacheStoragePolicy : public StoragePolicy
         /**
          * Destroys the cache storage policy.
          */
-        ~CacheStoragePolicy() override;
+        ~CacheStoragePolicy();
 
         /**
          * Returns whether the @p fileName exists already.
          */
-        bool fileExists( const QString &fileName ) const override;
+        bool fileExists( const QString &fileName ) const;
 
         /**
          * Updates the @p fileName with the given @p data.
          */
-        bool updateFile( const QString &fileName, const QByteArray &data ) override;
+        bool updateFile( const QString &fileName, const QByteArray &data );
 
         /**
          * Clears the cache.
          */
-	void clearCache() override;
+	void clearCache();
 
         /**
          * Returns the last error message.
          */
-        QString lastErrorMessage() const override;
+        QString lastErrorMessage() const;
 
         /**
          * Returns the data of a file.

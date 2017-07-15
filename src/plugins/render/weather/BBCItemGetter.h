@@ -24,6 +24,7 @@ namespace Marble
 {
 
 class BBCStation;
+class MarbleModel;
 
 class BBCItemGetter : public AbstractWorkerThread
 {
@@ -31,7 +32,7 @@ class BBCItemGetter : public AbstractWorkerThread
 
  public:
     explicit BBCItemGetter( QObject *parent = 0 );
-    ~BBCItemGetter() override;
+    ~BBCItemGetter();
 
     void setSchedule( const GeoDataLatLonBox& box,
                       qint32 number );
@@ -41,11 +42,11 @@ class BBCItemGetter : public AbstractWorkerThread
     BBCStation station( const QString &id );
 
  protected:
-    bool workAvailable() override;
-    void work() override;
+    bool workAvailable();
+    void work();
 
  Q_SIGNALS:
-    void foundStation( const BBCStation& );
+    void foundStation( BBCStation );
 
  public:
     QList<BBCStation> m_items;

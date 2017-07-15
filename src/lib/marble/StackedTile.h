@@ -16,6 +16,7 @@
 
 #include <QSharedPointer>
 #include <QVector>
+#include <QColor>
 #include <QImage>
 
 #include "Tile.h"
@@ -56,7 +57,7 @@ class StackedTile : public Tile
 {
  public:
     explicit StackedTile( TileId const &id, QImage const &resultImage, QVector<QSharedPointer<TextureTile> > const &tiles );
-    ~StackedTile() override;
+    virtual ~StackedTile();
 
     void setUsed( bool used );
     bool used() const;

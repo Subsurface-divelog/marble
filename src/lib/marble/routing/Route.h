@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTE_H
@@ -29,8 +29,6 @@ public:
     qreal distance() const;
 
     const RouteSegment & at( int index ) const;
-
-    int indexOf(const RouteSegment &segment) const;
 
     int size() const;
 

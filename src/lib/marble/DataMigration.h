@@ -23,7 +23,7 @@ class MARBLE_EXPORT DataMigration : public QObject
 
  public:
     explicit DataMigration( QObject *parent );
-    ~DataMigration() override;
+    virtual ~DataMigration();
 
  public Q_SLOTS:
     void exec();

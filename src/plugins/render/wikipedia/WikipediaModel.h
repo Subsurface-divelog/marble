@@ -28,7 +28,7 @@ class WikipediaModel : public AbstractDataPluginModel
     
  public:
     explicit WikipediaModel( const MarbleModel *marbleModel, QObject *parent = 0 );
-    ~WikipediaModel() override;
+    ~WikipediaModel();
 
     void setShowThumbnail( bool show );
 
@@ -40,14 +40,14 @@ class WikipediaModel : public AbstractDataPluginModel
      * the @p box surrounding the view and the @p number of files to show.
      **/
     void getAdditionalItems( const GeoDataLatLonAltBox& box,
-                             qint32 number = 10 ) override;
+                             qint32 number = 10 );
        
     /**
      * The reimplementation has to parse the @p file and should generate widgets. This widgets
      * have to be scheduled to downloadItemData or could be directly added to the list,
      * depending on if they have to download information to be shown.
      **/
-    void parseFile( const QByteArray& file ) override;
+    void parseFile( const QByteArray& file );
     
  private:
     MarbleWidget* m_marbleWidget;

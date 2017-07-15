@@ -18,7 +18,7 @@ using namespace Marble;
 class TestOsmAnnotation : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void saveAnnotations_data();
     void saveAnnotations();

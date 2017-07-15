@@ -13,10 +13,9 @@
 #define MARBLE_BOOKMARKMANAGER_H
 
 #include <QObject>
+#include <QString>
 #include <QVector>
 #include "MarbleGlobal.h"
-
-class QString;
 
 namespace Marble
 {
@@ -25,10 +24,8 @@ namespace Marble
     class GeoDataContainer;
     class GeoDataDocument;
     class GeoDataPlacemark;
-    class GeoDataCoordinates;
     class GeoDataFolder;
     class GeoDataTreeModel;
-    class StyleBuilder;
 /**
  * This class is responsible for loading the
  * book mark objects from the files and various
@@ -43,7 +40,7 @@ class MARBLE_EXPORT BookmarkManager : public QObject
 
     explicit BookmarkManager( GeoDataTreeModel *treeModel, QObject *parent = 0 );
 
-    ~BookmarkManager() override;
+    ~BookmarkManager();
 
     /**
       * @brief load bookmark file as GeoDataDocument and return true
@@ -60,19 +57,13 @@ class MARBLE_EXPORT BookmarkManager : public QObject
     /**
       * @brief add bookmark in a folder
       * @param bookmark bookmark to be added
-      * @param folder folder to add bookmark to
+      * @param folderName folder name in which bookmark to be added
       */
     void addBookmark( GeoDataContainer *folder, const GeoDataPlacemark &bookmark ) ;
 
     void updateBookmark( GeoDataPlacemark *bookmark );
 
     void removeBookmark( GeoDataPlacemark *bookmark );
-
-    /**
-      * @brief checks all the bookmarks in container recursively and returns
-      * pointer to the one having the same coordinate as the provided
-      */
-    GeoDataPlacemark* bookmarkAt(GeoDataContainer *container, const GeoDataCoordinates &coordinate);
 
     GeoDataDocument * document();
     const GeoDataDocument * document() const;
@@ -86,10 +77,9 @@ class MARBLE_EXPORT BookmarkManager : public QObject
 
     /**
       * @brief add a folder
-      * @param name name of folder to be created
-      * @return pointer to the newly added folder
+      * @param folder name of folder to be created
       */
-    GeoDataFolder* addNewBookmarkFolder( GeoDataContainer *container, const QString &name );
+    void addNewBookmarkFolder( GeoDataContainer *folder, const QString &name );
 
     void renameBookmarkFolder( GeoDataFolder *folder, const QString &name );
 
@@ -105,11 +95,6 @@ class MARBLE_EXPORT BookmarkManager : public QObject
       * @brief remove all folders and bookmarks except default folder
       */
     void removeAllBookmarks();
-
-    /**
-     * @since 0.26.0
-     */
-    void setStyleBuilder(const StyleBuilder* styleBuilder);
 
 public Q_SLOTS:
     void setShowBookmarks( bool visible );

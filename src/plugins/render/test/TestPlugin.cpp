@@ -12,7 +12,6 @@
 
 #include <QColor>
 #include <QPixmap>
-#include <QIcon>
 #include <QRadialGradient>
 #include "MarbleDirs.h"
 #include "GeoPainter.h"
@@ -23,34 +22,19 @@
 namespace Marble
 {
 
-TestPlugin::TestPlugin()
-    : RenderPlugin(nullptr)
-{
-    setEnabled(true);
-    setVisible(true);
-}
-
-TestPlugin::TestPlugin(const MarbleModel *marbleModel)
-    : RenderPlugin(marbleModel)
-{
-    setEnabled(true);
-    setVisible(true);
-}
-
-
 QStringList TestPlugin::backendTypes() const
 {
-    return QStringList(QStringLiteral("test"));
+    return QStringList( "test" );
 }
 
 QString TestPlugin::renderPolicy() const
 {
-    return QStringLiteral("ALWAYS");
+    return QString( "ALWAYS" );
 }
 
 QStringList TestPlugin::renderPosition() const
 {
-    return QStringList(QStringLiteral("ALWAYS_ON_TOP"));
+    return QStringList( "ALWAYS_ON_TOP" );
 }
 
 QString TestPlugin::name() const
@@ -65,28 +49,12 @@ QString TestPlugin::guiString() const
 
 QString TestPlugin::nameId() const
 {
-    return QStringLiteral("test-plugin");
-}
-
-QString TestPlugin::version() const
-{
-    return QStringLiteral("1.0");
+    return QString( "test-plugin" );
 }
 
 QString TestPlugin::description() const
 {
     return tr( "This is a simple test plugin." );
-}
-
-QString TestPlugin::copyrightYears() const
-{
-    return QStringLiteral("2008");
-}
-
-QVector<PluginAuthor> TestPlugin::pluginAuthors() const
-{
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"));
 }
 
 QIcon TestPlugin::icon () const
@@ -106,9 +74,7 @@ bool TestPlugin::isInitialized () const
 
 bool TestPlugin::render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer )
 {
-    Q_UNUSED(viewport);
-    Q_UNUSED(renderPos);
-    Q_UNUSED(layer);
+    painter->autoMapQuality();
 
     // Example: draw a straight line
 
@@ -117,9 +83,7 @@ bool TestPlugin::render( GeoPainter *painter, ViewportParams *viewport, const QS
 
     painter->setPen( QColor( 255, 255, 255, 255 ) );
 
-    GeoDataLineString poleLineString;
-    poleLineString << northpole1 << northpole2;
-    painter->drawPolyline(poleLineString);
+    painter->drawLine( northpole1, northpole2 );
 
     // Example: draw a straight line string ("polyline")
 
@@ -169,9 +133,9 @@ bool TestPlugin::render( GeoPainter *painter, ViewportParams *viewport, const QS
 
     // Example: draw plain pixmaps
 
-    painter->drawPixmap(istanbul, QPixmap(MarbleDirs::path(QStringLiteral("bitmaps/earth_apollo.jpg"))));
+    painter->drawPixmap( istanbul, QPixmap( MarbleDirs::path( "bitmaps/earth_apollo.jpg" ) ) ); 
 
-    painter->drawImage(brasilia, QImage(MarbleDirs::path(QStringLiteral("bitmaps/earth_apollo.jpg")));
+    painter->drawImage( brasilia, QImage( MarbleDirs::path( "bitmaps/earth_apollo.jpg" ) ) ); 
 
     // Example: draw a plain rectangle and a rounded rectangle
 
@@ -186,7 +150,7 @@ bool TestPlugin::render( GeoPainter *painter, ViewportParams *viewport, const QS
     brush.setStyle( Qt::DiagCrossPattern );
     painter->setBrush( brush );
 
-    painter->drawRoundedRect(moscow, 40, 40);
+    painter->drawRoundRect( moscow, 40, 40 ); 
 
     // Example: draw earth orbit
 
@@ -298,4 +262,6 @@ bool TestPlugin::render( GeoPainter *painter, ViewportParams *viewport, const QS
 
 }
 
-#include "moc_TestPlugin.cpp"
+Q_EXPORT_PLUGIN2( TestPlugin, Marble::TestPlugin )
+
+#include "TestPlugin.moc"

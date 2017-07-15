@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-     This xml file is free software licensed under the GNU LGPL. You can
-     find a copy of this license in LICENSE.txt in the top directory of
-     the source code.
--->
 <dgml xmlns="http://edu.kde.org/marble/dgml/2.0">
   <document>
     <head>
-      <!-- The license here applies to the actual map content, not this dgml file. See the license header above for the dgml file license -->
-      <!-- The content that this license refers to is not distributed with this package -->
       <license short="© OpenStreetMap contributors">Source: © OpenStreetMap contributors, License: Creative Commons Attribution-ShareAlike 2.0 (CC BY-SA)</license>
       <name>OpenStreetMap</name>
       <target>earth</target>
@@ -19,7 +12,7 @@
       <zoom>
         <minimum>   900  </minimum>
         <maximum>  3500  </maximum>
-        <discrete> true </discrete>
+        <discrete> false </discrete>
       </zoom>
     </head>
     <map bgcolor="#000000">
@@ -39,23 +32,14 @@
           <downloadPolicy usage="Browse" maximumConnections="20"/>
           <downloadPolicy usage="Bulk" maximumConnections="2"/>
         </texture>
-        <texture name="humanitarian" expire="31536000">
-           <sourcedir format="PNG"> earth/humanitarian </sourcedir>
-           <tileSize width="256" height="256"/>
-           <storageLayout levelZeroColumns="1" levelZeroRows="1" maximumTileLevel="17" mode="OpenStreetMap"/>
-           <projection name="Mercator"/>
-           <downloadUrl protocol="https" host="tile-a.openstreetmap.fr" path="/hot/"/>
-           <downloadUrl protocol="https" host="tile-b.openstreetmap.fr" path="/hot/"/>
-          <blending name="AlphaBlending"/>
-         </texture>
         <texture name="hillshading" expire="31536000">
           <sourcedir format="PNG"> earth/hillshading </sourcedir>
           <tileSize width="256" height="256"/>
           <storageLayout levelZeroColumns="1" levelZeroRows="1" maximumTileLevel="17" mode="OpenStreetMap"/>
           <projection name="Mercator"/>
-          <downloadUrl protocol="http" host="a.tiles.wmflabs.org" path="/hillshading/"/>
-          <downloadUrl protocol="http" host="b.tiles.wmflabs.org" path="/hillshading/"/>
-          <downloadUrl protocol="http" host="c.tiles.wmflabs.org" path="/hillshading/"/>
+          <downloadUrl protocol="https" host="a.tiles.wmflabs.org" path="/hillshading/"/>
+          <downloadUrl protocol="https" host="b.tiles.wmflabs.org" path="/hillshading/"/>
+          <downloadUrl protocol="https" host="c.tiles.wmflabs.org" path="/hillshading/"/>
           <blending name="AlphaBlending"/>
         </texture>
       </layer>
@@ -111,12 +95,8 @@
           <value>false</value>
           <available>false</available>
         </property>
-       </group>
-       <group name="Texture Layers">
-         <property name="humanitarian">
-           <value>false</value>
-           <available>true</available>
-         </property>
+      </group>
+      <group name="Texture Layers">
         <property name="hillshading">
           <value>false</value>
           <available>true</available>
@@ -137,9 +117,6 @@
       </section>
       <section name="hillshading" checkable="true" connect="hillshading" spacing="12">
         <heading>Hillshading</heading>
-      </section>
-      <section name="humanitarian" checkable="true" connect="humanitarian" spacing="12">
-         <heading>Humanitarian OSM Team</heading>
       </section>
       <section name="traffic" checkable="false" spacing="12">
         <heading>Transportation</heading>

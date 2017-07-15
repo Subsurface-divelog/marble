@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_MONAVCONFIGWIDGET_H
@@ -31,14 +31,14 @@ class MonavConfigWidget : public RoutingRunnerPlugin::ConfigWidget, private Ui::
 public:
     explicit MonavConfigWidget( MonavPlugin* plugin );
 
-    ~MonavConfigWidget() override;
+    ~MonavConfigWidget();
 
-    void loadSettings( const QHash<QString, QVariant> &settings ) override;
+    virtual void loadSettings( const QHash<QString, QVariant> &settings );
 
-    QHash<QString, QVariant> settings() const override;
+    virtual QHash<QString, QVariant> settings() const;
 
 protected:
-    void showEvent ( QShowEvent * event ) override;
+    virtual void showEvent ( QShowEvent * event );
 
 private Q_SLOTS:
     void retrieveMapList( QNetworkReply *reply );

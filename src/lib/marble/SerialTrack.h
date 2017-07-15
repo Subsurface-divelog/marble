@@ -14,17 +14,18 @@
 #include <QObject>
 
 #include "PlaybackItem.h"
+#include "GeoDataCoordinates.h"
+
+class TourPlayback;
 
 namespace Marble
 {
-class GeoDataCoordinates;
-
 class SerialTrack : public QObject
 {
     Q_OBJECT
 public:
     SerialTrack();
-    ~SerialTrack() override;
+    ~SerialTrack();
 
     void append( PlaybackItem* item );
     void play();
@@ -40,7 +41,6 @@ Q_SIGNALS:
     void progressChanged( double );
     void finished();
     void paused();
-    void itemFinished( int index );
 
 public Q_SLOTS:
     void handleFinishedItem();

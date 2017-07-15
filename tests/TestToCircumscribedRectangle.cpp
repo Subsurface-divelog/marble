@@ -21,7 +21,7 @@ class TestToCircumscribedRectangle : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+private slots:
     void testToCircumscribedRectangle_data();
     void testToCircumscribedRectangle();
 };

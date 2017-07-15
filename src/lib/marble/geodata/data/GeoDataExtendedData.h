@@ -12,7 +12,10 @@
 #ifndef MARBLE_GEODATAEXTENDEDDATA_H
 #define MARBLE_GEODATAEXTENDEDDATA_H
 
+#include <QString>
+
 #include "GeoDataObject.h"
+#include "GeoDataData.h"
 
 #include "geodata_export.h"
 #include <QHash>
@@ -22,7 +25,6 @@ namespace Marble
 
 class GeoDataSimpleArrayData;
 class GeoDataSchemaData;
-class GeoDataData;
 
 class GeoDataExtendedDataPrivate;
 
@@ -36,10 +38,10 @@ class GEODATA_EXPORT GeoDataExtendedData : public GeoDataObject
   public:
     GeoDataExtendedData();
     GeoDataExtendedData( const GeoDataExtendedData& other );
-    ~GeoDataExtendedData() override;
+    virtual ~GeoDataExtendedData();
 
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
      * @brief assignment operator
@@ -58,11 +60,6 @@ class GEODATA_EXPORT GeoDataExtendedData : public GeoDataObject
      * @brief add a data object to the GeoDataExtendedData with the @p key 
      */
     void addValue( const GeoDataData& data );
-
-    /**
-     * @since 0.26.0
-     */
-    void removeKey(const QString &key);
     
     /**
       * @brief return const Begin iterator for QHash
@@ -132,13 +129,13 @@ class GEODATA_EXPORT GeoDataExtendedData : public GeoDataObject
      * @brief Serialize the ExtendedData to a stream
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
 
     /**
      * @brief  Unserialize the ExtendedData from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
 private:
     GeoDataExtendedDataPrivate * const d;

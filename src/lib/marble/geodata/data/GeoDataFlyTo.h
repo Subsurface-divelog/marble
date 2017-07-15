@@ -12,17 +12,15 @@
 #ifndef MARBLE_GEODATAFLYTO_H
 #define MARBLE_GEODATAFLYTO_H
 
+#include "GeoDataAbstractView.h"
 #include "GeoDataTourPrimitive.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
-class GeoDataAbstractView;
 class GeoDataFlyToPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataFlyTo: public GeoDataTourPrimitive
+class MARBLE_EXPORT GeoDataFlyTo: public GeoDataTourPrimitive
 {
 public:
     enum FlyToMode {
@@ -38,10 +36,10 @@ public:
     bool operator==( const GeoDataFlyTo& other ) const;
     bool operator!=( const GeoDataFlyTo& other ) const;
 
-    ~GeoDataFlyTo() override;
+    ~GeoDataFlyTo();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     double duration() const;
 

@@ -11,44 +11,41 @@
 #ifndef GEODATANETWORKLINKCONTROL_H
 #define GEODATANETWORKLINKCONTROL_H
 
-#include "GeoDataContainer.h"
-#include "geodata_export.h"
+#include <QString>
+#include <QDateTime>
 
-class QDateTime;
+#include "GeoDataContainer.h"
+#include "GeoDataUpdate.h"
+#include "GeoDataAbstractView.h"
+#include "marble_export.h"
 
 namespace Marble
 {
 
-class GeoDataAbstractView;
-class GeoDataUpdate;
 class GeoDataNetworkLinkControlPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataNetworkLinkControl : public GeoDataContainer
+class MARBLE_EXPORT GeoDataNetworkLinkControl : public GeoDataContainer
 {
 public:
     GeoDataNetworkLinkControl();
 
     GeoDataNetworkLinkControl( const GeoDataNetworkLinkControl &other );
 
-    ~GeoDataNetworkLinkControl() override;
-
     GeoDataNetworkLinkControl& operator=( const GeoDataNetworkLinkControl &other );
 
     bool operator==( const GeoDataNetworkLinkControl &other ) const;
     bool operator!=( const GeoDataNetworkLinkControl &other ) const;
 
-    GeoDataFeature * clone() const override;
+    ~GeoDataNetworkLinkControl();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     qreal minRefreshPeriod() const;
-    void setMinRefreshPeriod(qreal minRefreshPeriod);
+    void setMinRefreshPeriod( const qreal &minRefreshPeriod );
 
     qreal maxSessionLength() const;
-    void setMaxSessionLength(qreal maxSessionLength);
+    void setMaxSessionLength( const qreal &maxSessionLength );
 
     QString cookie() const;
     void setCookie( const QString &cookie );
@@ -65,7 +62,7 @@ public:
     QString linkSnippet() const;
     void setLinkSnippet( const QString &linkSnippet );
     int maxLines() const;
-    void setMaxLines(int maxLines);
+    void setMaxLines( const int &maxLines );
 
     QDateTime expires() const;
     void setExpires( const QDateTime &expires );
@@ -81,7 +78,7 @@ public:
     void setAbstractView( GeoDataAbstractView *abstractView );
 
 private:
-    Q_DECLARE_PRIVATE(GeoDataNetworkLinkControl)
+    GeoDataNetworkLinkControlPrivate* const d;
 };
 
 }

@@ -21,8 +21,8 @@ class JsonRunner : public ParsingRunner
     Q_OBJECT
 public:
     explicit JsonRunner(QObject *parent = 0);
-    ~JsonRunner() override;
-    GeoDataDocument* parseFile( const QString &fileName, DocumentRole role, QString& error ) override;
+    ~JsonRunner();
+    virtual void parseFile( const QString &fileName, DocumentRole role );
 };
 
 }

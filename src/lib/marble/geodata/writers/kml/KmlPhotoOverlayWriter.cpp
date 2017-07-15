@@ -6,16 +6,13 @@
 // the source code.
 //
 // Copyright 2012      Shou Ya <shouyatf@gmail.com>
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "KmlPhotoOverlayWriter.h"
 
 #include "GeoDataPhotoOverlay.h"
 #include "GeoDataTypes.h"
-#include "GeoDataImagePyramid.h"
-#include "GeoDataPoint.h"
-#include "GeoDataViewVolume.h"
 #include "GeoWriter.h"
 #include "KmlElementDictionary.h"
 

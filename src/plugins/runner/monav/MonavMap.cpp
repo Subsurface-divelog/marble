@@ -5,19 +5,17 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MonavMap.h"
 #include "MarbleDebug.h"
 
 #include "GeoDataParser.h"
-#include "GeoDataMultiGeometry.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataDocument.h"
 #include "GeoDataExtendedData.h"
 #include "GeoDataData.h"
-#include "GeoDataLatLonAltBox.h"
 
 namespace Marble
 {
@@ -111,7 +109,7 @@ bool MonavMap::containsPoint( const GeoDataCoordinates &point ) const
     // must be ignored.
     GeoDataCoordinates flatPosition = point;
     flatPosition.setAltitude( 0.0 );
-    for( const GeoDataLinearRing & box: m_tiles ) {
+    foreach( const GeoDataLinearRing & box, m_tiles ) {
         if ( box.contains( flatPosition ) ) {
             return true;
         }
@@ -123,7 +121,7 @@ bool MonavMap::containsPoint( const GeoDataCoordinates &point ) const
 qint64 MonavMap::size() const
 {
     qint64 result = 0;
-    for( const QFileInfo & file: files() ) {
+    foreach( const QFileInfo & file, files() ) {
         result += file.size();
     }
 
@@ -134,13 +132,13 @@ QList<QFileInfo> MonavMap::files() const
 {
     QList<QFileInfo> files;
     QStringList fileNames = QStringList() << "config" << "edges" << "names" << "paths" << "types";
-    for( const QString & file: fileNames ) {
-        files << QFileInfo(m_directory, QLatin1String("Contraction Hierarchies_") + file);
+    foreach( const QString & file, fileNames ) {
+        files << QFileInfo( m_directory, QString( "Contraction Hierarchies_" ) + file );
     }
 
     fileNames = QStringList() << "config" << "grid" << "index_1" << "index_2" << "index_3";
-    for( const QString & file: fileNames ) {
-        files << QFileInfo(m_directory, QLatin1String("GPSGrid_") + file);
+    foreach( const QString & file, fileNames ) {
+        files << QFileInfo( m_directory, QString( "GPSGrid_" ) + file );
     }
 
     files << QFileInfo( m_directory, "plugins.ini" );
@@ -154,7 +152,7 @@ QList<QFileInfo> MonavMap::files() const
 
 void MonavMap::remove() const
 {
-    for( const QFileInfo & file: files() ) {
+    foreach( const QFileInfo & file, files() ) {
         QFile ( file.absoluteFilePath() ).remove();
     }
 }

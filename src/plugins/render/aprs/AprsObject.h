@@ -11,16 +11,14 @@
 #ifndef APRSOBJECT_H
 #define APRSOBJECT_H
 
+#include <QObject>
 #include <QString>
-#include <QPixmap>
 
 #include "GeoAprsCoordinates.h"
+#include "GeoPainter.h"
 
 namespace Marble
 {
-
-class ViewportParams;
-class GeoPainter;
 
     class AprsObject
     {

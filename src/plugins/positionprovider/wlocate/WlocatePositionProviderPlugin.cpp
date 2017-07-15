@@ -5,18 +5,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012        Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012        Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "WlocatePositionProviderPlugin.h"
 
-#include <GeoDataCoordinates.h>
-#include <GeoDataAccuracy.h>
-
 #include <QFutureWatcher>
 #include <QtConcurrentRun>
-#include <QDateTime>
-#include <QIcon>
 
 #ifndef ENV_LINUX
 #define ENV_LINUX
@@ -70,7 +65,7 @@ QString WlocatePositionProviderPlugin::name() const
 
 QString WlocatePositionProviderPlugin::nameId() const
 {
-    return QStringLiteral("WlocatePositionProvider");
+    return "WlocatePositionProvider";
 }
 
 QString WlocatePositionProviderPlugin::guiString() const
@@ -80,7 +75,7 @@ QString WlocatePositionProviderPlugin::guiString() const
 
 QString WlocatePositionProviderPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString WlocatePositionProviderPlugin::description() const
@@ -90,13 +85,13 @@ QString WlocatePositionProviderPlugin::description() const
 
 QString WlocatePositionProviderPlugin::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> WlocatePositionProviderPlugin::pluginAuthors() const
+QList<PluginAuthor> WlocatePositionProviderPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
 }
 
 QIcon WlocatePositionProviderPlugin::icon() const
@@ -200,4 +195,6 @@ void WlocatePositionProviderPlugin::handleWlocateResult()
 
 } // namespace Marble
 
-#include "moc_WlocatePositionProviderPlugin.cpp"
+Q_EXPORT_PLUGIN2( Marble::WlocatePositionProviderPlugin, Marble::WlocatePositionProviderPlugin )
+
+#include "WlocatePositionProviderPlugin.moc"

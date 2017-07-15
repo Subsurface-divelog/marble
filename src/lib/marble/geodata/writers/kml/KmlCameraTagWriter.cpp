@@ -14,14 +14,10 @@
 
 #include "GeoDataCamera.h"
 #include "GeoDataTypes.h"
-#include "GeoDataTimeSpan.h"
-#include "GeoDataTimeStamp.h"
 #include "GeoWriter.h"
 #include "KmlGroundOverlayWriter.h"
 #include "KmlElementDictionary.h"
 #include "KmlObjectTagWriter.h"
-
-#include <QDateTime>
 
 namespace Marble
 {

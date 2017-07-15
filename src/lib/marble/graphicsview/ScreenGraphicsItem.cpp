@@ -27,8 +27,8 @@ ScreenGraphicsItem::ScreenGraphicsItem( MarbleGraphicsItem *parent )
 {
 }
 
-ScreenGraphicsItem::ScreenGraphicsItem(ScreenGraphicsItemPrivate *dd)
-    : MarbleGraphicsItem(dd)
+ScreenGraphicsItem::ScreenGraphicsItem( ScreenGraphicsItemPrivate *d_ptr )
+    : MarbleGraphicsItem( d_ptr )
 {
 }
 
@@ -38,38 +38,32 @@ ScreenGraphicsItem::~ScreenGraphicsItem()
 
 QPointF ScreenGraphicsItem::position() const
 {
-    Q_D(const ScreenGraphicsItem);
-    return d->m_position;
+    return p()->m_position;
 }
 
 void ScreenGraphicsItem::setPosition( const QPointF& position )
 {
-    Q_D(ScreenGraphicsItem);
-    d->m_position = position;
+    p()->m_position = position;
 }
 
 QPointF ScreenGraphicsItem::positivePosition() const
 {
-    Q_D(const ScreenGraphicsItem);
-    return d->positivePosition();
+    return p()->positivePosition();
 }
 
-QVector<QPointF> ScreenGraphicsItem::absolutePositions() const
+QList<QPointF> ScreenGraphicsItem::absolutePositions() const
 {
-    Q_D(const ScreenGraphicsItem);
-    return d->absolutePositions();
+    return p()->absolutePositions();
 }
 
 ScreenGraphicsItem::GraphicsItemFlags ScreenGraphicsItem::flags() const
 {
-    Q_D(const ScreenGraphicsItem);
-    return d->m_flags;
+    return p()->m_flags;
 }
 
 void ScreenGraphicsItem::setFlags( ScreenGraphicsItem::GraphicsItemFlags flags )
 {
-    Q_D(ScreenGraphicsItem);
-    d->m_flags = flags;
+    p()->m_flags = flags;
 }
 
 bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
@@ -78,14 +72,13 @@ bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
     if ( !widget ) {
         return MarbleGraphicsItem::eventFilter( object, e );
     }
-
-    Q_D(ScreenGraphicsItem);
-    if (!d->m_floatItemMoving) {
+    
+    if ( !p()->m_floatItemMoving ) {
         if ( MarbleGraphicsItem::eventFilter( object, e ) ) {
             return true;
         }
-
-        if (!visible() || !d->isMovable()) {
+    
+        if ( !visible() || !p()->isMovable() ) {
             return false;
         }
         
@@ -101,8 +94,8 @@ bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
             // Click and move above a float item triggers moving the float item
             if ( contains( event->pos() ) ) {
                 if ( event->button() == Qt::LeftButton ) {
-                    d->m_floatItemMoveStartPos = event->pos();
-                    d->m_floatItemMoving = true;
+                    p()->m_floatItemMoveStartPos = event->pos();
+                    p()->m_floatItemMoving = true;
                     return true;
                 }
             }
@@ -125,22 +118,22 @@ bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
             if ( e->type() == QEvent::MouseMove && event->buttons() & Qt::LeftButton ) {
                     const QPoint &point = event->pos();
                     QPointF position = positivePosition();
-                    qreal newX = qMax<qreal>(0, position.x() + point.x() - d->m_floatItemMoveStartPos.x());
-                    qreal newY = qMax<qreal>(0, position.y() + point.y() - d->m_floatItemMoveStartPos.y());
+                    qreal newX = qMax<qreal>( 0, position.x()+point.x()-p()->m_floatItemMoveStartPos.x() );
+                    qreal newY = qMax<qreal>( 0, position.y()+point.y()-p()->m_floatItemMoveStartPos.y() );
 
                     // docking behavior
                     const qreal dockArea = 60.0; // Alignment area width/height
                     const qreal dockJump = 30.0; // Alignment indicator jump size
                     if ( widget->width()-size().width()-newX < dockArea ) {
                         newX = qMin( qreal( -1.0 ), size().width() + newX-widget->width() );
-                        if (d->m_floatItemMoveStartPos.x() < event->pos().x()) {
+                        if ( p()->m_floatItemMoveStartPos.x() < event->pos().x() ) {
                             // Indicate change to right alignment with a short jump
                             newX = qMax( newX, -(dockArea-dockJump) );
                         }
                     }
                     if ( widget->height()-size().height()-newY < dockArea ) {
                         newY = qMin( qreal( -1.0 ), size().height() + newY-widget->height() );
-                        if (d->m_floatItemMoveStartPos.y() < event->pos().y()) {
+                        if (p()->m_floatItemMoveStartPos.y()<event->pos().y()) {
                         // Indicate change to bottom alignment with a short jump
                         newY = qMax( newY, -( dockArea - dockJump ) );
                         }
@@ -151,7 +144,7 @@ bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
                     // antialiasing could result into painting on these pixels to.
                     QRect newFloatItemRect = QRectF( positivePosition() - QPoint( 1, 1 ),
                                                      size() + QSize( 2, 2 ) ).toRect();
-                    d->m_floatItemMoveStartPos = event->pos();
+                    p()->m_floatItemMoveStartPos = event->pos();
                     QRegion dirtyRegion( floatItemRect.toRect() );
                     dirtyRegion = dirtyRegion.united( newFloatItemRect );
 
@@ -162,11 +155,11 @@ bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
             }
 
             if ( e->type() == QEvent::MouseButtonRelease ) {
-                d->m_floatItemMoving = false;
+                p()->m_floatItemMoving = false;
             }
 
             // Use a special cursor as long as the item is moved
-            if (d->m_floatItemMoving) {
+            if ( p()->m_floatItemMoving ) {
                 widget->setCursor(QCursor(Qt::SizeAllCursor));
                 return true;
             }
@@ -174,4 +167,14 @@ bool ScreenGraphicsItem::eventFilter( QObject *object, QEvent *e )
         
         return MarbleGraphicsItem::eventFilter( object, e );
     }
+}
+
+ScreenGraphicsItemPrivate *ScreenGraphicsItem::p()
+{
+    return static_cast<ScreenGraphicsItemPrivate *>( d );
+}
+
+const ScreenGraphicsItemPrivate *ScreenGraphicsItem::p() const
+{
+    return static_cast<const ScreenGraphicsItemPrivate *>( d );
 }

@@ -11,37 +11,36 @@
 #ifndef GEODATACREATE_H
 #define GEODATACREATE_H
 
+#include <QString>
+#include <QDateTime>
+
 #include "GeoDataContainer.h"
-#include "geodata_export.h"
+#include "marble_export.h"
 
 namespace Marble
 {
 
 class GeoDataCreatePrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataCreate : public GeoDataContainer
+class MARBLE_EXPORT GeoDataCreate : public GeoDataContainer
 {
 public:
     GeoDataCreate();
 
     GeoDataCreate( const GeoDataCreate &other );
 
-    ~GeoDataCreate() override;
-
     GeoDataCreate& operator=( const GeoDataCreate &other );
 
     bool operator==( const GeoDataCreate &other ) const;
     bool operator!=( const GeoDataCreate &other ) const;
 
-    GeoDataFeature * clone() const override;
+    ~GeoDataCreate();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
 private:
-    Q_DECLARE_PRIVATE(GeoDataCreate)
+    GeoDataCreatePrivate* const d;
 };
 
 }

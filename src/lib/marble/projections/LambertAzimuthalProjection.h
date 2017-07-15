@@ -35,25 +35,25 @@ class LambertAzimuthalProjection : public AzimuthalProjection
      */
     LambertAzimuthalProjection();
 
-    ~LambertAzimuthalProjection() override;
+    virtual ~LambertAzimuthalProjection();
 
     /**
      * @brief Returns the user-visible name of the projection.
      */
-    QString name() const override;
+    QString name() const;
 
     /**
      * @brief Returns a short user description of the projection
      * that can be used in tooltips or dialogs.
      */
-    QString description() const override;
+    QString description() const;
 
     /**
      * @brief Returns an icon for the projection.
      */
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    qreal clippingRadius() const override;
+    virtual qreal clippingRadius() const;
 
     /**
      * @brief Get the screen coordinates corresponding to geographical coordinates in the map.
@@ -64,15 +64,15 @@ class LambertAzimuthalProjection : public AzimuthalProjection
      * @return @c true  if the geographical coordinates are visible on the screen
      *         @c false if the geographical coordinates are not visible on the screen
      */
-    bool screenCoordinates( const GeoDataCoordinates &coordinates,
+    virtual bool screenCoordinates( const GeoDataCoordinates &coordinates,
                             const ViewportParams *params,
-                            qreal &x, qreal &y, bool &globeHidesPoint ) const override;
+                            qreal &x, qreal &y, bool &globeHidesPoint ) const;
 
-    bool screenCoordinates( const GeoDataCoordinates &coordinates,
+    virtual bool screenCoordinates( const GeoDataCoordinates &coordinates,
                             const ViewportParams * viewport,
                             qreal *x, qreal &y, int &pointRepeatNum,
                             const QSizeF& size,
-                            bool &globeHidesPoint ) const override;
+                            bool &globeHidesPoint ) const;
 
     using AbstractProjection::screenCoordinates;
 
@@ -88,10 +88,10 @@ class LambertAzimuthalProjection : public AzimuthalProjection
     bool geoCoordinates( const int x, const int y,
                          const ViewportParams *params,
                          qreal& lon, qreal& lat,
-                         GeoDataCoordinates::Unit unit = GeoDataCoordinates::Degree ) const override;
+                         GeoDataCoordinates::Unit unit = GeoDataCoordinates::Degree ) const;
 
  protected:
-    explicit LambertAzimuthalProjection(LambertAzimuthalProjectionPrivate *dd );
+    LambertAzimuthalProjection(LambertAzimuthalProjectionPrivate *dd );
 
  private:
     Q_DECLARE_PRIVATE(LambertAzimuthalProjection)

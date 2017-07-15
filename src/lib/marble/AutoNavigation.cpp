@@ -19,19 +19,17 @@
 #include "MarbleMath.h"
 #include "ViewportParams.h"
 #include "MarbleGlobal.h"
-#include "RoutingManager.h"
-#include "RoutingModel.h"
-#include "Route.h"
 
+#include <QPixmap>
 #include <QWidget>
 #include <QRect>
 #include <QPointF>
 #include <QTimer>
-#include <cmath>
+#include <math.h>
 
 namespace Marble {
 
-class Q_DECL_HIDDEN AutoNavigation::Private
+class AutoNavigation::Private
 {
 public:
 
@@ -40,9 +38,9 @@ public:
     const ViewportParams *const m_viewport;
     const PositionTracking *const m_tracking;
     AutoNavigation::CenterMode m_recenterMode;
-    bool m_adjustZoom;
-    QTimer m_lastWidgetInteraction;
-    bool m_selfInteraction;
+    bool                 m_adjustZoom;
+    QTimer               m_lastWidgetInteraction;
+    bool                 m_selfInteraction;
 
     /** Constructor */
     Private( MarbleModel *model, const ViewportParams *viewport, AutoNavigation *parent );
@@ -267,9 +265,13 @@ GeoDataCoordinates AutoNavigation::Private::findIntersection( qreal currentX, qr
 
 void AutoNavigation::Private::adjustZoom( const GeoDataCoordinates &currentPosition, qreal speed )
 {
+    const qreal lon = currentPosition.longitude( GeoDataCoordinates::Degree );
+    const qreal lat = currentPosition.latitude( GeoDataCoordinates::Degree );
+
     qreal currentX = 0;
     qreal currentY = 0;
-    if( !m_viewport->screenCoordinates(currentPosition, currentX, currentY ) ) {
+
+    if( !m_viewport->screenCoordinates( lon, lat, currentX, currentY ) ) {
         return;
     }
 
@@ -280,18 +282,21 @@ void AutoNavigation::Private::adjustZoom( const GeoDataCoordinates &currentPosit
     qreal distance = greatCircleDistance *  radius;
 
     if( speed != 0 ) {
-        // time (in seconds) remaining to reach the border of the map
-        qreal  remainingTime = distance / speed;
+        //time(in minutes) remaining to reach the border of the map
+        qreal  remainingTime = ( distance / speed ) * SEC2MIN;
 
-        // tolerance time limits (in seconds) before auto zooming
-        qreal thresholdLow = 15;
-        qreal thresholdHigh = 120;
+        //tolerance time limits( in minutes ) before auto zooming
+        qreal thresholdLow = 1.0;
+        qreal thresholdHigh = 12.0 * thresholdLow;
 
         m_selfInteraction = true;
         if ( remainingTime < thresholdLow ) {
             emit m_parent->zoomOut( Instant );
         }
-        else if ( remainingTime > thresholdHigh ) {
+        else if ( remainingTime < thresholdHigh ) {
+            /* zoom level optimal, nothing to do */
+        }
+        else {
             emit m_parent->zoomIn( Instant );
         }
         m_selfInteraction = false;
@@ -301,14 +306,7 @@ void AutoNavigation::Private::adjustZoom( const GeoDataCoordinates &currentPosit
 void AutoNavigation::Private::centerOn( const GeoDataCoordinates &position )
 {
     m_selfInteraction = true;
-    RoutingManager const * routingManager = m_model->routingManager();
-    RoutingModel const * routingModel = routingManager->routingModel();
-    if (!routingManager->guidanceModeEnabled() || routingModel->deviatedFromRoute()){
-        emit m_parent->centerOn( position, false );
-    } else {
-        GeoDataCoordinates positionOnRoute = routingModel->route().positionOnRoute();
-        emit m_parent->centerOn( positionOnRoute, false );
-    }
+    emit m_parent->centerOn( position, false );
     m_selfInteraction = false;
 }
 
@@ -387,4 +385,4 @@ bool AutoNavigation::autoZoom() const
 
 } // namespace Marble
 
-#include "moc_AutoNavigation.cpp"
+#include "AutoNavigation.moc"

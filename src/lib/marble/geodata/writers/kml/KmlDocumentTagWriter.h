@@ -23,7 +23,7 @@ public:
   KmlDocumentTagWriter();
 
 protected:
-    bool writeMid( const GeoNode *node, GeoWriter& writer ) const override;
+    virtual bool writeMid( const GeoNode *node, GeoWriter& writer ) const;
 };
 
 }

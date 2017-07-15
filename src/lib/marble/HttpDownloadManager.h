@@ -28,6 +28,7 @@ namespace Marble
 {
 
 class DownloadPolicy;
+class DownloadQueueSet;
 class StoragePolicy;
 
 /**
@@ -57,15 +58,13 @@ class MARBLE_EXPORT HttpDownloadManager : public QObject
     /**
      * Destroys the http download manager.
      */
-    ~HttpDownloadManager() override;
+    virtual ~HttpDownloadManager();
 
     /**
      * Switches loading on/off, useful for offline mode.
      */
     void setDownloadEnabled( const bool enable );
     void addDownloadPolicy( const DownloadPolicy& );
-
-    static QByteArray userAgent(const QString &platform, const QString &plugin);
 
  public Q_SLOTS:
 
@@ -77,14 +76,14 @@ class MARBLE_EXPORT HttpDownloadManager : public QObject
 
 
  Q_SIGNALS:
-    void downloadComplete( const QString&, const QString& );
+    void downloadComplete( QString, QString );
 
     /**
      * This signal is emitted if a file is downloaded and the data argument
      * contains the files content. The HttpDownloadManager takes care to save
      * it using the given storage policy.
      */
-    void downloadComplete( const QByteArray &data, const QString& initiatorId );
+    void downloadComplete( QByteArray data, QString initiatorId );
 
     /**
      * Signal is emitted when a new job is added to the queue.
@@ -102,15 +101,20 @@ class MARBLE_EXPORT HttpDownloadManager : public QObject
       */
     void progressChanged( int active, int queued );
 
+ private Q_SLOTS:
+    void finishJob( const QByteArray& data, const QString& destinationFileName,
+		    const QString& id );
+    void requeue();
+    void startRetryTimer();
+
  private:
     Q_DISABLE_COPY( HttpDownloadManager )
 
+    void connectDefaultQueueSets();
+    void connectQueueSet( DownloadQueueSet * );
+    bool hasDownloadPolicy( const DownloadPolicy& policy ) const;
     class Private;
     Private * const d;
-
-    Q_PRIVATE_SLOT( d, void finishJob( const QByteArray&, const QString&, const QString& id ) )
-    Q_PRIVATE_SLOT( d, void requeue() )
-    Q_PRIVATE_SLOT( d, void startRetryTimer() )
 };
 
 }

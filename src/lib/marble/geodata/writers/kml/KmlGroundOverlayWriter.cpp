@@ -6,12 +6,11 @@
 // the source code.
 //
 // Copyright 2012      Shou Ya <shouyatf@gmail.com>
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "KmlGroundOverlayWriter.h"
 
-#include "GeoDataLatLonQuad.h"
 #include "GeoDataGroundOverlay.h"
 #include "GeoDataTypes.h"
 #include "GeoWriter.h"

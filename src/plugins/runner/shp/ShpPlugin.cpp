@@ -25,12 +25,12 @@ QString ShpPlugin::name() const
 
 QString ShpPlugin::nameId() const
 {
-    return QStringLiteral("Shp");
+    return "Shp";
 }
 
 QString ShpPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString ShpPlugin::description() const
@@ -40,13 +40,13 @@ QString ShpPlugin::description() const
 
 QString ShpPlugin::copyrightYears() const
 {
-    return QStringLiteral("2011");
+    return "2011";
 }
 
-QVector<PluginAuthor> ShpPlugin::pluginAuthors() const
+QList<PluginAuthor> ShpPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" );
 }
 
 QString ShpPlugin::fileFormatDescription() const
@@ -56,7 +56,7 @@ QString ShpPlugin::fileFormatDescription() const
 
 QStringList ShpPlugin::fileExtensions() const
 {
-    return QStringList(QStringLiteral("shp"));
+    return QStringList() << "shp";
 }
 
 ParsingRunner* ShpPlugin::newRunner() const
@@ -66,4 +66,6 @@ ParsingRunner* ShpPlugin::newRunner() const
 
 }
 
-#include "moc_ShpPlugin.cpp"
+Q_EXPORT_PLUGIN2( ShpPlugin, Marble::ShpPlugin )
+
+#include "ShpPlugin.moc"

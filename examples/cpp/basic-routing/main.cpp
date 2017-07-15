@@ -5,15 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
-
 #include <marble/MarbleWidget.h>
 #include <marble/MarbleModel.h>
-#include <marble/RouteRequest.h>
-#include <marble/RoutingManager.h>
+#include <routing/RouteRequest.h>
+#include <routing/RoutingManager.h>
 
 using namespace Marble;
 
@@ -25,7 +24,7 @@ int main(int argc, char** argv)
     MarbleWidget *mapWidget = new MarbleWidget();
 
     // Load the OpenStreetMap map
-    mapWidget->setMapThemeId(QStringLiteral("earth/openstreetmap/openstreetmap.dgml"));
+    mapWidget->setMapThemeId( "earth/openstreetmap/openstreetmap.dgml" );
     mapWidget->setProjection( Mercator );
 
     // Access the shared route request (start, destination and parameters)

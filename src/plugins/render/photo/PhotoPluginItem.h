@@ -31,15 +31,15 @@ class PhotoPluginItem : public AbstractDataPluginItem
     Q_OBJECT
  public:
     explicit PhotoPluginItem( MarbleWidget *widget, QObject *parent );
-    ~PhotoPluginItem() override;
+    ~PhotoPluginItem();
     
     QString name() const;
     
-    bool initialized() const override;
+    bool initialized() const;
     
-    void addDownloadedFile( const QString& url, const QString& type ) override;
+    void addDownloadedFile( const QString& url, const QString& type );
                  
-    bool operator<( const AbstractDataPluginItem *other ) const override;
+    bool operator<( const AbstractDataPluginItem *other ) const;
     
     QUrl photoUrl() const;
     
@@ -65,7 +65,7 @@ class PhotoPluginItem : public AbstractDataPluginItem
     
     void setTitle( const QString& title );
     
-    QAction *action() override;
+    QAction *action();
     
  public Q_SLOTS:
     void openBrowser();

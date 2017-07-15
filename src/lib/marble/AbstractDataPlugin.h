@@ -15,6 +15,13 @@
 #include "marble_export.h"
 #include "RenderPlugin.h"
 
+#if QT_VERSION < 0x050000
+class QDeclarativeComponent;
+#else
+class QQmlComponent;
+#endif
+class QGraphicsItem;
+
 namespace Marble
 {
     
@@ -47,31 +54,31 @@ class MARBLE_EXPORT AbstractDataPlugin : public RenderPlugin
  public:    
     explicit AbstractDataPlugin( const MarbleModel *marbleModel );
 
-    ~AbstractDataPlugin() override;
+    virtual ~AbstractDataPlugin();
 
-    bool isInitialized() const override;
+    bool isInitialized() const;
 
     /**
      * @brief Returns the name(s) of the backend that the plugin can render
      */
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
     
     /**
      * @brief Return how the plugin settings should be used.
      */
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
     
     /**
      * @brief Preferred level in the layer stack for the rendering
      */
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
     
     /**
      * @brief Renders the content provided by the plugin on the viewport.
      * @return @c true  Returns whether the rendering has been successful
      */
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString& renderPos = QLatin1String("NONE"), GeoSceneLayer * layer = 0 ) override;
+                 const QString& renderPos = QLatin1String("NONE"), GeoSceneLayer * layer = 0 );
 
     /**
      * @return The model associated with the plugin.
@@ -108,7 +115,13 @@ class MARBLE_EXPORT AbstractDataPlugin : public RenderPlugin
      *
      * @return: The type of render plugin this is.
      */
-    RenderType renderType() const override;
+    virtual RenderType renderType() const;
+
+#if QT_VERSION < 0x050000
+    void setDelegate( QDeclarativeComponent* delegate, QGraphicsItem* parent );
+#else
+    void setDelegate( QQmlComponent* delegate, QGraphicsItem* parent );
+#endif
 
     /** Convenience method to set the favorite item state on the current model */
     void setFavoriteItemsOnly( bool favoriteOnly );
@@ -116,6 +129,9 @@ class MARBLE_EXPORT AbstractDataPlugin : public RenderPlugin
     bool isFavoriteItemsOnly() const;
 
     QObject* favoritesModel();
+    
+public Q_SLOTS:
+    void handleViewportChange( const ViewportParams *viewport );
 
  private Q_SLOTS:
     virtual void favoriteItemsChanged( const QStringList& favoriteItems );

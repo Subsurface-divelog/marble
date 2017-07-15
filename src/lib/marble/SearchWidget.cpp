@@ -5,15 +5,12 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012       Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012       Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "SearchWidget.h"
 
-#include "GeoDataPlacemark.h"
-#include "GeoDataLatLonAltBox.h"
 #include "GeoDataDocument.h"
-#include "GeoDataTreeModel.h"
 #include "SearchInputWidget.h"
 #include "MarbleWidget.h"
 #include "MarbleModel.h"
@@ -38,14 +35,12 @@ public:
     BranchFilterProxyModel  m_branchfilter;
     QSortFilterProxyModel   m_sortproxy;
     GeoDataDocument        *m_document;
-    QString m_planetId;
 
     SearchWidgetPrivate();
-    void setSearchResult( const QVector<GeoDataPlacemark*>& );
+    void setSearchResult( QVector<GeoDataPlacemark*> );
     void search( const QString &searchTerm, SearchMode searchMode );
     void clearSearch();
     void centerMapOn( const QModelIndex &index );
-    void handlePlanetChange();
 };
 
 SearchWidgetPrivate::SearchWidgetPrivate() :
@@ -60,7 +55,7 @@ SearchWidgetPrivate::SearchWidgetPrivate() :
     m_document->setName( QObject::tr( "Search Results" ) );
 }
 
-void SearchWidgetPrivate::setSearchResult( const QVector<GeoDataPlacemark *>& locations )
+void SearchWidgetPrivate::setSearchResult( QVector<GeoDataPlacemark *> locations )
 {
     if( locations.isEmpty() ) {
         return;
@@ -75,7 +70,7 @@ void SearchWidgetPrivate::setSearchResult( const QVector<GeoDataPlacemark *>& lo
     treeModel->removeDocument( m_document );
     m_document->clear();
     m_document->setName( QString( QObject::tr( "Search for '%1'" ) ).arg( m_searchField->text() ) );
-    for (GeoDataPlacemark *placemark: locations ) {
+    foreach (GeoDataPlacemark *placemark, locations ) {
         m_document->append( new GeoDataPlacemark( *placemark ) );
     }
     treeModel->addDocument( m_document );
@@ -126,10 +121,6 @@ void SearchWidget::setMarbleWidget( MarbleWidget* widget )
     }
 
     d->m_widget = widget;
-
-    d->m_planetId = widget->model()->planetId();
-    connect( widget->model(), SIGNAL(themeChanged(QString)),
-             this, SLOT(handlePlanetChange()) );
 
     d->m_searchField->setCompletionModel( widget->model()->placemarkModel() );
     connect( d->m_searchField, SIGNAL(centerOn(GeoDataCoordinates)),
@@ -197,18 +188,6 @@ void SearchWidgetPrivate::centerMapOn( const QModelIndex &index )
     }
 }
 
-void SearchWidgetPrivate::handlePlanetChange()
-{
-    const QString newPlanetId = m_widget->model()->planetId();
-
-    if (newPlanetId == m_planetId) {
-        return;
-    }
-
-    m_planetId = newPlanetId;
-    clearSearch();
 }
 
-}
-
-#include "moc_SearchWidget.cpp"
+#include "SearchWidget.moc"

@@ -9,41 +9,44 @@
 //
 
 #include "GeoDataChange.h"
-
-#include "GeoDataContainer_p.h"
 #include "GeoDataTypes.h"
 
 namespace Marble
 {
 
-class GeoDataChangePrivate : public GeoDataContainerPrivate
+class GeoDataChangePrivate
 {
+public:
+    GeoDataChangePrivate();
 };
 
-
-GeoDataChange::GeoDataChange()
-  : GeoDataContainer(new GeoDataChangePrivate)
+GeoDataChangePrivate::GeoDataChangePrivate()
 {
 }
 
-GeoDataChange::GeoDataChange(const GeoDataChange &other)
-  : GeoDataContainer(other, new GeoDataChangePrivate(*other.d_func()))
+GeoDataChange::GeoDataChange() :
+    d( new GeoDataChangePrivate )
+{
+}
+
+GeoDataChange::GeoDataChange( const Marble::GeoDataChange &other ) :
+    GeoDataContainer(), d( new GeoDataChangePrivate( *other.d ) )
 {
 }
 
 GeoDataChange &GeoDataChange::operator=( const GeoDataChange &other )
 {
-    if (this != &other) {
-        Q_D(GeoDataChange);
-        *d = *other.d_func();
-    }
-
+    GeoDataContainer::operator =( other );
+    *d = *other.d;
     return *this;
 }
 
 bool GeoDataChange::operator==( const GeoDataChange &other ) const
 {
-    return GeoDataContainer::equals(other);
+    if ( !GeoDataContainer::equals(other) ){
+        return false;
+    }
+    return true;
 }
 
 bool GeoDataChange::operator!=( const GeoDataChange &other ) const
@@ -53,11 +56,7 @@ bool GeoDataChange::operator!=( const GeoDataChange &other ) const
 
 GeoDataChange::~GeoDataChange()
 {
-}
-
-GeoDataFeature * GeoDataChange::clone() const
-{
-    return new GeoDataChange(*this);
+    delete d;
 }
 
 const char *GeoDataChange::nodeType() const

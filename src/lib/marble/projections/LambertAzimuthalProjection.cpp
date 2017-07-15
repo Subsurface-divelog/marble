@@ -22,7 +22,6 @@
 #include "MarbleGlobal.h"
 #include "AzimuthalProjection_p.h"
 
-#include <QIcon>
 #include <qmath.h>
 
 #define SAFE_DISTANCE
@@ -74,7 +73,7 @@ QString LambertAzimuthalProjection::description() const
 
 QIcon LambertAzimuthalProjection::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/map-globe.png"));
+    return QIcon(":/icons/map-globe.png");
 }
 
 qreal LambertAzimuthalProjection::clippingRadius() const
@@ -120,7 +119,11 @@ bool LambertAzimuthalProjection::screenCoordinates( const GeoDataCoordinates &co
     y = viewport->height() / 2 - y;
 
     // Skip placemarks that are outside the screen area
-    return !(x < 0 || x >= viewport->width() || y < 0 || y >= viewport->height());
+    if ( x < 0 || x >= viewport->width() || y < 0 || y >= viewport->height() ) {
+        return false;
+    }
+
+    return true;
 }
 
 bool LambertAzimuthalProjection::screenCoordinates( const GeoDataCoordinates &coordinates,

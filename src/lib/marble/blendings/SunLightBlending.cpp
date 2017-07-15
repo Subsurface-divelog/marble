@@ -22,7 +22,6 @@
 #include "MarbleGlobal.h"
 
 #include <QImage>
-#include <QColor>
 
 #include <cmath>
 
@@ -104,16 +103,14 @@ void SunLightBlending::blend( QImage * const tileImage, TextureTile const * cons
                     cur_x += n;
                     continue;
                 }
-
-                qreal lon = lon_scale * (id.x() * tileWidth + cur_x);
                 for ( int t = 0; t < n ; ++t ) {
+                    qreal lon   = lon_scale * ( id.x() * tileWidth + cur_x );
                     shade = m_sunLocator->shading( lon, a, c );
                     m_sunLocator->shadePixelComposite( *scanline, *nscanline, shade );
                     ++scanline;
                     ++nscanline;
-                    lon += lon_scale;
+                    ++cur_x;
                 }
-                cur_x += n;
             }
 
             else {

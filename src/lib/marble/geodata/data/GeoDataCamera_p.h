@@ -13,6 +13,7 @@
 #define MARBLE_GEODATACAMERA_P_H
 
 #include "GeoDataCoordinates.h"
+#include "GeoDataTypes.h"
 
 #include <QAtomicInt>
 

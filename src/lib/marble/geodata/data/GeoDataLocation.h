@@ -12,7 +12,7 @@
 #ifndef GEODATALOCATION_H
 #define GEODATALOCATION_H
 
-#include "GeoDataObject.h"
+#include "GeoDataGeometry.h"
 #include "GeoDataCoordinates.h"
 #include "MarbleGlobal.h"
 
@@ -20,9 +20,7 @@ namespace Marble {
 
 class GeoDataLocationPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataLocation: public GeoDataObject
+class MARBLE_EXPORT GeoDataLocation: public GeoDataObject
 {
 public:
     GeoDataLocation();
@@ -34,10 +32,10 @@ public:
     bool operator==( const GeoDataLocation &other ) const;
     bool operator!=( const GeoDataLocation &other ) const;
 
-    ~GeoDataLocation() override;
+    ~GeoDataLocation();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     qreal latitude(GeoDataCoordinates::Unit) const;
 

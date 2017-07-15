@@ -14,13 +14,11 @@
 #define FLYTOEDITWIDGET_H
 
 #include <QWidget>
-#include <QPersistentModelIndex>
-
+#include <QModelIndex>
 #include "GeoDataCoordinates.h"
 
 class QDoubleSpinBox;
 class QToolButton;
-class QComboBox;
 
 namespace Marble
 {
@@ -53,8 +51,7 @@ private:
     GeoDataFlyTo* flyToElement();
     MarbleWidget* m_widget;
     QPersistentModelIndex m_index;
-    QDoubleSpinBox *m_durationSpin;
-    QComboBox *m_modeCombo;
+    QDoubleSpinBox *m_waitSpin;
     GeoDataCoordinates m_coord;
     QToolButton *m_button;
 };

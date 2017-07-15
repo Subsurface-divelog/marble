@@ -10,10 +10,9 @@
 //
 
 
-#include "GeoDataCoordinates.h"
 #include "GeoDataPolygon.h"
 #include "GeoDataPolygon_p.h"
-#include "GeoDataTypes.h"
+
 #include "MarbleDebug.h"
 
 #include <QDataStream>
@@ -41,25 +40,20 @@ GeoDataPolygon::~GeoDataPolygon()
 #endif
 }
 
-const char *GeoDataPolygon::nodeType() const
+GeoDataPolygonPrivate* GeoDataPolygon::p()
 {
-    return GeoDataTypes::GeoDataPolygonType;
+    return static_cast<GeoDataPolygonPrivate*>(d);
 }
 
-EnumGeometryId GeoDataPolygon::geometryId() const
+const GeoDataPolygonPrivate* GeoDataPolygon::p() const
 {
-    return GeoDataPolygonId;
-}
-
-GeoDataGeometry *GeoDataPolygon::copy() const
-{
-    return new GeoDataPolygon(*this);
+    return static_cast<GeoDataPolygonPrivate*>(d);
 }
 
 bool GeoDataPolygon::operator==( const GeoDataPolygon &other ) const
 {
-    Q_D(const GeoDataPolygon);
-    const GeoDataPolygonPrivate *other_d = other.d_func();
+    const GeoDataPolygonPrivate *d = p();
+    const GeoDataPolygonPrivate *other_d = other.p();
 
     if ( !GeoDataGeometry::equals(other) ||
          tessellate() != other.tessellate() ||
@@ -75,7 +69,7 @@ bool GeoDataPolygon::operator==( const GeoDataPolygon &other ) const
     QVector<GeoDataLinearRing>::const_iterator otherItEnd= other_d->inner.constEnd();
 
     for ( ; itBound != itEnd && otherItBound != otherItEnd; ++itBound, ++otherItBound ) {
-        if ( *itBound != *otherItBound) {
+        if ( *itBound != *itBound) {
             return false;
         }
     }
@@ -96,120 +90,88 @@ bool GeoDataPolygon::isClosed() const
 
 bool GeoDataPolygon::tessellate() const
 {
-    Q_D(const GeoDataPolygon);
-    return d->m_tessellationFlags.testFlag(Tessellate);
+    return p()->m_tessellationFlags.testFlag(Tessellate);
 }
 
 void GeoDataPolygon::setTessellate( bool tessellate )
 {
     // According to the KML reference the tesselation is done along great circles
-    // for polygons in Google Earth. Our "Tesselate" flag does this.
-    // Only for pure line strings and linear rings the
+    // for polygons in Google Earth. Our "Tesselate" flag does this. 
+    // Only for pure line strings and linear rings the 
     // latitude circles are followed for subsequent points that share the same latitude.
     detach();
 
-    Q_D(GeoDataPolygon);
     if ( tessellate ) {
-        d->m_tessellationFlags |= Tessellate;
+        p()->m_tessellationFlags |= Tessellate; 
     } else {
-        d->m_tessellationFlags ^= Tessellate;
+        p()->m_tessellationFlags ^= Tessellate; 
     }
 }
 
 TessellationFlags GeoDataPolygon::tessellationFlags() const
 {
-    Q_D(const GeoDataPolygon);
-    return d->m_tessellationFlags;
+    return p()->m_tessellationFlags;
 }
 
 void GeoDataPolygon::setTessellationFlags( TessellationFlags f )
 {
     detach();
-
-    Q_D(GeoDataPolygon);
-    d->m_tessellationFlags = f;
+    p()->m_tessellationFlags = f;
 }
 
 const GeoDataLatLonAltBox& GeoDataPolygon::latLonAltBox() const
 {
-    Q_D(const GeoDataPolygon);
-    return d->outer.latLonAltBox();
+    return p()->outer.latLonAltBox();
 }
 
 GeoDataLinearRing &GeoDataPolygon::outerBoundary()
 {
     detach();
-
-    Q_D(GeoDataPolygon);
-    return (d->outer);
+    return (p()->outer);
 }
 
 const GeoDataLinearRing &GeoDataPolygon::outerBoundary() const
 {
-    Q_D(const GeoDataPolygon);
-    return d->outer;
+    return (p()->outer);
 }
 
 void GeoDataPolygon::setOuterBoundary( const GeoDataLinearRing& boundary )
 {
     detach();
-
-    Q_D(GeoDataPolygon);
-    d->outer = boundary;
+    p()->outer = boundary;
 }
 
 QVector<GeoDataLinearRing>& GeoDataPolygon::innerBoundaries()
 {
     detach();
-
-    Q_D(GeoDataPolygon);
-    return d->inner;
+    return p()->inner;
 }
 
 const QVector<GeoDataLinearRing>& GeoDataPolygon::innerBoundaries() const
 {
-    Q_D(const GeoDataPolygon);
-    return d->inner;
+    return p()->inner;
 }
 
 void GeoDataPolygon::appendInnerBoundary( const GeoDataLinearRing& boundary )
 {
     detach();
-
-    Q_D(GeoDataPolygon);
-    d->inner.append(boundary);
-}
-
-void GeoDataPolygon::setRenderOrder(int renderOrder)
-{
-    detach();
-
-    Q_D(GeoDataPolygon);
-    d->m_renderOrder = renderOrder;
-}
-
-int GeoDataPolygon::renderOrder() const
-{
-    Q_D(const GeoDataPolygon);
-    return d->m_renderOrder;
+    p()->inner.append( boundary );
 }
 
 void GeoDataPolygon::pack( QDataStream& stream ) const
 {
-    Q_D(const GeoDataPolygon);
-
     GeoDataObject::pack( stream );
 
-    d->outer.pack( stream );
-
-    stream << d->inner.size();
-    stream << (qint32)(d->m_tessellationFlags);
-
-    for( QVector<GeoDataLinearRing>::const_iterator iterator
-          = d->inner.constBegin();
-         iterator != d->inner.constEnd();
+    p()->outer.pack( stream );
+    
+    stream << p()->inner.size();
+    stream << (qint32)(p()->m_tessellationFlags);
+   
+    for( QVector<GeoDataLinearRing>::const_iterator iterator 
+          = p()->inner.constBegin(); 
+         iterator != p()->inner.constEnd();
          ++iterator ) {
-        mDebug() << "innerRing: size" << d->inner.size();
+        mDebug() << "innerRing: size" << p()->inner.size();
         GeoDataLinearRing linearRing = ( *iterator );
         linearRing.pack( stream );
     }
@@ -218,12 +180,9 @@ void GeoDataPolygon::pack( QDataStream& stream ) const
 void GeoDataPolygon::unpack( QDataStream& stream )
 {
     detach();
-
-    Q_D(GeoDataPolygon);
-
     GeoDataObject::unpack( stream );
 
-    d->outer.unpack( stream );
+    p()->outer.unpack( stream );
 
     qint32 size;
     qint32 tessellationFlags;
@@ -231,14 +190,12 @@ void GeoDataPolygon::unpack( QDataStream& stream )
     stream >> size;
     stream >> tessellationFlags;
 
-    d->m_tessellationFlags = (TessellationFlags)(tessellationFlags);
+    p()->m_tessellationFlags = (TessellationFlags)(tessellationFlags);
 
-    QVector<GeoDataLinearRing> &inner = d->inner;
-    inner.reserve(inner.size() + size);
     for(qint32 i = 0; i < size; i++ ) {
         GeoDataLinearRing linearRing;
         linearRing.unpack( stream );
-        inner.append(linearRing);
+        p()->inner.append( linearRing );
     }
 }
 
@@ -249,7 +206,7 @@ bool GeoDataPolygon::contains( const GeoDataCoordinates &coordinates ) const
         return false;
     }
 
-    for( const GeoDataLinearRing &ring: innerBoundaries() ) {
+    foreach( const GeoDataLinearRing &ring, innerBoundaries() ) {
         if ( ring.contains( coordinates ) ) {
             // Inside the polygon, but in one of its holes
             return false;

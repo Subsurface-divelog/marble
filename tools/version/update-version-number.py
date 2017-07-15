@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 #
 # This file is part of the Marble Virtual Globe.  
@@ -8,7 +7,7 @@
 # find a copy of this license in LICENSE.txt in the top directory of
 # the source code.
 #
-# Copyright 2015 Dennis Nienhüser <nienhueser@kde.org>
+# Copyright 2015 Dennis Nienhüser <earthwings@gentoo.org>
 #
 
 """
@@ -91,22 +90,14 @@ libVersionFile = os.path.join(rootDir, 'src', 'lib', 'marble', 'MarbleGlobal.h')
 ensureCleanOrExit(rootDir, libVersionFile)
 appVersionFile = os.path.join(rootDir, 'src', 'apps', 'marble-ui', 'ControlView.cpp')
 ensureCleanOrExit(rootDir, appVersionFile)
-winappVersionFile = os.path.join(rootDir, 'install', 'windows', 'marble-common.iss')
-ensureCleanOrExit(rootDir, winappVersionFile)
 
 replaceInFile(libFileName, 
-              'set\\(MARBLE_LIB_VERSION_MAJOR "[0-9]"\\)',
-              'set(MARBLE_LIB_VERSION_MAJOR "{}")'.format(major))
+              'set\\(GENERIC_LIB_VERSION "[0-9]\\.[0-9]+\\.[0-9]+"\\)', 
+              'set(GENERIC_LIB_VERSION "{}.{}.{}")'.format(major, minor, patch))
 soVersion = minor + 1 if patch > 19 else minor
-replaceInFile(libFileName,
-              'set\\(MARBLE_LIB_VERSION_MINOR "[0-9]+"\\)',
-              'set(MARBLE_LIB_VERSION_MINOR "{}")'.format(soVersion))
-replaceInFile(libFileName,
-              'set\\(MARBLE_LIB_VERSION_PATCH "[0-9]+"\\)',
-              'set(MARBLE_LIB_VERSION_PATCH "{}")'.format(0))
 replaceInFile(libFileName, 
-              'set\\(MARBLE_ABI_VERSION "[0-9]+"\\)',
-              'set(MARBLE_ABI_VERSION "{}")'.format(soVersion))
+              'set\\(GENERIC_LIB_SOVERSION "[0-9]+"\\)', 
+              'set(GENERIC_LIB_SOVERSION "{}")'.format(soVersion))
 
 # We have version constants in MarbleGlobal.h
 libVersionOld = 'const QString MARBLE_VERSION_STRING = QString::fromLatin1\( ".*" \);'
@@ -117,14 +108,10 @@ libVersionHexNew = '#define MARBLE_VERSION 0x{:02x}{:02x}{:02x}'.format(major, m
 replaceInFile(libVersionFile, libVersionHexOld, libVersionHexNew)
 
 appVersionOld = '    return "[0-5]\\.[0-9]+\\.[0-9]+ (.*)";'
-appVersionNew = '    return "{}";'.format(generateVersionString(major+2, minor-25, patch))
+appVersionNew = '    return "{}";'.format(generateVersionString(major+1, minor-10, patch))
 replaceInFile(appVersionFile, appVersionOld, appVersionNew)
-
-winappVersionOld = '#define MyAppVersion "[0-5]\\.[0-9]+\\.[0-9]+"'
-winappVersionNew = '#define MyAppVersion "{}.{}.{}"'.format(major+2, minor-25, patch)
-replaceInFile(winappVersionFile, winappVersionOld, winappVersionNew)
 
 if args.commit:
     versionStringNew = generateVersionString(major, minor, patch)
-    subprocess.call(['git', 'commit', '--message=Version bump to {}'.format(versionStringNew), libFileName, libVersionFile, appVersionFile], winappVersionFile, cwd=rootDir)
+    subprocess.call(['git', 'commit', '--message=Version bump to {}'.format(versionStringNew), libFileName, libVersionFile, appVersionFile], cwd=rootDir)
     print ('Version bump committed. Please check the output of "git show HEAD".')

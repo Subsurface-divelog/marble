@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2009      Gaurav Gupta <1989.gaurav@googlemail.com>
-// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "GeoDataAbstractView.h"
@@ -14,8 +14,6 @@
 #include "GeoDataCamera.h"
 #include "GeoDataLookAt.h"
 #include "GeoDataTypes.h"
-#include "GeoDataTimeSpan.h"
-#include "GeoDataTimeStamp.h"
 
 namespace Marble {
 
@@ -60,27 +58,6 @@ GeoDataAbstractView &GeoDataAbstractView::operator =( const GeoDataAbstractView 
     GeoDataObject::operator=( other );
     *d = *other.d;
     return *this;
-}
-
-bool GeoDataAbstractView::operator==(const GeoDataAbstractView &other) const
-{
-    if (nodeType() != other.nodeType()) {
-        return false;
-    }
-
-    if (nodeType() == GeoDataTypes::GeoDataCameraType) {
-        const GeoDataCamera &thisCam = static_cast<const GeoDataCamera &>(*this);
-        const GeoDataCamera &otherCam = static_cast<const GeoDataCamera &>(other);
-
-        return thisCam == otherCam;
-    } else if (nodeType() == GeoDataTypes::GeoDataLookAtType) {
-        const GeoDataLookAt &thisLookAt = static_cast<const GeoDataLookAt &>(*this);
-        const GeoDataLookAt &otherLookAt = static_cast<const GeoDataLookAt &>(other);
-
-        return thisLookAt == otherLookAt;
-    }
-
-    return false;
 }
 
 GeoDataCoordinates GeoDataAbstractView::coordinates() const

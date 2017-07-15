@@ -22,7 +22,6 @@
 #include "MarbleGlobal.h"
 #include "AzimuthalProjection_p.h"
 
-#include <QIcon>
 #include <qmath.h>
 
 #define SAFE_DISTANCE
@@ -88,7 +87,7 @@ QString VerticalPerspectiveProjection::description() const
 
 QIcon VerticalPerspectiveProjection::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/map-globe.png"));
+    return QIcon(":/icons/map-globe.png");
 }
 
 void VerticalPerspectiveProjectionPrivate::calculateConstants(qreal radius) const
@@ -150,7 +149,11 @@ bool VerticalPerspectiveProjection::screenCoordinates( const GeoDataCoordinates 
     y = viewport->height() / 2 - y;
 
     // Skip placemarks that are outside the screen area
-    return !(x < 0 || x >= viewport->width() || y < 0 || y >= viewport->height());
+    if ( x < 0 || x >= viewport->width() || y < 0 || y >= viewport->height() ) {
+        return false;
+    }
+
+    return true;
 }
 
 bool VerticalPerspectiveProjection::screenCoordinates( const GeoDataCoordinates &coordinates,

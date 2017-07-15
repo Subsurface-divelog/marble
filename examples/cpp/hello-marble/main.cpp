@@ -5,11 +5,10 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
-
 #include <marble/MarbleWidget.h>
 
 using namespace Marble;
@@ -22,7 +21,7 @@ int main(int argc, char** argv)
     MarbleWidget *mapWidget = new MarbleWidget();
 
     // Load the OpenStreetMap map
-    mapWidget->setMapThemeId(QStringLiteral("earth/openstreetmap/openstreetmap.dgml"));
+    mapWidget->setMapThemeId("earth/openstreetmap/openstreetmap.dgml");
 
     mapWidget->show();
 

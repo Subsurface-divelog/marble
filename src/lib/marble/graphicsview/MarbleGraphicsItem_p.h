@@ -41,7 +41,7 @@ class MarbleGraphicsItemPrivate
           m_marbleGraphicsItem( marbleGraphicsItem )
     {
         if ( m_parent ) {
-            m_parent->d_func()->addChild(m_marbleGraphicsItem);
+            m_parent->p()->addChild( m_marbleGraphicsItem );
         }
     }
 
@@ -49,7 +49,7 @@ class MarbleGraphicsItemPrivate
     {
         // Remove from parent
         if ( m_parent ) {
-            m_parent->d_func()->removeChild(m_marbleGraphicsItem);
+            m_parent->p()->removeChild( m_marbleGraphicsItem );
         }
 
         // Delete all children
@@ -69,22 +69,22 @@ class MarbleGraphicsItemPrivate
         m_children.remove( child );
     }
 
-    virtual QVector<QPointF> positions() const = 0;
+    virtual QList<QPointF> positions() const = 0;
 
-    virtual QVector<QPointF> absolutePositions() const = 0;
+    virtual QList<QPointF> absolutePositions() const = 0;
 
     /**
      * @brief Used to get the set of screen bounding rects
      */
-    QVector<QRectF> boundingRects() const;
+    QList<QRectF> boundingRects() const;
 
     virtual void setProjection( const ViewportParams *viewport ) = 0;
 
     void updateChildPositions()
     {
         // This has to be done recursively because we need a correct size from all children.
-        for ( MarbleGraphicsItem *item: m_children ) {
-            item->d_func()->updateChildPositions();
+        foreach ( MarbleGraphicsItem *item, m_children ) {
+            item->p()->updateChildPositions();
         }
 
         // Adjust positions

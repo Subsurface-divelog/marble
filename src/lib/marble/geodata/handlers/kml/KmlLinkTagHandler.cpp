@@ -16,6 +16,7 @@
 #include "KmlObjectTagHandler.h"
 #include "GeoDataLink.h"
 #include "GeoDataNetworkLink.h"
+#include "GeoDataDocument.h"
 #include "GeoDataModel.h"
 #include "GeoDataParser.h"
 
@@ -27,7 +28,7 @@ KML_DEFINE_TAG_HANDLER( Link )
 
 GeoNode* KmlLinkTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Link)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_Link ) );
     GeoDataLink link;
     KmlObjectTagHandler::parseIdentifiers( parser, &link );
     GeoStackItem parentItem = parser.parentElement();

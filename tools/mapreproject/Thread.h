@@ -53,15 +53,15 @@ class Thread: public QThread
 
 public:
     explicit Thread( QObject * const parent = NULL );
-    ~Thread() override;
+    ~Thread();
 
     void launchWorker( QObject * const worker );
     void stop();
 
-Q_SIGNALS:
+signals:
     void aboutToStop();
     
-private Q_SLOTS:
+private slots:
     void stopExecutor();
     void setReadyStatus();
 

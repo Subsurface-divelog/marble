@@ -1,5 +1,5 @@
 The online version of this example can be found at
-https://techbase.kde.org/Marble/DisplayGeoDataGroundOverlay
+http://techbase.kde.org/Projects/Marble/DisplayGeoDataGroundOverlay
 
 GeoDataGroundOverlay is the class used in Marble to implement the features
 of the GroundOverlay KML element. More precisely, an instance references

@@ -53,15 +53,15 @@ MovieCaptureDialog::~MovieCaptureDialog()
 
 void MovieCaptureDialog::loadDestinationFile()
 {
-    const QVector<MovieFormat> formats = m_recorder->availableFormats();
+    QList<MovieFormat> formats = m_recorder->availableFormats();
     if( formats.isEmpty() ) {
         QMessageBox::warning( this, tr( "Codecs are unavailable" ), tr( "Supported codecs are not found." ) );
         return;
     }
-    QString filter = formats.first().name() + QLatin1String(" (*.") + formats.first().extension() + QLatin1Char(')');
+    QString filter = formats.first().name() + " (*."+formats.first().extension() + ")";
     for( int i = 1; i < formats.size(); i++ )
     {
-        filter += QLatin1String(";;") + formats.at(i).name() + QLatin1String(" (*.") + formats.at(i).extension() + QLatin1Char(')');
+        filter.append( ";;"+formats.at( i ).name() + " (*."+formats.at( i ).extension() + ")" );
     }
     const QString defaultFileName =
             ui->destinationEdit->text().isEmpty() ? "" : ui->destinationEdit->text();
@@ -75,18 +75,16 @@ void MovieCaptureDialog::loadDestinationFile()
     }
 
     bool supported = false;
-    for(const MovieFormat &format: formats) {
-        if (destination.endsWith(QLatin1Char('.') + format.extension())) {
+    foreach(const MovieFormat &format, formats) {
+        if (destination.endsWith('.'+format.extension()))
             supported = true;
-            break;
-        }
     }
 
     if (!supported) {
-        QString formatsExtensions = QLatin1Char('.') + formats.at(0).extension();
+        QString formatsExtensions = "."+formats.at( 0 ).extension();
         for( int i = 1; i < formats.size(); ++i )
         {
-            formatsExtensions += QLatin1String(", .") + formats.at(i).extension();
+            formatsExtensions.append( ", ."+formats.at( i ).extension() );
         }
         QMessageBox::warning(this, tr("Filename is not valid"),
                              tr("This file format is not supported. "
@@ -124,4 +122,4 @@ void MovieCaptureDialog::stopRecording()
 
 } // namespace Marble
 
-#include "moc_MovieCaptureDialog.cpp"
+#include "MovieCaptureDialog.moc"

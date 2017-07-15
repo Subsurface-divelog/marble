@@ -18,36 +18,41 @@
 // Marble
 #include <GeoDataCoordinates.h>
 #include <GeoDataFolder.h>
-#include <GeoDataLookAt.h>
 #include <GeoDataPlacemark.h>
 #include <BookmarkManager.h>
 #include <GeoDataTreeModel.h>
 
-// KF
-#include <KLocalizedString>
+// KDE
+#include <KProcess>
+#include <KIcon>
+#include <KLocale>
+#include <KGlobal>
 
-// Qt
-#include <QProcess>
-
-
-#define TRANSLATION_DOMAIN "plasma_runner_marble"
 
 namespace Marble
 {
 
 static const int minContainsMatchLength = 3;
 
+
 PlasmaRunner::PlasmaRunner(QObject *parent, const QVariantList &args)
   : AbstractRunner(parent, args)
 {
+    KLocale* locale = KGlobal::locale();
+    locale->insertCatalog(QLatin1String("marble"));
+    locale->insertCatalog(QLatin1String("marble_qt"));
+    // load catalog manually, as it does not (yet) match the name of the plugin lib
+    // TODO: fix catalog name after branching of 1.4
+    locale->insertCatalog(QLatin1String("plasma_runner_marblerunner"));
+
     setIgnoredTypes(Plasma::RunnerContext::NetworkLocation |
                     Plasma::RunnerContext::FileSystem |
                     Plasma::RunnerContext::Help);
 
     QList<Plasma::RunnerSyntax> syntaxes;
-    syntaxes << Plasma::RunnerSyntax(QStringLiteral(":q:"),
+    syntaxes << Plasma::RunnerSyntax(QLatin1String(":q:"),
                                      i18n("Shows the coordinates :q: in OpenStreetMap with Marble."));
-    syntaxes << Plasma::RunnerSyntax(QStringLiteral(":q:"),
+    syntaxes << Plasma::RunnerSyntax(QLatin1String(":q:"),
                                      i18n("Shows the geo bookmark containing :q: in OpenStreetMap with Marble."));
     setSyntaxes(syntaxes);
 }
@@ -69,7 +74,7 @@ void PlasmaRunner::match(Plasma::RunnerContext &context)
             << QVariant(0.1); // TODO: make this distance value configurable
 
         Plasma::QueryMatch match(this);
-        match.setIcon(QIcon::fromTheme(QStringLiteral("marble")));
+        match.setIcon(KIcon(QLatin1String("marble")));
         match.setText(i18n("Show the coordinates %1 in OpenStreetMap with Marble", query));
         match.setData(coordinatesData);
         match.setId(query);
@@ -82,14 +87,14 @@ void PlasmaRunner::match(Plasma::RunnerContext &context)
     // TODO: BookmarkManager does not yet listen to updates, also does not sync between processes :(
     // So for now always load on demand, even if expensive possibly
     BookmarkManager bookmarkManager(new GeoDataTreeModel);
-    bookmarkManager.loadFile( QStringLiteral("bookmarks/bookmarks.kml") );
+    bookmarkManager.loadFile( QLatin1String("bookmarks/bookmarks.kml") );
 
-    for (GeoDataFolder* folder: bookmarkManager.folders()) {
+    foreach (GeoDataFolder* folder, bookmarkManager.folders()) {
         collectMatches(matches, query, folder);
     }
 
     if ( ! matches.isEmpty() ) {
-        context.addMatches(matches);
+        context.addMatches(query, matches);
     }
 }
 
@@ -134,7 +139,7 @@ void PlasmaRunner::collectMatches(QList<Plasma::QueryMatch> &matches,
                 << QVariant(placemark->lookAt()->range()*METER2KM);
 
             Plasma::QueryMatch match(this);
-            match.setIcon(QIcon::fromTheme(QStringLiteral("marble")));
+            match.setIcon(KIcon(QLatin1String("marble")));
             match.setText(placemark->name());
             match.setSubtext(i18n("Show in OpenStreetMap with Marble"));
             match.setData(coordinatesData);
@@ -153,20 +158,20 @@ void PlasmaRunner::run(const Plasma::RunnerContext &context, const Plasma::Query
 
     const QVariantList data = match.data().toList();
 
-    // pass in C locale, should be always understood
     const QString latLon =
-        QString::number(data.at(1).toReal()) + QLatin1Char(' ') + QString::number(data.at(0).toReal());
+        QString::fromUtf8("%L1").arg(data.at(1).toReal()) +
+        QString::fromUtf8(" %L1").arg(data.at(0).toReal());
 
     const QString distance = data.at(2).toString();
 
     const QStringList parameters = QStringList()
-        << QStringLiteral( "--latlon" )
+        << QLatin1String( "--latlon" )
         << latLon
-        << QStringLiteral( "--distance" )
+        << QLatin1String( "--distance" )
         << distance
-        << QStringLiteral( "--map" )
-        << QStringLiteral( "earth/openstreetmap/openstreetmap.dgml" );
-    QProcess::startDetached( QStringLiteral("marble"), parameters );
+        << QLatin1String( "--map" )
+        << QLatin1String( "earth/openstreetmap/openstreetmap.dgml" );
+    KProcess::startDetached( QLatin1String("marble"), parameters );
 }
 
 }

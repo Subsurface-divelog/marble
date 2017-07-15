@@ -94,10 +94,10 @@ void PanoramioItem::openBrowser()
     if ( m_marbleWidget ) {
         PopupLayer* popup = m_marbleWidget->popupLayer();
         popup->setCoordinates( coordinate(), Qt::AlignRight | Qt::AlignVCenter );
-        popup->setSize(QSizeF(720, 470));
+        popup->setSize( QSizeF( 700, 450 ) );
         popup->setUrl( m_url );
         popup->popup();
     }
 }
 
-#include "moc_PanoramioItem.cpp"
+#include "PanoramioItem.moc"

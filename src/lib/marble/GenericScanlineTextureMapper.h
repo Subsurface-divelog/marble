@@ -14,8 +14,8 @@
 
 #include "TextureMapperInterface.h"
 
-#include <QThreadPool>
-#include <QImage>
+#include <QtCore/QThreadPool>
+#include <QtGui/QImage>
 
 #include <MarbleGlobal.h>
 
@@ -28,13 +28,13 @@ class StackedTileLoader;
 class GenericScanlineTextureMapper : public TextureMapperInterface
 {
  public:
-    explicit GenericScanlineTextureMapper( StackedTileLoader *tileLoader );
+    GenericScanlineTextureMapper( StackedTileLoader *tileLoader );
 
-    void mapTexture( GeoPainter *painter,
+    virtual void mapTexture( GeoPainter *painter,
                              const ViewportParams *viewport,
                              int tileZoomLevel,
                              const QRect &dirtyRect,
-                             TextureColorizer *texColorizer ) override;
+                             TextureColorizer *texColorizer );
 
  private:
     class RenderJob;

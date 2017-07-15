@@ -11,6 +11,8 @@
 #ifndef GEODATATIMESPANPRIVATE_H
 #define GEODATATIMESPANPRIVATE_H
 
+#include <QDateTime>
+
 #include "GeoDataTypes.h"
 #include "GeoDataTimeStamp.h"
 

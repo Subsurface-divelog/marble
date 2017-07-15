@@ -11,11 +11,9 @@
 
 #include "GeoDataColorStyle.h"
 
-#include "GeoDataTypes.h"
+#include "cstdlib"
 
-#include <cstdlib>
-#include <QDataStream>
-#include <QColor>
+#include "GeoDataTypes.h"
 
 namespace Marble
 {
@@ -107,7 +105,7 @@ QColor GeoDataColorStyle::paintedColor() const
     return d->m_colorMode == Normal ? d->m_color : d->m_randomColor;
 }
 
-void GeoDataColorStyle::setColorMode(ColorMode colorMode)
+void GeoDataColorStyle::setColorMode( const ColorMode &colorMode )
 {
     d->m_colorMode = colorMode;
 }
@@ -132,12 +130,7 @@ void GeoDataColorStyle::unpack( QDataStream& stream )
 
     stream >> d->m_color;
     // FIXME: Why is not colorMode saved?
-    //    stream >> m_colorMode;
-}
-
-QString Marble::GeoDataColorStyle::contrastColor(const QColor &color)
-{
-    return color.valueF() > 0.85 ? QStringLiteral("black") : QStringLiteral("white");
+//    stream >> m_colorMode;
 }
 
 }

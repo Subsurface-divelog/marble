@@ -12,16 +12,14 @@
 #ifndef MARBLE_GEODATAACCURACY_H
 #define MARBLE_GEODATAACCURACY_H
 
-#include "geodata_export.h"
+#include "marble_export.h"
 
-#include <QtGlobal>
+#include <QObject>
 
 namespace Marble
 {
 
-/**
- */
-class GEODATA_EXPORT GeoDataAccuracy
+class MARBLE_EXPORT GeoDataAccuracy
 {
  public:
     enum Level {

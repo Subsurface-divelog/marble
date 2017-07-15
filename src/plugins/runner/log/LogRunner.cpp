@@ -15,6 +15,7 @@
 #include "MarbleDebug.h"
 
 #include <QFile>
+#include <QFileInfo>
 
 namespace Marble
 {
@@ -28,13 +29,13 @@ LogRunner::~LogRunner()
 {
 }
 
-GeoDataDocument *LogRunner::parseFile(const QString &fileName, DocumentRole role, QString &errorString)
+void LogRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
     QFile file( fileName );
     if ( !file.exists() ) {
-        errorString = QStringLiteral("File %1 does not exist").arg(fileName);
-        mDebug() << errorString;
-        return nullptr;
+        qWarning( "File does not exist!" );
+        emit parsingFinished( 0 );
+        return;
     }
 
     file.open( QIODevice::ReadOnly );
@@ -53,7 +54,7 @@ GeoDataDocument *LogRunner::parseFile(const QString &fileName, DocumentRole role
     bool error = false;
     while( !stream.atEnd() || error ){
         const QString line = stream.readLine();
-        const QStringList list = line.split(QLatin1Char(','));
+        const QStringList list = line.split( ',' );
 
         if ( list.size() != 7 ) {
             mDebug() << Q_FUNC_INFO << "Aborting due to error in line" << count << ". Line was:" << line;
@@ -90,13 +91,14 @@ GeoDataDocument *LogRunner::parseFile(const QString &fileName, DocumentRole role
     if ( track->size() == 0 || error ) {
         delete document;
         document = 0;
-        return nullptr;
+        emit parsingFinished( 0 );
+        return;
     }
 
     document->setFileName( fileName );
-    return document;
+    emit parsingFinished( document );
 }
 
 }
 
-#include "moc_LogRunner.cpp"
+#include "LogRunner.moc"

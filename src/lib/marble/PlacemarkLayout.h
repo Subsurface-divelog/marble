@@ -17,32 +17,33 @@
 #ifndef MARBLE_PLACEMARKLAYOUT_H
 #define MARBLE_PLACEMARKLAYOUT_H
 
+
 #include <QHash>
+#include <QModelIndex>
 #include <QRect>
 #include <QSet>
-#include <QMap>
 #include <QVector>
+#include <QSortFilterProxyModel>
 
-#include "GeoDataPlacemark.h"
-#include <GeoDataStyle.h>
+#include "GeoDataFeature.h"
 
 class QAbstractItemModel;
 class QItemSelectionModel;
 class QPoint;
-class QModelIndex;
 
 
 namespace Marble
 {
 
 class GeoDataCoordinates;
+class GeoDataPlacemark;
+class GeoDataStyle;
 class GeoPainter;
 class MarbleClock;
 class PlacemarkPainter;
 class TileId;
 class VisiblePlacemark;
 class ViewportParams;
-class StyleBuilder;
 
 /**
  * Layouts the place marks with a passed QPainter.
@@ -61,18 +62,17 @@ class PlacemarkLayout : public QObject
     PlacemarkLayout( QAbstractItemModel  *placemarkModel,
                      QItemSelectionModel *selectionModel,
                      MarbleClock *clock,
-                     const StyleBuilder* styleBuilder,
                      QObject *parent = 0 );
 
     /**
      * Destroys the place mark painter.
      */
-    ~PlacemarkLayout() override;
+    ~PlacemarkLayout();
 
     /**
      * @reimp
      */
-    QVector<VisiblePlacemark *> generateLayout(const ViewportParams *viewport , int tileLevel);
+    QVector<VisiblePlacemark *> generateLayout( const ViewportParams *viewport );
 
     /**
      * Returns a list of model indexes that are at position @p pos.
@@ -80,10 +80,6 @@ class PlacemarkLayout : public QObject
     QVector<const GeoDataFeature *> whichPlacemarkAt( const QPoint &pos );
 
     QString runtimeTrace() const;
-
-    QList<VisiblePlacemark *> visiblePlacemarks() const;
-
-    bool hasPlacemarkAt(const QPoint &pos);
 
  public Q_SLOTS:
     // earth
@@ -98,8 +94,8 @@ class PlacemarkLayout : public QObject
     void setShowMaria( bool show );
 
     void requestStyleReset();
-    void addPlacemarks( const QModelIndex& index, int first, int last );
-    void removePlacemarks( const QModelIndex& index, int first, int last );
+    void addPlacemarks( QModelIndex index, int first, int last );
+    void removePlacemarks( QModelIndex index, int first, int last );
     void resetCacheData();
 
  Q_SIGNALS:
@@ -116,28 +112,26 @@ class PlacemarkLayout : public QObject
     int maxLabelHeight() const;
 
     void styleReset();
-    void clearCache();
 
-    QSet<TileId> visibleTiles( const ViewportParams *viewport, int tileLevel ) const;
-    bool layoutPlacemark(const GeoDataPlacemark *placemark, const GeoDataCoordinates &coordinates, qreal x, qreal y, bool selected );
+    static QSet<TileId> visibleTiles( const ViewportParams *viewport );
+    bool layoutPlacemark( const GeoDataPlacemark *placemark, qreal x, qreal y, bool selected );
 
     /**
      * Returns the coordinates at which an icon should be drawn for the @p placemark.
      * @p ok is set to true if the coordinates are valid and should be used for drawing,
-     * it is set to false otherwise.
+     * it it set to false otherwise.
      */
     GeoDataCoordinates placemarkIconCoordinates( const GeoDataPlacemark *placemark ) const;
 
-    QRectF  roomForLabel(const GeoDataStyle::ConstPtr &style,
+    QRectF  roomForLabel( const GeoDataStyle * style,
                          const qreal x, const qreal y,
-                         const QString &labelText , const VisiblePlacemark *placemark) const;
-    bool    hasRoomForPixmap(const qreal y, const VisiblePlacemark *placemark) const;
+                         const QString &labelText ) const;
 
     bool    placemarksOnScreenLimit( const QSize &screenSize ) const;
 
  private:
     Q_DISABLE_COPY( PlacemarkLayout )
-    QAbstractItemModel*  m_placemarkModel;
+    QSortFilterProxyModel  m_placemarkModel;
     QItemSelectionModel *const m_selectionModel;
     MarbleClock *const m_clock;
 
@@ -149,9 +143,8 @@ class PlacemarkLayout : public QObject
 
     /// map providing the list of placemark belonging in TileId as key
     QMap<TileId, QList<const GeoDataPlacemark*> > m_placemarkCache;
-    QSet<qint64> m_osmIds;
 
-    const QSet<GeoDataPlacemark::GeoDataVisualCategory> m_acceptedVisualCategories;
+    const QVector< GeoDataFeature::GeoDataVisualCategory > m_acceptedVisualCategories;
 
     // earth
     bool m_showPlaces;
@@ -166,8 +159,6 @@ class PlacemarkLayout : public QObject
 
     int     m_maxLabelHeight;
     bool    m_styleResetRequested;
-    const StyleBuilder* m_styleBuilder;
-    VisiblePlacemark* m_lastPlacemarkAt;
 };
 
 }

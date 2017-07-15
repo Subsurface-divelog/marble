@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_KMLICONSTYLETAGWRITER_H
@@ -24,8 +24,8 @@ public:
     KmlIconStyleTagWriter();
 
 protected:
-    bool writeMid( const GeoNode *node, GeoWriter& writer ) const override;
-    bool isEmpty( const GeoNode *node ) const override;
+    virtual bool writeMid( const GeoNode *node, GeoWriter& writer ) const;
+    virtual bool isEmpty( const GeoNode *node ) const;
 
 private:
     static QString unitString( GeoDataHotSpot::Units unit );

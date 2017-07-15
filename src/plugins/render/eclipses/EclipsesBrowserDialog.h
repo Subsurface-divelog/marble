@@ -12,6 +12,9 @@
 #define MARBLE_ECLIPSESBROWSERDIALOG_H
 
 #include <QDialog>
+#include <QTreeView>
+#include <QListWidget>
+#include <QListWidgetItem>
 
 namespace Ui {
     class EclipsesBrowserDialog;
@@ -35,7 +38,7 @@ public:
     explicit EclipsesBrowserDialog( const MarbleModel *model,
                                     QWidget *parent = 0 );
 
-    ~EclipsesBrowserDialog() override;
+    ~EclipsesBrowserDialog();
 
     /**
      * @brief Set the year
@@ -91,7 +94,7 @@ protected Q_SLOTS:
      *
      * @see buttonShowClicked
      */
-    void accept() override;
+    void accept();
 
     /**
      * @brief Update the list of eclipses for the given year

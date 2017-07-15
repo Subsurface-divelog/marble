@@ -20,7 +20,7 @@ namespace Marble
 class PluginManagerTest : public QObject
 {
     Q_OBJECT
-    private Q_SLOTS:
+    private slots:
         void loadPlugins();
 };
 

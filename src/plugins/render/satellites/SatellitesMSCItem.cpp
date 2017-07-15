@@ -48,7 +48,7 @@ SatellitesMSCItem::SatellitesMSCItem( const QString &name,
       m_missionStart( missionStart ),
       m_missionEnd( missionEnd )
 {
-    placemark()->setVisualCategory(GeoDataPlacemark::Satellite);
+    placemark()->setVisualCategory( GeoDataFeature::Satellite );
     placemark()->setZoomLevel( 0 );
     placemark()->setGeometry( m_track );
 
@@ -116,7 +116,7 @@ void SatellitesMSCItem::setDescription()
                                   QString::number( m_inc, 'f', 2 ),
                                   QString::number( m_n0, 'f', 2 ) );*/
 
-    QFile templateFile(QStringLiteral(":/marble/satellites/satellite.html"));
+    QFile templateFile(":/marble/satellites/satellite.html");
     if (!templateFile.open(QIODevice::ReadOnly)) {
         placemark()->setDescription(QObject::tr("No info available."));
         return;

@@ -15,6 +15,7 @@
 #include <QDebug>
 #include <QXmlInputSource>
 #include <QXmlSimpleReader>
+#include <QStringList>
 #include "svgxmlhandler.h"
 
 void parseSvg( const QString & svgFilename, QDataStream * out, const QString & path, int header ) {

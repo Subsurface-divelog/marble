@@ -13,11 +13,12 @@
 #ifndef MARBLE_GEODATALABELSTYLE_H
 #define MARBLE_GEODATALABELSTYLE_H
 
+
+#include <QFont>
+
 #include "GeoDataColorStyle.h"
 
 #include "geodata_export.h"
-
-class QFont;
 
 namespace Marble
 {
@@ -35,7 +36,7 @@ class GeoDataLabelStylePrivate;
 class GEODATA_EXPORT GeoDataLabelStyle : public GeoDataColorStyle
 {
   public:
-    enum Alignment{Corner, Center, Right /*, Left, Below  */};
+    enum Alignment{Corner, Center /*, Left, Right, Below  */};
 
     /// Construct a new GeoDataLabelStyle
     GeoDataLabelStyle();
@@ -47,7 +48,7 @@ class GEODATA_EXPORT GeoDataLabelStyle : public GeoDataColorStyle
      */
     GeoDataLabelStyle( const QFont &font, const QColor &color );
 
-    ~GeoDataLabelStyle() override;
+    ~GeoDataLabelStyle();
     
     /**
     * @brief assignment operator
@@ -58,13 +59,13 @@ class GEODATA_EXPORT GeoDataLabelStyle : public GeoDataColorStyle
     bool operator!=( const GeoDataLabelStyle &other ) const;
 
     /// Provides type information for downcasting a GeoData
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
      * @brief Set the scale of the label
      * @param  scale  the new scale
      */
-    void setScale(float scale);
+    void setScale( const float &scale );
     /**
      * @brief Return the current scale of the label
      * @return  the current scale
@@ -92,12 +93,6 @@ class GEODATA_EXPORT GeoDataLabelStyle : public GeoDataColorStyle
     QFont font() const;
 
     /**
-     * @brief Return the scaled font of the label
-     * @return  the scaled font
-     */
-    QFont scaledFont() const;
-
-    /**
      * @brief Return true if the text of the label should glow, false otherwise
      * @see setGlow
      */
@@ -116,12 +111,12 @@ class GEODATA_EXPORT GeoDataLabelStyle : public GeoDataColorStyle
      * @brief  Serialize the style to a stream.
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /**
      * @brief  Unserialize the style from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
   private:
     GeoDataLabelStylePrivate * const d;

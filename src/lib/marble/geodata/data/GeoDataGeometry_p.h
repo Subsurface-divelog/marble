@@ -11,11 +11,13 @@
 #ifndef MARBLE_GEODATAGEOMETRYPRIVATE_H
 #define MARBLE_GEODATAGEOMETRYPRIVATE_H
 
+#include <QString>
 #include <QAtomicInt>
 
 #include "GeoDataGeometry.h"
 
 #include "GeoDataLatLonAltBox.h"
+#include "GeoDataTypes.h"
 
 namespace Marble
 {
@@ -50,7 +52,22 @@ class GeoDataGeometryPrivate
         return *this;
     }
 
-    virtual GeoDataGeometryPrivate *copy() const = 0;
+    virtual GeoDataGeometryPrivate* copy()
+    { 
+        GeoDataGeometryPrivate* copy = new GeoDataGeometryPrivate;
+        *copy = *this;
+        return copy;
+    }
+
+    virtual const char* nodeType() const
+    {
+        return GeoDataTypes::GeoDataGeometryType;
+    }
+
+    virtual EnumGeometryId geometryId() const
+    {
+        return InvalidGeometryId;
+    }
 
     bool         m_extrude;
     AltitudeMode m_altitudeMode;

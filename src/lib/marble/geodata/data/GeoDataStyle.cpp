@@ -12,12 +12,6 @@
 #include "GeoDataStyle.h"
 
 #include "GeoDataTypes.h"
-#include "GeoDataBalloonStyle.h"
-#include "GeoDataIconStyle.h"
-#include "GeoDataLabelStyle.h"
-#include "GeoDataLineStyle.h"
-#include "GeoDataListStyle.h"
-#include "GeoDataPolyStyle.h"
 
 namespace Marble
 {
@@ -29,9 +23,9 @@ class GeoDataStylePrivate
     {
     }
 
-    GeoDataStylePrivate(const QString& iconPath,
+    GeoDataStylePrivate(const QImage& icon,
                         const QFont &font, const QColor &color )
-        : m_iconStyle( iconPath ),
+        : m_iconStyle( icon ),
           m_labelStyle( font, color ),
           m_lineStyle( color ),
           m_polyStyle( color ),
@@ -62,9 +56,9 @@ GeoDataStyle::GeoDataStyle( const GeoDataStyle& other )
 {
 }
 
-GeoDataStyle::GeoDataStyle( const QString& iconPath,
+GeoDataStyle::GeoDataStyle( const QImage& icon,
                             const QFont &font, const QColor &color  )
-    : d( new GeoDataStylePrivate( iconPath, font, color ) )
+    : d( new GeoDataStylePrivate( icon, font, color ) )
 {
 }
 

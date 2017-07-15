@@ -14,7 +14,10 @@
 #ifndef MARBLE_HTTPJOB_H
 #define MARBLE_HTTPJOB_H
 
+#include <QByteArray>
 #include <QObject>
+#include <QString>
+#include <QUrl>
 #include <QNetworkReply>
 
 #include "MarbleGlobal.h"
@@ -22,9 +25,6 @@
 #include "marble_export.h"
 
 class QNetworkAccessManager;
-class QString;
-class QByteArray;
-class QUrl;
 
 namespace Marble
 {
@@ -36,7 +36,7 @@ class MARBLE_EXPORT HttpJob: public QObject
 
  public:
     HttpJob( const QUrl & sourceUrl, const QString & destFileName, const QString &id, QNetworkAccessManager *networkAccessManager );
-    ~HttpJob() override;
+    ~HttpJob();
 
     QUrl sourceUrl() const;
     void setSourceUrl( const QUrl & );
@@ -61,13 +61,13 @@ class MARBLE_EXPORT HttpJob: public QObject
      * errorCode contains 0, if there was no error and 1 otherwise
      */
     void jobDone( HttpJob *, int errorCode );
-    void redirected( HttpJob * job, const QUrl& redirectionTarget );
+    void redirected( HttpJob * job, QUrl redirectionTarget );
 
     /**
      * This signal is emitted if the data was successfully received and
      * the argument data contains completely the downloaded content.
      */
-    void dataReceived( HttpJob * job, const QByteArray& data );
+    void dataReceived( HttpJob * job, QByteArray data );
 
  public Q_SLOTS:
     void execute();

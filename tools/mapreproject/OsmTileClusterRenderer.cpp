@@ -62,8 +62,8 @@ QDir OsmTileClusterRenderer::checkAndCreateDirectory( int const tileX ) const
 
 void OsmTileClusterRenderer::initMapSources()
 {
-    QVector<ReadOnlyMapDefinition>::const_iterator pos = m_mapSourceDefinitions.constBegin();
-    QVector<ReadOnlyMapDefinition>::const_iterator const end = m_mapSourceDefinitions.constEnd();
+    QVector<ReadOnlyMapDefinition>::const_iterator pos = m_mapSourceDefinitions.begin();
+    QVector<ReadOnlyMapDefinition>::const_iterator const end = m_mapSourceDefinitions.end();
     for (; pos != end; ++pos )
     {
         ReadOnlyMapImage * const mapImage = (*pos).createReadOnlyMap();
@@ -157,4 +157,4 @@ inline double OsmTileClusterRenderer::osmPixelYtoLatRad( int const pixelY ) cons
     return -atan( sinh(( pixelYd - 0.5 * osmMapEdgeLengthPixeld ) * 2.0 * M_PI / osmMapEdgeLengthPixeld ));
 }
 
-#include "moc_OsmTileClusterRenderer.cpp"
+#include "OsmTileClusterRenderer.moc"

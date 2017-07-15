@@ -19,20 +19,25 @@
 #include "GeoDataGroundOverlay.h"
 #include "GroundOverlayFrame.h"
 
+#include <QObject>
 #include <QMenu>
 #include <QSortFilterProxyModel>
 
+
+class QNetworkAccessManager;
+class QNetworkReply;
 
 namespace Marble
 {
 
 class MarbleWidget;
+class TextureLayer;
 class GeoDataDocument;
 class GeoDataLinearRing;
+class GeoDataLineString;
 class AreaAnnotation;
 class PolylineAnnotation;
 class PlacemarkTextAnnotation;
-class OsmPlacemarkData;
 
 
 /**
@@ -42,61 +47,59 @@ class OsmPlacemarkData;
 class AnnotatePlugin :  public RenderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.AnnotatePlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.AnnotatePlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     MARBLE_PLUGIN( AnnotatePlugin )
 
 public:
     explicit AnnotatePlugin(const MarbleModel *model = 0);
-    ~AnnotatePlugin() override;
+    virtual ~AnnotatePlugin();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    QString runtimeTrace() const override;
+    virtual QString runtimeTrace() const;
 
-    const QList<QActionGroup*> *actionGroups() const override;
+    virtual const QList<QActionGroup*> *actionGroups() const;
 
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString &renderPos, GeoSceneLayer *layer = 0 ) override;
+                 const QString &renderPos, GeoSceneLayer *layer = 0 );
 
-Q_SIGNALS:
+signals:
     void placemarkMoved();
     void nodeAdded( const GeoDataCoordinates &coordinates );
     void itemMoved( GeoDataPlacemark *placemark );
-    void mouseMoveGeoPosition( const QString& );
 
-private Q_SLOTS:
+private slots:
     void enableModel( bool enabled );
     void askToRemoveFocusItem();
     void removeFocusItem();
     void clearAnnotations();
     void saveAnnotationFile();
     void loadAnnotationFile();
-    void openAnnotationFile(const QString&);
     void copyItem();
     void cutItem();
     void pasteItem();
@@ -126,11 +129,8 @@ private Q_SLOTS:
     void stopEditingPolyline( int result );
     void setPolylineAvailable();
 
-    void addRelation( const OsmPlacemarkData &relationOsmData );
-    void downloadOsm();
-
 protected:
-    bool eventFilter( QObject *watched, QEvent *event ) override;
+    bool eventFilter( QObject *watched, QEvent *event );
 
 private:
     void addContextItems();
@@ -171,7 +171,6 @@ private:
     void announceStateChanged( SceneGraphicsItem::ActionState newState );
     void setupCursor( SceneGraphicsItem *item );
 
-    const GeoDataCoordinates mouseGeoDataCoordinates( QMouseEvent *mouseEvent );
 
     bool m_isInitialized;
     bool m_widgetInitialized;
@@ -187,16 +186,11 @@ private:
     QSortFilterProxyModel m_groundOverlayModel;
     QMap<GeoDataGroundOverlay*, SceneGraphicsItem*> m_groundOverlayFrames;
 
-    // A list of all osm relations
-    QHash<qint64, OsmPlacemarkData> m_osmRelations;
-
-
     GeoDataDocument* m_annotationDocument;
     QList<SceneGraphicsItem*> m_graphicsItems;
 
     SceneGraphicsItem *m_movedItem;
     SceneGraphicsItem *m_focusItem;
-    SceneGraphicsItem *m_editedItem;
     GeoDataGroundOverlay *m_rmbOverlay;
 
     GeoDataPlacemark *m_polylinePlacemark;

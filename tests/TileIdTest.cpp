@@ -20,7 +20,7 @@ class TileIdTest : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+ private slots:
     void testFromCoordinates_data();
     void testFromCoordinates();
 

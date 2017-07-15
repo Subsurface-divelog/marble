@@ -5,14 +5,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010   Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010   Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012   Thibaut Gridel <tgridel@free.fr>
 
 #include "BranchFilterProxyModel.h"
 
+#include "GeoDataTypes.h"
 #include "MarblePlacemarkModel.h"
-#include "GeoDataContainer.h"
-#include "GeoDataTreeModel.h"
 
 namespace Marble
 {
@@ -51,7 +50,8 @@ bool BranchFilterProxyModel::filterAcceptsRow( int sourceRow, const QModelIndex 
     // return true for all non folder children of m_branchIndex
     if( sourceParent == m_branchIndex ) {
         GeoDataObject* obj = qvariant_cast<GeoDataObject*>( rowIndex.data( MarblePlacemarkModel::ObjectPointerRole ) );
-        return dynamic_cast<const GeoDataContainer *>(obj);
+        return( obj->nodeType() != GeoDataTypes::GeoDataFolderType
+                && obj->nodeType() != GeoDataTypes::GeoDataDocumentType );
     }
 
     // return true if rowIndex is a parent of m_branchIndex
@@ -59,7 +59,10 @@ bool BranchFilterProxyModel::filterAcceptsRow( int sourceRow, const QModelIndex 
     while ( tmpIndex.isValid() && tmpIndex != rowIndex ) {
         tmpIndex = tmpIndex.parent();
     }
-    return tmpIndex == rowIndex;
+    if( tmpIndex == rowIndex ) {
+        return true;
+    }
+    return false;
 }
 
 }

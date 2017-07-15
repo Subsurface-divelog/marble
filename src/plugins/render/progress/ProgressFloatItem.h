@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef PROGRESS_FLOAT_ITEM_H
@@ -14,8 +14,8 @@
 #include "AbstractFloatItem.h"
 
 #include <QMutex>
+#include <QObject>
 #include <QTimer>
-#include <QIcon>
 
 namespace Marble
 {
@@ -27,7 +27,7 @@ namespace Marble
 class ProgressFloatItem  : public AbstractFloatItem
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.ProgressFloatItem")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.ProgressFloatItem" )
 
     Q_INTERFACES( Marble::RenderPluginInterface )
 
@@ -35,33 +35,33 @@ class ProgressFloatItem  : public AbstractFloatItem
 
  public:
     explicit ProgressFloatItem( const MarbleModel *marbleModel = 0 );
-    ~ProgressFloatItem () override;
+    ~ProgressFloatItem ();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    QPainterPath backgroundShape() const override;
+    QPainterPath backgroundShape() const;
 
-    void paintContent( QPainter *painter ) override;
+    void paintContent( QPainter *painter );
 
 private Q_SLOTS:
     void removeProgressItem();

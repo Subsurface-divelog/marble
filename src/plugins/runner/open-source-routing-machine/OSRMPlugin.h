@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 
@@ -20,29 +20,29 @@ namespace Marble
 class OSRMPlugin : public RoutingRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.OSRMPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.OSRMPlugin" )
     Q_INTERFACES( Marble::RoutingRunnerPlugin )
 
 public:
     explicit OSRMPlugin( QObject *parent = 0 );
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    RoutingRunner *newRunner() const override;
+    virtual RoutingRunner *newRunner() const;
 
-    bool supportsTemplate( RoutingProfilesModel::ProfileTemplate profileTemplate ) const override;
+    virtual bool supportsTemplate( RoutingProfilesModel::ProfileTemplate profileTemplate ) const;
 };
 
 }

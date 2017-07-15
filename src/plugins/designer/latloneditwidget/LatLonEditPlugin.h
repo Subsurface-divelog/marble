@@ -11,9 +11,9 @@
 #define LATLONEDITPLUGIN_H
 
 #include <QDesignerCustomWidgetInterface>
-#include <QObject>
 #include <marble_export.h>
 
+class QObject;
 class QString;
 class QWidget;
 class QIcon;
@@ -22,22 +22,22 @@ class LatLonEditPlugin : public QObject,
                          public QDesignerCustomWidgetInterface
 {
 	Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.LatLonEditPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.LatLonEditPlugin" )
 	Q_INTERFACES(QDesignerCustomWidgetInterface)
 public:
 	explicit LatLonEditPlugin(QObject *parent = 0);
 
-	bool isContainer() const override;
-	bool isInitialized() const override;
-	QIcon icon() const override;
-	QString domXml() const override;
-	QString group() const override;
-	QString includeFile() const override;
-	QString name() const override;
-	QString toolTip() const override;
-	QString whatsThis() const override;
-	QWidget *createWidget(QWidget *parent) override;
-	void initialize(QDesignerFormEditorInterface *core) override;
+	bool isContainer() const;
+	bool isInitialized() const;
+	QIcon icon() const;
+	QString domXml() const;
+	QString group() const;
+	QString includeFile() const;
+	QString name() const;
+	QString toolTip() const;
+	QString whatsThis() const;
+	QWidget *createWidget(QWidget *parent);
+	void initialize(QDesignerFormEditorInterface *core);
 
 private:
 	bool m_initialized;

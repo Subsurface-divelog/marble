@@ -11,15 +11,17 @@
 #ifndef OPENDESKTOPITEM_H
 #define OPENDESKTOPITEM_H
  
+#include <QAction>
 #include "AbstractDataPluginItem.h"
+#include "TinyWebBrowser.h"
 #include "MarbleWidget.h"
-
-#include <QUrl>
-
-class QAction;
-
+ 
+class QFont;
+ 
 namespace Marble
 {
+
+class TinyWebBrowser;
  
 class OpenDesktopItem : public AbstractDataPluginItem
 {
@@ -28,41 +30,41 @@ class OpenDesktopItem : public AbstractDataPluginItem
     public:
         explicit OpenDesktopItem(QObject *parent);
 
-        ~OpenDesktopItem() override;
+        ~OpenDesktopItem();
 
-        bool initialized() const override;
+        bool initialized() const;
 
-        void addDownloadedFile( const QString& url, const QString& type ) override;
+        void addDownloadedFile( const QString& url, const QString& type );
         
-        void paint( QPainter *painter ) override;
+        void paint( QPainter *painter );
 
-        bool operator<( const AbstractDataPluginItem *other ) const override;
+        bool operator<( const AbstractDataPluginItem *other ) const;
 
         void updateToolTip();
         
-        QAction *action() override;
+        QAction *action();
         
         QUrl profileUrl() const;
 
         QUrl avatarUrl() const;
 
-        void setAvatarUrl( const QUrl& url );
+        void setAvatarUrl( const QUrl url );
 
         QString fullName() const;
 
-        void setFullName(const QString& fullName );
+        void setFullName(const QString fullName );
 
         QString location() const;
 
-        void setLocation(const QString& location );
+        void setLocation(const QString location );
 
         QString role() const;
 
-        void setRole(const QString& role );
+        void setRole(const QString role );
 
         void setMarbleWidget(MarbleWidget *widget);
     
-    public Q_SLOTS:
+    public slots:
         void openBrowser();
 
     private:

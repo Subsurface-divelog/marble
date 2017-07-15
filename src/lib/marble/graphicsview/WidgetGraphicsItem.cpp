@@ -24,9 +24,7 @@
 
 using namespace Marble;
 
-WidgetGraphicsItemPrivate::WidgetGraphicsItemPrivate(WidgetGraphicsItem *widgetGraphicsItem,
-                                                     MarbleGraphicsItem *parent)
-    : ScreenGraphicsItemPrivate(widgetGraphicsItem, parent),
+WidgetGraphicsItemPrivate::WidgetGraphicsItemPrivate() :
     m_widget(0), m_marbleWidget(0), m_activeWidget( 0 )
 {
     // nothing to do
@@ -38,19 +36,18 @@ WidgetGraphicsItemPrivate::~WidgetGraphicsItemPrivate()
 }
 
 WidgetGraphicsItem::WidgetGraphicsItem( MarbleGraphicsItem *parent )
-    : ScreenGraphicsItem(new WidgetGraphicsItemPrivate(this, parent))
+    : ScreenGraphicsItem( parent ),
+      d( new WidgetGraphicsItemPrivate() )
 {
 }
-
-WidgetGraphicsItem::~WidgetGraphicsItem()
-{
+    
+WidgetGraphicsItem::~WidgetGraphicsItem() {
+    delete d;
 }
-
-void WidgetGraphicsItem::setWidget(QWidget *widget)
-{
-    Q_D(WidgetGraphicsItem);
+    
+void WidgetGraphicsItem::setWidget( QWidget *widget ) {
     d->m_widget = widget;
-
+    
     QSize size = widget->sizeHint().expandedTo( widget->size() );
     size = size.expandedTo( widget->minimumSize() );
     size = size.boundedTo( widget->maximumSize() );
@@ -58,15 +55,12 @@ void WidgetGraphicsItem::setWidget(QWidget *widget)
     widget->resize( size );
 }
 
-QWidget *WidgetGraphicsItem::widget() const
-{
-    Q_D(const WidgetGraphicsItem);
+QWidget *WidgetGraphicsItem::widget() const {
     return d->m_widget;
 }
 
 void WidgetGraphicsItem::paint( QPainter *painter )
 {
-    Q_D(WidgetGraphicsItem);
     if( d->m_widget == 0 )
         return;
 
@@ -76,7 +70,6 @@ void WidgetGraphicsItem::paint( QPainter *painter )
 
 bool WidgetGraphicsItem::eventFilter( QObject *object, QEvent *e )
 {
-    Q_D(WidgetGraphicsItem);
     if ( !visible() || d->m_widget == 0 ) {
         return false;
     }
@@ -101,10 +94,10 @@ bool WidgetGraphicsItem::eventFilter( QObject *object, QEvent *e )
         // Mouse events are forwarded to the underlying widget
         QMouseEvent *event = static_cast<QMouseEvent*> ( e );
 
-        const QVector<QPointF> widgetPositions = absolutePositions();
+        QList<QPointF> widgetPositions = absolutePositions();
         QRectF widgetItemRect;
         QPoint shiftedPos;
-        QVector<QPointF>::ConstIterator it = widgetPositions.begin();
+        QList<QPointF>::iterator it = widgetPositions.begin();
         bool foundRightPosition = false;
         for(; !foundRightPosition && it != widgetPositions.end(); ++it ) {
             widgetItemRect = QRectF( *it, size() );

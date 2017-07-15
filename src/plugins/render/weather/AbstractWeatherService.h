@@ -30,7 +30,7 @@ class AbstractWeatherService : public QObject
     
  public:
     explicit AbstractWeatherService( const MarbleModel *model, QObject *parent );
-    ~AbstractWeatherService() override;
+    virtual ~AbstractWeatherService();
     void setMarbleWidget( MarbleWidget* widget );
     
  public Q_SLOTS:
@@ -44,7 +44,7 @@ class AbstractWeatherService : public QObject
     
  Q_SIGNALS:
     void requestedDownload( const QUrl& url, const QString& type, AbstractDataPluginItem *item );
-    void createdItems( const QList<AbstractDataPluginItem*>& items );
+    void createdItems( QList<AbstractDataPluginItem*> items );
     void downloadDescriptionFileRequested( const QUrl& );
 
 protected:

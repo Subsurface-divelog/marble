@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2008 Torsten Rahn <tackat@kde.org>
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "CompassFloatItem.h"
@@ -19,6 +19,7 @@
 #include <QRect>
 #include <QColor>
 #include <QPainter>
+#include <QPixmap>
 #include <QPushButton>
 #include <QSvgRenderer>
 
@@ -54,7 +55,7 @@ CompassFloatItem::~CompassFloatItem ()
 
 QStringList CompassFloatItem::backendTypes() const
 {
-    return QStringList(QStringLiteral("compass"));
+    return QStringList( "compass" );
 }
 
 QString CompassFloatItem::name() const
@@ -69,12 +70,12 @@ QString CompassFloatItem::guiString() const
 
 QString CompassFloatItem::nameId() const
 {
-    return QStringLiteral("compass");
+    return QString( "compass" );
 }
 
 QString CompassFloatItem::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString CompassFloatItem::description() const
@@ -84,19 +85,19 @@ QString CompassFloatItem::description() const
 
 QString CompassFloatItem::copyrightYears() const
 {
-    return QStringLiteral("2009, 2010");
+    return "2009, 2010";
 }
 
-QVector<PluginAuthor> CompassFloatItem::pluginAuthors() const
+QList<PluginAuthor> CompassFloatItem::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
-            << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
+            << PluginAuthor( "Torsten Rahn", "tackat@kde.org" );
 }
 
 QIcon CompassFloatItem::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/compass.png"));
+    return QIcon(":/icons/compass.png");
 }
 
 void CompassFloatItem::initialize()
@@ -140,10 +141,11 @@ void CompassFloatItem::paintContent( QPainter *painter )
 
     QRectF compassRect( contentRect() );
 
-    const QString dirstr =
-        (m_polarity == +1) ? tr("N") :
-        (m_polarity == -1) ? tr("S") :
-        /*else*/             QString();
+    QString dirstr = tr( "N" );
+    if ( m_polarity == -1 )
+        dirstr = tr( "S" );
+    if ( m_polarity == 0 )
+        dirstr = "";
 
     int fontheight = QFontMetrics( font() ).ascent();
     int fontwidth = QFontMetrics( font() ).boundingRect( dirstr ).width();
@@ -205,7 +207,7 @@ QHash<QString,QVariant> CompassFloatItem::settings() const
 {
     QHash<QString, QVariant> result = AbstractFloatItem::settings();
 
-    result.insert(QStringLiteral("theme"), m_themeIndex);
+    result.insert( "theme", m_themeIndex );
 
     return result;
 }
@@ -214,7 +216,7 @@ void CompassFloatItem::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractFloatItem::setSettings( settings );
 
-    m_themeIndex = settings.value(QStringLiteral("theme"), 0).toInt();
+    m_themeIndex = settings.value( "theme", 0 ).toInt();
 
     readSettings();
 }
@@ -225,16 +227,16 @@ void CompassFloatItem::readSettings()
         m_uiConfigWidget->m_themeList->setCurrentRow( m_themeIndex );
     }
 
-    QString theme = QStringLiteral(":/compass.svg");
+    QString theme = ":/compass.svg";
     switch( m_themeIndex ) {
     case 1:
-        theme = QStringLiteral(":/compass-arrows.svg");
+        theme = ":/compass-arrows.svg";
         break;
     case 2:
-        theme = QStringLiteral(":/compass-atom.svg");
+        theme = ":/compass-atom.svg";
         break;
     case 3:
-        theme = QStringLiteral(":/compass-magnet.svg");
+        theme = ":/compass-magnet.svg";
         break;
     }
 
@@ -255,4 +257,6 @@ void CompassFloatItem::writeSettings()
 
 }
 
-#include "moc_CompassFloatItem.cpp"
+Q_EXPORT_PLUGIN2( CompassFloatItem, Marble::CompassFloatItem )
+
+#include "CompassFloatItem.moc"

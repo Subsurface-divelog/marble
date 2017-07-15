@@ -43,8 +43,6 @@ class GEODATA_EXPORT GeoSceneZoom : public GeoNode
     bool discrete() const;
     void setDiscrete( bool theme );
 
-    const char *nodeType() const override;
-
  private:
     // FIXME: d-pointerfy
 

@@ -11,11 +11,10 @@
 #include <QObject>
 
 #include "GeoDataContainer.h"
-#include "GeoDataPoint.h"
 #include "GeoDataPlacemark.h"
-#include "GeoDataRelation.h"
 #include "GeoDataCamera.h"
 #include "MarbleGlobal.h"
+#include "GeoDataContainer.h"
 #include "GeoDataPlaylist.h"
 #include "GeoDataTour.h"
 #include "TestUtils.h"
@@ -28,22 +27,22 @@ class TestFeatureDetach : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+private slots:
     /**
      * FIXME: Doesn't work for the moment because calling detach() in
      * GeoDataFeature::set/abstractView() doesn't help because the object
      * isn't deep-copied in the private class.
      *
-     * @brief testRelation shows that getting the abstractView() of a copied
+     * @brief testFeature shows that getting the abstractView() of a copied
      * feature and modifying it doesn't modify the original one.
      */
-    void testRelation();
+    void testFeature();
 
     /**
-     * @brief testDocument shows that getting some child and modifying it,
+     * @brief testContainer shows that getting some child and modifying it,
      * doesn't modify the child at the same position in the original container.
      */
-    void testDocument();
+    void testContainer();
 
     /**
      * @brief testPlacemark shows that getting the geometry() and modifying it
@@ -71,32 +70,32 @@ private Q_SLOTS:
 
 };
 
-void TestFeatureDetach::testRelation()
+void TestFeatureDetach::testFeature()
 {
-    GeoDataRelation feat1;
+    GeoDataFeature feat1;
     GeoDataCamera *view1 = new GeoDataCamera();
     view1->setAltitudeMode(Absolute);
     feat1.setAbstractView(view1);
 
-    GeoDataRelation feat2 = feat1;
+    GeoDataFeature feat2 = feat1;
     feat2.abstractView()->setAltitudeMode(ClampToSeaFloor);
     // FIXME: See above (method description).
     // QVERIFY(feat1.abstractView()->altitudeMode() == Absolute);
 }
 
-void TestFeatureDetach::testDocument()
+void TestFeatureDetach::testContainer()
 {
-    GeoDataDocument cont1;
-    GeoDataFeature *feat1 = new GeoDataPlacemark();
+    GeoDataContainer cont1;
+    GeoDataFeature *feat1 = new GeoDataFeature();
     feat1->setName("Feat1");
     cont1.insert(0, feat1);
 
-    GeoDataDocument cont2 = cont1;
+    GeoDataContainer cont2 = cont1;
     cont2.child(0)->setName("Feat2");
-    QCOMPARE(cont1.child(0)->name(), QLatin1String("Feat1"));
+    QVERIFY(cont1.child(0)->name() == "Feat1");
 
-    const GeoDataDocument cont3 = cont1;
-    QCOMPARE(cont3.child(0)->name(), QLatin1String("Feat1"));
+    const GeoDataContainer cont3 = cont1;
+    QVERIFY(cont3.child(0)->name() == "Feat1");
 }
 
 void TestFeatureDetach::testPlacemark()
@@ -125,10 +124,10 @@ void TestFeatureDetach::testTour()
 
     GeoDataTour tour2 = tour1;
     tour2.playlist()->setId("Playlist2");
-    QCOMPARE(tour1.playlist()->id(), QLatin1String("Playlist1"));
+    QVERIFY(tour1.playlist()->id() == "Playlist1");
 
     const GeoDataTour tour3 = tour1;
-    QCOMPARE(tour3.playlist()->id(), QLatin1String("Playlist1"));
+    QVERIFY(tour3.playlist()->id() == "Playlist1");
 }
 
 void TestFeatureDetach::testGeometryParentInPlacemark()

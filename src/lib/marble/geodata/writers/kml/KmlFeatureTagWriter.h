@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_KMLFEATURETAGWRITER_H
@@ -24,7 +24,7 @@ class KmlFeatureTagWriter: public GeoTagWriter
 public:
     explicit KmlFeatureTagWriter( const QString &elementName );
 
-    bool write( const GeoNode *node, GeoWriter& writer ) const override;
+    bool write( const GeoNode *node, GeoWriter& writer ) const;
 
 protected:
     virtual bool writeMid( const GeoNode *node, GeoWriter& writer ) const = 0;

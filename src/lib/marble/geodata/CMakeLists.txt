@@ -1,5 +1,4 @@
 SET ( geodata_data_SRCS
-        geodata/data/LonLatParser.cpp
         geodata/data/GeoDataRegion.cpp
         geodata/data/GeoDataUpdate.cpp
         geodata/data/GeoDataViewVolume.cpp
@@ -18,7 +17,6 @@ SET ( geodata_data_SRCS
         geodata/data/GeoDataContainer.cpp
         geodata/data/GeoDataItemIcon.cpp
         geodata/data/GeoDataTour.cpp
-        geodata/data/GeoDataTourPrimitive.cpp
         geodata/data/GeoDataOverlay.cpp
         geodata/data/GeoDataListStyle.cpp
         geodata/data/GeoDataFlyTo.cpp
@@ -50,7 +48,6 @@ SET ( geodata_data_SRCS
         geodata/data/GeoDataLabelStyle.cpp
         geodata/data/GeoDataTimeSpan.cpp
         geodata/data/GeoDataMultiGeometry.cpp
-        geodata/data/GeoDataRelation.cpp
         geodata/data/GeoDataSimpleArrayData.cpp
         geodata/data/GeoDataObject.cpp
         geodata/data/GeoDataLatLonQuad.cpp
@@ -76,21 +73,17 @@ SET ( geodata_data_SRCS
         geodata/data/GeoDataDelete.cpp
         geodata/data/GeoDataSchemaData.cpp
         geodata/data/GeoDataSimpleData.cpp
-        geodata/data/GeoDataBuilding.cpp
 )
 
 SET ( geodata_scene_SRCS
-        geodata/scene/GeoSceneAbstractTileProjection.cpp
-        geodata/scene/GeoSceneMercatorTileProjection.cpp
-        geodata/scene/GeoSceneEquirectTileProjection.cpp
         geodata/scene/GeoSceneIcon.cpp
-        geodata/scene/GeoSceneTileDataset.cpp
-        geodata/scene/GeoSceneVectorTileDataset.cpp
+        geodata/scene/GeoSceneTiled.cpp
+        geodata/scene/GeoSceneVectorTile.cpp
         geodata/scene/GeoSceneGeodata.cpp
         geodata/scene/GeoSceneGroup.cpp
         geodata/scene/GeoSceneZoom.cpp
         geodata/scene/GeoSceneLegend.cpp
-        geodata/scene/GeoSceneTextureTileDataset.cpp
+        geodata/scene/GeoSceneTextureTile.cpp
         geodata/scene/GeoSceneAbstractDataset.cpp
         geodata/scene/GeoSceneItem.cpp
         geodata/scene/GeoSceneLicense.cpp
@@ -198,8 +191,6 @@ SET ( geodata_handlers_dgml_SRCS
         geodata/handlers/dgml/DgmlSettingsTagHandler.cpp
         geodata/handlers/dgml/DgmlAuxillaryDictionary.h
         geodata/handlers/dgml/DgmlLayerTagHandler.h
-        geodata/handlers/dgml/DgmlRenderOrderTagHandler.cpp
-        geodata/handlers/dgml/DgmlRenderOrderTagHandler.h
 )
 
 SET ( geodata_writers_dgml_SRCS
@@ -232,15 +223,13 @@ SET ( geodata_writers_dgml_SRCS
 SET( geodata_graphicsitem_SRCS
     geodata/graphicsitem/GeoLineStringGraphicsItem.cpp
     geodata/graphicsitem/GeoPhotoGraphicsItem.cpp
+    geodata/graphicsitem/GeoPointGraphicsItem.cpp
     geodata/graphicsitem/GeoPolygonGraphicsItem.cpp
-    geodata/graphicsitem/AbstractGeoPolygonGraphicsItem.cpp
-    geodata/graphicsitem/BuildingGeoPolygonGraphicsItem.cpp
     geodata/graphicsitem/GeoTrackGraphicsItem.cpp
     geodata/graphicsitem/ScreenOverlayGraphicsItem.cpp
 )
 
 SET ( geodata_handlers_kml_SRCS
-geodata/handlers/kml/KmlAddressTagHandler.cpp
 geodata/handlers/kml/KmlAltitudeModeTagHandler.cpp
 geodata/handlers/kml/KmlAltitudeTagHandler.cpp
 geodata/handlers/kml/KmlAnimatedUpdateTagHandler.cpp
@@ -309,7 +298,6 @@ geodata/handlers/kml/KmlMinLodPixelsTagHandler.cpp
 geodata/handlers/kml/KmlModelTagHandler.cpp
 geodata/handlers/kml/KmlMultiGeometryTagHandler.cpp
 geodata/handlers/kml/KmlMultiTrackTagHandler.cpp
-geodata/handlers/kml/KmlMxSizeTagHandler.cpp
 geodata/handlers/kml/KmlNameTagHandler.cpp
 geodata/handlers/kml/KmlNetworkLinkTagHandler.cpp
 geodata/handlers/kml/KmlNorthTagHandler.cpp
@@ -407,10 +395,6 @@ geodata/handlers/kml/KmldelayedStartTagHandler.cpp
 geodata/handlers/kml/KmlBalloonVisibilityTagHandler.cpp
 geodata/handlers/kml/KmlCreateTagHandler.cpp
 geodata/handlers/kml/KmlDeleteTagHandler.cpp
-geodata/handlers/kml/KmlOsmPlacemarkDataTagHandler.cpp
-geodata/handlers/kml/KmlTagTagHandler.cpp
-geodata/handlers/kml/KmlMemberTagHandler.cpp
-geodata/handlers/kml/KmlNdTagHandler.cpp
 )
 
 SET ( geodata_writers_kml_SRCS
@@ -429,7 +413,6 @@ geodata/writers/kml/KmlIconStyleTagWriter.cpp
 geodata/writers/kml/KmlLatLonAltBoxWriter.cpp
 geodata/writers/kml/KmlLatLonBoxWriter.cpp
 geodata/writers/kml/KmlLatLonQuadWriter.cpp
-geodata/writers/kml/KmlLabelStyleTagWriter.cpp
 geodata/writers/kml/KmlLinearRingTagWriter.cpp
 geodata/writers/kml/KmlLineStringTagWriter.cpp
 geodata/writers/kml/KmlLineStyleTagWriter.cpp
@@ -464,7 +447,6 @@ geodata/writers/kml/KmlTimeStampTagWriter.cpp
 geodata/writers/kml/KmlTourTagWriter.cpp
 geodata/writers/kml/KmlTrackWriter.cpp
 geodata/writers/kml/KmlUpdateTagWriter.cpp
-geodata/writers/kml/KmlOsmPlacemarkDataTagWriter.cpp
 )
 
 # writer and the parser sources 
@@ -481,8 +463,6 @@ SET ( geodata_parser_SRCS
 SET( geodata_writer_SRCS
         geodata/writer/GeoTagWriter.cpp
         geodata/writer/GeoWriter.cpp
-        geodata/writer/GeoWriterBackend.cpp
-        geodata/writer/GeoDataDocumentWriter.cpp
    )
 
 SET( geodata_SRCS

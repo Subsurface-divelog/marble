@@ -13,16 +13,17 @@
 #include <QApplication>
 #include <QThread>
 #include <QTimer>
+#include <QHash>
 #include <qmath.h>
 #include <QDebug>
 #include <QVBoxLayout>
 
 #include <marble/MarbleWidget.h>
 #include <marble/MarbleGlobal.h>
-#include <marble/GeoDataDocument.h>
-#include <marble/GeoDataPlacemark.h>
-#include <marble/GeoDataLineString.h>
-#include <marble/GeoDataTreeModel.h>
+#include <GeoDataDocument.h>
+#include <GeoDataPlacemark.h>
+#include <GeoDataLineString.h>
+#include <GeoDataTreeModel.h>
 #include <marble/MarbleModel.h>
 
 
@@ -69,15 +70,15 @@ Window::Window(QWidget *parent) :
     setLayout(layout);
 
     // Load the OpenStreetMap map
-    m_marbleWidget->setMapThemeId(QStringLiteral("earth/openstreetmap/openstreetmap.dgml"));
+    m_marbleWidget->setMapThemeId("earth/openstreetmap/openstreetmap.dgml");
     m_marbleWidget->setProjection( Mercator );
     setGeometry(80, 60, 1000, 800);
     GeoDataCoordinates Kiev(30.523333, 50.45, 0.0, GeoDataCoordinates::Degree);
     m_marbleWidget->centerOn(Kiev);
     m_marbleWidget->setZoom(2300);
 
-    m_carFirst = new GeoDataPlacemark(QStringLiteral("Bus"));
-    m_carSecond = new GeoDataPlacemark(QStringLiteral("Car"));
+    m_carFirst = new GeoDataPlacemark("Bus");
+    m_carSecond = new GeoDataPlacemark("Car");
 
     GeoDataDocument *document = new GeoDataDocument;
 
@@ -140,4 +141,4 @@ int main(int argc, char** argv)
     return app.exec();
 }
 
-#include "moc_vehicletracking.cpp"
+#include "vehicletracking.moc"

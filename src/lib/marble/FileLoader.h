@@ -11,28 +11,28 @@
 #define MARBLE_FILELOADER_H
 
 #include "GeoDataDocument.h"
+#include "GeoDataStyle.h"
 
 #include <QThread>
-
-class QString;
+#include <QString>
 
 namespace Marble
 {
+class GeoDataContainer;
 class FileLoaderPrivate;
 class PluginManager;
-class GeoDataStyle;
 
 class FileLoader : public QThread
 {
     Q_OBJECT
     public:
-        FileLoader(QObject* parent, const PluginManager *pluginManager, bool recenter, const QString& file,
-                   const QString& property, const GeoDataStyle::Ptr &style, DocumentRole role, int renderOrder );
+        FileLoader( QObject* parent, const PluginManager *pluginManager, bool recenter,
+                    const QString& file, const QString& property, const GeoDataStyle* style, DocumentRole role );
         FileLoader( QObject* parent, const PluginManager *pluginManager,
                     const QString& contents, const QString& name, DocumentRole role );
-        ~FileLoader() override;
+        virtual ~FileLoader();
 
-        void run() override;
+        void run();
         bool recenter() const;
         QString path() const;
         GeoDataDocument *document();

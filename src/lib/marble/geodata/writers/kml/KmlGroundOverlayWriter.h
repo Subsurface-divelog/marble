@@ -24,7 +24,7 @@ class KmlGroundOverlayWriter : public KmlOverlayTagWriter
 public:
     KmlGroundOverlayWriter();
 
-    bool writeMid( const GeoNode *node, GeoWriter &writer ) const override;
+    bool writeMid( const GeoNode *node, GeoWriter &writer ) const;
 
     static QString altitudeModeToString(AltitudeMode mode);
 

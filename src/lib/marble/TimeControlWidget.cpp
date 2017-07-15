@@ -93,4 +93,4 @@ void TimeControlWidget::showEvent(QShowEvent* event)
     }
 }
 
-#include "moc_TimeControlWidget.cpp"
+#include "TimeControlWidget.moc"

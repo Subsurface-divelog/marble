@@ -22,7 +22,6 @@
 #include "GeoSceneFilter.h"
 
 #include "GeoScenePalette.h"
-#include "GeoSceneTypes.h"
 
 namespace Marble
 {
@@ -71,11 +70,6 @@ void GeoSceneFilter::addPalette( const GeoScenePalette *palette )
 int GeoSceneFilter::removePalette( const GeoScenePalette *palette )
 {
     return m_palette.removeAll( palette );
-}
-
-const char *GeoSceneFilter::nodeType() const
-{
-    return GeoSceneTypes::GeoSceneFilterType;
 }
 
 }

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "KmlIconStyleTagWriter.h"
@@ -34,14 +34,6 @@ bool KmlIconStyleTagWriter::writeMid( const GeoNode *node, GeoWriter& writer ) c
 
     if ( style->scale() != 1.0 ) {
         writer.writeElement( kml::kmlTag_scale, QString::number( style->scale(), 'f' ) );
-    }
-
-    if (!style->size().isEmpty()) {
-        writer.writeNamespace(kml::kmlTag_nameSpaceMx, QStringLiteral("mx"));
-        writer.writeStartElement(kml::kmlTag_nameSpaceMx, kml::kmlTag_size);
-        writer.writeAttribute(kml::kmlTag_width, QString::number(style->size().width()));
-        writer.writeAttribute(kml::kmlTag_height, QString::number(style->size().height()));
-        writer.writeEndElement();
     }
 
     if ( !style->iconPath().isEmpty() ) {

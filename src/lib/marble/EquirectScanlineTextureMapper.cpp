@@ -34,7 +34,7 @@ class EquirectScanlineTextureMapper::RenderJob : public QRunnable
 public:
     RenderJob( StackedTileLoader *tileLoader, int tileLevel, QImage *canvasImage, const ViewportParams *viewportParams, MapQuality mapQuality, int yTop, int yBottom );
 
-    void run() override;
+    virtual void run();
 
 private:
     StackedTileLoader *const m_tileLoader;

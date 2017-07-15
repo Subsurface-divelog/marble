@@ -10,10 +10,10 @@
 
 #include "AprsGatherer.h"
 
+#include <QPixmap>
+
 #include "MarbleDirs.h"
 #include "MarbleDebug.h"
-
-#include <QMutex>
 
 using namespace Marble;
 
@@ -75,10 +75,6 @@ AprsGatherer::run()
     // prevents accidentially coloring signals heard over some sources
     // as heard directly where it's never possible (such as over the
     // internet).
-    Q_ASSERT(m_source);
-    if (!m_source) {
-        return;
-    }
     bool canDoDirect = m_source->canDoDirect();
     
     while( m_running ) {
@@ -91,7 +87,7 @@ AprsGatherer::run()
         }
         
             
-        if ( !m_socket )
+        if ( !m_socket && m_source )
             m_socket = m_source->openSocket();
 
         if ( !m_socket ) {
@@ -140,12 +136,12 @@ AprsGatherer::run()
             QString callSign  = matcher.cap( 1 );
             qreal latitude = matcher.cap( 6 ).toFloat() +
                 ( matcher.cap( 7 ).toFloat()/60 );
-            if (matcher.cap(8) == QLatin1String("S"))
+            if ( matcher.cap( 8 ) == "S" )
                 latitude = - latitude;
 
             qreal longitude = matcher.cap( 10 ).toFloat() +
                 ( matcher.cap( 11 ).toFloat()/60 );
-            if (matcher.cap(12) == QLatin1String("W"))
+            if ( matcher.cap( 12 ) == "W" )
                 longitude = - longitude;
 
             addObject( callSign, latitude, longitude, canDoDirect,
@@ -218,7 +214,7 @@ AprsGatherer::addObject( const QString &callSign,
 
     GeoAprsCoordinates location( longitude, latitude, m_seenFrom );
     if ( canDoDirect ) {
-        if (!routePath.contains(QLatin1Char('*'))) {
+        if ( !routePath.contains( QChar( '*' ) ) ) {
             location.addSeenFrom( GeoAprsCoordinates::Directly );
         }
     }
@@ -286,4 +282,4 @@ AprsGatherer::sleepFor(int seconds)
     sleep(seconds);
 }
 
-#include "moc_AprsGatherer.cpp"
+#include "AprsGatherer.moc"

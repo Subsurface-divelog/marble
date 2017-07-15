@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -16,11 +16,12 @@
 #include "routing/RouteRequest.h"
 #include "routing/instructions/WaypointParser.h"
 #include "routing/instructions/InstructionTransformation.h"
+#include "GeoDataDocument.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
 #include "GeoDataPlacemark.h"
 
 #include <QProcess>
+#include <QMap>
 
 namespace Marble
 {
@@ -40,7 +41,7 @@ public:
 GosmoreRunnerPrivate::GosmoreRunnerPrivate()
 {
     m_parser.setLineSeparator("\r");
-    m_parser.setFieldSeparator(QLatin1Char(','));
+    m_parser.setFieldSeparator(',');
     m_parser.setFieldIndex( WaypointParser::RoadName, 4 );
     m_parser.addJunctionTypeMapping( "Jr", RoutingWaypoint::Roundabout );
 }
@@ -74,7 +75,7 @@ GosmoreRunner::GosmoreRunner( QObject *parent ) :
         d( new GosmoreRunnerPrivate )
 {
     // Check installation
-    QDir mapDir(MarbleDirs::localPath() + QLatin1String("/maps/earth/gosmore/"));
+    QDir mapDir( MarbleDirs::localPath() + "/maps/earth/gosmore/" );
     d->m_gosmoreMapFile = QFileInfo ( mapDir, "gosmore.pak" );
 }
 
@@ -100,14 +101,14 @@ void GosmoreRunner::reverseGeocoding( const GeoDataCoordinates &coordinates )
     GeoDataPlacemark placemark;
     placemark.setCoordinate( coordinates );
 
-    QStringList lines = QString::fromUtf8(output).split(QLatin1Char('\r'));
+    QStringList lines = QString::fromUtf8( output ).split( '\r' );
     if ( lines.size() > 2 ) {
-        QStringList fields = lines.at( lines.size()-2 ).split(QLatin1Char(','));
+        QStringList fields = lines.at( lines.size()-2 ).split(',');
         if ( fields.size() >= 5 ) {
             QString road = fields.last().trimmed();
             placemark.setAddress( road );
             GeoDataExtendedData extendedData;
-            extendedData.addValue(GeoDataData(QStringLiteral("road"), road));
+            extendedData.addValue( GeoDataData( "road", road ) );
             placemark.setExtendedData( extendedData );
         }
     }

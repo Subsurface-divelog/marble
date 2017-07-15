@@ -24,23 +24,23 @@ namespace Marble
 class GEODATA_EXPORT GeoSceneGeodata : public GeoSceneAbstractDataset
 {
  public:
-    explicit GeoSceneGeodata( const QString& name );
-    ~GeoSceneGeodata() override;
-    const char* nodeType() const override;
+    explicit GeoSceneGeodata( QString name );
+    virtual ~GeoSceneGeodata();
+    virtual const char* nodeType() const;
 
     bool operator==( const GeoSceneGeodata &other ) const;
 
     QString property() const;
-    void setProperty( const QString& property );
+    void setProperty( QString property );
 
     QString sourceFile() const;
-    void setSourceFile( const QString& sourceFile );
+    void setSourceFile( QString sourceFile );
 
     QString colorize() const;
-    void setColorize( const QString& colorize );
+    void setColorize( QString colorize );
 
     qreal alpha() const;
-    void setAlpha(qreal alpha);
+    void setAlpha( const qreal &alpha );
 
     QPen pen() const;
     void setPen( const QPen& pen );
@@ -48,11 +48,8 @@ class GEODATA_EXPORT GeoSceneGeodata : public GeoSceneAbstractDataset
     QBrush brush() const;
     void setBrush( const QBrush& brush );
 
-    int renderOrder() const;
-    void setRenderOrder( int renderOrder );
-
-    QVector<QColor> colors() const;
-    void setColors(const QVector<QColor> &colors);
+    QList<QColor> colors() const;
+    void setColors( const QList<QColor> &colors );
 
  private:
     QString m_property;
@@ -61,8 +58,7 @@ class GEODATA_EXPORT GeoSceneGeodata : public GeoSceneAbstractDataset
     qreal   m_alpha;
     QPen    m_pen;
     QBrush  m_brush;
-    int m_renderOrder;
-    QVector<QColor> m_colors;
+    QList<QColor> m_colors;
 };
 
 }

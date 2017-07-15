@@ -11,17 +11,13 @@
 #ifndef CONFLICTDIALOG_H
 #define CONFLICTDIALOG_H
 
+#include "MergeItem.h"
 #include "marble_export.h"
 
 #include <QDialog>
+#include <QDialogButtonBox>
 
-class QDialogButtonBox;
-class QAbstractButton;
-
-namespace Marble
-{
-
-class MergeItem;
+namespace Marble {
 
 class MARBLE_EXPORT ConflictDialog : public QDialog
 {
@@ -44,14 +40,14 @@ public:
     explicit ConflictDialog( QWidget *parent = 0 );
     void setMergeItem( MergeItem *item );
 
-public Q_SLOTS:
-    void open() override;
+public slots:
+    void open();
     void stopAutoResolve();
 
-Q_SIGNALS:
+signals:
     void resolveConflict( MergeItem *mergeItem );
 
-private Q_SLOTS:
+private slots:
     void resolveConflict( QAbstractButton *button );
 
 private:

@@ -17,12 +17,10 @@
 #include "GeoDataFolder.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataTreeModel.h"
-#include "GeoDataDocumentWriter.h"
-#include "GeoDataIconStyle.h"
+#include "GeoWriter.h"
 #include "KmlElementDictionary.h"
 #include "MarbleDebug.h"
 #include "MarbleDirs.h"
-#include "StyleBuilder.h"
 #include <QFile>
 
 namespace Marble
@@ -31,8 +29,7 @@ namespace Marble
 BookmarkManagerPrivate::BookmarkManagerPrivate( GeoDataTreeModel *treeModel ) :
     m_treeModel( treeModel ),
     m_bookmarkDocument( 0 ),
-    m_bookmarkFileRelativePath( "bookmarks/bookmarks.kml" ),
-    m_styleBuilder(nullptr)
+    m_bookmarkFileRelativePath( "bookmarks/bookmarks.kml" )
 {
     resetBookmarkDocument();
 }
@@ -65,11 +62,11 @@ void BookmarkManagerPrivate::resetBookmarkDocument()
 }
 
 void BookmarkManagerPrivate::setVisualCategory( GeoDataContainer *container ) {
-    for( GeoDataFolder* folder: container->folderList() ) {
+    foreach( GeoDataFolder* folder, container->folderList() ) {
         setVisualCategory( folder );
     }
-    for( GeoDataPlacemark* placemark: container->placemarkList() ) {
-        placemark->setVisualCategory(GeoDataPlacemark::Bookmark);
+    foreach( GeoDataPlacemark* placemark, container->placemarkList() ) {
+        placemark->setVisualCategory( GeoDataFeature::Bookmark );
         placemark->setZoomLevel( 1 );
     }
 
@@ -131,19 +128,12 @@ bool BookmarkManager::loadFile( const QString &relativeFilePath )
     return true;
 }
 
+
 void BookmarkManager::addBookmark( GeoDataContainer *container, const GeoDataPlacemark &placemark )
 {
     GeoDataPlacemark *bookmark = new GeoDataPlacemark( placemark );
-    bookmark->setVisualCategory(GeoDataPlacemark::Bookmark);
+    bookmark->setVisualCategory( GeoDataDocument::Bookmark );
     bookmark->setZoomLevel( 1 );
-    if (bookmark->name().isEmpty()) {
-        bookmark->setName(bookmark->coordinate().toString(GeoDataCoordinates::Decimal).trimmed());
-    }
-    if (d->m_styleBuilder && bookmark->style()->iconStyle().iconPath().isEmpty()) {
-        StyleParameters style;
-        style.placemark = bookmark;
-        bookmark->setStyle(GeoDataStyle::Ptr(new GeoDataStyle(*d->m_styleBuilder->createStyle(style))));
-    }
     d->m_treeModel->addFeature( container, bookmark );
 
     updateBookmarkFile();
@@ -159,22 +149,6 @@ void BookmarkManager::removeBookmark( GeoDataPlacemark *bookmark )
     d->m_treeModel->removeFeature( bookmark );
     delete bookmark;
     updateBookmarkFile();
-}
-
-GeoDataPlacemark* BookmarkManager::bookmarkAt(GeoDataContainer *container, const GeoDataCoordinates &coordinate)
-{
-    for ( GeoDataFolder *folder: container->folderList() ) {
-        GeoDataPlacemark *placemark = bookmarkAt(folder, coordinate);
-        if ( placemark )
-            return placemark;
-    }
-
-    for ( GeoDataPlacemark *placemark: container->placemarkList() ) {
-        if ( placemark->coordinate() == coordinate )
-            return placemark;
-    }
-
-    return Q_NULLPTR;
 }
 
 GeoDataDocument * BookmarkManager::document()
@@ -203,12 +177,12 @@ QVector<GeoDataFolder*> BookmarkManager::folders() const
     return d->m_bookmarkDocument->folderList();
 }
 
-GeoDataFolder* BookmarkManager::addNewBookmarkFolder( GeoDataContainer *container, const QString &name )
+void BookmarkManager::addNewBookmarkFolder( GeoDataContainer *container, const QString &name )
 {
     //If name is empty string
     if ( name.isEmpty() ) {
         mDebug() << "Folder with empty name is not acceptable, please give it another name" ;
-        return Q_NULLPTR;
+        return;
     }
 
     //If folder with same name already exist
@@ -219,7 +193,7 @@ GeoDataFolder* BookmarkManager::addNewBookmarkFolder( GeoDataContainer *containe
     for ( ; i != end; ++i ) {
         if ( name == ( *i )->name() ) {
             mDebug() << "Folder with same name already exist, please give it another name";
-            return *i;
+            return;
         }
     }
 
@@ -228,8 +202,6 @@ GeoDataFolder* BookmarkManager::addNewBookmarkFolder( GeoDataContainer *containe
 
     d->m_treeModel->addFeature( container, bookmarkFolder );
     updateBookmarkFile();
-
-    return bookmarkFolder;
 }
 
 void BookmarkManager::renameBookmarkFolder( GeoDataFolder *folder, const QString &name )
@@ -247,7 +219,7 @@ void BookmarkManager::removeBookmarkFolder( GeoDataFolder *folder )
 void BookmarkManager::ensureDefaultFolder()
 {
     if ( d->m_bookmarkDocument->size() == 0 ) {
-        addNewBookmarkFolder( d->m_bookmarkDocument, tr("Default") );
+        addNewBookmarkFolder( d->m_bookmarkDocument, "Default" );
     }
 }
 
@@ -257,17 +229,16 @@ void BookmarkManager::removeAllBookmarks()
     updateBookmarkFile();
 }
 
-void BookmarkManager::setStyleBuilder(const StyleBuilder *styleBuilder)
-{
-    d->m_styleBuilder = styleBuilder;
-}
-
 bool BookmarkManager::updateBookmarkFile()
 {
-    const QString absoluteLocalFilePath = MarbleDirs::localPath() + QLatin1Char('/') + d->m_bookmarkFileRelativePath;
+    QString absoluteLocalFilePath = MarbleDirs::localPath() + '/' + d->m_bookmarkFileRelativePath ;
 
     if ( ! d->m_bookmarkFileRelativePath.isNull() ) {
+        GeoWriter writer;
+        writer.setDocumentType( kml::kmlTag_nameSpaceOgc22 );
+
         QFile file( absoluteLocalFilePath );
+
         if ( !file.exists() ) {
             // Extracting directory of file : for bookmarks it will be MarbleDirs::localPath()+/bookmarks/
             QFileInfo fileInfo( absoluteLocalFilePath );
@@ -278,7 +249,9 @@ bool BookmarkManager::updateBookmarkFile()
             directory.mkpath( directoryPath );
         }
 
-        if (!GeoDataDocumentWriter::write(absoluteLocalFilePath, *d->m_bookmarkDocument)) {
+        file.open( QIODevice::WriteOnly );
+
+        if ( !writer.write( &file, d->m_bookmarkDocument ) ) {
             mDebug() << "Could not write the bookmarks file" << absoluteLocalFilePath;
             file.close();
             return false;
@@ -310,7 +283,7 @@ GeoDataDocument* BookmarkManager::openFile( const QString &fileName )
     }
 
     result->setDocumentRole( BookmarkDocument );
-    for( GeoDataFolder* folder: result->folderList() ) {
+    foreach( GeoDataFolder* folder, result->folderList() ) {
         BookmarkManagerPrivate::setVisualCategory( folder );
     }
 
@@ -319,4 +292,4 @@ GeoDataDocument* BookmarkManager::openFile( const QString &fileName )
 
 }
 
-#include "moc_BookmarkManager.cpp"
+#include "BookmarkManager.moc"

@@ -12,16 +12,14 @@
 #ifndef MARBLE_GEODATAANIMATEDUPDATE_H
 #define MARBLE_GEODATAANIMATEDUPDATE_H
 
+#include "GeoDataUpdate.h"
 #include "GeoDataTourPrimitive.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
 class GeoDataAnimatedUpdatePrivate;
-class GeoDataUpdate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataAnimatedUpdate: public GeoDataTourPrimitive
 {
 public:
@@ -31,10 +29,10 @@ public:
     GeoDataAnimatedUpdate& operator=( const GeoDataAnimatedUpdate &other );
     bool operator== (const GeoDataAnimatedUpdate &other) const;
     bool operator!= (const GeoDataAnimatedUpdate &other) const;
-    ~GeoDataAnimatedUpdate() override;
+    ~GeoDataAnimatedUpdate();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     double duration() const;
     void setDuration( double duration );

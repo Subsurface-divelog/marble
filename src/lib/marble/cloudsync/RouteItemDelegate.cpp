@@ -1,17 +1,9 @@
 #include "RouteItemDelegate.h"
 
-#include "CloudRouteModel.h"
-
-#ifdef MARBLE_NO_WEBKITWIDGETS
-#include <QWidget>
-#else
+#include <QPainter>
 #include <QWebView>
-#endif
-
 #include <QApplication>
 #include <QAbstractTextDocumentLayout>
-#include <QPainter>
-#include <QListView>
 
 namespace Marble {
 
@@ -27,7 +19,7 @@ RouteItemDelegate::RouteItemDelegate( QListView *view, CloudRouteModel *model ) 
 
 void RouteItemDelegate::paint( QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index ) const
 {
-    QStyleOptionViewItem styleOption = option;
+    QStyleOptionViewItemV4 styleOption = option;
     styleOption.text = QString();
     QApplication::style()->drawControl( QStyle::CE_ItemViewItem, &styleOption, painter );
     
@@ -65,7 +57,7 @@ void RouteItemDelegate::paint( QPainter* painter, const QStyleOptionViewItem& op
         progressBarOption.minimum = 0;
         progressBarOption.maximum = 100;
         progressBarOption.progress = ( 100.0 * progress / total );
-        progressBarOption.text = QString::number(progressBarOption.progress) + QLatin1Char('%');
+        progressBarOption.text = QString::number( progressBarOption.progress ) + '%';
         progressBarOption.textVisible = true;
         QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progressBarOption, painter);
     } else if ( !cached && onCloud ) {
@@ -201,27 +193,27 @@ QStyleOptionButton RouteItemDelegate::button( Element element, const QStyleOptio
     switch ( element ) {
     case OpenButton:
         result.text = tr( "Open" );
-        result.icon = QIcon(QStringLiteral(":/marble/document-open.png"));
+        result.icon = QIcon( ":/marble/document-open.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case DownloadButton:
         result.text = tr( "Load" );
-        result.icon = QIcon(QStringLiteral(":/marble/dialog-ok.png"));
+        result.icon = QIcon( ":/marble/dialog-ok.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case RemoveFromCacheButton:
         result.text = tr( "Remove from device" );
-        result.icon = QIcon(QStringLiteral(":/marble/edit-clear.png"));
+        result.icon = QIcon( ":/marble/edit-clear.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case RemoveFromCloudButton:
         result.text = tr( "Delete from cloud" );
-        result.icon = QIcon(QStringLiteral(":/marble/edit-delete.png"));
+        result.icon = QIcon( ":/marble/edit-delete.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     case UploadToCloudButton:
         result.text = tr( "Upload to cloud" );
-        result.icon = QIcon(QStringLiteral(":/icons/cloud-upload.png"));
+        result.icon = QIcon( ":/icons/cloud-upload.png" );
         result.iconSize = QSize( m_iconSize, m_iconSize );
         break;
     default:
@@ -294,4 +286,4 @@ QRect RouteItemDelegate::position( Element element, const QStyleOptionViewItem& 
 
 }
 
-#include "moc_RouteItemDelegate.cpp"
+#include "RouteItemDelegate.moc"

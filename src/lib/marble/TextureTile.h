@@ -20,14 +20,17 @@ License along with this library. If not, see <http://www.gnu.org/licenses/>.
 #ifndef MARBLE_TEXTURETILE_H
 #define MARBLE_TEXTURETILE_H
 
+#include <QDateTime>
 #include <QImage>
 
 #include "Tile.h"
+#include "TileId.h"
+
+class QImage;
 
 namespace Marble
 {
 class Blending;
-class TileId;
 
 /*!
     \class TextureTile
@@ -58,7 +61,7 @@ class TextureTile : public Tile
 {
  public:
     TextureTile(TileId const & tileId, QImage const & image, const Blending * blending );
-    ~TextureTile() override;
+    ~TextureTile();
 
 /*!
     \brief Returns the QImage that describes the look of the Tile

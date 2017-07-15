@@ -21,21 +21,21 @@ class FoursquareModel : public AbstractDataPluginModel
     
 public:
     explicit FoursquareModel( const MarbleModel *marbleModel, QObject *parent = 0 );
-    ~FoursquareModel() override;
+    ~FoursquareModel();
 
 protected:
     /**
      * Generates the download url for the description file from the web service depending on
      * the @p box surrounding the view and the @p number of files to show.
      **/
-    void getAdditionalItems( const GeoDataLatLonAltBox& box,
-                                     qint32 number = 10 ) override;
+    virtual void getAdditionalItems( const GeoDataLatLonAltBox& box,
+                                     qint32 number = 10 );
 
     /**
      * Parses the @p file which getAdditionalItems downloads and
      * prepares the data for usage.
      **/
-    void parseFile( const QByteArray& file ) override;
+    void parseFile( const QByteArray& file );
 };
 
 }

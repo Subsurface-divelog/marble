@@ -11,17 +11,18 @@
 #ifndef OWNCLOUDSYNCBACKEND_H
 #define OWNCLOUDSYNCBACKEND_H
 
+#include "CloudRouteModel.h"
+#include "GeoDataDocument.h"
+
 #include <QObject>
+#include <QDir>
+#include <QUrl>
 #include <QVector>
 #include <QNetworkReply>
-
-class QUrl;
-class QDir;
 
 namespace Marble {
 
 class CloudSyncManager;
-class RouteItem;
 
 class OwncloudSyncBackend : public QObject
 {
@@ -29,7 +30,7 @@ class OwncloudSyncBackend : public QObject
     
 public:
     explicit OwncloudSyncBackend( CloudSyncManager* cloudSyncManager );
-    ~OwncloudSyncBackend() override;
+    ~OwncloudSyncBackend();
 
     /**
      * Generates an endpoint URL by appending endpoint name to API URL
@@ -63,14 +64,14 @@ public:
 public Q_SLOTS:
     void cancelUpload();
 
-private Q_SLOTS:
+private slots:
     void checkAuthReply();
     void checkAuthError(QNetworkReply::NetworkError error);
     void prepareRouteList();
     void saveDownloadedRoute();
     void validateSettings();
 
-Q_SIGNALS:
+signals:
     void routeListDownloaded( const QVector<RouteItem> &routeList );
     void routeDownloaded();
     void routeDeleted();

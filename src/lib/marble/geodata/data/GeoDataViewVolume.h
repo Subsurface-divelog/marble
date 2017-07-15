@@ -12,16 +12,14 @@
 #define GEODATAVIEWVOLUME_H
 
 #include "GeoDataObject.h"
-#include "geodata_export.h"
+#include "marble_export.h"
 
 namespace Marble
 {
 
 class GeoDataViewVolumePrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataViewVolume : public GeoDataObject
+class MARBLE_EXPORT GeoDataViewVolume : public GeoDataObject
 {
 public:
     GeoDataViewVolume();
@@ -32,25 +30,25 @@ public:
     bool operator==( const GeoDataViewVolume &other ) const;
     bool operator!=( const GeoDataViewVolume &other ) const;
 
-    ~GeoDataViewVolume() override;
+    ~GeoDataViewVolume();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     qreal leftFov() const;
-    void setLeftFov(qreal leftFov);
+    void setLeftFov( const qreal &leftFov );
 
     qreal rightFov() const;
-    void setRightFov(qreal rightFov);
+    void setRightFov( const qreal &rightFov );
 
     qreal bottomFov() const;
-    void setBottomFov(qreal bottomFov);
+    void setBottomFov( const qreal &bottomFov );
 
     qreal topFov() const;
-    void setTopFov(qreal topFov);
+    void setTopFov( const qreal &topFov );
 
     qreal near() const;
-    void setNear(qreal near);
+    void setNear( const qreal &near );
 
 private:
     GeoDataViewVolumePrivate* const d;

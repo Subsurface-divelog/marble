@@ -5,18 +5,19 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTINGWIDGET_H
 #define MARBLE_ROUTINGWIDGET_H
 
+#include "GeoDataCoordinates.h"
+#include "GeoDataLineString.h"
 #include "RoutingManager.h"
 #include "marble_export.h"
 
+#include <QModelIndex>
 #include <QWidget>
-
-class QModelIndex;
 
 namespace Marble
 {
@@ -25,7 +26,6 @@ class MarbleWidget;
 class RoutingInputWidget;
 class RoutingWidgetPrivate;
 class RouteSyncManager;
-class GeoDataCoordinates;
 
 /**
   * A widget consisting of input fields for places / routing destinations,
@@ -46,7 +46,7 @@ public:
     explicit RoutingWidget( MarbleWidget *marbleWidget, QWidget *parent );
 
     /** Destructor */
-    ~RoutingWidget() override;
+    ~RoutingWidget();
 
     /** Show or hide the "open file..." button. Default is false (not visible) */
     void setShowDirectionsButtonVisible( bool visible );
@@ -148,11 +148,9 @@ private Q_SLOTS:
 
     void toggleRoutePlay();
 
-    void handlePlanetChange();
-
 protected:
-    bool eventFilter( QObject *o, QEvent *e ) override;
-    void resizeEvent(QResizeEvent *e) override;
+    bool eventFilter( QObject *o, QEvent *e );
+    void resizeEvent(QResizeEvent *e);
 
 private:
     RoutingWidgetPrivate *const d;

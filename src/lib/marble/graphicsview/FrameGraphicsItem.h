@@ -14,11 +14,8 @@
 // Marble
 #include "marble_export.h"
 #include "ScreenGraphicsItem.h"
-
-#include <Qt> // for Qt::PenStyle
-
+#include <QPainterPath>
 class QBrush;
-class QPainterPath;
 
 namespace Marble
 {
@@ -37,7 +34,7 @@ class MARBLE_EXPORT FrameGraphicsItem : public ScreenGraphicsItem
 
     explicit FrameGraphicsItem( MarbleGraphicsItem *parent = 0 );
 
-    ~FrameGraphicsItem() override;
+    virtual ~FrameGraphicsItem();
 
     /**
      * Returns the type of the frame.
@@ -153,14 +150,14 @@ class MARBLE_EXPORT FrameGraphicsItem : public ScreenGraphicsItem
 
     QRectF paintedRect() const;
 
-    QRectF contentRect() const override;
-    QSizeF contentSize() const override;
+    QRectF contentRect() const;
+    QSizeF contentSize() const;
 
     /**
      * Sets the size of the content of the item.
      * @p size is the size required for contents.
      */
-    void setContentSize( const QSizeF& size ) override;
+    void setContentSize( const QSizeF& size );
 
  protected:
     /**
@@ -171,7 +168,7 @@ class MARBLE_EXPORT FrameGraphicsItem : public ScreenGraphicsItem
     /**
      * This function won't be reimplemented in most cases.
      */
-    void paint( QPainter *painter ) override;
+    virtual void paint( QPainter *painter );
 
     /**
      * Here the items paint their content.
@@ -183,11 +180,10 @@ class MARBLE_EXPORT FrameGraphicsItem : public ScreenGraphicsItem
      */
     virtual void paintBackground( QPainter *painter );
 
-    explicit FrameGraphicsItem(FrameGraphicsItemPrivate *dd);
-
  private:
     Q_DISABLE_COPY( FrameGraphicsItem )
-    Q_DECLARE_PRIVATE(FrameGraphicsItem)
+
+    FrameGraphicsItemPrivate * const d;
 };
 
 } // namespace Marble

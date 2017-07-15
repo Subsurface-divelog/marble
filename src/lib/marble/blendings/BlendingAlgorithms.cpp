@@ -177,7 +177,7 @@ qreal DarkenBlending::blendChannel( qreal const bottomColorIntensity,
 qreal DivideBlending::blendChannel( qreal const bottomColorIntensity,
                                     qreal const topColorIntensity ) const
 {
-    return log1p( bottomColorIntensity / ( 1.0  - topColorIntensity ) / 8.0) / log(2.0);
+    return log( 1.0  + bottomColorIntensity / ( 1.0  - topColorIntensity ) / 8.0) / log(2.0);
 }
 
 qreal GammaDarkBlending::blendChannel( qreal const bottomColorIntensity,
@@ -307,7 +307,7 @@ qreal DifferenceBlending::blendChannel( qreal const bottomColorIntensity,
 qreal EquivalenceBlending::blendChannel( qreal const bottomColorIntensity,
                                          qreal const topColorIntensity ) const
 {
-    return 1.0 - qAbs( bottomColorIntensity - topColorIntensity );
+    return 1.0 - abs( bottomColorIntensity - topColorIntensity );
 }
 
 qreal HalfDifferenceBlending::blendChannel( qreal const bottomColorIntensity,

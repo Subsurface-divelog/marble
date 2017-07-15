@@ -19,10 +19,13 @@
 #include "ui_MarbleCloudSyncSettingsWidget.h"
 
 // Qt
+#include <QList>
 #include <QSettings>
 #include <QNetworkProxy>
 #include <QApplication>
 #include <QDialogButtonBox>
+#include <QMessageBox>
+#include <QStandardItem>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -31,6 +34,7 @@
 
 // Marble
 #include "MarbleGlobal.h"
+#include "DialogConfigurationInterface.h"
 #include "MarbleDebug.h"
 #include "MarbleDirs.h"
 #include "MarblePluginSettingsWidget.h"
@@ -60,7 +64,9 @@ class QtMarbleConfigDialogPrivate
           m_marbleWidget( marbleWidget ),
           m_syncManager( cloudSyncManager ? cloudSyncManager->bookmarkSyncManager() : 0 ),
           m_cloudSyncManager(cloudSyncManager),
-          m_pluginModel()
+          m_pluginModel(),
+          m_initialGraphicsSystem(),
+          m_previousGraphicsSystem()
     {
     }
 
@@ -82,6 +88,10 @@ class QtMarbleConfigDialogPrivate
     RenderPluginModel m_pluginModel;
 
     QHash< int, int > m_timezone;            
+
+    // Information about the graphics system
+    Marble::GraphicsSystem m_initialGraphicsSystem;
+    Marble::GraphicsSystem m_previousGraphicsSystem;
 };
 
 QtMarbleConfigDialog::QtMarbleConfigDialog(MarbleWidget *marbleWidget, CloudSyncManager *cloudSyncManager,
@@ -112,6 +122,20 @@ QtMarbleConfigDialog::QtMarbleConfigDialog(MarbleWidget *marbleWidget, CloudSync
     d->ui_viewSettings.setupUi( w_viewSettings );
     tabWidget->addTab( w_viewSettings, tr( "View" ) );
 
+    // It's experimental -- so we remove it for now.
+    // FIXME: Delete the following  line once OpenGL support is officially supported.
+    d->ui_viewSettings.kcfg_graphicsSystem->removeItem( Marble::OpenGLGraphics );
+
+    QString nativeString ( tr("Native") );
+
+    #ifdef Q_WS_X11
+    nativeString = tr( "Native (X11)" );
+    #endif
+    #ifdef Q_OS_MAC
+    nativeString = tr( "Native (Mac OS X Core Graphics)" );
+    #endif
+
+    d->ui_viewSettings.kcfg_graphicsSystem->setItemText( Marble::NativeGraphics, nativeString );
     d->ui_viewSettings.kcfg_labelLocalization->hide();
     d->ui_viewSettings.label_labelLocalization->hide();
 
@@ -149,8 +173,8 @@ QtMarbleConfigDialog::QtMarbleConfigDialog(MarbleWidget *marbleWidget, CloudSync
     tabWidget->addTab( d->w_pluginSettings, tr( "Plugins" ) );
 
     // Setting the icons for the plugin dialog.
-    d->w_pluginSettings->setAboutIcon(QIcon(QStringLiteral(":/icons/help-about.png")));
-    d->w_pluginSettings->setConfigIcon(QIcon(QStringLiteral(":/icons/settings-configure.png")));
+    d->w_pluginSettings->setAboutIcon( QIcon(":/icons/help-about.png") );
+    d->w_pluginSettings->setConfigIcon(  QIcon(":/icons/settings-configure.png") );
 
     connect( this, SIGNAL(rejected()), &d->m_pluginModel, SLOT(retrievePluginState()) );
     connect( this, SIGNAL(accepted()), &d->m_pluginModel, SLOT(applyPluginState()) );
@@ -197,7 +221,7 @@ void QtMarbleConfigDialog::syncSettings()
     QNetworkProxy proxy;
     
     // Make sure that no proxy is used for an empty string or the default value: 
-    if (proxyUrl().isEmpty() || proxyUrl() == QLatin1String("http://")) {
+    if ( proxyUrl().isEmpty() || proxyUrl() == "http://" ) {
         proxy.setType( QNetworkProxy::NoProxy );
     } else {
         if ( proxyType() == Marble::Socks5Proxy ) {
@@ -285,6 +309,9 @@ void QtMarbleConfigDialog::updateLastSync()
 
 void QtMarbleConfigDialog::readSettings()
 {
+    d->m_initialGraphicsSystem = graphicsSystem();
+    d->m_previousGraphicsSystem = d->m_initialGraphicsSystem;
+
     // Sync settings to make sure that we read the current settings.
     syncSettings();
     
@@ -295,6 +322,7 @@ void QtMarbleConfigDialog::readSettings()
     d->ui_viewSettings.kcfg_animationQuality->setCurrentIndex( animationQuality() );
     d->ui_viewSettings.kcfg_labelLocalization->setCurrentIndex( Marble::Native );
     d->ui_viewSettings.kcfg_mapFont->setCurrentFont( mapFont() );
+    d->ui_viewSettings.kcfg_graphicsSystem->setCurrentIndex( graphicsSystem() );
     
     // Navigation
     d->ui_navigationSettings.kcfg_dragLocation->setCurrentIndex( Marble::KeepAxisVertically );
@@ -302,11 +330,11 @@ void QtMarbleConfigDialog::readSettings()
     d->ui_navigationSettings.kcfg_inertialEarthRotation->setChecked( inertialEarthRotation() );
     d->ui_navigationSettings.kcfg_animateTargetVoyage->setChecked( animateTargetVoyage() );
     int editorIndex = 0;
-    if (externalMapEditor() == QLatin1String("potlatch")) {
+    if ( externalMapEditor() == "potlatch") {
         editorIndex = 1;
-    } else if (externalMapEditor() == QLatin1String("josm")) {
+    } else if ( externalMapEditor() == "josm") {
         editorIndex = 2;
-    } else if (externalMapEditor() == QLatin1String("merkaartor")) {
+    } else if ( externalMapEditor() == "merkaartor") {
         editorIndex = 3;
     }
     d->ui_navigationSettings.kcfg_externalMapEditor->setCurrentIndex( editorIndex );
@@ -382,12 +410,29 @@ void QtMarbleConfigDialog::writeSettings()
 {
     syncSettings();
 
+    // Determining the graphicsSystemString
+    QString graphicsSystemString;
+    switch ( d->ui_viewSettings.kcfg_graphicsSystem->currentIndex() )
+    {
+        case Marble::RasterGraphics :
+            graphicsSystemString = "raster";
+            break;
+        case Marble::OpenGLGraphics :
+            graphicsSystemString = "opengl";
+            break;
+        default:
+        case Marble::NativeGraphics :
+            graphicsSystemString = "native";
+            break;
+    }
+    
     d->m_settings.beginGroup( "View" );
     d->m_settings.setValue( "distanceUnit", d->ui_viewSettings.kcfg_distanceUnit->currentIndex() );
     d->m_settings.setValue( "angleUnit", d->ui_viewSettings.kcfg_angleUnit->currentIndex() );
     d->m_settings.setValue( "stillQuality", d->ui_viewSettings.kcfg_stillQuality->currentIndex() );
     d->m_settings.setValue( "animationQuality", d->ui_viewSettings.kcfg_animationQuality->currentIndex() );
     d->m_settings.setValue( "mapFont", d->ui_viewSettings.kcfg_mapFont->currentFont() );
+    d->m_settings.setValue( "graphicsSystem", graphicsSystemString );
     d->m_settings.endGroup();
     
     d->m_settings.beginGroup( "Navigation" );
@@ -445,6 +490,15 @@ void QtMarbleConfigDialog::writeSettings()
     d->m_marbleWidget->writePluginSettings( d->m_settings );
 
     emit settingsChanged();
+
+    if (    d->m_initialGraphicsSystem != graphicsSystem()
+         && d->m_previousGraphicsSystem != graphicsSystem() ) {
+        QMessageBox::information (this, tr("Graphics System Change"),
+                                tr("You have decided to run Marble with a different graphics system.\n"
+                                   "For this change to become effective, Marble has to be restarted.\n"
+                                   "Please close the application and start Marble again.") );
+    }    
+    d->m_previousGraphicsSystem = graphicsSystem();
 }
 
 MarbleLocale::MeasurementSystem QtMarbleConfigDialog::measurementSystem() const
@@ -462,13 +516,6 @@ Marble::AngleUnit QtMarbleConfigDialog::angleUnit() const
     return (Marble::AngleUnit) d->m_settings.value( "View/angleUnit", Marble::DMSDegree ).toInt();
 }
 
-void QtMarbleConfigDialog::setAngleUnit(Marble::AngleUnit unit)
-{
-    d->m_settings.setValue( "View/angleUnit", (int)unit );
-    d->ui_viewSettings.kcfg_angleUnit->setCurrentIndex( angleUnit() );
-    emit settingsChanged();
-}
-
 Marble::MapQuality QtMarbleConfigDialog::stillQuality() const
 {
     return (Marble::MapQuality) d->m_settings.value( "View/stillQuality",
@@ -484,6 +531,17 @@ Marble::MapQuality QtMarbleConfigDialog::animationQuality() const
 QFont QtMarbleConfigDialog::mapFont() const
 {
     return d->m_settings.value( "View/mapFont", QApplication::font() ).value<QFont>();
+}
+
+Marble::GraphicsSystem QtMarbleConfigDialog::graphicsSystem() const
+{
+    QString graphicsSystemString = d->m_settings.value( "View/graphicsSystem", "raster" ).toString();
+
+    if ( graphicsSystemString == "raster" ) return Marble::RasterGraphics;
+    if ( graphicsSystemString == "opengl" ) return Marble::OpenGLGraphics;
+
+    // default case:  graphicsSystemString == "raster"
+    return Marble::NativeGraphics;
 }
 
 int QtMarbleConfigDialog::onStartup() const
@@ -511,7 +569,7 @@ bool QtMarbleConfigDialog::inertialEarthRotation() const
 
 int QtMarbleConfigDialog::volatileTileCacheLimit() const
 {
-    int defaultValue = (MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen) ? 6 : 100;
+    int defaultValue = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen ? 6 : 100;
     return d->m_settings.value( "Cache/volatileTileCacheLimit", defaultValue ).toInt();
 }
 
@@ -655,4 +713,4 @@ QString QtMarbleConfigDialog::owncloudPassword() const
 
 }
 
-#include "moc_QtMarbleConfigDialog.cpp"
+#include "QtMarbleConfigDialog.moc"

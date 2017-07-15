@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2014 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef SQUAD_INTERPOLATION
@@ -15,10 +15,13 @@
 #include <marble/MarbleMap.h>
 #include <marble/MarbleModel.h>
 #include <marble/GeoPainter.h>
-#include <marble/GeoDataLineString.h>
+#include <GeoDataLineString.h>
 #include <marble/LayerInterface.h>
 
+#include <QTime>
+#include <QTimer>
 #include <QApplication>
+#include <QKeyEvent>
 
 namespace Marble {
 
@@ -28,12 +31,12 @@ class MyPaintLayer : public QObject, public LayerInterface
 
 public:
     // Constructor
-    explicit MyPaintLayer( MarbleWidget* widget );
+    MyPaintLayer( MarbleWidget* widget );
 
     // LayerInterface
     QStringList renderPosition() const;
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                const QString &renderPos, GeoSceneLayer *layer);
+       const QString& renderPos = "NONE", GeoSceneLayer * layer = 0 );
     GeoDataLatLonBox center() const;
 
 private Q_SLOTS:

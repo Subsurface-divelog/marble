@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2011      Konrad Enzensberger <e.konrad@mpegcode.com>
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -16,10 +16,9 @@
 #include "PositionProviderPlugin.h"
 
 #include "GeoDataLineString.h"
-#include "GeoDataCoordinates.h"
+#include "GeoDataLineString.h"
 
 #include <QDateTime>
-#include <QTimer>
 
 namespace Marble
 {
@@ -32,54 +31,45 @@ class RouteSimulationPositionProviderPlugin: public PositionProviderPlugin
     Q_INTERFACES( Marble::PositionProviderPluginInterface )
 
 public:
-    explicit RouteSimulationPositionProviderPlugin(MarbleModel *marbleModel, QObject* parent=nullptr);
-    ~RouteSimulationPositionProviderPlugin() override;
+    RouteSimulationPositionProviderPlugin( MarbleModel *marbleModel );
+    virtual ~RouteSimulationPositionProviderPlugin();
 
     // Implementing PluginInterface
-    QString name() const override;
-    QString nameId() const override;
-    QString guiString() const override;
-    QString version() const override;
-    QString description() const override;
-    QString copyrightYears() const override;
-    QVector<PluginAuthor> pluginAuthors() const override;
-    QIcon icon() const override;
-    void initialize() override;
-    bool isInitialized() const override;
-    qreal speed() const override;
-    qreal direction() const override;
-    QDateTime timestamp() const override;
+    virtual QString name() const;
+    virtual QString nameId() const;
+    virtual QString guiString() const;
+    virtual QString version() const;
+    virtual QString description() const;
+    virtual QString copyrightYears() const;
+    virtual QList<PluginAuthor> pluginAuthors() const;
+    virtual QIcon icon() const;
+    virtual void initialize();
+    virtual bool isInitialized() const;
+    virtual qreal speed() const;
+    virtual qreal direction() const;
+    virtual QDateTime timestamp() const;
 
     // Implementing PositionProviderPlugin
-    PositionProviderPlugin * newInstance() const override;
+    virtual PositionProviderPlugin * newInstance() const;
 
     // Implementing PositionProviderPluginInterface
-    PositionProviderStatus status() const override;
-    GeoDataCoordinates position() const override;
-    GeoDataAccuracy accuracy() const override;
+    virtual PositionProviderStatus status() const;
+    virtual GeoDataCoordinates position() const;
+    virtual GeoDataAccuracy accuracy() const;
 
 private Q_SLOTS:
     /** Regular (each second) position and status update */
     void update();
-    void updateRoute();
 
 private:
-    GeoDataCoordinates addNoise(const Marble::GeoDataCoordinates &,const Marble::GeoDataAccuracy &) const;
-    qreal addNoise(qreal bearing) const;
-    void changeStatus(PositionProviderStatus status);
-
     MarbleModel *const m_marbleModel;
     int m_currentIndex;
     PositionProviderStatus m_status;
     GeoDataLineString m_lineString;
-    GeoDataLineString m_lineStringInterpolated;
     GeoDataCoordinates m_currentPosition;
-    GeoDataCoordinates m_currentPositionWithNoise;
     QDateTime m_currentDateTime;
     qreal m_speed;
     qreal m_direction;
-    qreal m_directionWithNoise;
-    QTimer m_updateTimer;
 };
 
 }

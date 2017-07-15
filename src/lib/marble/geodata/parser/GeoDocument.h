@@ -23,7 +23,15 @@
 #ifndef MARBLE_GEODOCUMENT_H
 #define MARBLE_GEODOCUMENT_H
 
+#include <QString>
+
 #include "geodata_export.h"
+
+#ifdef _WIN32
+#define DUMP_GEONODE_LEAKS 1
+#else
+#define DUMP_GEONODE_LEAKS 0
+#endif
 
 namespace Marble
 {
@@ -41,6 +49,9 @@ public:
 
     virtual bool isGeoDataDocument() const;
     virtual bool isGeoSceneDocument() const;
+#if DUMP_GEONODE_LEAKS > 0
+    static unsigned long s_leakProtector;
+#endif
 };
 
 /**
@@ -51,9 +62,7 @@ class GEODATA_EXPORT GeoNode
 public:
     GeoNode();
     virtual ~GeoNode();
-
-    /// Provides type information for downcasting a GeoNode
-    virtual const char* nodeType() const = 0;
+    virtual const char* nodeType() const;
 };
 
 }

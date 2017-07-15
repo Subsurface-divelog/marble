@@ -25,12 +25,12 @@ QString LogfilePlugin::name() const
 
 QString LogfilePlugin::nameId() const
 {
-    return QStringLiteral("Log");
+    return "Log";
 }
 
 QString LogfilePlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString LogfilePlugin::description() const
@@ -40,13 +40,13 @@ QString LogfilePlugin::description() const
 
 QString LogfilePlugin::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> LogfilePlugin::pluginAuthors() const
+QList<PluginAuthor> LogfilePlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" );
 }
 
 QString LogfilePlugin::fileFormatDescription() const
@@ -56,7 +56,7 @@ QString LogfilePlugin::fileFormatDescription() const
 
 QStringList LogfilePlugin::fileExtensions() const
 {
-    return QStringList(QStringLiteral("log"));
+    return QStringList() << "log";
 }
 
 ParsingRunner* LogfilePlugin::newRunner() const
@@ -66,4 +66,6 @@ ParsingRunner* LogfilePlugin::newRunner() const
 
 }
 
-#include "moc_LogPlugin.cpp"
+Q_EXPORT_PLUGIN2( LogfilePlugin, Marble::LogfilePlugin )
+
+#include "LogPlugin.moc"

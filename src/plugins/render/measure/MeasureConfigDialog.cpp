@@ -138,4 +138,4 @@ void MeasureConfigDialog::updateTabs()
 
 } // namespace Marble
 
-#include "moc_MeasureConfigDialog.cpp"
+#include "MeasureConfigDialog.moc"

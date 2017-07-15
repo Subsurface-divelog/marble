@@ -11,17 +11,15 @@
 #ifndef GEODATARESOURCEMAP_H
 #define GEODATARESOURCEMAP_H
 
-#include "GeoDocument.h"
+#include "GeoDataAlias.h"
+#include "GeoDataObject.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
-class GeoDataAlias;
 class GeoDataResourceMapPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataResourceMap: public GeoNode
+class MARBLE_EXPORT GeoDataResourceMap: public GeoNode
 {
 public:
     GeoDataResourceMap();
@@ -33,10 +31,10 @@ public:
     bool operator==( const GeoDataResourceMap &other ) const;
     bool operator!=( const GeoDataResourceMap &other ) const;
 
-    ~GeoDataResourceMap() override;
+    ~GeoDataResourceMap();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     const GeoDataAlias& alias() const;
 

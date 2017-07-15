@@ -25,12 +25,12 @@ class BBCWeatherItem : public WeatherItem
 
  public:
     explicit BBCWeatherItem( QObject *parent = 0 );
-    ~BBCWeatherItem() override;
+    ~BBCWeatherItem();
     
-    bool request( const QString& type ) override;
+    virtual bool request( const QString& type );
 
-    QString service() const override;
-    void addDownloadedFile( const QString& url, const QString& type ) override;
+    QString service() const;
+    void addDownloadedFile( const QString& url, const QString& type );
     
     QUrl observationUrl() const;
     QUrl forecastUrl() const;

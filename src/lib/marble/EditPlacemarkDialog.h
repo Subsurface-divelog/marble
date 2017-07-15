@@ -15,11 +15,12 @@
 
 #include <QDialog>
 
+
 namespace Marble {
 
 class GeoDataFeature;
 class GeoDataPlacemark;
-class OsmPlacemarkData;
+
 
 /**
  * @brief The EditPlacemarkDialog class deals with customizing placemarks.
@@ -29,10 +30,8 @@ class MARBLE_EXPORT EditPlacemarkDialog : public QDialog
     Q_OBJECT
 
 public:
-    EditPlacemarkDialog( GeoDataPlacemark *placemark,
-                         const QHash<qint64,OsmPlacemarkData> *relations = 0,
-                         QWidget *parent = 0 );
-    ~EditPlacemarkDialog() override;
+    EditPlacemarkDialog( GeoDataPlacemark *placemark, QWidget *parent = 0 );
+    ~EditPlacemarkDialog();
 
     /**
      * @brief setLabelColor tells the dialog what the label color is
@@ -61,7 +60,7 @@ public:
      */
     bool isIdFieldVisible() const;
 
-public Q_SLOTS:
+public slots:
     /**
      * @brief updateDialogFields is connected to a signal from AnnotatePlugin in order
      * to update some fields in the dialog as the user interacts directly with the text
@@ -82,12 +81,12 @@ public Q_SLOTS:
     void setTargetIds( const QStringList &targetIds );
 
     /**
-     * @brief setTargetIdFieldVisible tells the dialog whether targetId field should be shown.
+     * @brief setTargetIdFieldVisible tells the dialog wheter targetId field should be shown.
      */
     void setTargetIdFieldVisible( bool visible );
 
     /**
-     * @brief setIdFieldVisible tells the dialog whether id field should be shown.
+     * @brief setIdFieldVisible tells the dialog wheter id field should be shown.
      */
     void setIdFieldVisible( bool visible );
 
@@ -96,7 +95,7 @@ public Q_SLOTS:
      */
     void setReadOnly( bool state );
 
-private Q_SLOTS:
+private slots:
 
     /**
      * @brief checkFields shows warnings if there are important fields which don't hold
@@ -139,21 +138,66 @@ private Q_SLOTS:
     /**
      * @brief toogleDescriptionEditMode toggles edit mode for description field.
      */
+    void toggleDescriptionEditMode( bool isFormattedTextMode = false );
 
-Q_SIGNALS:
+    /**
+     * @brief setTextCursorBold sets bold style for selected text in description field.
+     * @param bold
+     */
+    void setTextCursorBold( bool bold );
+
+    /**
+     * @brief setTextCursorItalic sets italic style for selected text in description field.
+     * @param italic
+     */
+    void setTextCursorItalic( bool italic );
+
+    /**
+     * @brief setTextCursorUnderlined sets underlined style for selected text in description field.
+     * @param underlined
+     */
+    void setTextCursorUnderlined( bool underlined );
+
+    /**
+     * @brief setTextCursorColor sets color for selected text in description field.
+     * @param color
+     */
+    void setTextCursorColor( const QColor &color );
+
+    /**
+     * @brief setTextCursorFont sets font for selected text in description field.
+     * @param font
+     */
+    void setTextCursorFont( const QFont &font );
+
+    /**
+     * @brief setTextCursorFontSize sets font's size for selected text in description field.
+     * @param font
+     */
+    void setTextCursorFontSize( const QString &fontSize );
+
+    /**
+     * @brief addImageToDescription adds image to description field.
+     */
+    void addImageToDescription();
+
+    /**
+     * @brief addLinkToDescription adds link to description field.
+     */
+    void addLinkToDescription();
+
+    /**
+     * @brief updateDescriptionEditButtons updates stated of buttons for editing description field.
+     */
+    void updateDescriptionEditButtons();
+
+signals:
     /**
      * @brief textAnnotationUpdated signals that some property of the PlacemarkTextAnnotation
      * instance has changed.
      * @param feature The instance's placemark.
      */
     void textAnnotationUpdated( GeoDataFeature *feature );
-
-    /**
-     * @brief relationCreated signals the annotate plugin that a new relation has been
-     * created( or modified ) within the relation editor
-     * @param relation the relation's osmData
-     */
-    void relationCreated( const OsmPlacemarkData &relation );
 
 private:
     class Private;

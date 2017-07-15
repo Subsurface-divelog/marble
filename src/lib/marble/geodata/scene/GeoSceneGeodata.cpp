@@ -15,13 +15,12 @@
 
 namespace Marble
 {
-GeoSceneGeodata::GeoSceneGeodata( const QString& name )
+GeoSceneGeodata::GeoSceneGeodata( QString name )
     : GeoSceneAbstractDataset( name ),
       m_sourceFile( QString() ),
       m_alpha( 1.0 ),
       m_pen( QPen( Qt::NoPen ) ),
-      m_brush( QBrush( Qt::transparent ) ),
-      m_renderOrder( 0 )
+      m_brush( QBrush( Qt::transparent ) )
 {
 }
 
@@ -46,7 +45,7 @@ QString GeoSceneGeodata::property() const
     return m_property;
 }
 
-void GeoSceneGeodata::setProperty( const QString& property )
+void GeoSceneGeodata::setProperty( QString property )
 {
     m_property = property;
 }
@@ -56,7 +55,7 @@ QString GeoSceneGeodata::sourceFile() const
     return m_sourceFile;
 }
 
-void GeoSceneGeodata::setSourceFile(const QString& sourceFile)
+void GeoSceneGeodata::setSourceFile(QString sourceFile)
 {
     m_sourceFile = sourceFile;
 }
@@ -66,7 +65,7 @@ QString GeoSceneGeodata::colorize() const
     return m_colorize;
 }
 
-void GeoSceneGeodata::setColorize( const QString& colorize )
+void GeoSceneGeodata::setColorize( QString colorize )
 {
     m_colorize = colorize;
 }
@@ -76,7 +75,7 @@ QPen GeoSceneGeodata::pen() const
     return m_pen;
 }
 
-void GeoSceneGeodata::setAlpha(qreal alpha)
+void GeoSceneGeodata::setAlpha( const qreal &alpha )
 {
     m_alpha = alpha;
 }
@@ -101,22 +100,12 @@ void GeoSceneGeodata::setBrush( const QBrush& brush )
     m_brush = brush;
 }
 
-int GeoSceneGeodata::renderOrder() const
-{
-    return m_renderOrder;
-}
-
-void GeoSceneGeodata::setRenderOrder( int renderOrder )
-{
-    m_renderOrder = renderOrder;
-}
-
-QVector<QColor> GeoSceneGeodata::colors() const
+QList<QColor> GeoSceneGeodata::colors() const
 {
     return m_colors;
 }
 
-void GeoSceneGeodata::setColors(const QVector<QColor> &colors)
+void GeoSceneGeodata::setColors( const QList<QColor> &colors )
 {
     m_colors = colors;
 }

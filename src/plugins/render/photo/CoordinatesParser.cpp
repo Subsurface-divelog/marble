@@ -29,15 +29,12 @@ bool CoordinatesParser::read( QIODevice *device )
         readNext();
         
         if( isStartElement() ) {
-            if (name() == QLatin1String("rsp")) {
-                if (attributes().value(QLatin1String("stat")) == QLatin1String("ok")) {
-                    readRsp();
-                } else {
-                    raiseError(QObject::tr("Query failed"));
-                }
-            } else {
-                raiseError(QObject::tr("The file is not a valid Flickr answer."));
-            }
+            if ( name() == "rsp" && attributes().value( "stat" ) == "ok" )
+                readRsp();
+            else if ( name() == "rsp" )
+                raiseError( QObject::tr("Query failed") );
+            else
+                raiseError( QObject::tr("The file is not a valid Flickr answer.") );
         }
     }
     
@@ -71,7 +68,7 @@ void CoordinatesParser::readRsp()
             break;
         
         if( isStartElement() ) {
-            if (name() == QLatin1String("photo"))
+            if( name() == "photo" )
                 readPhoto();
             else
                 readUnknownElement();
@@ -82,7 +79,7 @@ void CoordinatesParser::readRsp()
 void CoordinatesParser::readPhoto()
 {
     Q_ASSERT( isStartElement()
-              && name() == QLatin1String("photo"));
+              && name() == "photo" );
     
     while( !atEnd() ) {
         readNext();
@@ -91,7 +88,7 @@ void CoordinatesParser::readPhoto()
             break;
         
         if( isStartElement() ) {
-            if (name() == QLatin1String("location"))
+            if( name() == "location" )
                 readLocation();
             else
                 readUnknownElement();
@@ -102,10 +99,10 @@ void CoordinatesParser::readPhoto()
 void CoordinatesParser::readLocation()
 {
     Q_ASSERT( isStartElement()
-              && name() == QLatin1String("location"));
+              && name() == "location" );
  
-    m_coordinates->setLatitude(attributes().value(QLatin1String("latitude")).toString().toDouble() * DEG2RAD);
-    m_coordinates->setLongitude(attributes().value(QLatin1String("longitude")).toString().toDouble() * DEG2RAD);
+    m_coordinates->setLatitude( attributes().value( "latitude" ).toString().toDouble() * DEG2RAD );
+    m_coordinates->setLongitude( attributes().value( "longitude" ).toString().toDouble() * DEG2RAD );
     
     while( !atEnd() ) {
         readNext();

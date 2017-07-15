@@ -11,9 +11,10 @@
 #ifndef MARBLEOVERVIEWMAP_H
 #define MARBLEOVERVIEWMAP_H
 
+#include <QObject>
 #include <QHash>
 #include <QColor>
-#include <QPixmap>
+#include <QAbstractButton>
 #include <QSvgWidget>
 #include <QSvgRenderer>
 
@@ -37,7 +38,7 @@ namespace Marble
 class OverviewMap : public AbstractFloatItem, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.OverviewMap")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.OverviewMap" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( OverviewMap )
@@ -45,53 +46,53 @@ class OverviewMap : public AbstractFloatItem, public DialogConfigurationInterfac
  public:
     OverviewMap();
     explicit OverviewMap( const MarbleModel *marbleModel );
-    ~OverviewMap() override;
+    ~OverviewMap();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    void setProjection( const ViewportParams *viewport ) override;
+    void setProjection( const ViewportParams *viewport );
 
-    void paintContent( QPainter *painter ) override;
+    void paintContent( QPainter *painter );
 
     /**
      * @return: The settings of the item.
      */
-    QHash<QString,QVariant> settings() const override;
+    virtual QHash<QString,QVariant> settings() const;
 
     /**
      * Set the settings of the item.
      */
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    virtual void setSettings( const QHash<QString,QVariant> &settings );
 
- public Q_SLOTS:
+ public slots:
     void readSettings();
     void writeSettings();
     void updateSettings();
 
  protected:
-    bool eventFilter( QObject *object, QEvent *e ) override;
+    bool eventFilter( QObject *object, QEvent *e );
 
  private:
     void changeBackground( const QString& target );
@@ -118,7 +119,7 @@ class OverviewMap : public AbstractFloatItem, public DialogConfigurationInterfac
     qreal m_centerLon;
     bool m_mapChanged;
 
- private Q_SLOTS:
+ private slots:
     void chooseCustomMap();
     void synchronizeSpinboxes();
     void showCurrentPlanetPreview() const;

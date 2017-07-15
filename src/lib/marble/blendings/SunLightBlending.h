@@ -17,6 +17,7 @@
 #define MARBLE_SUN_LIGHT_BLENDING_H
 
 #include <QtGlobal>
+#include <QColor>
 
 #include "Blending.h"
 
@@ -29,8 +30,8 @@ class SunLightBlending: public Blending
 {
  public:
     explicit SunLightBlending( const SunLocator * sunLocator );
-    ~SunLightBlending() override;
-    void blend( QImage * const bottom, TextureTile const * const top ) const override;
+    virtual ~SunLightBlending();
+    virtual void blend( QImage * const bottom, TextureTile const * const top ) const;
 
     void setLevelZeroLayout( int levelZeroColumns, int levelZeroRows );
 

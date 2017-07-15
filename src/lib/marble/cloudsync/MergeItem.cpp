@@ -119,4 +119,4 @@ void MergeItem::setResolution( MergeItem::Resolution resolution )
 
 }
 
-#include "moc_MergeItem.cpp"
+#include "MergeItem.moc"

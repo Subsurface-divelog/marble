@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_DOWNLOADREGION_H
@@ -14,6 +14,7 @@
 #include <QObject>
 #include <QVector>
 
+#include "TileCoordsPyramid.h"
 #include "marble_export.h"
 
 namespace Marble
@@ -21,8 +22,8 @@ namespace Marble
 class DownloadRegionPrivate;
 class GeoDataLatLonAltBox;
 class GeoDataLineString;
-class TileCoordsPyramid;
 class MarbleModel;
+class ViewportParams;
 class TextureLayer;
 
 class MARBLE_EXPORT DownloadRegion : public QObject
@@ -34,7 +35,7 @@ class MARBLE_EXPORT DownloadRegion : public QObject
 
     void setMarbleModel( MarbleModel *model );
 
-    ~DownloadRegion() override;
+    ~DownloadRegion();
 
     void setTileLevelRange( int const minimumTileLevel, int const maximumTileLevel );
 

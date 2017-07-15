@@ -235,40 +235,11 @@ void GeoDataLatLonBox::setBoundaries( qreal north, qreal south, qreal east, qrea
     }
 }
 
-void GeoDataLatLonBox::scale(qreal verticalFactor, qreal horizontalFactor) const
-{
-    GeoDataCoordinates const middle = center();
-    qreal const deltaY = 0.5 * height() * verticalFactor;
-    qreal const deltaX = 0.5 * width() * horizontalFactor;
-    d->m_north = qMin((middle.latitude() + deltaY), static_cast<qreal>(M_PI/2));
-    d->m_south = qMax((middle.latitude() - deltaY), static_cast<qreal>(-M_PI/2));
-    if (deltaX > 180 * DEG2RAD) {
-        d->m_east = M_PI;
-        d->m_west = -M_PI;
-    }
-    else {
-        d->m_east = GeoDataCoordinates::normalizeLon(middle.longitude() + deltaX);
-        d->m_west = GeoDataCoordinates::normalizeLon(middle.longitude() - deltaX);
-    }
-}
-
-GeoDataLatLonBox GeoDataLatLonBox::scaled(qreal verticalFactor, qreal horizontalFactor) const
-{
-    GeoDataLatLonBox result = *this;
-    result.scale(verticalFactor, horizontalFactor);
-    return result;
-}
-
 qreal GeoDataLatLonBox::width( GeoDataCoordinates::Unit unit ) const
 {
-    return GeoDataLatLonBox::width( d->m_east, d->m_west, unit );
-}
-
-qreal GeoDataLatLonBox::width( qreal east, qreal west, GeoDataCoordinates::Unit unit )
-{
-    qreal width = fabs( (qreal)( GeoDataLatLonBox::crossesDateLine(east, west)
-                                     ? 2 * M_PI - west + east
-                                     : east - west ) );
+    qreal width = fabs( (qreal)( crossesDateLine() 
+                                     ? 2 * M_PI - d->m_west + d->m_east
+                                     : d->m_east - d->m_west ) );
 
     // This also covers the case where this bounding box covers the whole
     // longitude range ( -180 <= lon <= + 180 ).
@@ -285,12 +256,7 @@ qreal GeoDataLatLonBox::width( qreal east, qreal west, GeoDataCoordinates::Unit 
 
 qreal GeoDataLatLonBox::height( GeoDataCoordinates::Unit unit ) const
 {
-    return GeoDataLatLonBox::height(d->m_north, d->m_south, unit);
-}
-
-qreal GeoDataLatLonBox::height(qreal north, qreal south, GeoDataCoordinates::Unit unit)
-{
-    qreal height = fabs( (qreal)( south - north ) );
+    qreal height = fabs( (qreal)( d->m_south - d->m_north ) );
 
     if ( unit == GeoDataCoordinates::Degree ) {
         return height * RAD2DEG;
@@ -301,12 +267,12 @@ qreal GeoDataLatLonBox::height(qreal north, qreal south, GeoDataCoordinates::Uni
 
 bool GeoDataLatLonBox::crossesDateLine() const
 {
-    return GeoDataLatLonBox::crossesDateLine(d->m_east, d->m_west);
-}
+    if ( d->m_east < d->m_west ||
+         ( d->m_east == M_PI && d->m_west == -M_PI ) ) {
+        return true;
+    }
 
-bool GeoDataLatLonBox::crossesDateLine(qreal east, qreal west)
-{
-    return east < west || ( east == M_PI && west == -M_PI );
+    return false;
 }
 
 GeoDataCoordinates GeoDataLatLonBox::center() const
@@ -342,28 +308,22 @@ bool GeoDataLatLonBox::containsPole( Pole pole ) const
     return false;
 }
 
-bool GeoDataLatLonBox::contains(qreal lon, qreal lat) const
-{
-    if ( lat < d->m_south || lat > d->m_north ) {
-        return false;
-    }
-
-    // We need to take care of the normal case ...
-    if ( ( ( lon < d->m_west || lon > d->m_east ) && ( d->m_west < d->m_east ) ) ||
-    // ... and the case where the bounding box crosses the date line:
-         ( ( lon < d->m_west && lon > d->m_east ) && ( d->m_west > d->m_east ) ) )
-        return false;
-
-    return true;
-}
-
 bool GeoDataLatLonBox::contains( const GeoDataCoordinates &point ) const
 {
     qreal lon, lat;
 
     point.geoCoordinates( lon, lat );
 
-    return contains(lon, lat);
+    // We need to take care of the normal case ...
+    if ( ( ( lon < d->m_west || lon > d->m_east ) && ( d->m_west < d->m_east ) ) ||
+    // ... and the case where the bounding box crosses the date line:
+         ( ( lon < d->m_west && lon > d->m_east ) && ( d->m_west > d->m_east ) ) )
+        return false;
+    
+    if ( lat < d->m_south || lat > d->m_north )
+        return false;
+
+    return true;
 }
 
 bool GeoDataLatLonBox::contains( const GeoDataLatLonBox &other ) const
@@ -432,36 +392,36 @@ bool GeoDataLatLonBox::intersects( const GeoDataLatLonBox &other ) const
 
     // check the intersection criterion for the latitude first:
 
-    // Case 1: northern boundary of other box intersects:
-    if (   (d->m_north >= other.d->m_north && d->m_south <= other.d->m_north)
+           // Case 1: northern boundary of other box intersects:
+    if (   ( d->m_north >= other.north() && d->m_south <= other.north() )
            // Case 2: northern boundary of this box intersects:
-           || (other.d->m_north >= d->m_north && other.d->m_south <= d->m_north)
+        || ( other.north() >= d->m_north && other.south() <= d->m_north )
            // Case 3: southern boundary of other box intersects:
-           || (d->m_north >= other.d->m_south && d->m_south <= other.d->m_south)
+        || ( d->m_north >= other.south() && d->m_south <= other.south() ) 
            // Case 4: southern boundary of this box intersects:
-           || (other.d->m_north >= d->m_south && other.d->m_south <= d->m_south)) {
+        || ( other.north() >= d->m_south && other.south() <= d->m_south ) ) {
 
         if ( !crossesDateLine() ) {
             if ( !other.crossesDateLine() ) {
                 // "Normal" case: both bounding boxes don't cross the date line
-                // Case 1: eastern boundary of other box intersects:
-                if (    (d->m_east >= other.d->m_east && d->m_west <= other.d->m_east)
+                        // Case 1: eastern boundary of other box intersects:
+                if (    ( d->m_east >= other.east() && d->m_west <= other.east() )
                         // Case 2: eastern boundary of this box intersects:
-                        || (other.d->m_east >= d->m_east && other.d->m_west <= d->m_east)
+                    || ( other.east() >= d->m_east && other.west() <= d->m_east )
                         // Case 3: western boundary of other box intersects:
-                        || (d->m_east >= other.d->m_west && d->m_west <= other.d->m_west)
+                    || ( d->m_east >= other.west() && d->m_west <= other.west() ) 
                         // Case 4: western boundary of this box intersects:
-                        || (other.d->m_east >= d->m_west && other.d->m_west <= d->m_west)) {
+                    || ( other.east() >= d->m_west && other.west() <= d->m_west ) ) {
                     return true;
-                }
+                }                
             }
             else {
                 // The other bounding box crosses the date line, "this" one does not:
                 // So the date line splits the other bounding box in two parts.
 
-                if ( d->m_west <= other.d->m_east || d->m_east >= other.d->m_west) {
-                    return true;
-                }
+                if ( d->m_west <= other.east() || d->m_east >= other.west() ) {
+                        return true;
+                }                
             }
         }
         else {
@@ -472,12 +432,12 @@ bool GeoDataLatLonBox::intersects( const GeoDataLatLonBox &other ) const
             else {
                 // "This" bounding box crosses the date line, the other one does not.
                 // So the date line splits "this" bounding box in two parts.
-                //
+                // 
                 // This also covers the case where this bounding box covers the whole
                 // longitude range ( -180 <= lon <= + 180 ).
-                if ( other.d->m_west <= d->m_east || other.d->m_east >= d->m_west ) {
-                    return true;
-                }
+                if ( other.west() <= d->m_east || other.east() >= d->m_west ) {
+                        return true;
+                }                
             }
         }
     }
@@ -547,8 +507,7 @@ GeoDataLatLonBox GeoDataLatLonBox::united( const GeoDataLatLonBox& other ) const
 
 GeoDataLatLonBox GeoDataLatLonBox::toCircumscribedRectangle() const
 {
-    QVector<GeoDataCoordinates> coordinates;
-    coordinates.reserve(4);
+    QList<GeoDataCoordinates> coordinates;
 
     coordinates.append( GeoDataCoordinates( west(), north() ) );
     coordinates.append( GeoDataCoordinates( west(), south() ) );
@@ -572,7 +531,7 @@ GeoDataLatLonBox GeoDataLatLonBox::toCircumscribedRectangle() const
     bool eastSet = false;
     bool westSet = false;
 
-    for ( const GeoDataCoordinates& coord: coordinates ) {
+    foreach ( const GeoDataCoordinates& coord, coordinates ) {
 
         const qreal lon = coord.longitude();
         const qreal lat = coord.latitude();
@@ -714,11 +673,8 @@ GeoDataLatLonBox GeoDataLatLonBox::fromLineString(  const GeoDataLineString& lin
         GeoDataCoordinates::normalizeLonLat( lon, lat );
 
         // Determining the maximum and minimum latitude
-        if ( lat > north ) {
-            north = lat;
-        } else if ( lat < south ) {
-            south = lat;
-        }
+        if ( lat > north ) north = lat;
+        if ( lat < south ) south = lat;
 
         currentSign = ( lon < 0 ) ? -1 : +1;
 
@@ -805,73 +761,16 @@ GeoDataLatLonBox GeoDataLatLonBox::fromLineString(  const GeoDataLineString& lin
 
 bool GeoDataLatLonBox::isNull() const
 {
-    return d->m_north == d->m_south && d->m_east == d->m_west;
+    if ( d->m_north == d->m_south && d->m_east == d->m_west )
+        return true;
+
+    return false;
 }
 
 bool GeoDataLatLonBox::isEmpty() const
 {
     return *this == empty;
 }
-
-bool GeoDataLatLonBox::fuzzyCompare(const GeoDataLatLonBox& lhs,
-                                           const GeoDataLatLonBox& rhs,
-                                           const qreal factor)
-{
-    bool equal = true;
-
-    // Check the latitude for approximate equality
-
-    double latDelta = lhs.height() * factor;
-
-    if (fabs(lhs.north() - rhs.north()) > latDelta) equal = false;
-    if (fabs(lhs.south() - rhs.south()) > latDelta) equal = false;
-
-
-    // Check the longitude for approximate equality
-
-    double lonDelta = lhs.width() * factor;
-
-    double lhsEast = lhs.east();
-    double rhsEast = rhs.east();
-
-    if (!GeoDataLatLonBox::crossesDateLine(lhsEast, rhsEast)) {
-        if (fabs(lhsEast - rhsEast) > lonDelta) equal = false;
-    }
-    else {
-        lhsEast = GeoDataCoordinates::normalizeLat( lhsEast );
-        rhsEast = GeoDataCoordinates::normalizeLat( rhsEast );
-        if (lhsEast < 0 && rhsEast > 0) {
-            lhsEast += 2 * M_PI;
-            if (fabs(lhsEast - rhsEast) > lonDelta) equal = false;
-        }
-        if (lhsEast > 0 && rhsEast < 0) {
-            rhsEast += 2 * M_PI;
-            if (fabs(lhsEast - rhsEast) > lonDelta) equal = false;
-        }
-    }
-
-    double lhsWest = lhs.west();
-    double rhsWest = rhs.west();
-
-    if (!GeoDataLatLonBox::crossesDateLine(lhsWest, rhsWest)) {
-       if (fabs(lhsWest - rhsWest) > lonDelta) equal = false;
-    }
-    else {
-        lhsWest = GeoDataCoordinates::normalizeLat( lhsWest );
-        rhsWest = GeoDataCoordinates::normalizeLat( rhsWest );
-        if (lhsWest < 0 && rhsWest > 0) {
-            lhsWest += 2 * M_PI;
-            if (fabs(lhsWest - rhsWest) > lonDelta) equal = false;
-        }
-        if (lhsWest > 0 && rhsWest < 0) {
-            rhsWest += 2 * M_PI;
-            if (fabs(lhsWest - rhsWest) > lonDelta) equal = false;
-        }
-    }
-
-    return equal;
-}
-
 
 void GeoDataLatLonBox::clear()
 {

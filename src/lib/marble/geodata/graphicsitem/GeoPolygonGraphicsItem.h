@@ -11,7 +11,8 @@
 #ifndef MARBLE_GEOPOLYGONGRAPHICSITEM_H
 #define MARBLE_GEOPOLYGONGRAPHICSITEM_H
 
-#include "AbstractGeoPolygonGraphicsItem.h"
+#include "GeoGraphicsItem.h"
+#include "marble_export.h"
 
 namespace Marble
 {
@@ -19,14 +20,19 @@ namespace Marble
 class GeoDataLinearRing;
 class GeoDataPolygon;
 
-class MARBLE_EXPORT GeoPolygonGraphicsItem : public AbstractGeoPolygonGraphicsItem
+class MARBLE_EXPORT GeoPolygonGraphicsItem : public GeoGraphicsItem
 {
 public:
-    static AbstractGeoPolygonGraphicsItem *createGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataPolygon *polygon);
-    static AbstractGeoPolygonGraphicsItem *createGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataLinearRing *ring);
+    explicit GeoPolygonGraphicsItem( const GeoDataFeature *feature, const GeoDataPolygon* polygon );
+    explicit GeoPolygonGraphicsItem( const GeoDataFeature *feature, const GeoDataLinearRing* ring );
 
-    explicit GeoPolygonGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataPolygon *polygon);
-    explicit GeoPolygonGraphicsItem(const GeoDataPlacemark *placemark, const GeoDataLinearRing *ring);
+    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
+
+    virtual void paint( GeoPainter* painter, const ViewportParams *viewport );
+
+protected:
+    const GeoDataPolygon *const m_polygon;
+    const GeoDataLinearRing *const m_ring;
 };
 
 }

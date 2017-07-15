@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "jobqueue.h"
@@ -23,7 +23,7 @@ JobQueue::JobQueue(QObject *parent) :
 void JobQueue::addJob(Job *newJob)
 {
     QList<Job*> const allJobs = m_jobs + m_runningJobs;
-    for(Job* job: allJobs) {
+    foreach(Job* job, allJobs) {
         if (*job == *newJob) {
             qDebug() << "Ignoring job, still running";
             return;
@@ -35,7 +35,7 @@ void JobQueue::addJob(Job *newJob)
     if (m_runningJobs.size()<m_maxConcurrentJobs) {
         startJob(newJob);
     } else {
-        Logger::instance().setStatus(newJob->region().id() + QLatin1Char('_') + newJob->transport(), newJob->region().name() + QLatin1String(" (") + newJob->transport() + QLatin1Char(')'), "waiting", "Queued.");
+        Logger::instance().setStatus(newJob->region().id() + '_' + newJob->transport(), newJob->region().name() + QLatin1String( " (" ) + newJob->transport() + ')', "waiting", "Queued.");
         m_jobs << newJob;
     }
 }
@@ -62,4 +62,4 @@ void JobQueue::startJob(Job *job)
     QThreadPool::globalInstance()->start(job);
 }
 
-#include "moc_jobqueue.cpp"
+#include "jobqueue.moc"

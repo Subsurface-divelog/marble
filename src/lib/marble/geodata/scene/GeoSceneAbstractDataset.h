@@ -37,7 +37,7 @@ namespace Marble
 class GEODATA_EXPORT GeoSceneAbstractDataset : public GeoNode
 {
  public:
-    ~GeoSceneAbstractDataset() override {};
+    virtual ~GeoSceneAbstractDataset() {};
 
     QString name() const;
 

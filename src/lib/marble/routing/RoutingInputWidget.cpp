@@ -5,29 +5,22 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser  <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser  <earthwings@gentoo.org>
 // Copyright 2012      Illya Kovalevskyy <illya.kovalevskyy@gmail.com>
 //
 
 #include "RoutingInputWidget.h"
 
+#include "MarbleLocale.h"
 #include "MarblePlacemarkModel.h"
 #include "RouteRequest.h"
-
-#ifdef MARBLE_NO_WEBKITWIDGETS
-#include "NullTinyWebBrowser.h"
-#else
 #include "TinyWebBrowser.h"
-#endif
-
 #include "BookmarkManager.h"
 #include "MarbleModel.h"
 #include "MarbleWidget.h"
 #include "routing/RoutingManager.h"
-#include "GeoDataPlacemark.h"
 #include "GeoDataFolder.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
 #include "PositionTracking.h"
 #include "ReverseGeocodingRunnerManager.h"
 #include "SearchRunnerManager.h"
@@ -35,12 +28,14 @@
 #include "GoToDialog.h"
 
 #include <QTimer>
+#include <QUrl>
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QPushButton>
 #include <QMenu>
+#include <QToolButton>
 #include <QKeyEvent>
-#include <QPainter>
+#include <QDomDocument>
 
 namespace Marble
 {
@@ -52,10 +47,10 @@ namespace Marble
 class RoutingInputLineEdit : public MarbleLineEdit
 {
 public:
-    explicit RoutingInputLineEdit( QWidget *parent = 0 );
+    RoutingInputLineEdit( QWidget *parent = 0 );
 
 protected:
-    void keyPressEvent(QKeyEvent *) override;
+    virtual void keyPressEvent(QKeyEvent *);
 };
 
 class RoutingInputWidgetPrivate
@@ -109,17 +104,18 @@ void RoutingInputWidgetPrivate::updateDescription()
 {
     GeoDataPlacemark const placemark = (*m_route)[m_index];
     GeoDataExtendedData const address = placemark.extendedData();
-    if (address.contains(QStringLiteral("road")) && address.contains(QStringLiteral("city"))) {
-        QString const road = address.value(QStringLiteral("road")).value().toString();
-        QString const city = address.value(QStringLiteral("city")).value().toString();
+    if ( address.contains( "road" ) && address.contains( "city" ) )
+    {
+        QString const road = address.value( "road" ).value().toString();
+        QString const city = address.value( "city" ).value().toString();
 
-        if (address.contains(QStringLiteral("house_number"))) {
-            QString const houseNumber = address.value(QStringLiteral("house_number")).value().toString();
+        if ( address.contains( "house_number" ) ) {
+            QString const houseNumber = address.value( "house_number" ).value().toString();
             QString const name = QObject::tr("%1 %2, %3", "An address with parameters %1=house number, %2=road, %3=city");
-            m_lineEdit->setText( name.arg( houseNumber, road, city ) );
+            m_lineEdit->setText( name.arg( houseNumber ).arg( road ).arg( city ) );
         } else {
             QString const name = QObject::tr("%2, %3", "An address with parameters %1=road, %2=city");
-            m_lineEdit->setText( name.arg( road, city ) );
+            m_lineEdit->setText( name.arg( road ).arg( city ) );
         }
     }
     else if ( m_route->name( m_index ).isEmpty() )
@@ -167,7 +163,12 @@ RoutingInputWidgetPrivate::RoutingInputWidgetPrivate( MarbleModel* model, int in
     m_lineEdit->setDecorator( addDropDownIndicator( m_route->pixmap( m_index ) ) );
 
     m_removeButton = new QPushButton( parent );
-    m_removeButton->setIcon(QIcon(QStringLiteral(":/marble/routing/icon-remove.png")));
+#ifdef Q_WS_MAEMO_5
+    // maemo window background color is black, the 'X' is not visible -> use the red '-' sign
+    m_removeButton->setIcon( QIcon( ":/icons/remove.png" ) );
+#else
+    m_removeButton->setIcon( QIcon( ":/marble/routing/icon-remove.png" ) );
+#endif
     m_removeButton->setToolTip( QObject::tr( "Remove via point" ) );
     m_removeButton->setFlat( true );
     m_removeButton->setMaximumWidth( 18 );
@@ -189,15 +190,15 @@ void RoutingInputWidgetPrivate::createMenu( RoutingInputWidget *parent )
                        parent, SLOT(requestActivity()) );
     result->addSeparator();
 
-    m_currentLocationAction = result->addAction( QIcon(QStringLiteral(":/icons/gps.png")), QObject::tr("Current &Location"),
+    m_currentLocationAction = result->addAction( QIcon( ":/icons/gps.png" ), QObject::tr( "Current &Location" ),
                                                  parent, SLOT(setCurrentLocation()) );
     m_currentLocationAction->setEnabled( false );
 
-    m_mapInput = result->addAction(QIcon(QStringLiteral(":/icons/crosshairs.png")), QObject::tr("From &Map..."));
+    m_mapInput = result->addAction( QIcon( ":/icons/crosshairs.png" ), QObject::tr( "From &Map..." ) );
     m_mapInput->setCheckable( true );
     QObject::connect( m_mapInput, SIGNAL(triggered(bool)), parent, SLOT(setMapInputModeEnabled(bool)) );
 
-    m_bookmarkAction = result->addAction(QIcon(QStringLiteral(":/icons/bookmarks.png")), QObject::tr("From &Bookmark"));
+    m_bookmarkAction = result->addAction( QIcon( ":/icons/bookmarks.png" ), QObject::tr( "From &Bookmark" ) );
     m_bookmarkAction->setMenu( createBookmarkMenu( parent ) );
 
     m_menu = result;
@@ -206,7 +207,7 @@ void RoutingInputWidgetPrivate::createMenu( RoutingInputWidget *parent )
 QMenu* RoutingInputWidgetPrivate::createBookmarkMenu( RoutingInputWidget *parent )
 {
     QMenu* result = new QMenu( parent );
-    result->addAction(QIcon(QStringLiteral(":/icons/go-home.png")), QObject::tr("&Home"), parent, SLOT(setHomePosition()));
+    result->addAction( QIcon( ":/icons/go-home.png" ), QObject::tr( "&Home" ), parent, SLOT(setHomePosition()) );
 
     QVector<GeoDataFolder*> folders = m_marbleModel->bookmarkManager()->folders();
 
@@ -217,7 +218,7 @@ QMenu* RoutingInputWidgetPrivate::createBookmarkMenu( RoutingInputWidget *parent
         QVector<GeoDataFolder*>::const_iterator end = folders.constEnd();
 
         for (; i != end; ++i ) {
-            QMenu* menu = result->addMenu(QIcon(QStringLiteral(":/icons/folder-bookmark.png")), (*i)->name());
+            QMenu* menu = result->addMenu( QIcon( ":/icons/folder-bookmark.png" ), (*i)->name() );
             createBookmarkActions( menu, *i, parent );
         }
     }
@@ -259,7 +260,6 @@ RoutingInputWidget::RoutingInputWidget( MarbleModel* model, int index, QWidget *
         QWidget( parent ), d( new RoutingInputWidgetPrivate( model, index, this ) )
 {
     QHBoxLayout *layout = new QHBoxLayout( this );
-    layout->setSizeConstraint( QLayout::SetMinimumSize );
     layout->setSpacing( 0 );
     layout->setMargin( 0 );
     layout->addWidget( d->m_lineEdit );
@@ -501,4 +501,4 @@ void RoutingInputWidget::showMenu()
 
 } // namespace Marble
 
-#include "moc_RoutingInputWidget.cpp"
+#include "RoutingInputWidget.moc"

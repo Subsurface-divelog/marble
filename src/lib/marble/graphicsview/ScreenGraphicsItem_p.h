@@ -34,13 +34,13 @@ class ScreenGraphicsItemPrivate : public MarbleGraphicsItemPrivate
     {
     }
 
-    ~ScreenGraphicsItemPrivate() override
+    virtual ~ScreenGraphicsItemPrivate()
     {
     }
 
-    QVector<QPointF> positions() const override
+    QList<QPointF> positions() const
     {
-        QVector<QPointF> list;
+        QList<QPointF> list;
 
         list.append( positivePosition() );
         return list;
@@ -63,13 +63,13 @@ class ScreenGraphicsItemPrivate : public MarbleGraphicsItemPrivate
         return position;
     }
 
-    QVector<QPointF> absolutePositions() const override
+    QList<QPointF> absolutePositions() const
     {
         if( m_parent == 0 ) {
             return positions();
         }
 
-        QVector<QPointF> parentPositions;
+        QList<QPointF> parentPositions;
 
         if( ScreenGraphicsItem *screenItem = dynamic_cast<ScreenGraphicsItem*>( m_parent ) ) {
             parentPositions = screenItem->absolutePositions();
@@ -80,16 +80,15 @@ class ScreenGraphicsItemPrivate : public MarbleGraphicsItemPrivate
 
         QPointF relativePosition = positivePosition();
 
-        QVector<QPointF> absolutePositions;
-        absolutePositions.reserve(parentPositions.size());
-        for( const QPointF &point: parentPositions ) {
+        QList<QPointF> absolutePositions;
+        foreach( QPointF point, parentPositions ) {
             absolutePositions.append( point + relativePosition );
         }
 
         return absolutePositions;
     }
 
-    void setProjection(const ViewportParams *viewport) override
+    void setProjection( const ViewportParams *viewport )
     {
         // If we have no parent
         if( m_parent == 0 ) {

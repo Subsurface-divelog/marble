@@ -17,7 +17,6 @@
 #include <QContextMenuEvent>
 #include <QDialog>
 #include <QHelpEvent>
-#include <QPen>
 
 // Marble
 #include "DialogConfigurationInterface.h"
@@ -48,9 +47,9 @@ class AbstractFloatItemPrivate
 
 QPen         AbstractFloatItemPrivate::s_pen = QPen( Qt::black );
 #ifdef Q_OS_MACX
-    QFont AbstractFloatItemPrivate::s_font = QFont( QStringLiteral("Sans Serif"), 10 );
+    QFont AbstractFloatItemPrivate::s_font = QFont( "Sans Serif", 10 );
 #else
-    QFont AbstractFloatItemPrivate::s_font = QFont( QStringLiteral("Sans Serif"), 8 );
+    QFont AbstractFloatItemPrivate::s_font = QFont( "Sans Serif", 8 );
 #endif
 
 AbstractFloatItem::AbstractFloatItem( const MarbleModel *marbleModel, const QPointF &point, const QSizeF &size )
@@ -73,27 +72,19 @@ AbstractFloatItem::~AbstractFloatItem()
 QHash<QString,QVariant> AbstractFloatItem::settings() const
 {
     QHash<QString,QVariant> updated = RenderPlugin::settings();
-#ifdef Q_OS_OSX
-    updated.insert(QStringLiteral("position"), position().toPoint());
-#else
-    updated.insert(QStringLiteral("position"), position());
-#endif
+    updated["position"] = position();
     return updated;
 }
 
 void AbstractFloatItem::setSettings(const QHash<QString, QVariant> &settings)
 {
-    if (settings.value(QStringLiteral("position")).type() == QVariant::String) {
-#ifdef Q_OS_OSX
-        setPosition(settings.value(QStringLiteral("position"), position()).toPointF());
-#else
+    if ( settings.value( "position" ).type() == QVariant::String ) {
         // work around KConfig turning QPointFs into QStrings
-        const QStringList coordinates = settings.value(QStringLiteral("position")).toString().split(QLatin1Char(','));
+        const QStringList coordinates = settings.value( "position" ).toString().split( QLatin1Char(',') );
         setPosition( QPointF( coordinates.at( 0 ).toFloat(), coordinates.at( 1 ).toFloat() ) );
-#endif
     }
     else {
-        setPosition(settings.value(QStringLiteral("position"), position()).toPointF());
+        setPosition( settings.value( "position", position() ).toPointF() );
     }
 
     RenderPlugin::setSettings(settings);
@@ -128,12 +119,12 @@ void AbstractFloatItem::setFont( const QFont &font )
 
 QString AbstractFloatItem::renderPolicy() const
 {
-    return QStringLiteral("ALWAYS");
+    return "ALWAYS";
 }
 
 QStringList AbstractFloatItem::renderPosition() const
 {
-    return QStringList(QStringLiteral("FLOAT_ITEM"));
+    return QStringList( "FLOAT_ITEM" );
 }
 
 void AbstractFloatItem::setVisible( bool visible )
@@ -166,7 +157,7 @@ void AbstractFloatItem::setPositionLocked( bool lock )
 
 bool AbstractFloatItem::positionLocked() const
 {
-    return ( flags() & ScreenGraphicsItem::ItemIsMovable ) == 0;
+    return ( flags() & ScreenGraphicsItem::ItemIsMovable ) ? false : true;
 }
 
 bool AbstractFloatItem::eventFilter( QObject *object, QEvent *e )
@@ -177,7 +168,7 @@ bool AbstractFloatItem::eventFilter( QObject *object, QEvent *e )
 
     if( e->type() == QEvent::ContextMenu )
     {
-        QWidget *widget = qobject_cast<QWidget *>( object );
+        QWidget *widget = dynamic_cast<QWidget *>( object );
         QContextMenuEvent *menuEvent = dynamic_cast<QContextMenuEvent *> ( e );
         if( widget != NULL && menuEvent != NULL && contains( menuEvent->pos() ) )
         {
@@ -213,10 +204,10 @@ void AbstractFloatItem::toolTipEvent ( QHelpEvent *e )
 bool AbstractFloatItem::render( GeoPainter *painter, ViewportParams *viewport,
              const QString& renderPos, GeoSceneLayer * layer )
 {
-    Q_UNUSED(painter)
-    Q_UNUSED(viewport)
-    Q_UNUSED(renderPos)
-    Q_UNUSED(layer)
+    Q_UNUSED( renderPos )
+    Q_UNUSED( layer )
+
+    paintEvent( painter, viewport );
 
     return true;
 }
@@ -237,7 +228,7 @@ QMenu* AbstractFloatItem::contextMenu()
     {
         d->m_contextMenu = new QMenu;
 
-        QAction *lockAction = d->m_contextMenu->addAction(QIcon(QStringLiteral(":/icons/unlock.png")), tr("&Lock"));
+        QAction *lockAction = d->m_contextMenu->addAction( QIcon(":/icons/unlock.png"), tr( "&Lock" ) );
         lockAction->setCheckable( true );
         lockAction->setChecked( positionLocked() );
         connect( lockAction, SIGNAL(triggered(bool)), this, SLOT(setPositionLocked(bool)) );
@@ -252,7 +243,7 @@ QMenu* AbstractFloatItem::contextMenu()
         if( dialog )
         {
             d->m_contextMenu->addSeparator();
-            QAction *configAction = d->m_contextMenu->addAction(QIcon(QStringLiteral(":/icons/settings-configure.png")), tr("&Configure..."));
+            QAction *configAction = d->m_contextMenu->addAction( QIcon(":/icons/settings-configure.png"), tr( "&Configure..." ) );
             connect( configAction, SIGNAL(triggered()), dialog, SLOT(exec()) );
         }
     }
@@ -263,4 +254,4 @@ QMenu* AbstractFloatItem::contextMenu()
 
 }
 
-#include "moc_AbstractFloatItem.cpp"
+#include "AbstractFloatItem.moc"

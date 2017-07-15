@@ -25,17 +25,17 @@ class PlaybackAnimatedUpdateItem : public PlaybackItem
 {
     Q_OBJECT
 public:
-    explicit PlaybackAnimatedUpdateItem( GeoDataAnimatedUpdate *animatedUpdate );
+    PlaybackAnimatedUpdateItem( GeoDataAnimatedUpdate *animatedUpdate );
     const GeoDataAnimatedUpdate* animatedUpdate() const;
-    double duration() const override;
-    void play() override;
-    void pause() override;
-    void seek( double ) override;
-    void stop() override;
+    double duration() const;
+    void play();
+    void pause();
+    void seek( double );
+    void stop();
     bool isApplied() const;
 
 private:
-    static bool canDelete(const GeoDataFeature &feature);
+    bool canDelete( const char* nodeType ) const;
     GeoDataDocument* rootDocument( GeoDataObject *object ) const;
     GeoDataFeature* findFeature( GeoDataFeature* feature, const QString& id ) const;
     GeoDataAnimatedUpdate* m_animatedUpdate;

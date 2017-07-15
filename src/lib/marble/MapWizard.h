@@ -26,6 +26,7 @@ class QNetworkReply;
 namespace Marble {
 
 class GeoSceneDocument;
+class GeoSceneHead;
 
 class MapWizardPrivate;
 
@@ -35,7 +36,7 @@ class MARBLE_EXPORT MapWizard : public QWizard
 
 public:
     explicit MapWizard(QWidget *parent = 0);
-    ~MapWizard() override;
+    ~MapWizard();
 
     QStringList wmsServers() const;
     void setWmsServers( const QStringList& uris );
@@ -43,13 +44,13 @@ public:
     QStringList staticUrlServers() const;
     void setStaticUrlServers( const QStringList& uris );
 
-    static QString createArchive( QWidget *parent, const QString& mapId );
-    static void deleteArchive( const QString& mapId );
+    static QString createArchive( QWidget *parent, QString mapId );
+    static void deleteArchive( QString mapId );
 
     // QWizard's functions
-    void accept() override;
-    bool validateCurrentPage() override;
-    int nextId() const override;
+    virtual void accept();
+    virtual bool validateCurrentPage();
+    virtual int nextId() const;
 
 public Q_SLOTS:
     // WMS protocol

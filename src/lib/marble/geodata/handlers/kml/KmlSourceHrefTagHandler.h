@@ -8,8 +8,8 @@
 // Copyright 2013      Sanjiban Bairagya <sanjiban22393@gmail.com>
 //
 
-#ifndef MARBLE_KMLSOURCEHREFTAGHANDLER_H
-#define MARBLE_KMLSOURCEHREFTAGHANDLER_H
+#ifndef KMLXSOURCEHREFHANDLER_H
+#define KMLXSOURCEHREFHANDLER_H
 
 #include "GeoTagHandler.h"
 
@@ -21,7 +21,7 @@ namespace kml
 class KmlsourceHrefTagHandler : public GeoTagHandler
 {
 public:
-    GeoNode* parse(GeoParser&) const override;
+    virtual GeoNode* parse(GeoParser&) const;
 };
 
 }

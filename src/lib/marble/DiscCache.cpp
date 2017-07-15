@@ -22,7 +22,7 @@ using namespace Marble;
 
 static QString indexFileName( const QString &cacheDirectory )
 {
-    return cacheDirectory + QLatin1String("/cache_index.idx");
+    return cacheDirectory + "/cache_index.idx";
 }
 
 DiscCache::DiscCache( const QString &cacheDirectory )
@@ -167,9 +167,9 @@ void DiscCache::setCacheLimit( quint64 n )
 QString DiscCache::keyToFileName( const QString &key ) const
 {
     QString fileName( key );
-    fileName.replace(QLatin1Char('/'), QLatin1Char('_'));
+    fileName.replace( '/', '_' );
 
-    return m_CacheDirectory + QLatin1Char('/') + fileName;
+    return m_CacheDirectory + '/' + fileName;
 }
 
 void DiscCache::cleanup()

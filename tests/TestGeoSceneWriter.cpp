@@ -20,7 +20,7 @@
 #include "GeoSceneIcon.h"
 #include "GeoSceneMap.h"
 #include "GeoSceneLayer.h"
-#include "GeoSceneTileDataset.h"
+#include "GeoSceneTiled.h"
 #include "GeoSceneGeodata.h"
 #include "GeoSceneSettings.h"
 #include "GeoSceneProperty.h"
@@ -39,7 +39,7 @@ class TestGeoSceneWriter : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void saveFile_data();
     void saveFile();
@@ -92,7 +92,7 @@ void TestGeoSceneWriter::initTestCase()
             QVERIFY( file.open( QIODevice::ReadOnly ) );
 
             //Parser and verify
-            QVERIFY2(parser->read(&file), filename.toLatin1().constData());
+            QVERIFY2( parser->read( &file ), filename.toLatin1() );
 
             parsers.insert( dataDir.filePath(filename), parserPointer );
 
@@ -109,7 +109,7 @@ void TestGeoSceneWriter::saveFile_data()
     QMap<QString, QSharedPointer<GeoSceneParser> >::iterator itpoint = parsers.begin();
     QMap<QString, QSharedPointer<GeoSceneParser> >::iterator const endpoint = parsers.end();
     for (; itpoint != endpoint; ++itpoint ) {
-        QTest::newRow(itpoint.key().toLatin1().constData()) << itpoint.value();
+        QTest::newRow( itpoint.key().toLocal8Bit() ) << itpoint.value();
     }
 }
 
@@ -136,7 +136,7 @@ void TestGeoSceneWriter::saveAndLoad_data()
     QMap<QString, QSharedPointer<GeoSceneParser> >::iterator itpoint = parsers.begin();
     QMap<QString, QSharedPointer<GeoSceneParser> >::iterator const endpoint = parsers.end();
     for (; itpoint != endpoint; ++itpoint ) {
-        QTest::newRow(itpoint.key().toLatin1().constData()) << itpoint.value();
+        QTest::newRow( itpoint.key().toLocal8Bit() ) << itpoint.value();
     }
 }
 
@@ -168,7 +168,7 @@ void TestGeoSceneWriter::saveAndCompare_data()
     QMap<QString, QSharedPointer<GeoSceneParser> >::iterator itpoint = parsers.begin();
     QMap<QString, QSharedPointer<GeoSceneParser> >::iterator const endpoint = parsers.end();
     for (; itpoint != endpoint; ++itpoint ) {
-        QTest::newRow(itpoint.key().toLatin1().constData()) << itpoint.value() << itpoint.key();
+        QTest::newRow( itpoint.key().toLocal8Bit() ) << itpoint.value() << itpoint.key();
     }
 }
 
@@ -216,10 +216,10 @@ void TestGeoSceneWriter::writeHeadTag()
     zoom->setMaximum( 500 );
     zoom->setDiscrete( true );
     
-    GeoSceneTileDataset* texture = new GeoSceneTileDataset( "map" );
+    GeoSceneTiled* texture = new GeoSceneTiled( "map" );
     texture->setSourceDir( "earth/testmap" );
     texture->setFileFormat( "png" );
-    texture->setTileProjection(GeoSceneAbstractTileProjection::Equirectangular);
+    texture->setProjection( GeoSceneTiled::Equirectangular );
     texture->addDownloadUrl( QUrl( "http://download.kde.org/marble/map/{x}/{y}/{zoomLevel}" ) );
     texture->addDownloadUrl( QUrl( "http://download.google.com/marble/map/{x}/{y}/{zoomLevel}" ) );
     texture->addDownloadPolicy( DownloadBrowse, 20 );

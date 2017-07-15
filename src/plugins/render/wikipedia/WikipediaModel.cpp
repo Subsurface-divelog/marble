@@ -27,16 +27,22 @@
 // Qt
 #include <QUrl>
 #include <QString>
+#include <QIcon>
+#include <QImage>
 #include <QPainter>
+#include <QPixmap>
+#include <QSvgRenderer>
 
-#include <QUrlQuery>
+#if QT_VERSION >= 0x050000
+  #include <QUrlQuery>
+#endif
 
 using namespace Marble;
 
 WikipediaModel::WikipediaModel( const MarbleModel *marbleModel, QObject *parent )
     : AbstractDataPluginModel( "wikipedia", marbleModel, parent ),
       m_marbleWidget( 0 ),
-      m_wikipediaIcon(MarbleDirs::path(QStringLiteral("svg/wikipedia_shadow.svg"))),
+      m_wikipediaIcon( MarbleDirs::path( "svg/wikipedia_shadow.svg" ) ),
       m_showThumbnail( true )
 {
     m_languageCode = MarbleLocale::languageCode();
@@ -55,11 +61,20 @@ void WikipediaModel::getAdditionalItems( const GeoDataLatLonAltBox& box,
                                          qint32 number )
 {
     // Geonames only supports wikipedia articles for earth
-    if (marbleModel()->planetId() != QLatin1String("earth")) {
+    if ( marbleModel()->planetId() != "earth" ) {
         return;
     }
         
     QUrl geonamesUrl( "http://ws.geonames.org/wikipediaBoundingBox" );
+#if QT_VERSION < 0x050000
+    geonamesUrl.addQueryItem( "north", QString::number( box.north( GeoDataCoordinates::Degree ) ) );
+    geonamesUrl.addQueryItem( "south", QString::number( box.south( GeoDataCoordinates::Degree ) ) );
+    geonamesUrl.addQueryItem( "east", QString::number( box.east( GeoDataCoordinates::Degree ) ) );
+    geonamesUrl.addQueryItem( "west", QString::number( box.west( GeoDataCoordinates::Degree ) ) );
+    geonamesUrl.addQueryItem( "maxRows", QString::number( number ) );
+    geonamesUrl.addQueryItem( "lang", m_languageCode );
+    geonamesUrl.addQueryItem( "username", "marble" );
+#else
     QUrlQuery urlQuery;
     urlQuery.addQueryItem( "north", QString::number( box.north( GeoDataCoordinates::Degree ) ) );
     urlQuery.addQueryItem( "south", QString::number( box.south( GeoDataCoordinates::Degree ) ) );
@@ -69,6 +84,7 @@ void WikipediaModel::getAdditionalItems( const GeoDataLatLonAltBox& box,
     urlQuery.addQueryItem( "lang", m_languageCode );
     urlQuery.addQueryItem( "username", "marble" );
     geonamesUrl.setQuery( urlQuery );
+#endif
 
     downloadDescriptionFile( geonamesUrl );
 }
@@ -107,4 +123,4 @@ void WikipediaModel::setMarbleWidget(MarbleWidget *widget)
     m_marbleWidget = widget;
 }
 
-#include "moc_WikipediaModel.cpp"
+#include "WikipediaModel.moc"

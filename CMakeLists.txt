@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 2.8.12)
-
 project(marble)
 
 ####################################################
@@ -8,50 +6,6 @@ SET(CMAKE_COLOR_MAKEFILE ON)
 # SET(CMAKE_SKIP_RPATH ON)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-# Let CMake find the correct library dir instead of
-# relying on the obsolete LIB_SUFFIX parameter
-include(GNUInstallDirs)
-
-# Taken from KDECompilerSettings.cmake:
-# Pick sensible versions of the C and C++ standards.
-# Note that MSVC does not have equivalent flags; the features are either
-# supported or they are not.
-if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
-    # We use the C89 standard because that is what is common to all our
-    # compilers (in particular, MSVC 2010 does not support C99)
-    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -std=iso9899:1990")
-endif()
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel" AND NOT WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-endif()
-# Default to hidden visibility for symbols
-set(CMAKE_C_VISIBILITY_PRESET hidden)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
-if (POLICY CMP0063)
-    cmake_policy(SET CMP0063 NEW)
-endif()
-
-# RPATH/RUNPATH settings
-if (UNIX)
-    # Add CMAKE_INSTALL_FULL_LIBDIR to the RPATH to be used when installing,
-    # but only if it isn't a standard system directory.
-    list(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemLibDir)
-    list(FIND CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES      "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemCxxLibDir)
-    list(FIND CMAKE_C_IMPLICIT_LINK_DIRECTORIES        "${CMAKE_INSTALL_FULL_LIBDIR}" isSystemCLibDir)
-    if("${isSystemLibDir}" STREQUAL "-1"  AND  "${isSystemCxxLibDir}" STREQUAL "-1"  AND  "${isSystemCLibDir}" STREQUAL "-1")
-        set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
-    endif()
-
-    # Add directories which are in the linker search path (but outside the project)
-    # to the RPATH to be used when installing
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-    # no libs or plugins are designed to be used from the build dir, so directly link with install rpath
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-endif (UNIX)
 
 ####################################################
 # Where to look first for cmake modules,
@@ -66,29 +20,78 @@ set ( CMAKE_MODULE_PATH
      )
 
 # add cmake macros
-include(GenerateExportHeader)
 include( MarbleMacros )
 
 ####################################################
 # Generate the tiles with the tilecreator at compile time
 # if this option is set, srtm.jpg will not be installed but the generated tiles instead
+option(QTONLY "Create Marble version without KDE dependencies" OFF)
 option(MOBILE "Create a Marble version optimized for handheld devices")
 
 ####################################################
-# Build a D-Bus interface for the Marble widget
-# This is disabled by default for all win32, apple and Android
-if(WIN32 OR APPLE OR CMAKE_SYSTEM_NAME STREQUAL Android)
-    option(BUILD_WITH_DBUS "Build the D-Bus interface for the Marble widget" OFF)
+# Specific options for if building with Qt or kde4 libs
+
+if(NOT QT5BUILD)
+  find_package(Qt4)
+endif()
+if(QT4_FOUND)
+  set( QT5BUILD FALSE )
+  set( QT_USE_QTXML         ON )
+  set( QT_USE_QTNETWORK     ON )
+  set( QT_USE_QTTEST        ON )
+  set( QT_USE_QTSCRIPT      ON )
+  set( QT_USE_QTWEBKIT      ON )
+  set( QT_USE_QTSVG         ON )
+  set( QT_USE_QTDECLARATIVE ON )
+  set( QT_USE_QTSQL         ON )
+  set( QT_USE_QTDBUS        ON )
+  include( ${QT_USE_FILE} )
+  marble_set_package_properties( Qt4 PROPERTIES DESCRIPTION "cross-platform application framework" )
+  marble_set_package_properties( Qt4 PROPERTIES URL "http://qt.digia.com/" )
+  marble_set_package_properties( Qt4 PROPERTIES TYPE REQUIRED PURPOSE "core framework" )
+  IF ( NOT QT_QTDECLARATIVE_FOUND )
+    # older cmake versions have a FindQt4.cmake without support for declarative,
+    # but the library may still be available
+    FIND_PACKAGE(QtDeclarative)
+    include_directories(${QT_QTDECLARATIVE_INCLUDE_DIR})
+  ENDIF()
 else()
-    option(BUILD_WITH_DBUS "Build the D-Bus interface for the Marble widget" ON)
+  set( QT5BUILD TRUE )
+  IF( NOT QTONLY )
+    # TODO: Port to KDE frameworks 5
+    set( QTONLY TRUE )
+    MESSAGE(WARNING "Qt 5 build detected. Disabling KDE support which has not been ported yet. Please compile Marble with Qt 4 if you want to build the Marble KDE desktop application.")
+  ENDIF()
+
+  find_package(Qt5Core REQUIRED)
+  find_package(Qt5Xml REQUIRED)
+  find_package(Qt5Network REQUIRED)
+  find_package(Qt5Test REQUIRED)
+  find_package(Qt5Script REQUIRED)
+  find_package(Qt5Widgets REQUIRED)
+  find_package(Qt5Quick REQUIRED)
+  find_package(Qt5WebKitWidgets REQUIRED)
+  find_package(Qt5Svg REQUIRED)
+  find_package(Qt5Sql REQUIRED)
+  find_package(Qt5Concurrent REQUIRED)
+  find_package(Qt5PrintSupport REQUIRED)
+
+  include_directories( ${Qt5Quick_INCLUDE_DIRS} )
+  include_directories( ${Qt5Svg_INCLUDE_DIRS} )
+  include_directories( ${Qt5PrintSupport_INCLUDE_DIRS} )
+  include_directories( ${Qt5Network_INCLUDE_DIRS} )
+  include_directories( ${Qt5Script_INCLUDE_DIRS} )
+  include_directories( ${Qt5Test_INCLUDE_DIRS} )
+  include_directories( ${Qt5Xml_INCLUDE_DIRS} )
+  include_directories( ${Qt5Sql_INCLUDE_DIRS} )
+
+  SET(CMAKE_AUTOMOC TRUE)
+  SET(CMAKE_AUTOMOC_RELAXED_MODE TRUE)
 endif()
 
-
-#######################################################
-# Specific options for building for different platforms
-
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-   add_definitions(-DANDROID)
+if( NOT ${CMAKE_VERSION} STRLESS "2.8" AND NOT QT4_FOUND)
+  SET(CMAKE_AUTOMOC TRUE)
+  SET(CMAKE_AUTOMOC_RELAXED_MODE TRUE)
 endif()
 
 if(QTONLY)
@@ -97,66 +100,74 @@ if(QTONLY)
   add_definitions(-DQTONLY)
   add_definitions(-DSUBSURFACE)
   add_definitions(-DQT_NO_PRINTER)
-endif()
-#######################################################
-# Find Qt dependencies
 
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-    set(REQUIRED_QT_VERSION 5.7.0)
-   # TODO: still needed with ECM toolchain?
-   SET(QT_QMAKE_EXECUTABLE "$ENV{Qt5_android}/bin/qmake")
-else()
-    set(REQUIRED_QT_VERSION 5.3.0)
-endif()
-
-find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED
-    COMPONENTS
-        Core
-        Xml
-        Network
-        Test
-        Widgets
-        Svg
-        Sql
-        Concurrent
-        Quick
-        PrintSupport
-)
-
-if(CMAKE_SYSTEM_NAME STREQUAL Android)
-    find_package(Qt5 ${REQUIRED_QT_VERSION} REQUIRED
-        COMPONENTS
-            Positioning
-            Multimedia
-    )
-   set ( MARBLE_NO_WEBKITWIDGETS TRUE )
-else()
-   find_package(Qt5 ${REQUIRED_QT_VERSION}
-        COMPONENTS
-            WebKit
-            WebKitWidgets
-    )
-
-   if ( NOT Qt5WebKitWidgets_FOUND )
-     set ( MARBLE_NO_WEBKITWIDGETS TRUE )
-   endif()
-endif()
-
-if (BUILD_WITH_DBUS)
-  find_package(Qt5 ${REQUIRED_QT_VERSION} COMPONENTS DBus)
-  if (NOT Qt5DBus_FOUND)
-    set(MARBLE_NO_DBUS TRUE)
-  endif()
-else()
-  set(MARBLE_NO_DBUS TRUE)
-endif()
-
-SET(CMAKE_AUTOMOC TRUE)
-
-# Use M_PI under Windows
-if( WIN32 )
+  # Use M_PI under Windows
+  if( WIN32 )
     add_definitions( -D_USE_MATH_DEFINES )
-endif( WIN32 )
+  endif( WIN32 )
+endif (QTONLY)
+
+####################################################
+# Build a D-Bus interface for marble
+# This is disabled by default for all win32, apple and Qt-Only builds
+if( QTONLY OR WIN32 OR APPLE)
+    option(BUILD_WITH_DBUS "Build the D-Bus interface for the Marble widget" OFF)
+else( QTONLY OR WIN32 OR APPLE )
+    option(BUILD_WITH_DBUS "Build the D-Bus interface for the Marble widget" ON)
+endif( QTONLY OR WIN32 OR APPLE )
+
+###################################################
+# Check if KDE4 is available
+if( NOT QTONLY AND NOT KDE4_FOUND )
+    find_package(KDE4 REQUIRED)
+    marble_set_package_properties( KDE4 PROPERTIES DESCRIPTION "technological foundation for KDE applications" )
+    marble_set_package_properties( KDE4 PROPERTIES URL "http://kde.org/" )
+    marble_set_package_properties( KDE4 PROPERTIES TYPE REQUIRED PURPOSE "KDE version of Marble" )
+    include (KDE4Defaults)
+    include (MacroLibrary)
+endif( NOT QTONLY AND NOT KDE4_FOUND)
+
+#### Python support ####
+set(PythonSupport_FOUND FALSE)
+
+if( NOT QTONLY )
+macro_log_feature(EXPERIMENTAL_PYTHON_BINDINGS "Experimental Python binding support for the Marble library" "Experimental Python binding support for the Marble library"
+  "http://techbase.kde.org/Development/Languages/Python" FALSE ""
+  "Experimental Python binding support for the Marble library. To activate it pass -DEXPERIMENTAL_PYTHON_BINDINGS=TRUE to cmake.")
+endif()
+
+if(EXPERIMENTAL_PYTHON_BINDINGS)
+    macro_optional_find_package(PythonLibrary)
+
+    macro_optional_find_package(SIP)
+    if(SIP_FOUND AND SIP_VERSION STRLESS "040c02")
+        message(STATUS "The version of SIP found is too old. 4.12.2 or later is needed.")
+        set(SIP_FOUND)
+    endif(SIP_FOUND AND SIP_VERSION STRLESS "040c02")
+
+    include(SIPMacros)
+
+    macro_optional_find_package(PyQt4)
+    if(PYQT4_FOUND AND PYQT4_VERSION STRLESS "040804")
+        message(STATUS "The version of PyQt found is too old. 4.8.4 or later is required.")
+        set(PYQT4_FOUND)
+    endif(PYQT4_FOUND AND PYQT4_VERSION STRLESS "040804")
+    if( NOT QTONLY )
+      macro_log_feature(PYQT4_FOUND "PyQt4" "PyQt4 was not found.  It is needed by marble python plugins to run. " "http://www.riverbankcomputing.co.uk/software/pyqt/intro" FALSE)
+    endif()
+
+    if (PYTHONLIBRARY_FOUND AND SIP_FOUND AND PYQT4_FOUND)
+      set(PythonSupport_FOUND TRUE)
+    endif (PYTHONLIBRARY_FOUND AND SIP_FOUND AND PYQT4_FOUND)
+
+    if( NOT QTONLY )
+      macro_log_feature(PythonSupport_FOUND "Python" "KDE Python support"
+      "http://techbase.kde.org/Development/Languages/Python" FALSE ""
+      "Needed for Python bindings to the marble widget.")
+    endif()
+endif(EXPERIMENTAL_PYTHON_BINDINGS)
+
+#### End Python support ####
 
 ####################################################
 # build unit tests
@@ -164,7 +175,11 @@ endif( WIN32 )
 INCLUDE (CTest)
 ENABLE_TESTING()
 
-option( BUILD_MARBLE_TESTS "Build unit tests" ON )
+if( QTONLY AND NOT WIN32 )
+    option( BUILD_MARBLE_TESTS "Build unit tests" ON )
+else()
+    option( BUILD_MARBLE_TESTS "Build unit tests" ${KDE4_BUILD_TESTS} )
+endif()
 add_feature_info("Unit tests" BUILD_MARBLE_TESTS "Build unit tests. Toggle with BUILD_MARBLE_TESTS=YES/NO. 'make test' will run all.")
 
 if( BUILD_MARBLE_TESTS )
@@ -174,27 +189,61 @@ if( BUILD_MARBLE_TESTS )
 endif( BUILD_MARBLE_TESTS )
 
 ####################################################
+# minimum required cmake version
+if( QTONLY )
+    # all previous releases lack QT_QTSCRIPT_LIBRARY needed for panoramio
+    # this might be replaced by a workaround
+    cmake_minimum_required( VERSION 2.4.8 )
+
+    #suppress the policy warnings while keeping the same behaviour
+    if( COMMAND cmake_policy )
+    cmake_policy( SET CMP0005 OLD )
+    cmake_policy( SET CMP0003 OLD )
+    endif( COMMAND cmake_policy )
+
+endif( QTONLY )
+
+####################################################
+# User configurable options
+if(KDE4_FOUND)
+  set (QTONLY FALSE CACHE BOOL "Determines if we should compile for Qt only.")
+else(KDE4_FOUND)
+  set (QTONLY TRUE CACHE BOOL "Determines if we should compile for Qt only.")
+endif(KDE4_FOUND)
+
 set (PEDANTIC FALSE CACHE BOOL "Determines if we should compile with -Wall -Werror.")
+set (ENABLE_TESTS FALSE CACHE BOOL "Build unit tests?")
 set (WITH_DESIGNER_PLUGIN TRUE CACHE BOOL "Build plugins for Qt Designer")
 add_feature_info("Qt Designer plugins" WITH_DESIGNER_PLUGIN "Marble widget support in Qt Designer. Toggle with WITH_DESIGNER_PLUGIN=YES/NO")
-
-set(EXEC_INSTALL_PREFIX  ${CMAKE_INSTALL_PREFIX} CACHE PATH  "Base directory for executables and libraries" FORCE)
-if (NOT QT_PLUGINS_DIR)
-   set(QT_PLUGINS_DIR ${CMAKE_INSTALL_LIBDIR}/plugins)
-endif()
-
+if (QTONLY)
+    # TODO: this could use GNUInstallDirs or ECM, so e.g. LIB_SUFFIX is automatically set
+    set(LIB_SUFFIX "" CACHE STRING "Define suffix of directory name (32/64)" )
+    set(EXEC_INSTALL_PREFIX  ${CMAKE_INSTALL_PREFIX} CACHE PATH  "Base directory for executables and libraries" FORCE)
+    if (QT5BUILD)
+       set(QT_PLUGINS_DIR ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/plugins)
+    endif()
+endif (QTONLY)
 ####################################################
 # Detect default for the user configurable MARBLE_DATA_PATH option
 
 if(WIN32)
+  if(QTONLY)
     set(data_dir data)
-    set(locale_dir "${data_dir}/locale")
     set(plugin_dir plugins)
-elseif(APPLE)
+    set(CMAKE_MODULES_INSTALL_PATH ${CMAKE_ROOT}/Modules)
+  else(QTONLY)
+    set(data_dir ${DATA_INSTALL_DIR}/marble/data)
+    set(plugin_dir ${PLUGIN_INSTALL_DIR}/plugins/marble)
+    set(CMAKE_MODULES_INSTALL_PATH ${DATA_INSTALL_DIR}/cmake/modules)
+    set(APPS_INSTALL_DIR ${XDG_APPS_INSTALL_DIR})
+  endif(QTONLY)
+else(WIN32)
+  if(APPLE)
     # needed for finding bundle path in e.g. katlasdir.h
     FIND_LIBRARY(APP_SERVICES_LIBRARY ApplicationServices )
     MARK_AS_ADVANCED (APP_SERVICES_LIBRARY)
     SET(MAC_EXTRA_LIBS ${APP_SERVICES_LIBRARY})
+    if (QTONLY)
       # for Mac OS X, everything is put inside an application bundle
       SET (CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/)
       # path for library references
@@ -203,29 +252,31 @@ elseif(APPLE)
       install(FILES src/mac/Info.plist DESTINATION ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents)
       #SET (lib_dir ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/lib)
       SET (data_dir   ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/resources/data)
-      set(locale_dir "${data_dir}/locale")
       SET (plugin_dir   ${CMAKE_INSTALL_PREFIX}/Marble.app/Contents/MacOS/resources/plugins)
-elseif(CMAKE_SYSTEM_NAME STREQUAL Android)
-      set(plugin_dir "${CMAKE_INSTALL_PREFIX}/assets/plugins")
-      set(data_dir "${CMAKE_INSTALL_PREFIX}/assets/data")
-      set(locale_dir "${data_dir}/locale")
-else() # Linux / bsd etc...
-      set(data_dir ${CMAKE_INSTALL_FULL_DATAROOTDIR}/marble/data)
-      set(locale_dir "${CMAKE_INSTALL_FULL_DATAROOTDIR}/locale")
-      set(plugin_dir ${CMAKE_INSTALL_FULL_LIBDIR}/marble/plugins)
-endif()
-
-if(NOT ICON_INSTALL_DIR)
-	set(ICON_INSTALL_DIR ${CMAKE_INSTALL_FULL_DATAROOTDIR}/icons)
-endif(NOT ICON_INSTALL_DIR)
-
-if(NOT APPS_INSTALL_DIR)
-	set(APPS_INSTALL_DIR ${CMAKE_INSTALL_FULL_DATAROOTDIR}/applications)
-endif(NOT APPS_INSTALL_DIR)
-
-if(NOT INCLUDE_INSTALL_DIR)
-    set(INCLUDE_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/include")
-endif()
+    else (QTONLY) # KDE4 on Mac...
+      set(data_dir ${DATA_INSTALL_DIR}/marble/data)
+      set(plugin_dir ${PLUGIN_INSTALL_DIR}/plugins/marble)
+      set(APPS_INSTALL_DIR ${XDG_APPS_INSTALL_DIR})
+    endif (QTONLY)
+  else(APPLE) # Linux / bsd etc...
+    if (QTONLY)
+      set(data_dir ${CMAKE_INSTALL_PREFIX}/share/marble/data)
+      set(plugin_dir ${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/marble/plugins)
+      set(CMAKE_MODULES_INSTALL_PATH ${CMAKE_INSTALL_PREFIX}/share/marble/cmake)
+      if(NOT ICON_INSTALL_DIR)
+        set(ICON_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/icons)
+      endif(NOT ICON_INSTALL_DIR)
+      if(NOT APPS_INSTALL_DIR)
+        set(APPS_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/applications)
+      endif(NOT APPS_INSTALL_DIR)
+    else (QTONLY)
+      set(data_dir ${DATA_INSTALL_DIR}/marble/data)
+      set(plugin_dir ${PLUGIN_INSTALL_DIR}/plugins/marble)
+      set(CMAKE_MODULES_INSTALL_PATH ${DATA_INSTALL_DIR}/cmake/modules)
+      set(APPS_INSTALL_DIR ${XDG_APPS_INSTALL_DIR})
+    endif (QTONLY)
+  endif(APPLE)
+endif(WIN32)
 
 if (NOT MARBLE_DATA_PATH)
   set (MARBLE_DATA_PATH ${data_dir})
@@ -249,21 +300,24 @@ if(WIN32)
   set (STATIC_BUILD FALSE CACHE BOOL "Link to static Qt libs (win32 only)?")
 endif(WIN32)
 
-add_definitions(
-    -DQT_USE_QSTRINGBUILDER
-    -DQT_NO_SIGNALS_SLOTS_KEYWORDS
-    -DQT_NO_URL_CAST_FROM_STRING
-    -DQT_NO_CAST_TO_ASCII
-    -DQT_NO_CAST_FROM_BYTEARRAY
-    -DQT_STRICT_ITERATORS
-    -DQT_DISABLE_DEPRECATED_BEFORE=0x050700
-)
+add_definitions(-DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS)
 
 ####################################################
 # Options for static build
 if(STATIC_BUILD)
   add_definitions(-DSTATIC_BUILD=1)
 endif(STATIC_BUILD)
+
+####################################################
+# Workaround FindQt4.cmake bug not finding
+# QtDesigner includes
+if(APPLE)
+  if (NOT DEFINED ${QT_QTDESIGNER_INCLUDE_DIR})
+    set ( QT_QTDESIGNER_INCLUDE_DIR
+    ${QT_LIBRARY_DIR}/QtDesigner.framework/Headers
+    )
+  endif(NOT DEFINED ${QT_QTDESIGNER_INCLUDE_DIR})
+endif(APPLE)
 
 #############################################################
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_C_COMPILER MATCHES "icc")
@@ -296,15 +350,6 @@ if(WIN32)
 endif(WIN32)
 ####################################################
 
-
-####################################################
-# Add global ECM & KF5 settings
-set(REQUIRED_ECM_VERSION 1.7.0)
-set(KDE_INSTALL_DIRS_NO_DEPRECATED TRUE)
-set(KDE_SKIP_UNINSTALL_TARGET ON CACHE BOOL "KDE uninstall target must be disabled")
-set(REQUIRED_KF5_VERSION 5.7.0)
-
-
 ####################################################
 # Add the include directories
 
@@ -325,7 +370,9 @@ include_directories(
 )
 ####################################################
 # Descend into subdirectories
-add_subdirectory(doc)
+IF( NOT QTONLY )
+  add_subdirectory(doc)
+ENDIF()
 add_subdirectory(src)
 add_subdirectory(data)
 
@@ -346,47 +393,30 @@ if(BUILD_MARBLE_EXAMPLES)
 endif()
 
 ####################################################
-# Handle translation catalogs of KDE Application release tarball of marble
-# (for custom bundle translation handling see data/lang/README)
-
-# KDE Application release tarballs have the respective po files added on tarball creation,
-# which are otherwise stored and edited separately on the KDE svn servers.
-# Toplevel subdir "poqm/" holds all the po files which should be processed and installed as qm files
-marble_install_po_files_as_qm(poqm)
-
-# Toplevel subdir "po/" holds all the po files which should be processed and installed as mo files
-# Those are used by app and plugin code building against KI18n.
-# So the respective macro ki18n_install can be used.
-# Likewise, it contains the translated user documentation, which is handled by kdoctools_install.
-# Just, the macros are not available here in the toplevel CMakeLists.txt file.
-# As a temporary hack (your task to improve it, dear reader :) ) the macros
-# are called only from src/apps/marble-kde/CMakeLists.txt.
-# That should catch 99.9 % cases of builds from released tarball, where all the
-# KF5-dependant apps and plugins will be built and installed together.
-# Currently these are:
-# src/apps/marble-kde
-# src/plasmarunner
-# src/plasma/applets/worldclock
-# src/plasma/wallpapers/worldmap
-#
-# Let releaseme know about this:
-# SKIP_PO_INSTALL
-
-
-####################################################
 # Install extra files
 install(FILES LICENSE.txt DESTINATION ${MARBLE_DATA_INSTALL_PATH})
+install(FILES marble.appdata.xml DESTINATION ${CMAKE_INSTALL_PREFIX}/share/appdata/)
+
+####################################################
+# Install CMake module
+if( CMAKE_MODULES_INSTALL_PATH AND NOT WIN32 )
+  install( FILES FindMarble.cmake
+           DESTINATION ${CMAKE_MODULES_INSTALL_PATH}  )
+endif()
 
 ############################################################
 # Uninstall stuff
-CONFIGURE_FILE(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-    IMMEDIATE @ONLY)
+if(QTONLY)
+    # only add the uninstall target for qt-only builds
+    CONFIGURE_FILE(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/templates/cmake_uninstall.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        IMMEDIATE @ONLY)
 
-ADD_CUSTOM_TARGET(uninstall
-    "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+    ADD_CUSTOM_TARGET(uninstall
+        "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
+endif(QTONLY)
 
 include(MarbleCPackOptions)
 
-marble_feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES)
+marble_feature_summary(WHAT ALL)

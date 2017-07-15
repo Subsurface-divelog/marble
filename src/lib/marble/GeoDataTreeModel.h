@@ -46,31 +46,32 @@ class MARBLE_EXPORT GeoDataTreeModel : public QAbstractItemModel
     /**
      * Destroys the GeoDataModel.
      */
-    ~GeoDataTreeModel() override;
+    ~GeoDataTreeModel();
+
+    virtual bool hasChildren( const QModelIndex &parent ) const;
 
     /**
      * Return the number of Items in the Model.
      */
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int rowCount( const QModelIndex &parent = QModelIndex() ) const;
 
     QVariant headerData(int section, Qt::Orientation orientation,
-                                int role = Qt::DisplayRole) const override;
+                                int role = Qt::DisplayRole) const;
 
-    QHash<int, QByteArray> roleNames() const override;
+    QVariant data( const QModelIndex &index, int role ) const;
 
-    QVariant data(const QModelIndex &index, int role) const override;
+    QModelIndex index( int row, int column,
+                       const QModelIndex &parent = QModelIndex() ) const;
 
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    QModelIndex index( GeoDataObject *object ) const;
 
-    QModelIndex index(const GeoDataObject *object) const;
+    QModelIndex parent( const QModelIndex &index ) const;
 
-    QModelIndex parent(const QModelIndex &index) const override;
+    int columnCount( const QModelIndex &parent = QModelIndex() ) const;
 
-    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    Qt::ItemFlags flags ( const QModelIndex & index ) const;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const override;
-
-    bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole) override;
+    bool setData ( const QModelIndex & index, const QVariant & value, int role = Qt::EditRole );
 
     QItemSelectionModel *selectionModel();
 
@@ -89,7 +90,7 @@ public Q_SLOTS:
 
     bool removeFeature( GeoDataContainer *parent, int index );
 
-    int removeFeature(GeoDataFeature *feature);
+    int removeFeature( const GeoDataFeature *feature );
 
     void updateFeature( GeoDataFeature *feature );
 

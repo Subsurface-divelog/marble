@@ -30,14 +30,14 @@ ElevationProfilePlotAxis::ElevationProfilePlotAxis()
     // nothing to do...
 }
 
-void ElevationProfilePlotAxis::setRange(qreal minValue, qreal maxValue)
+void ElevationProfilePlotAxis::setRange( const qreal& minValue, const qreal& maxValue )
 {
     m_minValue = minValue;
     m_maxValue = maxValue;
     update();
 }
 
-void ElevationProfilePlotAxis::setLength(int length)
+void ElevationProfilePlotAxis::setLength( const int& length )
 {
     m_pixelLength = length;
     update();
@@ -92,7 +92,8 @@ void ElevationProfilePlotAxis::updateTicks()
         return;
     }
 
-    static QVector<int> niceIntervals = QVector<int>() << 10 << 20 << 25 << 30 << 50;
+    QList<int> niceIntervals;
+    niceIntervals << 10 << 20 << 25 << 30 << 50;
 
     const int exponent = qRound( log10( range() ) );
     const qreal factor = qPow( 10, 2 - exponent );
@@ -100,7 +101,7 @@ void ElevationProfilePlotAxis::updateTicks()
 
     qreal stepWidth = niceIntervals.last();
     qreal error = tickRange;
-    for ( const int i: niceIntervals ) {
+    foreach ( const int i, niceIntervals ) {
         const qreal numTicks = tickRange / i;
         if ( numTicks < m_minTickCount || numTicks > m_maxTickCount ) {
             continue;
@@ -165,4 +166,4 @@ void ElevationProfilePlotAxis::updateScale()
 
 }
 
-#include "moc_ElevationProfilePlotAxis.cpp"
+#include "ElevationProfilePlotAxis.moc"

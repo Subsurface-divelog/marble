@@ -11,7 +11,6 @@
 
 #include "GeoDataDocument.h"
 #include "GpxParser.h"
-#include "MarbleDebug.h"
 
 #include <QFile>
 
@@ -27,13 +26,13 @@ GpxRunner::~GpxRunner()
 {
 }
 
-GeoDataDocument *GpxRunner::parseFile(const QString &fileName, DocumentRole role, QString &error)
+void GpxRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
-    QFile file( fileName );
+    QFile  file( fileName );
     if ( !file.exists() ) {
-        error = QStringLiteral("File %1 does not exist").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+        qWarning( "File does not exist!" );
+        emit parsingFinished( 0 );
+        return;
     }
 
     // Open file in right mode
@@ -42,9 +41,8 @@ GeoDataDocument *GpxRunner::parseFile(const QString &fileName, DocumentRole role
     GpxParser parser;
 
     if ( !parser.read( &file ) ) {
-        error = parser.errorString();
-        mDebug() << error;
-        return nullptr;
+        emit parsingFinished( 0, parser.errorString() );
+        return;
     }
     GeoDocument* document = parser.releaseDocument();
     Q_ASSERT( document );
@@ -53,9 +51,9 @@ GeoDataDocument *GpxRunner::parseFile(const QString &fileName, DocumentRole role
     doc->setFileName( fileName );
 
     file.close();
-    return doc;
+    emit parsingFinished( doc );
 }
 
 }
 
-#include "moc_GpxRunner.cpp"
+#include "GpxRunner.moc"

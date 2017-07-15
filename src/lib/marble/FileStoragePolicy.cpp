@@ -30,7 +30,7 @@ FileStoragePolicy::FileStoragePolicy( const QString &dataDirectory, QObject *par
       m_dataDirectory( dataDirectory )
 {
     if ( m_dataDirectory.isEmpty() )
-        m_dataDirectory = MarbleDirs::localPath() + QLatin1String("/cache/");
+        m_dataDirectory = MarbleDirs::localPath() + "/cache/";
 
     if ( !QDir( m_dataDirectory ).exists() ) 
         QDir::root().mkpath( m_dataDirectory );
@@ -42,14 +42,14 @@ FileStoragePolicy::~FileStoragePolicy()
 
 bool FileStoragePolicy::fileExists( const QString &fileName ) const
 {
-    const QString fullName = m_dataDirectory + QLatin1Char('/') + fileName;
+    const QString fullName( m_dataDirectory + '/' + fileName );
     return QFile::exists( fullName );
 }
 
 bool FileStoragePolicy::updateFile( const QString &fileName, const QByteArray &data )
 {
     QFileInfo const dirInfo( fileName );
-    QString const fullName = dirInfo.isAbsolute() ? fileName : m_dataDirectory + QLatin1Char('/') + fileName;
+    QString const fullName = dirInfo.isAbsolute() ? fileName : m_dataDirectory + '/' + fileName;
 
     // Create directory if it doesn't exist yet...
     QFileInfo info( fullName );
@@ -63,7 +63,7 @@ bool FileStoragePolicy::updateFile( const QString &fileName, const QByteArray &d
     // ... and save the file content
     QFile file( fullName );
     if ( !file.open( QIODevice::WriteOnly ) ) {
-        m_errorMsg = fullName + QLatin1String(": ") + file.errorString();
+        m_errorMsg = QString( "%1: %2" ).arg( fullName ).arg( file.errorString() );
         qCritical() << "file.open" << m_errorMsg;
         return false;
     }
@@ -71,7 +71,7 @@ bool FileStoragePolicy::updateFile( const QString &fileName, const QByteArray &d
     quint64 oldSize = file.size();
 
     if ( !file.write( data ) ) {
-        m_errorMsg = fullName + QLatin1String(": ") + file.errorString();
+        m_errorMsg = QString( "%1: %2" ).arg( fullName ).arg( file.errorString() );
         qCritical() << "file.write" << m_errorMsg;
         emit sizeChanged( file.size() - oldSize );
         return false;
@@ -91,7 +91,7 @@ void FileStoragePolicy::clearCache()
         return;
     }
 
-    const QString cachedMapsDirectory = m_dataDirectory + QLatin1String("/maps");
+    QString cachedMapsDirectory = m_dataDirectory + "/maps";
 
     QDirIterator it( cachedMapsDirectory, QDir::NoDotAndDotDot | QDir::Dirs );
     mDebug() << cachedMapsDirectory;
@@ -142,4 +142,4 @@ QString FileStoragePolicy::lastErrorMessage() const
     return m_errorMsg;
 }
 
-#include "moc_FileStoragePolicy.cpp"
+#include "FileStoragePolicy.moc"

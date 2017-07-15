@@ -14,8 +14,6 @@
 #include "ViewportParams.h"
 #include "layers/PopupLayer.h"
 
-#include <QAction>
-
 using namespace Marble;
 
 OpenDesktopItem::OpenDesktopItem(QObject *parent):
@@ -56,7 +54,7 @@ bool OpenDesktopItem::operator<( const AbstractDataPluginItem *other ) const
 
 void OpenDesktopItem::addDownloadedFile( const QString& url, const QString& type )
 {  
-    if (type == QLatin1String("avatar")) {
+    if( type == "avatar" ) {       
         m_pixmap.load( url );
         setSize( m_pixmap.size() );
         emit updated();
@@ -70,17 +68,17 @@ void OpenDesktopItem::paint( QPainter *painter )
 
 void OpenDesktopItem::updateToolTip()
 {
-    const QString toolTip = QLatin1String(
-        "<html><head><meta name='qrichtext' content='1' />"
-        "<style type='text/css'>"
-        "body { font-family:'Sans Serif'; font-size:9pt; font-weight:400; }"
-        "np, li { white-space: pre-wrap; }"
-        "p { margin: 0; -qt-block-indent:0; text-indent:0px }"
-        "</style></head><body><table>"
-        "<tr><td align='right'>Fullname:</td><td>%1</td></tr>"
-        "<tr><td align='right'>Location:</td><td>%2</td></tr>"
-        "<tr><td align='right'>Role:</td><td>%3</td></tr>"
-        "</table></body></html>");
+    QString toolTip;
+    toolTip += "<html><head><meta name='qrichtext' content='1' />";
+    toolTip += "<style type='text/css'>";
+    toolTip += "body { font-family:'Sans Serif'; font-size:9pt; font-weight:400; }";
+    toolTip += "np, li { white-space: pre-wrap; }";
+    toolTip += "p { margin: 0; -qt-block-indent:0; text-indent:0px }";
+    toolTip += "</style></head><body><table>";
+    toolTip += "<tr><td align='right'>Fullname:</td><td>%1</td></tr>";    
+    toolTip += "<tr><td align='right'>Location:</td><td>%2</td></tr>";    
+    toolTip += "<tr><td align='right'>Role:</td><td>%3</td></tr>";
+    toolTip += "</table></body></html>";
     setToolTip( toolTip.arg( fullName() ).arg( location() ).arg( role() ) );
 }
 
@@ -109,7 +107,7 @@ QUrl OpenDesktopItem::avatarUrl() const
     return m_avatarUrl;
 }
    
-void OpenDesktopItem::setAvatarUrl( const QUrl& url )
+void OpenDesktopItem::setAvatarUrl( const QUrl url )
 {
     m_avatarUrl = url;
 }
@@ -119,7 +117,7 @@ QString OpenDesktopItem::fullName() const
     return m_fullName;
 }
    
-void OpenDesktopItem::setFullName( const QString& fullName )
+void OpenDesktopItem::setFullName( const QString fullName )
 {
     m_fullName = fullName;
     updateToolTip();
@@ -130,7 +128,7 @@ QString OpenDesktopItem::location() const
     return m_location;
 }
 
-void OpenDesktopItem::setLocation( const QString& location )
+void OpenDesktopItem::setLocation( const QString location )
 {
     m_location = location;
     updateToolTip();
@@ -141,7 +139,7 @@ QString OpenDesktopItem::role() const
     return m_role;
 }
 
-void OpenDesktopItem::setRole( const QString& role )
+void OpenDesktopItem::setRole( const QString role )
 {
     m_role = role;
     updateToolTip();
@@ -153,4 +151,4 @@ void OpenDesktopItem::setMarbleWidget(MarbleWidget *widget)
 }
 
 // This is needed for all QObjects (see MOC)
-#include "moc_OpenDesktopItem.cpp"
+#include "OpenDesktopItem.moc"

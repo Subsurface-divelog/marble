@@ -18,15 +18,16 @@
 
 #include "MarbleGlobal.h"
 #include "GeoDataDocument.h"
+#include "GeoPainter.h"
 
 #include <QString>
 #include <QImage>
-#include <QColor>
+#include <QPen>
+#include <QBrush>
 
 namespace Marble
 {
 
-class GeoPainter;
 class ViewportParams;
 
 class TextureColorizer

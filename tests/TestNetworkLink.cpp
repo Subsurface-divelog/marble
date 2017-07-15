@@ -15,7 +15,6 @@
 #include <GeoDataFolder.h>
 #include <MarbleDebug.h>
 #include <GeoDataNetworkLink.h>
-#include <GeoDataLink.h>
 
 using namespace Marble;
 
@@ -23,7 +22,7 @@ using namespace Marble;
 class TestNetworkLink : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void simpleParseTest();
 };

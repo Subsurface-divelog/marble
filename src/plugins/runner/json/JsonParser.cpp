@@ -12,16 +12,10 @@
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPolygon.h"
-#include "GeoDataLinearRing.h"
-#include "GeoDataPoint.h"
+
 #include "MarbleDebug.h"
-#include "StyleBuilder.h"
-#include "osm/OsmPlacemarkData.h"
 
 #include <QIODevice>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
 
 
 namespace Marble {
@@ -50,63 +44,66 @@ bool JsonParser::read( QIODevice* device )
     Q_ASSERT( m_document );
 
     // Read file data
-    QJsonParseError error;
-    const QJsonDocument jsonDoc = QJsonDocument::fromJson(device->readAll(), &error);
+    QString fileData = QString::fromUtf8( device->readAll() );
 
-    if (jsonDoc.isNull()) {
-        qDebug() << "Error parsing GeoJSON : " << error.errorString();
+    // Create JSON parsing engine
+    // This engine evaluates and returns data from JSON
+    QScriptEngine m_engine;
+
+    // Store the data into JSON for better managing
+    m_engine.evaluate( "var fileData = " + fileData );
+
+    if (m_engine.hasUncaughtException()) {
+        mDebug() << "Error parsing GeoJSON : " << m_engine.uncaughtException().toString();
         return false;
     }
 
     // Start parsing
-    const QJsonValue featuresValue = jsonDoc.object().value(QStringLiteral("features"));
 
     // In GeoJSON format, geometries are stored in features, so we iterate on features
-    if (featuresValue.isArray()) {
-        const QJsonArray featureArray = featuresValue.toArray();
+    if ( m_engine.evaluate( "fileData.features" ).isArray() ) {
 
         // Parse each feature
-        for (int featureIndex = 0; featureIndex < featureArray.size(); ++featureIndex) {
-            const QJsonObject featureObject = featureArray[featureIndex].toObject();
+        for ( int featureCounter = 0 ; featureCounter < m_engine.evaluate( "fileData.features.length" ).toNumber() ; featureCounter ++) {
+
+            QString count = QString::number(featureCounter);
 
             // Check if the feature contains a geometry
-            const QJsonValue geometryValue = featureObject.value(QStringLiteral("geometry"));
-            if (geometryValue.isObject()) {
-                const QJsonObject geometryObject = geometryValue.toObject();
+            if ( !m_engine.evaluate( "fileData.features[" + count + "].geometry" ).isUndefined() ) {
 
                 // Variables for creating the geometry
                 QList<GeoDataGeometry*> geometryList;
                 QList<GeoDataPlacemark*> placemarkList;
 
                 // Create the different geometry types
-                const QString geometryType = geometryObject.value(QStringLiteral("type")).toString().toUpper();
 
-                if (geometryType == QLatin1String("POLYGON")) {
+                if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.type" ).toString().toUpper() == "POLYGON" ) {
+
                     // Check first that there are coordinates
-                    const QJsonValue coordinatesValue = geometryObject.value(QStringLiteral("coordinates"));
-                    if (coordinatesValue.isArray()) {
-                        const QJsonArray coordinateArray = coordinatesValue.toArray();
+                    if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates" ).isArray() ) {
 
                         GeoDataPolygon * geom = new GeoDataPolygon( RespectLatitudeCircle | Tessellate );
 
                         // Coordinates first array will be the outer boundary, if there are more
                         // positions those will be inner holes
-                        for (int ringIndex = 0 ; ringIndex < coordinateArray.size(); ++ringIndex) {
-                            const QJsonArray ringArray = coordinateArray[ringIndex].toArray();
+                        int ringsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates.length" ).toNumber();
+                        for ( int rings = 0 ; rings < ringsCount ; rings ++ ) {
 
+                            QString ringCount = QString::number(rings);
                             GeoDataLinearRing linearRing;
 
-                            for (int coordinatePairIndex = 0; coordinatePairIndex < ringArray.size(); ++coordinatePairIndex) {
-                                const QJsonArray coordinatePairArray = ringArray[coordinatePairIndex].toArray();
+                            int coordinatePairsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[ " + ringCount + " ].length" ).toNumber();
+                            for( int coordinatePairs = 0 ; coordinatePairs < coordinatePairsCount ; coordinatePairs++ ) {
 
-                                const qreal longitude = coordinatePairArray.at(0).toDouble();
-                                const qreal latitude = coordinatePairArray.at(1).toDouble();
+                                QString coors = QString::number(coordinatePairs);
+                                qreal longitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + ringCount + "][" + coors + "][0]" ).toNumber();
+                                qreal latitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + ringCount + "][" + coors + "][1]" ).toNumber();
 
                                 linearRing.append( GeoDataCoordinates( longitude , latitude , 0 , GeoDataCoordinates::Degree ) );
                             }
 
                             // Outer ring
-                            if (ringIndex == 0) {
+                            if (rings == 0) {
                                 geom->setOuterBoundary( linearRing );
                             }
                             // Inner holes
@@ -117,35 +114,37 @@ bool JsonParser::read( QIODevice* device )
                         geometryList.append( geom );
                     }
 
-                } else if (geometryType == QLatin1String("MULTIPOLYGON")) {
+                } else if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.type" ).toString().toUpper() == "MULTIPOLYGON" ) {
+
                     // Check first that there are coordinates
-                    const QJsonValue coordinatesValue = geometryObject.value(QStringLiteral("coordinates"));
-                    if (coordinatesValue.isArray()) {
-                        const QJsonArray coordinateArray = coordinatesValue.toArray();
+                    if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates" ).isArray() ) {
 
-                        for (int polygonIndex = 0; polygonIndex < coordinateArray.size(); ++polygonIndex) {
-                            const QJsonArray polygonArray = coordinateArray[polygonIndex].toArray();
+                        int polygonsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates.length" ).toNumber();
+                        for ( int polygons = 0 ; polygons < polygonsCount ; polygons++ ) {
 
+                            QString polygon = QString::number( polygons );
                             GeoDataPolygon * geom = new GeoDataPolygon( RespectLatitudeCircle | Tessellate );
 
                             // Coordinates first array will be the outer boundary, if there are more
                             // positions those will be inner holes
-                            for (int ringIndex = 0 ; ringIndex < polygonArray.size(); ++ringIndex) {
-                                const QJsonArray ringArray = polygonArray[ringIndex].toArray();
+                            int ringsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + polygon + "].length" ).toNumber();
+                            for ( int rings = 0 ; rings < ringsCount ; rings ++ ) {
 
+                                QString ringCount = QString::number(rings);
                                 GeoDataLinearRing linearRing;
 
-                                for (int coordinatePairIndex = 0; coordinatePairIndex < ringArray.size(); ++coordinatePairIndex) {
-                                    const QJsonArray coordinatePairArray = ringArray[coordinatePairIndex].toArray();
+                                int coordinatePairsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + polygon + "][ " + ringCount + " ].length" ).toNumber();
+                                for( int coordinatePairs = 0 ; coordinatePairs < coordinatePairsCount ; coordinatePairs++ ) {
 
-                                    const qreal longitude = coordinatePairArray.at(0).toDouble();
-                                    const qreal latitude = coordinatePairArray.at(1).toDouble();
+                                    QString coors = QString::number(coordinatePairs);
+                                    qreal longitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + polygon + "][" + ringCount + "][" + coors + "][0]" ).toNumber();
+                                    qreal latitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + polygon + "][" + ringCount + "][" + coors + "][1]" ).toNumber();
 
                                     linearRing.append( GeoDataCoordinates( longitude , latitude , 0 , GeoDataCoordinates::Degree ) );
                                 }
 
                                 // Outer ring
-                                if (ringIndex == 0) {
+                                if (rings == 0) {
                                     geom->setOuterBoundary( linearRing );
                                 }
                                 // Inner holes
@@ -157,43 +156,44 @@ bool JsonParser::read( QIODevice* device )
                         }
                     }
 
-                } else if (geometryType == QLatin1String("LINESTRING")) {
+                } else if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.type" ).toString().toUpper() == "LINESTRING" ) {
 
                     // Check first that there are coordinates
-                    const QJsonValue coordinatesValue = geometryObject.value(QStringLiteral("coordinates"));
-                    if (coordinatesValue.isArray()) {
-                        const QJsonArray coordinateArray = coordinatesValue.toArray();
+                    if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates" ).isArray() ) {
 
                         GeoDataLineString * geom = new GeoDataLineString( RespectLatitudeCircle | Tessellate );
 
-                        for (int coordinatePairIndex = 0; coordinatePairIndex < coordinateArray.size(); ++coordinatePairIndex) {
-                            const QJsonArray coordinatePairArray = coordinateArray[coordinatePairIndex].toArray();
+                        int coordinatePairsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates.length" ).toNumber();
+                        for( int coordinatePairs = 0 ; coordinatePairs < coordinatePairsCount ; coordinatePairs++ ) {
 
-                            const qreal longitude = coordinatePairArray.at(0).toDouble();
-                            const qreal latitude = coordinatePairArray.at(1).toDouble();
+                            QString coors = QString::number(coordinatePairs);
+
+                            qreal longitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + coors + "][0]" ).toNumber();
+                            qreal latitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + coors + "][1]" ).toNumber();
 
                             geom->append( GeoDataCoordinates( longitude , latitude , 0 , GeoDataCoordinates::Degree ) );
                         }
                         geometryList.append( geom );
                     }
 
-                } else if (geometryType == QLatin1String("MULTILINESTRING")) {
+                } else if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.type" ).toString().toUpper() == "MULTILINESTRING" ) {
 
                     // Check first that there are coordinates
-                    const QJsonValue coordinatesValue = geometryObject.value(QStringLiteral("coordinates"));
-                    if (coordinatesValue.isArray()) {
-                        const QJsonArray coordinateArray = coordinatesValue.toArray();
+                    if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates" ).isArray() ) {
 
-                        for (int lineStringIndex = 0; lineStringIndex < coordinateArray.size(); ++lineStringIndex) {
-                            const QJsonArray lineStringArray = coordinateArray[lineStringIndex].toArray();
+                        int linestringsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates.length" ).toNumber();
+                        for( int linestrings = 0 ; linestrings < linestringsCount ; linestrings++ ) {
 
+                            QString linestring = QString::number( linestrings );
                             GeoDataLineString * geom = new GeoDataLineString( RespectLatitudeCircle | Tessellate );
 
-                            for (int coordinatePairIndex = 0; coordinatePairIndex < lineStringArray.size(); ++coordinatePairIndex) {
-                                const QJsonArray coordinatePairArray = lineStringArray[coordinatePairIndex].toArray();
+                            int coordinatePairsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + linestring + "].length" ).toNumber();
+                            for( int coordinatePairs = 0 ; coordinatePairs < coordinatePairsCount ; coordinatePairs++ ) {
 
-                                const qreal longitude = coordinatePairArray.at(0).toDouble();
-                                const qreal latitude = coordinatePairArray.at(1).toDouble();
+                                QString coors = QString::number(coordinatePairs);
+
+                                qreal longitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + linestring + "][" + coors + "][0]" ).toNumber();
+                                qreal latitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + linestring + "][" + coors + "][1]" ).toNumber();
 
                                 geom->append( GeoDataCoordinates( longitude , latitude , 0 , GeoDataCoordinates::Degree ) );
                             }
@@ -201,36 +201,34 @@ bool JsonParser::read( QIODevice* device )
                         }
                     }
 
-                } else if (geometryType == QLatin1String("POINT")) {
+                } else if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.type" ).toString().toUpper() == "POINT" ) {
 
                     // Check first that there are coordinates
-                    const QJsonValue coordinatesValue = geometryObject.value(QStringLiteral("coordinates"));
-                    if (coordinatesValue.isArray()) {
-                        const QJsonArray coordinatePairArray = coordinatesValue.toArray();
+                    if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates" ).isArray() ) {
 
                         GeoDataPoint * geom = new GeoDataPoint();
 
-                        const qreal longitude = coordinatePairArray.at(0).toDouble();
-                        const qreal latitude = coordinatePairArray.at(1).toDouble();
+                        qreal longitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[0]" ).toNumber();
+                        qreal latitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[1]" ).toNumber();
 
                         geom->setCoordinates( GeoDataCoordinates( longitude , latitude , 0 , GeoDataCoordinates::Degree ) );
 
                         geometryList.append( geom );
                     }
-                } else if (geometryType == QLatin1String("MULTIPOINT")) {
+                } else if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.type" ).toString().toUpper() == "MULTIPOINT" ) {
 
                     // Check first that there are coordinates
-                    const QJsonValue coordinatesValue = geometryObject.value(QStringLiteral("coordinates"));
-                    if (coordinatesValue.isArray()) {
-                        const QJsonArray coordinateArray = coordinatesValue.toArray();
+                    if ( m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates" ).isArray() ) {
 
-                        for (int pointIndex = 0; pointIndex < coordinateArray.size(); ++pointIndex) {
-                            const QJsonArray coordinatePairArray = coordinateArray[pointIndex].toArray();
+                        int pointsCount = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates.length" ).toNumber();
+                        for( int points = 0 ; points < pointsCount ; points++ ) {
+
+                            QString point = QString::number(points);
 
                             GeoDataPoint * geom = new GeoDataPoint();
 
-                            const qreal longitude = coordinatePairArray.at(0).toDouble();
-                            const qreal latitude = coordinatePairArray.at(1).toDouble();
+                            qreal longitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + point + "][0]" ).toNumber();
+                            qreal latitude = m_engine.evaluate( "fileData.features[" + count + "].geometry.coordinates[" + point + "][1]" ).toNumber();
 
                             geom->setCoordinates( GeoDataCoordinates( longitude , latitude , 0 , GeoDataCoordinates::Degree ) );
 
@@ -241,9 +239,11 @@ bool JsonParser::read( QIODevice* device )
 
 
                 // Parse the features properties
-                const QJsonValue propertiesValue = featureObject.value(QStringLiteral("properties"));
-                if (!geometryList.isEmpty() && propertiesValue.isObject()) {
-                    const QJsonObject propertiesObject = propertiesValue.toObject();
+                if ( !geometryList.isEmpty() != 0 && !m_engine.evaluate( "fileData.features[" + count + "].properties" ).isUndefined() ) {
+
+                    QScriptValue properties = m_engine.evaluate( "fileData.features[" + count + "].properties" );
+                    QScriptValueIterator propertyIterator ( properties );
+                    GeoDataFeature::GeoDataVisualCategory category = GeoDataFeature::None;
 
                     // First create a placemark for each geometry, there could be multi geometries
                     // that are translated into more than one geometry/placemark
@@ -252,35 +252,26 @@ bool JsonParser::read( QIODevice* device )
                         placemarkList.append( placemark );
                     }
 
-                    OsmPlacemarkData osmData;
+                    while ( propertyIterator.hasNext() ) {
+                        propertyIterator.next();
 
-                    QJsonObject::ConstIterator it = propertiesObject.begin();
-                    const QJsonObject::ConstIterator end = propertiesObject.end();
-                    for ( ; it != end; ++it) {
-                        if (it.value().isObject() || it.value().isArray()) {
-                            qDebug() << "Skipping property, values of type arrays and objects not supported:" << it.key();
-                            continue;
+                        // If the property read, is the features name
+                        if ( propertyIterator.name() == "name" ) {
+                            for ( int pl = 0 ; pl < placemarkList.length() ; pl++) {
+                                placemarkList.at( pl )->setName( propertyIterator.value().toString() );
+                            }
                         }
+                        // Else if the geometry still doesn't have a category, try if this
+                        // key-value properties match any OSM visual category
+                        else if ( category == GeoDataFeature::None ) {
+                            category = GeoDataFeature::OsmVisualCategory( propertyIterator.name().toLower() + '=' + propertyIterator.value().toString().toLower() );
 
-                        // pass value through QVariant to also get bool & numbers
-                        osmData.addTag(it.key(), it.value().toVariant().toString());
-                    }
-
-                    // If the property read, is the features name
-                    const auto tagIter = osmData.findTag(QStringLiteral("name"));
-                    if (tagIter != osmData.tagsEnd()) {
-                        const QString& name = tagIter.value();
-                        for (int pl = 0 ; pl < placemarkList.length(); ++pl) {
-                            placemarkList.at(pl)->setName(name);
-                        }
-                    }
-
-                    const GeoDataPlacemark::GeoDataVisualCategory category = StyleBuilder::determineVisualCategory(osmData);
-                    if (category != GeoDataPlacemark::None) {
-                        // Add the visual category to all the placemarks
-                        for (int pl = 0 ; pl < placemarkList.length(); ++pl) {
-                            placemarkList.at(pl)->setVisualCategory(category);
-                            placemarkList.at(pl)->setOsmData(osmData);
+                            if ( category != GeoDataFeature::None ) {
+                                // Add the visual category to all the placemarks
+                                for ( int pl = 0 ; pl < placemarkList.length() ; pl++) {
+                                    placemarkList.at( pl )->setVisualCategory( category );
+                                }
+                            }
                         }
                     }
                 }

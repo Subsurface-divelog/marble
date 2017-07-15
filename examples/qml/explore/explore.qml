@@ -5,11 +5,11 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 import Qt 4.7
-import org.kde.marble 0.20
+import org.kde.edu.marble 0.11
 
 Rectangle {
   id: screen

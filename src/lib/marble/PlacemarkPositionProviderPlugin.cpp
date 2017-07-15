@@ -17,12 +17,10 @@
 #include "MarbleModel.h"
 #include "MarbleDebug.h"
 
-#include <QIcon>
-
 using namespace Marble;
 
-PlacemarkPositionProviderPlugin::PlacemarkPositionProviderPlugin( MarbleModel *marbleModel, QObject* parent )
-    : PositionProviderPlugin(parent),
+PlacemarkPositionProviderPlugin::PlacemarkPositionProviderPlugin( MarbleModel *marbleModel )
+    : PositionProviderPlugin(),
       m_marbleModel( marbleModel ),
       m_placemark( 0 ),
       m_speed( 0 ),
@@ -40,7 +38,7 @@ QString PlacemarkPositionProviderPlugin::name() const
 
 QString PlacemarkPositionProviderPlugin::nameId() const
 {
-    return QStringLiteral("Placemark");
+    return QString::fromLatin1( "Placemark" );
 }
 
 QString PlacemarkPositionProviderPlugin::guiString() const
@@ -50,7 +48,7 @@ QString PlacemarkPositionProviderPlugin::guiString() const
 
 QString PlacemarkPositionProviderPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString PlacemarkPositionProviderPlugin::description() const
@@ -60,14 +58,14 @@ QString PlacemarkPositionProviderPlugin::description() const
 
 QString PlacemarkPositionProviderPlugin::copyrightYears() const
 {
-    return QStringLiteral("2011, 2012");
+    return "2011, 2012";
 }
 
-QVector<PluginAuthor> PlacemarkPositionProviderPlugin::pluginAuthors() const
+QList<PluginAuthor> PlacemarkPositionProviderPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Guillaume Martres"), QStringLiteral("smarter@ubuntu.com"))
-            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Guillaume Martres", "smarter@ubuntu.com" )
+            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" );
 }
 
 QIcon PlacemarkPositionProviderPlugin::icon() const
@@ -186,4 +184,4 @@ void PlacemarkPositionProviderPlugin::updatePosition()
     emit positionChanged( m_coordinates, m_accuracy );
 }
 
-#include "moc_PlacemarkPositionProviderPlugin.cpp"
+#include "PlacemarkPositionProviderPlugin.moc"

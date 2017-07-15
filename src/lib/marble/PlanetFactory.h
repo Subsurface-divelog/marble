@@ -8,16 +8,14 @@
 // Copyright 2009 Henry de Valence <hdevalence@gmail.com>
 // Copyright 2009 David Roberts <dvdr18@gmail.com>
 // Copyright 2012 Mohammed Nafees <nafees.technocool@gmail.com>
-// Copyright 2014 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014 Dennis Nienhüser <earthwings@gentoo.org>
 
 #ifndef MARBLE_PLANETFACTORY_H
 #define MARBLE_PLANETFACTORY_H
 
 #include "marble_export.h"
 
-#include <QList>
-
-class QString;
+#include <QString>
 
 namespace Marble
 {

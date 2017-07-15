@@ -11,6 +11,8 @@
 #ifndef APRSPLUGIN_H
 #define APRSPLUGIN_H
 
+#include <QObject>
+#include <QMutex>
 #include <QDialog>
 
 #include "RenderPlugin.h"
@@ -20,8 +22,6 @@
 #include "GeoDataLatLonAltBox.h"
 
 #include "ui_AprsConfigWidget.h"
-
-class QMutex;
 
 namespace Ui
 {
@@ -38,40 +38,41 @@ namespace Marble
     class AprsPlugin : public RenderPlugin, public DialogConfigurationInterface
     {
         Q_OBJECT
-        Q_PLUGIN_METADATA(IID "org.kde.marble.AprsPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.AprsPlugin" )
         Q_INTERFACES( Marble::RenderPluginInterface )
         Q_INTERFACES( Marble::DialogConfigurationInterface )
         MARBLE_PLUGIN( AprsPlugin )
 
             public:
-        explicit AprsPlugin( const MarbleModel *marbleModel=0 );
-        ~AprsPlugin() override;
-        QStringList backendTypes() const override;
-        QString renderPolicy() const override;
-        QStringList renderPosition() const override;
-        QString name() const override;
-        QString guiString() const override;
-        QString nameId() const override;
+        AprsPlugin();
+        explicit AprsPlugin( const MarbleModel *marbleModel );
+        ~AprsPlugin();
+        QStringList backendTypes() const;
+        QString renderPolicy() const;
+        QStringList renderPosition() const;
+        QString name() const;
+        QString guiString() const;
+        QString nameId() const;
 
-        QString version() const override;
+        QString version() const;
 
-        QString description() const override;
+        QString description() const;
 
-        QString copyrightYears() const override;
+        QString copyrightYears() const;
 
-        QVector<PluginAuthor> pluginAuthors() const override;
+        QList<PluginAuthor> pluginAuthors() const;
 
-        QIcon icon () const override;
+        QIcon icon () const;
 
-        void initialize () override;
-        bool isInitialized () const override;
-        bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 ) override;
+        void initialize ();
+        bool isInitialized () const;
+        bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 );
 
-        QDialog *configDialog() override;
+        QDialog *configDialog();
         QAction       *action() const;
 
-        QHash<QString,QVariant> settings() const override;
-        void setSettings( const QHash<QString,QVariant> &settings ) override;
+        QHash<QString,QVariant> settings() const;
+        void setSettings( const QHash<QString,QVariant> &settings );
 
         void stopGatherers();
         void restartGatherers();
@@ -81,7 +82,7 @@ namespace Marble
         void readSettings();
         void writeSettings();
         void updateVisibility( bool visible );
-        RenderType renderType() const override;
+        virtual RenderType renderType() const;
 
       private:
 

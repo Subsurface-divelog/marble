@@ -27,7 +27,7 @@ class MARBLE_EXPORT PositionProviderPlugin : public QObject, public PositionProv
     Q_OBJECT
 
  public:
-    ~PositionProviderPlugin() override;
+    virtual ~PositionProviderPlugin();
 
     /**
      * @brief Returns the string that should appear in the user interface.
@@ -44,11 +44,11 @@ class MARBLE_EXPORT PositionProviderPlugin : public QObject, public PositionProv
 
  Q_SIGNALS:
     void statusChanged( PositionProviderStatus status ) const;
-    void positionChanged( const GeoDataCoordinates& position,
-                          const GeoDataAccuracy& accuracy ) const;
+    void positionChanged( GeoDataCoordinates position,
+                          GeoDataAccuracy accuracy ) const;
 
  protected:
-    PositionProviderPlugin(QObject* parent=0);
+    PositionProviderPlugin();
 
  private:
     Q_DISABLE_COPY( PositionProviderPlugin )

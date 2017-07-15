@@ -58,7 +58,7 @@ class GEODATA_EXPORT GeoDataLod : public GeoDataObject
 /*!
     \brief Destroys a Level of Detail object.
 */
-    ~GeoDataLod() override;
+    virtual ~GeoDataLod();
 
 
 /*!
@@ -68,7 +68,7 @@ class GEODATA_EXPORT GeoDataLod : public GeoDataObject
     bool operator==( const GeoDataLod &other ) const;
     bool operator!=( const GeoDataLod &other ) const;
 
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
 
 /*!
@@ -144,14 +144,14 @@ class GEODATA_EXPORT GeoDataLod : public GeoDataObject
     \brief Serialize the Lod to a stream.
     \param stream the stream.
 */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
 
 
 /*!
     \brief Unserialize the Lod from a stream.
     \param stream the stream.
 */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
     GeoDataLod &operator=( const GeoDataLod& other );
 

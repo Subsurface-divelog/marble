@@ -24,9 +24,9 @@
 #include "GPXElementDictionary.h"
 #include "GeoParser.h"
 #include "GeoDataDocument.h"
+#include "GeoDataFolder.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
-#include "GeoDataLineString.h"
 
 namespace Marble
 {
@@ -36,7 +36,7 @@ GPX_DEFINE_TAG_HANDLER(rte)
 
 GeoNode* GPXrteTagHandler::parse(GeoParser& parser) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(gpxTag_rte)));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(gpxTag_rte));
 
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(gpxTag_gpx))
@@ -48,7 +48,7 @@ GeoNode* GPXrteTagHandler::parse(GeoParser& parser) const
         doc->append(placemark);
         GeoDataLineString *linestring = new GeoDataLineString;
         placemark->setGeometry(linestring);
-        placemark->setStyleUrl(QStringLiteral("#map-route"));
+        placemark->setStyleUrl("#map-route");
 
         return placemark;
     }

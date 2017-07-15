@@ -12,11 +12,13 @@
 #ifndef MARBLE_TILEID_H
 #define MARBLE_TILEID_H
 
-#include "marble_export.h"
-
 #include <QHash>
+#include <QString>
 
-class QString;
+#include "marble_export.h"
+#include "GeoDataCoordinates.h"
+#include "GeoDataLatLonBox.h"
+#include "GeoSceneTextureTile.h"
 
 namespace Marble
 {
@@ -37,7 +39,8 @@ class MARBLE_EXPORT TileId
     bool operator==( TileId const& rhs ) const;
     bool operator<( TileId const& rhs ) const;
 
-    static TileId fromCoordinates( const GeoDataCoordinates& coords, int zoomLevel );
+    GeoDataLatLonBox toLatLonBox( const GeoSceneTiled *textureLayer ) const;
+    static TileId fromCoordinates( const GeoDataCoordinates& coords, int popularity );
 
  private:
     uint m_mapThemeIdHash;

@@ -29,6 +29,7 @@
 #include "GeoParser.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataContainer.h"
+#include "GeoDataDocument.h"
 
 namespace Marble
 {
@@ -38,7 +39,7 @@ KML_DEFINE_TAG_HANDLER( MarblePlacemark )
 
 GeoNode* KmlMarblePlacemarkTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_MarblePlacemark)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_MarblePlacemark ) );
 
 
     GeoStackItem parentItem = parser.parentElement();

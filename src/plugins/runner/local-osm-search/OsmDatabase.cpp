@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2013      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -19,7 +19,11 @@
 #include "MarbleModel.h"
 #include "PositionTracking.h"
 
+#include <QFile>
 #include <QDataStream>
+#include <QStringList>
+#include <QRegExp>
+#include <QVariant>
 #include <QTime>
 
 #include <QSqlDatabase>
@@ -83,7 +87,7 @@ QVector<OsmPlacemark> OsmDatabase::find( const DatabaseQuery &userQuery )
     QVector<OsmPlacemark> result;
     QTime timer;
     timer.start();
-    for( const QString &databaseFile: m_databaseFiles ) {
+    foreach( const QString &databaseFile, m_databaseFiles ) {
         database.setDatabaseName( databaseFile );
         if ( !database.open() ) {
             qWarning() << "Failed to connect to database" << databaseFile;
@@ -94,7 +98,7 @@ QVector<OsmPlacemark> OsmDatabase::find( const DatabaseQuery &userQuery )
             QTime regionTimer;
             regionTimer.start();
             // Nested set model to support region hierarchies, see http://en.wikipedia.org/wiki/Nested_set_model
-            const QString regionsQueryString = QLatin1String("SELECT lft, rgt FROM regions WHERE name LIKE '%") + userQuery.region() + QLatin1String("%';");
+            const QString regionsQueryString = "SELECT lft, rgt FROM regions WHERE name LIKE '%" + userQuery.region() + "%';";
             QSqlQuery regionsQuery( regionsQueryString, database );
             if ( regionsQuery.lastError().isValid() ) {
                 qWarning() << regionsQuery.lastError() << "in" << databaseFile << "with query" << regionsQuery.lastQuery();
@@ -103,13 +107,13 @@ QVector<OsmPlacemark> OsmDatabase::find( const DatabaseQuery &userQuery )
             int regionCount = 0;
             while ( regionsQuery.next() ) {
                 if ( regionCount > 0 ) {
-                    regionRestriction += QLatin1String(" OR ");
+                    regionRestriction += " OR ";
                 }
-                regionRestriction += QLatin1String(" (regions.lft >= ") + regionsQuery.value( 0 ).toString() +
-                                     QLatin1String(" AND regions.lft <= ") + regionsQuery.value( 1 ).toString() + QLatin1Char(')');
+                regionRestriction += " (regions.lft >= " + regionsQuery.value( 0 ).toString();
+                regionRestriction += " AND regions.lft <= " + regionsQuery.value( 1 ).toString() + ')';
                 regionCount++;
             }
-            regionRestriction += QLatin1Char(')');
+            regionRestriction += ')';
 
             mDebug() << Q_FUNC_INFO << "region query in" << databaseFile << "with query" << regionsQueryString
                      << "took" << regionTimer.elapsed() << "ms for" << regionCount << "results";
@@ -127,18 +131,18 @@ QVector<OsmPlacemark> OsmDatabase::find( const DatabaseQuery &userQuery )
                 " FROM regions, places";
 
         if ( userQuery.queryType() == DatabaseQuery::CategorySearch ) {
-            queryString += QLatin1String(" WHERE regions.id = places.region");
+            queryString += " WHERE regions.id = places.region";
             if( userQuery.category() == OsmPlacemark::UnknownCategory ) {
                 // search for all pois which are not street nor address
-                queryString += QLatin1String(" AND places.category <> 0 AND places.category <> 6");
+                queryString += " AND places.category <> 0 AND places.category <> 6";
             } else {
                 // search for specific category
-                queryString += QLatin1String(" AND places.category = %1");
+                queryString += " AND places.category = %1";
                 queryString = queryString.arg( (qint32) userQuery.category() );
             }
             if ( userQuery.position().isValid() && userQuery.region().isEmpty() ) {
                 // sort by distance
-                queryString += QLatin1String(" ORDER BY ((places.lat-%1)*(places.lat-%1)+(places.lon-%2)*(places.lon-%2))");
+                queryString += " ORDER BY ((places.lat-%1)*(places.lat-%1)+(places.lon-%2)*(places.lon-%2))";
                 GeoDataCoordinates position = userQuery.position();
                 queryString = queryString.arg( position.latitude( GeoDataCoordinates::Degree ), 0, 'f', 8 )
                         .arg( position.longitude( GeoDataCoordinates::Degree ), 0, 'f', 8 );
@@ -146,20 +150,20 @@ QVector<OsmPlacemark> OsmDatabase::find( const DatabaseQuery &userQuery )
                 queryString += regionRestriction;
             }
         } else if ( userQuery.queryType() == DatabaseQuery::BroadSearch ) {
-            queryString += QLatin1String(" WHERE regions.id = places.region"
-                    " AND places.name ") + wildcardQuery(userQuery.searchTerm());
+            queryString += " WHERE regions.id = places.region"
+                    " AND places.name " + wildcardQuery( userQuery.searchTerm() );
         } else {
-            queryString += QLatin1String(" WHERE regions.id = places.region"
-                    "   AND places.name ") + wildcardQuery(userQuery.street());
+            queryString += " WHERE regions.id = places.region"
+                    "   AND places.name " + wildcardQuery( userQuery.street() );
             if ( !userQuery.houseNumber().isEmpty() ) {
-                queryString += QLatin1String(" AND places.number ") + wildcardQuery(userQuery.houseNumber());
+                queryString += " AND places.number " + wildcardQuery( userQuery.houseNumber() );
             } else {
-                queryString += QLatin1String(" AND places.number IS NULL");
+                queryString += " AND places.number IS NULL";
             }
             queryString += regionRestriction;
         }
 
-        queryString += QLatin1String(" LIMIT 50;");
+        queryString += " LIMIT 50;";
 
         /** @todo: sort/filter results from several databases */
 
@@ -197,15 +201,15 @@ QVector<OsmPlacemark> OsmDatabase::find( const DatabaseQuery &userQuery )
 
     mDebug() << "Offline OSM search query took" << timer.elapsed() << "ms for" << result.count() << "results.";
 
-    std::sort( result.begin(), result.end() );
+    qSort( result.begin(), result.end() );
     makeUnique( result );
 
     if ( userQuery.position().isValid() ) {
         const PlacemarkSmallerDistance placemarkSmallerDistance( userQuery.position() );
-        std::sort( result.begin(), result.end(), placemarkSmallerDistance );
+        qSort( result.begin(), result.end(), placemarkSmallerDistance );
     } else {
         const PlacemarkHigherScore placemarkHigherScore( &userQuery );
-        std::sort( result.begin(), result.end(), placemarkHigherScore );
+        qSort( result.begin(), result.end(), placemarkHigherScore );
     }
 
     if ( result.size() > 50 ) {
@@ -281,7 +285,7 @@ QString OsmDatabase::formatDistance( const GeoDataCoordinates &a, const GeoDataC
         heading = QObject::tr( "north-east" );
     }
 
-    return fuzzyDistance + QLatin1Char(' ') + heading;
+    return fuzzyDistance + ' ' + heading;
 }
 
 qreal OsmDatabase::bearing( const GeoDataCoordinates &a, const GeoDataCoordinates &b )
@@ -296,10 +300,10 @@ qreal OsmDatabase::bearing( const GeoDataCoordinates &a, const GeoDataCoordinate
 QString OsmDatabase::wildcardQuery( const QString &term )
 {
     QString result = term;
-    if (term.contains(QLatin1Char('*'))) {
-        return QLatin1String(" LIKE '") + result.replace(QLatin1Char('*'), QLatin1Char('%')) + QLatin1Char('\'');
+    if ( term.contains( '*' ) ) {
+        return " LIKE '" + result.replace( '*', '%' ) + '\'';
     } else {
-        return QLatin1String(" = '") + result + QLatin1Char('\'');
+        return " = '" + result + '\'';
     }
 }
 

@@ -26,7 +26,7 @@ KML_DEFINE_TAG_HANDLER( when )
 
 GeoNode* KmlwhenTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_when)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_when ) );
 
     GeoStackItem parentItem = parser.parentElement();
 
@@ -64,10 +64,10 @@ GeoDataTimeStamp::TimeResolution KmlwhenTagHandler::modify(  QString& whenString
     switch( whenString.length() )
     {
     case 4:
-        whenString += QLatin1String("-01-01");
+        whenString.append( "-01-01" );
         return GeoDataTimeStamp::YearResolution;
     case 7:
-        whenString += QLatin1String("-01");
+        whenString.append( "-01" );
         return GeoDataTimeStamp::MonthResolution;
     case 10:
         return GeoDataTimeStamp::DayResolution;

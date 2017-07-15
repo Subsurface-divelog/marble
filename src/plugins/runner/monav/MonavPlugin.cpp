@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MonavPlugin.h"
@@ -19,12 +19,14 @@
 #include "MarbleDirs.h"
 #include "MarbleDebug.h"
 #include "GeoDataLatLonBox.h"
+#include "GeoDataDocument.h"
 #include "GeoDataData.h"
 #include "GeoDataExtendedData.h"
 #include "routing/RouteRequest.h"
 
 #include <QProcess>
 #include <QDirIterator>
+#include <QTimer>
 #include <QLocalSocket>
 #include <QThread>
 #include <QTextStream>
@@ -103,10 +105,9 @@ bool MonavPluginPrivate::isDaemonRunning()
 
 bool MonavPluginPrivate::isDaemonInstalled()
 {
-    QString path = QProcessEnvironment::systemEnvironment().value(QStringLiteral("PATH"), QStringLiteral("/usr/local/bin:/usr/bin:/bin"));
-    auto const applications = QStringList() << "monav-daemon" << "MoNavD";
-    for( const QString &application: applications ) {
-        for( const QString &dir: path.split( QLatin1Char( ':' ) ) ) {
+    QString path = QProcessEnvironment::systemEnvironment().value( "PATH", "/usr/local/bin:/usr/bin:/bin" );
+    foreach( const QString &application, QStringList() << "monav-daemon" << "MoNavD" ) {
+        foreach( const QString &dir, path.split( QLatin1Char( ':' ) ) ) {
             QFileInfo executable( QDir( dir ), application );
             if ( executable.exists() ) {
                 return true;
@@ -120,10 +121,11 @@ bool MonavPluginPrivate::isDaemonInstalled()
 bool MonavPluginPrivate::startDaemon()
 {
     if ( !isDaemonRunning() ) {
-        if ( QProcess::startDetached( m_monavDaemonProcess, QStringList() ) ) {
+        QProcess process;
+        if ( process.startDetached( m_monavDaemonProcess ) ) {
             m_ownsServer = true;
         } else {
-            if ( QProcess::startDetached( "MoNavD", QStringList() ) ) {
+            if ( process.startDetached( "MoNavD" ) ) {
                 m_ownsServer = true;
                 m_monavDaemonProcess = "MoNavD";
                 m_monavVersion = MonavPlugin::Monav_0_2;
@@ -149,9 +151,17 @@ bool MonavPluginPrivate::startDaemon()
 
 void MonavPluginPrivate::stopDaemon()
 {
-    if ( m_ownsServer ) {
+    // So far Marble is the only application using monav-routingdaemon on Maemo.
+    // Always shut down the monav server there, since monav-routingdaemon will
+    // survive a crash of Marble and later block mounting a N900 via USB because
+    // it has loaded some data from it. This way if Marble crashed and monav blocks
+    // USB mounting (which the user will not be aware of), another start and shutdown
+    // of Marble will at least fix the USB mount block.
+    bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
+    if ( smallScreen || m_ownsServer ) {
         m_ownsServer = false;
-        QProcess::startDetached( m_monavDaemonProcess, QStringList() << "-t" );
+        QProcess process;
+        process.startDetached( m_monavDaemonProcess, QStringList() << "-t" );
     }
 }
 
@@ -159,8 +169,8 @@ void MonavPluginPrivate::loadMaps()
 {
     if ( m_maps.isEmpty() ) {
         QStringList const baseDirs = QStringList() << MarbleDirs::systemPath() << MarbleDirs::localPath();
-        for ( const QString &baseDir: baseDirs ) {
-            const QString base = baseDir + QLatin1String("/maps/earth/monav/");
+        foreach ( const QString &baseDir, baseDirs ) {
+            QString base = baseDir + "/maps/earth/monav/";
             loadMap( base );
             QDir::Filters filters = QDir::AllDirs | QDir::Readable | QDir::NoDotAndDotDot;
             QDirIterator::IteratorFlags flags = QDirIterator::Subdirectories | QDirIterator::FollowSymlinks;
@@ -171,7 +181,7 @@ void MonavPluginPrivate::loadMaps()
             }
         }
         // Prefer maps where bounding boxes are known
-        std::sort( m_maps.begin(), m_maps.end(), MonavMap::areaLessThan );
+        qSort( m_maps.begin(), m_maps.end(), MonavMap::areaLessThan );
     }
 }
 
@@ -212,7 +222,7 @@ MonavPlugin::MonavPlugin( QObject *parent ) :
     RoutingRunnerPlugin( parent ),
     d( new MonavPluginPrivate )
 {
-    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
+    setSupportedCelestialBodies( QStringList() << "earth" );
     setCanWorkOffline( true );
 
     if ( d->isDaemonInstalled() ) {
@@ -244,12 +254,12 @@ QString MonavPlugin::guiString() const
 
 QString MonavPlugin::nameId() const
 {
-    return QStringLiteral("monav");
+    return "monav";
 }
 
 QString MonavPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString MonavPlugin::description() const
@@ -259,13 +269,13 @@ QString MonavPlugin::description() const
 
 QString MonavPlugin::copyrightYears() const
 {
-    return QStringLiteral("2010");
+    return "2010";
 }
 
-QVector<PluginAuthor> MonavPlugin::pluginAuthors() const
+QList<PluginAuthor> MonavPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
 }
 
 RoutingRunner *MonavPlugin::newRunner() const
@@ -283,7 +293,7 @@ QString MonavPlugin::mapDirectoryForRequest( const RouteRequest* request ) const
     d->initialize();
 
     QHash<QString, QVariant> settings = request->routingProfile().pluginSettings()[nameId()];
-    const QString transport = settings[QStringLiteral("transport")].toString();
+    QString transport = settings["transport"].toString();
 
     for ( int j=0; j<d->m_maps.size(); ++j ) {
         bool valid = true;
@@ -317,7 +327,7 @@ QStringList MonavPlugin::mapDirectoriesForRequest( const RouteRequest* request )
     QStringList result;
     d->initialize();
     QHash<QString, QVariant> settings = request->routingProfile().pluginSettings()[nameId()];
-    const QString transport = settings[QStringLiteral("transport")].toString();
+    QString transport = settings["transport"].toString();
 
     for ( int j=0; j<d->m_maps.size(); ++j ) {
         bool valid = true;
@@ -403,4 +413,6 @@ MonavPlugin::MonavRoutingDaemonVersion MonavPlugin::monavVersion() const
 
 }
 
-#include "moc_MonavPlugin.cpp"
+Q_EXPORT_PLUGIN2( MonavPlugin, Marble::MonavPlugin )
+
+#include "MonavPlugin.moc"

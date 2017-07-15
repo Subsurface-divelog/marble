@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2011      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -16,11 +16,9 @@
 #include "MarbleWidget.h"
 #include "MarbleModel.h"
 #include "MarblePlacemarkModel.h"
-#include "GeoDataLookAt.h"
 #include "GeoDataTreeModel.h"
 #include "GeoDataDocument.h"
 #include "GeoDataFolder.h"
-#include "GeoDataPlacemark.h"
 #include "PositionTracking.h"
 #include "SearchRunnerManager.h"
 #include "routing/RoutingManager.h"
@@ -28,6 +26,7 @@
 
 #include <QAbstractListModel>
 #include <QTimer>
+#include <QPushButton>
 #include <QPainter>
 
 namespace Marble
@@ -35,13 +34,12 @@ namespace Marble
 
 class TargetModel : public QAbstractListModel
 {
-    Q_OBJECT
 public:
     TargetModel( MarbleModel* marbleModel, QObject * parent = 0 );
 
-    int rowCount ( const QModelIndex & parent = QModelIndex() ) const override;
+    virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
 
-    QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const override;
+    virtual QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const;
 
     void setShowRoutingItems( bool show );
 
@@ -96,7 +94,7 @@ public:
 
     void startSearch();
 
-    void updateSearchResult( const QVector<GeoDataPlacemark*>& placemarks );
+    void updateSearchResult( QVector<GeoDataPlacemark*> placemarks );
 
     void updateSearchMode();
 
@@ -114,7 +112,7 @@ TargetModel::TargetModel( MarbleModel *marbleModel, QObject * parent ) :
     m_showRoutingItems( true )
 {
     BookmarkManager* manager = m_marbleModel->bookmarkManager();
-    for( GeoDataFolder * folder: manager->folders() ) {
+    foreach( GeoDataFolder * folder, manager->folders() ) {
         QVector<GeoDataPlacemark*> bookmarks = folder->placemarkList();
         QVector<GeoDataPlacemark*>::const_iterator iter = bookmarks.constBegin();
         QVector<GeoDataPlacemark*>::const_iterator end = bookmarks.constEnd();
@@ -168,7 +166,7 @@ QVariant TargetModel::currentLocationData ( int role ) const
         GeoDataCoordinates currentLocation = tracking->currentLocation();
         switch( role ) {
         case Qt::DisplayRole: return tr( "Current Location: %1" ).arg( currentLocation.toString() ) ;
-        case Qt::DecorationRole: return QIcon(QStringLiteral(":/icons/gps.png"));
+        case Qt::DecorationRole: return QIcon( ":/icons/gps.png" );
         case MarblePlacemarkModel::CoordinateRole: {
             return qVariantFromValue( currentLocation );
         }
@@ -197,7 +195,7 @@ QVariant TargetModel::homeData ( int role ) const
 {
     switch( role ) {
     case Qt::DisplayRole: return tr( "Home" );
-    case Qt::DecorationRole: return QIcon(QStringLiteral(":/icons/go-home.png"));
+    case Qt::DecorationRole: return QIcon( ":/icons/go-home.png" );
     case MarblePlacemarkModel::CoordinateRole: {
         qreal lon( 0.0 ), lat( 0.0 );
         int zoom( 0 );
@@ -220,7 +218,7 @@ QVariant TargetModel::bookmarkData ( int index, int role ) const
             return QString(folder->name() + QLatin1String(" / ") + m_bookmarks[index]->name());
         }
     }
-    case Qt::DecorationRole: return QIcon(QStringLiteral(":/icons/bookmarks.png"));
+    case Qt::DecorationRole: return QIcon( ":/icons/bookmarks.png" );
     case MarblePlacemarkModel::CoordinateRole: return qVariantFromValue( m_bookmarks[index]->lookAt()->coordinates() );
     }
 
@@ -336,11 +334,11 @@ void GoToDialogPrivate::startSearch()
     updateResultMessage( 0 );
 }
 
-void GoToDialogPrivate::updateSearchResult( const QVector<GeoDataPlacemark*>& placemarks )
+void GoToDialogPrivate::updateSearchResult( QVector<GeoDataPlacemark*> placemarks )
 {
     m_searchResultModel.setRootDocument( 0 );
     m_searchResult->clear();
-    for (GeoDataPlacemark *placemark: placemarks) {
+    foreach (GeoDataPlacemark *placemark, placemarks) {
         m_searchResult->append( new GeoDataPlacemark( *placemark ) );
     }
     m_searchResultModel.setRootDocument( m_searchResult );
@@ -352,6 +350,11 @@ GoToDialog::GoToDialog( MarbleModel* marbleModel, QWidget * parent, Qt::WindowFl
     QDialog( parent, flags ),
     d( new GoToDialogPrivate( this, marbleModel ) )
 {
+#ifdef Q_WS_MAEMO_5
+        setAttribute( Qt::WA_Maemo5StackedWindow );
+        setWindowFlags( Qt::Window );
+#endif // Q_WS_MAEMO_5
+
     d->searchLineEdit->setPlaceholderText( tr( "Address or search term" ) );
 
     d->m_searchResultModel.setRootDocument( d->m_searchResult );
@@ -436,12 +439,9 @@ void GoToDialogPrivate::stopProgressAnimation()
 
 void GoToDialogPrivate::updateResultMessage( int results )
 {
-    //~ singular %n result found.
-    //~ plural %n results found.
-    descriptionLabel->setText( QObject::tr( "%n result(s) found.", "Number of search results", results ) );
+    descriptionLabel->setText( QObject::tr( "%n results found.", "Number of search results", results ) );
 }
 
 }
 
-#include "moc_GoToDialog.cpp" // needed for private slots in header
-#include "GoToDialog.moc" // needed for Q_OBJECT here in source
+#include "GoToDialog.moc"

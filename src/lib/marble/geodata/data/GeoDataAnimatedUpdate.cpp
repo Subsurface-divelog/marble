@@ -12,6 +12,7 @@
 #include "GeoDataUpdate.h"
 #include "GeoDataTypes.h"
 #include "GeoDataAbstractView.h"
+#include "GeoDataUpdate.h"
 
 namespace Marble {
 

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -22,7 +22,7 @@ namespace Marble
 GosmorePlugin::GosmorePlugin( QObject *parent ) :
     RoutingRunnerPlugin( parent )
 {
-    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
+    setSupportedCelestialBodies( QStringList() << "earth" );
     setCanWorkOffline( true );
 }
 
@@ -38,12 +38,12 @@ QString GosmorePlugin::guiString() const
 
 QString GosmorePlugin::nameId() const
 {
-    return QStringLiteral("gosmore-routing");
+    return "gosmore-routing";
 }
 
 QString GosmorePlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString GosmorePlugin::description() const
@@ -53,14 +53,14 @@ QString GosmorePlugin::description() const
 
 QString GosmorePlugin::copyrightYears() const
 {
-    return QStringLiteral("2010, 2012");
+    return "2010, 2012";
 }
 
-QVector<PluginAuthor> GosmorePlugin::pluginAuthors() const
+QList<PluginAuthor> GosmorePlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
-            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
+            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" );
 }
 
 RoutingRunner *GosmorePlugin::newRunner() const
@@ -70,7 +70,7 @@ RoutingRunner *GosmorePlugin::newRunner() const
 
 bool GosmorePlugin::canWork() const
 {
-    QDir mapDir(MarbleDirs::localPath() + QLatin1String("/maps/earth/gosmore/"));
+    QDir mapDir( MarbleDirs::localPath() + "/maps/earth/gosmore/" );
     QFileInfo mapFile = QFileInfo ( mapDir, "gosmore.pak" );
     return mapFile.exists();
 }
@@ -82,4 +82,6 @@ bool GosmorePlugin::supportsTemplate( RoutingProfilesModel::ProfileTemplate prof
 
 }
 
-#include "moc_GosmoreRoutingPlugin.cpp"
+Q_EXPORT_PLUGIN2( GosmoreRoutingPlugin, Marble::GosmorePlugin )
+
+#include "GosmoreRoutingPlugin.moc"

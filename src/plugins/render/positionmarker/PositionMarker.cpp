@@ -30,7 +30,6 @@
 #include "PositionTracking.h"
 #include "ViewportParams.h"
 #include "Planet.h"
-#include "GeoDataAccuracy.h"
 
 namespace Marble
 {
@@ -44,7 +43,7 @@ PositionMarker::PositionMarker( const MarbleModel *marbleModel )
       m_marbleModel( marbleModel ),
       m_isInitialized( false ),
       m_useCustomCursor( false ),
-      m_defaultCursorPath(MarbleDirs::path(QStringLiteral("svg/track_turtle.svg"))),
+      m_defaultCursorPath( MarbleDirs::path( "svg/track_turtle.svg" ) ),
       m_lastBoundingBox(),
       ui_configWidget( 0 ),
       m_configDialog( 0 ),
@@ -67,17 +66,17 @@ PositionMarker::~PositionMarker ()
 
 QStringList PositionMarker::renderPosition() const
 {
-    return QStringList(QStringLiteral("HOVERS_ABOVE_SURFACE"));
+    return QStringList( "HOVERS_ABOVE_SURFACE" );
 }
 
 QString PositionMarker::renderPolicy() const
 {
-    return QStringLiteral("ALWAYS");
+    return "ALWAYS";
 }
 
 QStringList PositionMarker::backendTypes() const
 {
-    return QStringList(QStringLiteral("positionmarker"));
+    return QStringList( "positionmarker" );
 }
 
 QString PositionMarker::name() const
@@ -92,12 +91,12 @@ QString PositionMarker::guiString() const
 
 QString PositionMarker::nameId() const
 {
-    return QStringLiteral("positionMarker");
+    return QString( "positionMarker" );
 }
 
 QString PositionMarker::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString PositionMarker::description() const
@@ -107,21 +106,21 @@ QString PositionMarker::description() const
 
 QString PositionMarker::copyrightYears() const
 {
-    return QStringLiteral("2009, 2010");
+    return "2009, 2010";
 }
 
-QVector<PluginAuthor> PositionMarker::pluginAuthors() const
+QList<PluginAuthor> PositionMarker::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Andrew Manson"), QStringLiteral("g.real.ate@gmail.com"))
-            << PluginAuthor(QStringLiteral("Eckhart Woerner"), QStringLiteral("ewoerner@kde.org"))
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"))
-            << PluginAuthor(QStringLiteral("Daniel Marth"), QStringLiteral("danielmarth@gmx.at"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Andrew Manson", "g.real.ate@gmail.com" )
+            << PluginAuthor( "Eckhart Woerner", "ewoerner@kde.org" )
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" )
+            << PluginAuthor( "Daniel Marth", "danielmarth@gmx.at" );
 }
 
 QIcon PositionMarker::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/positionmarker.png"));
+    return QIcon(":/icons/positionmarker.png");
 }
 
 QDialog *PositionMarker::configDialog()
@@ -159,8 +158,6 @@ void PositionMarker::initialize()
     if ( marbleModel() ) {
         connect( marbleModel()->positionTracking(), SIGNAL(gpsLocation(GeoDataCoordinates,qreal)),
                 this, SLOT(setPosition(GeoDataCoordinates)) );
-        connect( marbleModel()->positionTracking(), SIGNAL(statusChanged(PositionProviderStatus)),
-                this, SIGNAL(repaintNeeded()) );
         m_isInitialized = true;
     }
     loadDefaultCursor();
@@ -180,47 +177,44 @@ bool PositionMarker::render( GeoPainter *painter,
     Q_UNUSED( layer )
 
     bool const gpsActive = marbleModel()->positionTracking()->positionProviderPlugin() != 0;
-    bool const positionAvailable = marbleModel()->positionTracking()->status() == PositionProviderStatusAvailable;
-    bool const positionValid = m_currentPosition.isValid();
-    if ( gpsActive && positionAvailable && positionValid ) {
+    if ( gpsActive ) {
         m_lastBoundingBox = viewport->viewLatLonAltBox();
 
-        qreal screenPositionX, screenPositionY;
-        if (!viewport->screenCoordinates( m_currentPosition, screenPositionX, screenPositionY )){
-            return true;
-        }
-        const GeoDataCoordinates top( m_currentPosition.longitude(), m_currentPosition.latitude()+0.1 );
-        qreal screenTopX, screenTopY;
-        if (!viewport->screenCoordinates( top, screenTopX, screenTopY )){
-            return true;
-        }
-        qreal const correction = -90.0 + RAD2DEG * atan2( screenPositionY -screenTopY, screenPositionX - screenTopX );
-        const qreal rotation = m_heading + correction;
+        if( m_currentPosition != m_previousPosition ) {
+            qreal screenPositionX, screenPositionY;
+            viewport->screenCoordinates( m_currentPosition, screenPositionX, screenPositionY );
+            const GeoDataCoordinates top( m_currentPosition.longitude(), m_currentPosition.latitude()+0.1 );
+            qreal screenTopX, screenTopY;
+            viewport->screenCoordinates( top, screenTopX, screenTopY );
+            qreal const correction = -90.0 + RAD2DEG * atan2( screenPositionY -screenTopY, screenPositionX - screenTopX );
+            const qreal rotation = m_heading + correction;
 
-        if ( m_useCustomCursor ) {
-            QTransform transform;
-            transform.rotate( rotation );
-            bool const highQuality = painter->mapQuality() == HighQuality || painter->mapQuality() == PrintQuality;
-            Qt::TransformationMode const mode = highQuality ? Qt::SmoothTransformation : Qt::FastTransformation;
-            m_customCursorTransformed = m_customCursor.transformed( transform, mode );
-        } else {
-            // Calculate the scaled arrow shape
-            const QPointF baseX( m_cursorSize, 0.0 );
-            const QPointF baseY( 0.0, m_cursorSize );
-            const QPointF relativeLeft  = - ( baseX * 9 ) + ( baseY * 9 );
-            const QPointF relativeRight =   ( baseX * 9 ) + ( baseY * 9 );
-            const QPointF relativeTip   = - ( baseY * 19.0 );
-            m_arrow = QPolygonF() << QPointF( 0.0, 0.0 ) << relativeLeft << relativeTip << relativeRight;
+            if ( m_useCustomCursor ) {
+                QTransform transform;
+                transform.rotate( rotation );
+                bool const highQuality = painter->mapQuality() == HighQuality || painter->mapQuality() == PrintQuality;
+                Qt::TransformationMode const mode = highQuality ? Qt::SmoothTransformation : Qt::FastTransformation;
+                m_customCursorTransformed = m_customCursor.transformed( transform, mode );
+            } else {
+                // Calculate the scaled arrow shape
+                const QPointF baseX( m_cursorSize, 0.0 );
+                const QPointF baseY( 0.0, m_cursorSize );
+                const QPointF relativeLeft  = - ( baseX * 9 ) + ( baseY * 9 );
+                const QPointF relativeRight =   ( baseX * 9 ) + ( baseY * 9 );
+                const QPointF relativeTip   = - ( baseY * 19.0 );
+                m_arrow = QPolygonF() << QPointF( 0.0, 0.0 ) << relativeLeft << relativeTip << relativeRight;
 
-            // Rotate the shape according to the current direction and move it to the screen center
-            QMatrix transformation;
-            transformation.translate( screenPositionX, screenPositionY );
-            transformation.rotate( rotation );
-            m_arrow = m_arrow * transformation;
+                // Rotate the shape according to the current direction and move it to the screen center
+                QMatrix transformation;
+                transformation.translate( screenPositionX, screenPositionY );
+                transformation.rotate( rotation );
+                m_arrow = m_arrow * transformation;
 
-            m_dirtyRegion = QRegion();
-            m_dirtyRegion += ( m_arrow.boundingRect().toRect() );
-            m_dirtyRegion += ( m_previousArrow.boundingRect().toRect() );
+                m_dirtyRegion = QRegion();
+                m_dirtyRegion += ( m_arrow.boundingRect().toRect() );
+                m_dirtyRegion += ( m_previousArrow.boundingRect().toRect() );
+            }
+
         }
 
         painter->save();
@@ -290,12 +284,12 @@ QHash<QString,QVariant> PositionMarker::settings() const
 {
     QHash<QString, QVariant> settings = RenderPlugin::settings();
 
-    settings.insert(QStringLiteral("useCustomCursor"), m_useCustomCursor);
-    settings.insert(QStringLiteral("cursorPath"), m_cursorPath);
-    settings.insert(QStringLiteral("cursorSize"), m_cursorSize);
-    settings.insert(QStringLiteral("acColor"), m_accuracyColor);
-    settings.insert(QStringLiteral("trailColor"), m_trailColor);
-    settings.insert(QStringLiteral("showTrail"), m_showTrail);
+    settings.insert( "useCustomCursor", m_useCustomCursor );
+    settings.insert( "cursorPath", m_cursorPath );
+    settings.insert( "cursorSize", m_cursorSize );
+    settings.insert( "acColor", m_accuracyColor );
+    settings.insert( "trailColor", m_trailColor );
+    settings.insert( "showTrail", m_showTrail );
 
     return settings;
 }
@@ -308,14 +302,14 @@ void PositionMarker::setSettings( const QHash<QString, QVariant> &settings )
     QColor defaultColor = Oxygen::brickRed4;
     defaultColor.setAlpha( smallScreen ? 80 : 40 );
 
-    m_useCustomCursor = settings.value(QStringLiteral("useCustomCursor"), false).toBool();
-    m_cursorPath = settings.value(QStringLiteral("cursorPath"), m_defaultCursorPath).toString();
-    m_cursorSize = settings.value(QStringLiteral("cursorSize"), 1.0).toFloat();
+    m_useCustomCursor = settings.value( "useCustomCursor", false ).toBool();
+    m_cursorPath = settings.value( "cursorPath", m_defaultCursorPath ).toString();
+    m_cursorSize = settings.value( "cursorSize", 1.0 ).toFloat();
     loadCustomCursor( m_cursorPath, m_useCustomCursor );
 
-    m_accuracyColor = settings.value(QStringLiteral("acColor"), defaultColor).value<QColor>();
-    m_trailColor = settings.value(QStringLiteral("trailColor"), QColor(0, 0, 255)).value<QColor>();
-    m_showTrail = settings.value(QStringLiteral("showTrail"), false).toBool();
+    m_accuracyColor = settings.value( "acColor", defaultColor ).value<QColor>();
+    m_trailColor = settings.value( "trailColor", QColor( 0, 0, 255 ) ).value<QColor>();
+    m_showTrail = settings.value( "showTrail", false ).toBool();
 
     readSettings();
 }
@@ -477,4 +471,6 @@ qreal PositionMarker::zValue() const
 
 }
 
-#include "moc_PositionMarker.cpp"
+Q_EXPORT_PLUGIN2( PositionMarker, Marble::PositionMarker )
+
+#include "PositionMarker.moc"

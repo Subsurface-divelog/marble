@@ -4,10 +4,10 @@
       xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
       http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
  <kcfgfile name="marblerc" />
+ <include>kglobalsettings.h</include>
  <include>"../../lib/marble/MarbleGlobal.h"</include>
  <include>QtCore/QDir</include>
  <include>QtCore/QLocale</include>
- <include>QFontDatabase</include>
  <group name="MarbleWidget" >
   <entry key="homeLongitude" type="Double" >
    <default>9.4</default>
@@ -141,6 +141,15 @@
    </choices>
    <default>Marble::LowQuality</default>
   </entry>
+  <entry key="graphicsSystem" type="Enum" >
+   <label>The graphics system that is used by Qt to render the graphics.</label>
+   <choices name="Marble::GraphicsSystem">
+    <choice name="NativeGraphics"/>
+    <choice name="RasterGraphics"/>
+    <choice name="OpenGLGraphics"/>
+   </choices>
+   <default>Marble::RasterGraphics</default>
+  </entry>
   <entry key="labelLocalization" type="Enum" >
    <label>The localization of the labels.</label>
     <choices name="Marble::LabelLocalization">
@@ -152,7 +161,7 @@
   </entry>
   <entry name="mapFont" type="Font">
    <label>The general font used on the map.</label>
-   <default code="true">QFontDatabase::systemFont(QFontDatabase::GeneralFont)</default>
+   <default code="true">KGlobalSettings::generalFont()</default>
   </entry>
   <entry name="lastFileOpenDir" type="String">
     <label>The last directory that was opened by File->Open.</label>
@@ -328,6 +337,9 @@
   </entry>
   <entry name="owncloudPassword" type="String">
    <default></default>
+  </entry>
+  <entry name="accessKWallet" type="Bool">
+   <default>true</default>
   </entry>
  </group>
 </kcfg>

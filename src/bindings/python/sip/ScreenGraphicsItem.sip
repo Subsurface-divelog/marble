@@ -47,7 +47,7 @@ public:
 protected:
     virtual bool            eventFilter (QObject*, QEvent*);
 public:
-    QVector<QPointF>        absolutePositions () const;
+    QList<QPointF>          absolutePositions () const;
 };
 // ScreenGraphicsItem
 

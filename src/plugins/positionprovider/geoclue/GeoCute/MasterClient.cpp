@@ -67,4 +67,4 @@ PositionProvider* MasterClient::positionProvider()
 
 
 
-#include "moc_MasterClient.cpp"
+#include "MasterClient.moc"

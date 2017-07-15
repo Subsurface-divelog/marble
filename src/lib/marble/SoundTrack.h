@@ -11,20 +11,20 @@
 #ifndef SOUNDTRACK_H
 #define SOUNDTRACK_H
 
+#include "PlaybackSoundCueItem.h"
+#include "GeoDataPlacemark.h"
+
 #include <QDateTime>
 #include <QTimer>
 
 namespace Marble
 {
-
-class PlaybackSoundCueItem;
-
 class SoundTrack : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit SoundTrack( PlaybackSoundCueItem* item );
+    SoundTrack( PlaybackSoundCueItem* item );
     void setDelayBeforeTrackStarts( double delay );
     double delayBeforeTrackStarts() const;
     void play();

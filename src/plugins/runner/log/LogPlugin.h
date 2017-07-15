@@ -18,29 +18,29 @@ namespace Marble
 class LogfilePlugin : public ParseRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.LogPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.LogPlugin" )
     Q_INTERFACES( Marble::ParseRunnerPlugin )
 
 public:
     explicit LogfilePlugin( QObject *parent = 0 );
 
-    QString name() const override;
+    QString name() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QString fileFormatDescription() const override;
+    QString fileFormatDescription() const;
 
-    QStringList fileExtensions() const override;
+    QStringList fileExtensions() const;
 
-    ParsingRunner* newRunner() const override;
+    virtual ParsingRunner* newRunner() const;
 };
 
 }

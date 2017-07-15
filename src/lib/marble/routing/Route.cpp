@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "Route.h"
@@ -63,11 +63,6 @@ const RouteSegment & Route::at( int index ) const
     return m_segments[index];
 }
 
-int Route::indexOf(const RouteSegment &segment) const
-{
-    return m_segments.indexOf(segment);
-}
-
 const GeoDataLineString & Route::path() const
 {
     return m_path;
@@ -116,7 +111,7 @@ void Route::updatePosition() const
         }
 
         GeoDataCoordinates closest, interpolated;
-        for( int i: candidates ) {
+        foreach( int i, candidates ) {
             qreal const dist = m_segments[i].distanceTo( m_position, closest, interpolated );
             if ( distance < 0.0 || dist < distance ) {
                 distance = dist;

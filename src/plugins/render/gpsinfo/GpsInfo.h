@@ -15,6 +15,7 @@
 #ifndef MARBLEGPSINFO_H
 #define MARBLEGPSINFO_H
 
+#include <QObject>
 #include <QHash>
 
 #include "AbstractFloatItem.h"
@@ -36,41 +37,41 @@ class MarbleLocale;
 class GpsInfo : public AbstractFloatItem
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.GpsInfo")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.GpsInfo" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     MARBLE_PLUGIN( GpsInfo )
     
  public:
     GpsInfo();
     explicit GpsInfo( const MarbleModel *marbleModel );
-    ~GpsInfo() override;
+    ~GpsInfo();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
     void forceRepaint();
 
- private Q_SLOTS:
-    void updateLocation( const GeoDataCoordinates& coordinates, qreal speed);
+ private slots:
+    void updateLocation( GeoDataCoordinates coordinates, qreal speed);
 
  private:
     MarbleLocale* m_locale;

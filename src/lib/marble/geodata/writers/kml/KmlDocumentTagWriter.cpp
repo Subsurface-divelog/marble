@@ -43,13 +43,13 @@ bool KmlDocumentTagWriter::writeMid( const GeoNode *node, GeoWriter& writer ) co
 {
     const GeoDataDocument *document = static_cast<const GeoDataDocument*>(node);
 
-    for( const GeoDataStyle::ConstPtr &style: document->styles() ) {
-        writeElement( style.data(), writer );
+    foreach( const GeoDataStyle &style, document->styles() ) {
+        writeElement( &style, writer );
     }
-    for( const GeoDataStyleMap &map: document->styleMaps() ) {
+    foreach( const GeoDataStyleMap &map, document->styleMaps() ) {
         writeElement( &map, writer );
     }
-    for( const GeoDataSchema &schema: document->schemas() ) {
+    foreach( const GeoDataSchema &schema, document->schemas() ) {
         writeElement( &schema, writer );
     }
 

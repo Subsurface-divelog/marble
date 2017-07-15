@@ -29,6 +29,8 @@
  * @author Inge Wallin  <inge@lysator.liu.se>
  */
 
+class QResizeEvent;
+
 namespace Marble
 {
 
@@ -44,6 +46,7 @@ class MarbleNavigatorPrivate;
  * Home position from the MarbleNavigator, though.
  *
  * @see MarbleWidget
+ * @see MarbleControlBox
  */
 
 class MARBLE_EXPORT MarbleNavigator : public QWidget
@@ -56,7 +59,7 @@ class MARBLE_EXPORT MarbleNavigator : public QWidget
      * @param parent the parent widget
      */
     explicit MarbleNavigator(QWidget *parent = 0);
-    ~MarbleNavigator() override;
+    ~MarbleNavigator();
  
     /**
      * @brief Return the minimum zoom level set in the widget.
@@ -120,7 +123,7 @@ class MARBLE_EXPORT MarbleNavigator : public QWidget
      * If the MarbleNavigator gets shrunk enough, the slider will be
      * hidden, leaving only the Zoom Up and Zoom Down buttons.
      */
-    void resizeEvent ( QResizeEvent * ) override;
+    void resizeEvent ( QResizeEvent * );
 
  private:
     Q_DISABLE_COPY( MarbleNavigator )

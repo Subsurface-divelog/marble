@@ -26,7 +26,7 @@ class OpenDesktopPlugin : public AbstractDataPlugin, public DialogConfigurationI
 {
 
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.OpenDesktopPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.OpenDesktopPlugin" )
 
     Q_INTERFACES(Marble::RenderPluginInterface)
     Q_INTERFACES(Marble::DialogConfigurationInterface)
@@ -38,32 +38,32 @@ class OpenDesktopPlugin : public AbstractDataPlugin, public DialogConfigurationI
 
     explicit OpenDesktopPlugin( const MarbleModel *marbleModel );
 
-    void initialize() override;
+    virtual void initialize();
 
-    QString name() const override;
+    QString name() const;
     
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
     
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
-    QHash<QString,QVariant> settings() const override;
+    QHash<QString,QVariant> settings() const;
 
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    void setSettings( const QHash<QString,QVariant> &settings );
 
 protected:
-    bool eventFilter(QObject *object, QEvent *event) override;
+    bool eventFilter(QObject *object, QEvent *event);
 
 private Q_SLOTS:
     void readSettings();

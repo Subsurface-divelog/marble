@@ -51,9 +51,8 @@ class GEODATA_EXPORT GeoDataContainer : public GeoDataFeature
     GeoDataContainer();
     GeoDataContainer( const GeoDataContainer& other );
     /// Destruct the GeoDataContainer
-    ~GeoDataContainer() override;
+    virtual ~GeoDataContainer();
 
-    GeoDataContainer& operator=(const GeoDataContainer& other);
 
     /**
      * @brief A convenience function that returns the LatLonAltBox of all
@@ -108,7 +107,7 @@ class GEODATA_EXPORT GeoDataContainer : public GeoDataFeature
      */
     void insert( int index, GeoDataFeature *feature );
 
-    GEODATA_DEPRECATED void insert(GeoDataFeature *other, int index);
+    GEODATA_DEPRECATED( void insert( GeoDataFeature *other, int index ) );
 
     /**
     * @brief add an element
@@ -117,27 +116,10 @@ class GEODATA_EXPORT GeoDataContainer : public GeoDataFeature
 
     void remove( int index );
 
-    void remove(int index, int count);
-
-    int	removeAll(GeoDataFeature* feature);
-
-    void removeAt(int index);
-
-    void removeFirst();
-
-    void removeLast();
-
-    bool removeOne( GeoDataFeature *feature );
-
     /**
     * @brief size of the container
     */
     int size() const;
-
-    /**
-     * @brief Returns true if the container has size 0; otherwise returns false.
-     */
-    bool isEmpty() const;
 
     /**
     * @brief return the reference of the element at a specific position
@@ -166,22 +148,22 @@ class GEODATA_EXPORT GeoDataContainer : public GeoDataFeature
      * @brief  Serialize the container to a stream.
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /**
      * @brief  Unserialize the container from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
  protected:
-    explicit GeoDataContainer(GeoDataContainerPrivate *priv);
-    GeoDataContainer(const GeoDataContainer& other, GeoDataContainerPrivate *priv);
+    explicit GeoDataContainer( GeoDataContainerPrivate *priv );
 
     bool equals( const GeoDataContainer &other ) const;
     using GeoDataFeature::equals;
 
  private:
-    Q_DECLARE_PRIVATE(GeoDataContainer)
+    GeoDataContainerPrivate* p();
+    const GeoDataContainerPrivate* p() const;
 };
 
 }

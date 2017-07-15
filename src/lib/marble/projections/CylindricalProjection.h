@@ -37,25 +37,25 @@ class CylindricalProjection : public AbstractProjection
 	
     CylindricalProjection();
 
-    ~CylindricalProjection() override;
+    virtual ~CylindricalProjection();
 
-    bool repeatableX() const override { return true; };
+    virtual bool repeatableX() const { return true; };
 
-    bool traversablePoles()  const override { return false; }
-    bool traversableDateLine()  const override { return false; }
+    virtual bool traversablePoles()  const { return false; }
+    virtual bool traversableDateLine()  const { return false; }
 
-    SurfaceType surfaceType() const override { return Cylindrical; }
+    virtual SurfaceType surfaceType() const { return Cylindrical; }
 
-    bool screenCoordinates( const GeoDataLineString &lineString,
+    virtual bool screenCoordinates( const GeoDataLineString &lineString,
                             const ViewportParams *viewport,
-                            QVector<QPolygonF*> &polygons ) const override;
+                            QVector<QPolygonF*> &polygons ) const;
 
     using AbstractProjection::screenCoordinates;
 
-    QPainterPath mapShape( const ViewportParams *viewport ) const override;
+    virtual QPainterPath mapShape( const ViewportParams *viewport ) const;
 
  protected: 
-    explicit CylindricalProjection( CylindricalProjectionPrivate* dd );
+    CylindricalProjection( CylindricalProjectionPrivate* dd );
 
  private:
     Q_DECLARE_PRIVATE( CylindricalProjection )

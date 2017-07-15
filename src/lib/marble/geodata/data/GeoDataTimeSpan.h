@@ -11,25 +11,27 @@
 #ifndef MARBLE_GEODATATIMESPAN_H
 #define MARBLE_GEODATATIMESPAN_H
 
+#include <QString>
+#include <QDateTime>
+
+#include "GeoDataObject.h"
 #include "GeoDataTimePrimitive.h"
+#include "GeoDataTimeStamp.h"
 
 #include "geodata_export.h"
 
 namespace Marble
 {
 
-class GeoDataTimeStamp;
 class GeoDataTimeSpanPrivate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataTimeSpan : public GeoDataTimePrimitive
 {
   public:
 
     GeoDataTimeSpan();
     GeoDataTimeSpan( const GeoDataTimeSpan& other );
-    ~GeoDataTimeSpan() override;
+    ~GeoDataTimeSpan();
 
     /**
     * @brief assignment operator
@@ -43,7 +45,7 @@ class GEODATA_EXPORT GeoDataTimeSpan : public GeoDataTimePrimitive
     bool operator!=( const GeoDataTimeSpan& other ) const;
 
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
     * @brief return the beginning instant of a timespan
@@ -78,13 +80,13 @@ class GEODATA_EXPORT GeoDataTimeSpan : public GeoDataTimePrimitive
      * @brief Serialize the timespan to a stream
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
 
     /**
      * @brief  Unserialize the timespan from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
   private:
     GeoDataTimeSpanPrivate * const d;

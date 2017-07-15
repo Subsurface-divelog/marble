@@ -5,11 +5,10 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
-
 #include <marble/MarbleWidget.h>
 #include <marble/GeoPainter.h>
 
@@ -27,15 +26,14 @@ void MyMarbleWidget::customPaint(GeoPainter* painter)
     painter->setPen(Qt::green);
     painter->drawEllipse(home, 7, 7);
     painter->setPen(Qt::black);
-    painter->drawText(home, QStringLiteral("Hello Marble!"));
+    painter->drawText(home, "Hello Marble!");
 }
 
 int main(int argc, char** argv)
 {
     QApplication app(argc,argv);
     MyMarbleWidget *mapWidget = new MyMarbleWidget;
-    mapWidget->setMapThemeId(QStringLiteral("earth/openstreetmap/openstreetmap.dgml"));
-    mapWidget->centerOn(8.4, 49.0);
+    mapWidget->setMapThemeId("earth/openstreetmap/openstreetmap.dgml");
     mapWidget->show();
     return app.exec();
 }

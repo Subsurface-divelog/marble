@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012 Illya Kovalevskyy <illya.kovalevskyy@gmail.com>
 //
 
@@ -20,6 +20,7 @@
 #include "GeoSceneHead.h"
 #include "GeoSceneLicense.h"
 
+#include <QMessageBox>
 #include <QCommonStyle>
 #include <QContextMenuEvent>
 #include <QPainter>
@@ -33,7 +34,7 @@ namespace Marble
 class OutlinedStyle : public QCommonStyle {
 public:
     void drawItemText( QPainter *painter, const QRect &rect, int alignment, const QPalette &palette,
-                       bool enabled, const QString& text, QPalette::ColorRole textRole ) const override {
+                       bool enabled, const QString& text, QPalette::ColorRole textRole ) const {
         Q_UNUSED( alignment );
         Q_UNUSED( enabled );
 
@@ -86,7 +87,7 @@ License::~License()
 
 QStringList License::backendTypes() const
 {
-    return QStringList(QStringLiteral("License"));
+    return QStringList( "License" );
 }
 
 QString License::name() const
@@ -101,12 +102,12 @@ QString License::guiString() const
 
 QString License::nameId() const
 {
-    return QStringLiteral("license");
+    return QString( "license" );
 }
 
 QString License::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString License::description() const
@@ -116,19 +117,19 @@ QString License::description() const
 
 QString License::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> License::pluginAuthors() const
+QList<PluginAuthor> License::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-           << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
-           << PluginAuthor(QStringLiteral("Illya Kovalevskyy"), QStringLiteral("illya.kovalevskyy@gmail.com"));
+    return QList<PluginAuthor>()
+           << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
+           << PluginAuthor( "Illya Kovalevskyy", "illya.kovalevskyy@gmail.com" );
 }
 
 QIcon License::icon () const
 {
-    return QIcon(QStringLiteral(":/icons/license.png"));
+    return QIcon(":/icons/license.png");
 }
 
 void License::initialize ()
@@ -136,9 +137,7 @@ void License::initialize ()
     delete m_widgetItem;
     m_widgetItem = new WidgetGraphicsItem( this );
     m_label = new QLabel;
-    auto style = new OutlinedStyle;
-    style->setParent(this);
-    m_label->setStyle( style );
+    m_label->setStyle( new OutlinedStyle );
     m_label->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Fixed );
     m_widgetItem->setWidget( m_label );
 
@@ -243,4 +242,6 @@ void License::contextMenuEvent( QWidget *w, QContextMenuEvent *e )
 
 }
 
-#include "moc_License.cpp"
+Q_EXPORT_PLUGIN2( License, Marble::License )
+
+#include "License.moc"

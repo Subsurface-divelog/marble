@@ -12,24 +12,22 @@
 #define PLAYBACKWAITITEM_H
 
 #include "PlaybackItem.h"
+#include "GeoDataWait.h"
 #include <QDateTime>
 
 namespace Marble
 {
-
-class GeoDataWait;
-
 class PlaybackWaitItem : public PlaybackItem
 {
     Q_OBJECT
 public:
-    explicit PlaybackWaitItem( const GeoDataWait* wait );
+    PlaybackWaitItem( const GeoDataWait* wait );
     const GeoDataWait* wait() const;
-    double duration() const override;
-    void play() override;
-    void pause() override;
-    void seek( double position ) override;
-    void stop() override;
+    double duration() const;
+    void play();
+    void pause();
+    void seek( double position );
+    void stop();
 
 private Q_SLOTS:
     void playNext();

@@ -13,6 +13,7 @@
 
 #include <QtScript>
 #include <QList>
+#include <QObject>
 
 /**
 This is a generic class built up for parsing Json that is JavaScript Object Notification

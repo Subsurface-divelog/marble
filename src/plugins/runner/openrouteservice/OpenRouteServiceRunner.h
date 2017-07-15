@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 
@@ -37,8 +37,9 @@ class OpenRouteServiceRunner : public RoutingRunner
 public:
     explicit OpenRouteServiceRunner(QObject *parent = 0);
 
+    ~OpenRouteServiceRunner();
     // Overriding MarbleAbstractRunner
-    void retrieveRoute( const RouteRequest *request ) override;
+    virtual void retrieveRoute( const RouteRequest *request );
 
 private Q_SLOTS:
     /** Route data was retrieved via http */
@@ -50,7 +51,20 @@ private Q_SLOTS:
     void get();
 
 private:
-    static QString formatCoordinates(const GeoDataCoordinates &coordinates);
+    /** Builds the xml request header. */
+    static QString xmlHeader();
+
+    /** Builds the route request header in the xml request. */
+    static QString requestHeader( const QString &unit, const QString &routePreference );
+
+    /** Builds a route point substring. */
+    static QString requestPoint( PointType pointType, const GeoDataCoordinates &coordinates );
+
+    /** Builds the route request footer in the xml request. */
+    static QString requestFooter( const QHash<QString, QVariant> &settings );
+
+    /** Builds the xml request footer. */
+    static QString xmlFooter();
 
     GeoDataDocument* parse( const QByteArray &input ) const;
 
@@ -59,6 +73,8 @@ private:
     QNetworkAccessManager m_networkAccessManager;
 
     QNetworkRequest m_request;
+
+    QByteArray m_requestData;
 };
 
 }

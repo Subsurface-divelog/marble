@@ -37,13 +37,13 @@ class AreaAnnotation : public SceneGraphicsItem
 public:
     explicit AreaAnnotation( GeoDataPlacemark *placemark );
 
-    ~AreaAnnotation() override;
+    ~AreaAnnotation();
 
     /**
      * @brief Paints the nodes on the screen and updates the regions which correspond
      * to each node using the given GeoPainter.
      */
-    void paint( GeoPainter *painter, const ViewportParams *viewport, const QString &layer, int tileZoomLevel ) override;
+    virtual void paint( GeoPainter *painter, const ViewportParams *viewport );
 
     /**
      * @brief Returns true if the given QPoint is contained by the current polygon. Note
@@ -53,18 +53,18 @@ public:
      * polygon if either polygon's interior, the outer nodes or the inner nodes contain
      * it).
      */
-    bool containsPoint( const QPoint &point ) const override;
+    virtual bool containsPoint( const QPoint &point ) const;
 
     /**
      * @brief It is used so far to remove the hover effect while being in the
      * AddingPolylineNodes state (@see SceneGraphicsItem::dealWithItemChange documentation).
      */
-    void dealWithItemChange( const SceneGraphicsItem *other ) override;
+    virtual void dealWithItemChange( const SceneGraphicsItem *other );
 
     /**
      * @brief Moves the whole polygon to the destination coordinates.
      */
-    void move( const GeoDataCoordinates &source, const GeoDataCoordinates &destination ) override;
+    virtual void move( const GeoDataCoordinates &source, const GeoDataCoordinates &destination );
 
     /**
      * @brief Changes the busy state of the object according to @param enabled. It is mostly
@@ -122,7 +122,7 @@ public:
     /**
      * @brief Provides information for downcasting a SceneGraphicsItem.
      */
-    const char *graphicType() const override;
+    virtual const char *graphicType() const;
 
 protected:
     /**
@@ -130,15 +130,15 @@ protected:
      * SceneGraphicsItem::sceneEvent() (@see Template Method pattern). Each of these
      * event handlers are structured according to the state.
      */
-    bool mousePressEvent( QMouseEvent *event ) override;
-    bool mouseMoveEvent( QMouseEvent *event ) override;
-    bool mouseReleaseEvent( QMouseEvent *event ) override;
+    virtual bool mousePressEvent( QMouseEvent *event );
+    virtual bool mouseMoveEvent( QMouseEvent *event );
+    virtual bool mouseReleaseEvent( QMouseEvent *event );
 
     /**
      * @brief Protected method which applies the Polygons modifications when changing
      * states.
      */
-    void dealWithStateChange( SceneGraphicsItem::ActionState previousState ) override;
+    virtual void dealWithStateChange( SceneGraphicsItem::ActionState previousState );
 
 private:
     /**
@@ -228,17 +228,19 @@ private:
     static const int mergedDim;
     static const int hoveredDim;
     static const QColor regularColor;
+    static const QColor selectedColor;
     static const QColor mergedColor;
+    static const QColor hoveredColor;
 
     const ViewportParams *m_viewport;
     bool m_regionsInitialized;
     bool m_busy;
 
-    QVector<PolylineNode>            m_outerNodesList;
-    QVector<PolylineNode>            m_outerVirtualNodes;
-    QVector< QVector<PolylineNode> > m_innerNodesList;
-    QVector< QVector<PolylineNode> > m_innerVirtualNodes;
-    QVector<QRegion>                 m_boundariesList;
+    QList<PolylineNode>          m_outerNodesList;
+    QList<PolylineNode>          m_outerVirtualNodes;
+    QList< QList<PolylineNode> > m_innerNodesList;
+    QList< QList<PolylineNode> > m_innerVirtualNodes;
+    QList<QRegion>              m_boundariesList;
 
     // Used in the Editing state
     enum EditingInteractingObject {

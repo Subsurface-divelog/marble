@@ -7,35 +7,48 @@
 //
 // Copyright 2006-2007 Torsten Rahn <tackat@kde.org>
 // Copyright 2007      Inge Wallin  <ingwa@kde.org>
-// Copyright 2014      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "GameMainWindow.h"
 
-#include <marble/MarbleDirs.h>
-#include <marble/MarbleDebug.h>
-#include <marble/MarbleLocale.h>
-#include <marble/MarbleGlobal.h>
+#include <MapThemeManager.h>
+#include <MarbleDirs.h>
+#include <MarbleDebug.h>
+#include <MarbleLocale.h>
+#include <MarbleGlobal.h>
 
 #include <QApplication>
+#include <QFile>
 #include <QDir>
 #include <QLocale>
+#include <QSettings>
 #include <QTranslator>
+#include <QProcessEnvironment>
 #include <QDebug>
 
 using namespace Marble;
 
 int main(int argc, char *argv[])
 {
+#if QT_VERSION < 0x050000
+    // The GraphicsSystem needs to be set before the instantiation of the
+    // QApplication. Therefore we need to parse the current setting
+    // in this unusual place :-/
+    QSettings graphicsSettings("KDE", "Marble Virtual Globe"); // keep the parameters here
+    QString const graphicsString = graphicsSettings.value("View/graphicsSystem", "raster").toString();
+    QApplication::setGraphicsSystem( graphicsString );
+#endif
+
     QApplication app(argc, argv);
-    app.setApplicationName(QStringLiteral("Marble Game"));
-    app.setOrganizationName(QStringLiteral("KDE"));
-    app.setOrganizationDomain(QStringLiteral("kde.org"));
+    app.setApplicationName( "Marble Game" );
+    app.setOrganizationName( "KDE" );
+    app.setOrganizationDomain( "kde.org" );
     // Widget translation
 
-    QString      lang = QLocale::system().name().section(QLatin1Char('_'), 0, 0);
+    QString      lang = QLocale::system().name().section('_', 0, 0);
     QTranslator  translator;
-    translator.load(QLatin1String("marble-") + lang, MarbleDirs::path(QStringLiteral("lang")));
+    translator.load( "marble-" + lang, MarbleDirs::path(QString("lang") ) );
     app.installTranslator(&translator);
 
     // For non static builds on mac and win
@@ -45,15 +58,16 @@ int main(int argc, char *argv[])
 
 #ifdef Q_WS_WIN
     QApplication::addLibraryPath( QApplication::applicationDirPath()
-                                  + QDir::separator() + QLatin1String("plugins"));
+                                  + QDir::separator() + "plugins" );
 #endif
 
     QString marbleDataPath;
     int dataPathIndex=0;
+    MarbleGlobal::Profiles profiles = MarbleGlobal::detectProfiles();
 
     QStringList args = QApplication::arguments();
 
-    if (args.contains(QStringLiteral("-h")) || args.contains(QStringLiteral("--help"))) {
+    if ( args.contains( "-h" ) || args.contains( "--help" ) ) {
         qWarning() << "Usage: marble [options]";
         qWarning();
         qWarning() << "general options:";
@@ -82,6 +96,7 @@ int main(int argc, char *argv[])
             ++i;
         }
     }
+    MarbleGlobal::getInstance()->setProfiles( profiles );
 
     MarbleLocale::MeasurementSystem const measurement =
             (MarbleLocale::MeasurementSystem)QLocale::system().measurementSystem();

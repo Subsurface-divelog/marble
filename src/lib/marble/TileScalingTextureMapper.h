@@ -24,8 +24,6 @@
 namespace Marble
 {
 
-class StackedTileLoader;
-
 class TileScalingTextureMapper : public QObject, public TextureMapperInterface
 {
     Q_OBJECT
@@ -33,11 +31,11 @@ class TileScalingTextureMapper : public QObject, public TextureMapperInterface
  public:
     explicit TileScalingTextureMapper( StackedTileLoader *tileLoader, QObject *parent = 0 );
 
-    void mapTexture( GeoPainter *painter,
+    virtual void mapTexture( GeoPainter *painter,
                              const ViewportParams *viewport,
                              int tileZoomLevel,
                              const QRect &dirtyRect,
-                             TextureColorizer *texColorizer ) override;
+                             TextureColorizer *texColorizer );
 
  private Q_SLOTS:
     void removePixmap( const TileId &tileId );

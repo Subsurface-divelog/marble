@@ -24,18 +24,17 @@
 
 namespace Marble
 {
-class StackedTileLoader;
 
 class EquirectScanlineTextureMapper : public TextureMapperInterface
 {
  public:
     explicit EquirectScanlineTextureMapper( StackedTileLoader *tileLoader );
 
-    void mapTexture( GeoPainter *painter,
+    virtual void mapTexture( GeoPainter *painter,
                              const ViewportParams *viewport,
                              int tileZoomLevel,
                              const QRect &dirtyRect,
-                             TextureColorizer *texColorizer ) override;
+                             TextureColorizer *texColorizer );
 
  private:
     void mapTexture( const ViewportParams *viewport, int tileZoomLevel, MapQuality mapQuality );

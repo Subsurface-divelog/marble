@@ -19,7 +19,7 @@ class GeoUriParserTest : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+ private slots:
     void testGeoUri_data();
     void testGeoUri();
 };

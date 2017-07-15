@@ -22,7 +22,7 @@ class KmlTrackTagHandler : public Marble::GeoTagHandler
 {
 
 public:
-    GeoNode *parse( GeoParser &parser ) const override;
+    virtual GeoNode *parse( GeoParser &parser ) const;
 };
 
 }

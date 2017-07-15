@@ -42,9 +42,9 @@ class GEODATA_EXPORT GeoSceneLegend : public GeoNode
 {
  public:
     GeoSceneLegend();
-    ~GeoSceneLegend() override;
+    ~GeoSceneLegend();
     
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
      * @brief  Add a section to the legend

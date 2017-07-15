@@ -22,16 +22,19 @@
  */
 
 
+#include <QSize>
+#include <QString>
+#include <QObject>
+#include <QFont>
+#include <QPixmap>
+
 #include "marble_export.h"
 #include "GeoDataCoordinates.h"       // In geodata/data/
-#include "GeoDataRelation.h"
+#include "RenderState.h"
 
 // Qt
-#include <QObject>
-#include <QRegion>
-
-class QFont;
-class QString;
+class QAbstractItemModel;
+class QItemSelectionModel;
 
 namespace Marble
 {
@@ -46,15 +49,13 @@ class MarbleModel;
 class ViewportParams;
 class GeoPainter;
 class LayerInterface;
+class Quaternion;
 class RenderPlugin;
-class RenderState;
 class AbstractDataPlugin;
 class AbstractDataPluginItem;
 class AbstractFloatItem;
 class TextureLayer;
 class TileCoordsPyramid;
-class GeoSceneTextureTileDataset;
-class StyleBuilder;
 
 /**
  * @short A class that can paint a view of the earth.
@@ -83,6 +84,7 @@ class StyleBuilder;
  * cities, mountain tops or the poles.
  *
  * @see MarbleWidget
+ * @see MarbleControlBox
  * @see MarbleModel
  */
 
@@ -114,7 +116,7 @@ class MARBLE_EXPORT MarbleMap : public QObject
      */
     explicit MarbleMap( MarbleModel *model );
 
-    ~MarbleMap() override;
+    virtual ~MarbleMap();
 
     /**
      * @brief Return the model that this view shows.
@@ -181,8 +183,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
      */
     int maximumZoom() const;
 
-    bool discreteZoom() const;
-
     /**
      * @brief Get the screen coordinates corresponding to geographical coordinates in the map.
      * @param lon    the lon coordinate of the requested pixel position
@@ -219,13 +219,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
      * @return The latitude of the center point in degree.
      */
     qreal centerLatitude() const;
-
-    qreal heading() const;
-
-    /**
-     * @since 0.26.0
-     */
-    bool hasFeatureAt(const QPoint&) const;
 
     QVector<const GeoDataFeature *> whichFeatureAt( const QPoint& ) const;
 
@@ -363,8 +356,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
 
     bool showBackground() const;
 
-    GeoDataRelation::RelationTypes visibleRelationTypes() const;
-
     /**
      * @brief  Returns the limit in kilobytes of the volatile (in RAM) tile cache.
      * @return the limit of volatile tile cache in kilobytes.
@@ -407,18 +398,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
     void addLayer( LayerInterface *layer );
 
     /**
-     * @brief Adds a texture sublayer
-     * @return Returns a key that identifies the texture sublayer
-     */
-    QString addTextureLayer(GeoSceneTextureTileDataset *texture);
-
-    /**
-     * @brief Removes a texture sublayer
-     * @param Key that was returned from corresponding addTextureLayer
-     */
-    void removeTextureLayer(const QString &key);
-
-    /**
      * @brief Remove a layer from being included in rendering.
      */
     void removeLayer( LayerInterface *layer );
@@ -426,11 +405,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
     RenderStatus renderStatus() const;
 
     RenderState renderState() const;
-
-    /**
-     * @since 0.26.0
-     */
-    const StyleBuilder* styleBuilder() const;
 
  public Q_SLOTS:
 
@@ -447,8 +421,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
      */
     void setRadius( int radius );
 
-    void setHeading( qreal heading );
-
     /**
      * @brief  Rotate the view by the two angles phi and theta.
      * @param  deltaLon  an angle that specifies the change in terms of longitude
@@ -460,7 +432,7 @@ class MARBLE_EXPORT MarbleMap : public QObject
      * of (lon, lat), otherwise the resulting angle will be the sum of
      * the previous position and the two offsets.
      */
-    void rotateBy(qreal deltaLon, qreal deltaLat);
+    void rotateBy( const qreal &deltaLon, const qreal &deltaLat );
 
     /**
      * @brief  Center the view on a geographical point
@@ -645,39 +617,7 @@ class MARBLE_EXPORT MarbleMap : public QObject
 
     void setShowRuntimeTrace( bool visible );
 
-    bool showRuntimeTrace() const;
-
-    /**
-     * @brief Set whether to enter the debug mode for
-     * polygon node drawing
-     * @param visible visibility of the node debug mode
-     */
-    void setShowDebugPolygons( bool visible);
-
-    bool showDebugPolygons() const;
-
-    /**
-     * @brief Set whether to enter the debug mode for
-     * visualizing batch rendering
-     * @param visible visibility of the batch rendering
-     */
-    void setShowDebugBatchRender( bool visible);
-
-    bool showDebugBatchRender() const;
-
-
-    /**
-     * @brief Set whether to enter the debug mode for
-     * placemark drawing
-     * @param visible visibility of the node debug mode
-     */
-    void setShowDebugPlacemarks(bool visible);
-
-    bool showDebugPlacemarks() const;
-
     void setShowBackground( bool visible );
-
-    void setVisibleRelationTypes(GeoDataRelation::RelationTypes relationTypes);
 
      /**
      * @brief used to notify about the position of the mouse click
@@ -703,8 +643,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
     void reload();
 
     void downloadRegion( QVector<TileCoordsPyramid> const & );
-
-    void highlightRouteRelation(qint64 osmId, bool enabled);
 
  Q_SIGNALS:
     void tileLevelChanged( int level );
@@ -758,10 +696,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
 
     void highlightedPlacemarksChanged( qreal, qreal, GeoDataCoordinates::Unit );
 
-    void viewContextChanged(ViewContext viewContext);
-
-    void visibleRelationTypesChanged(GeoDataRelation::RelationTypes relationTypes);
-
  protected:
 
     /**
@@ -777,8 +711,6 @@ class MARBLE_EXPORT MarbleMap : public QObject
     Q_PRIVATE_SLOT( d, void updateMapTheme() )
     Q_PRIVATE_SLOT( d, void updateProperty( const QString &, bool ) )
     Q_PRIVATE_SLOT( d, void setDocument(QString) )
-    Q_PRIVATE_SLOT( d, void updateTileLevel() )
-    Q_PRIVATE_SLOT(d, void addPlugins())
 
  private:
     Q_DISABLE_COPY( MarbleMap )

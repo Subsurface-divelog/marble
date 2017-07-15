@@ -13,6 +13,7 @@
 
 #include <QtScript>
 #include <QList>
+#include <QObject>
 #include <QDebug>
 #include <QScriptValue>
 #include <QScriptEngine>

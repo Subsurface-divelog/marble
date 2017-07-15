@@ -33,8 +33,8 @@ public:
 
     void setInitialized( bool initialized ) { m_initialized = initialized; }
 
-    bool initialized() const override { return m_initialized; }
-    bool operator<( const AbstractDataPluginItem *other ) const override { return this < other; }
+    bool initialized() const { return m_initialized; }
+    bool operator<( const AbstractDataPluginItem *other ) const { return this < other; }
 
 private:
     bool m_initialized;
@@ -50,7 +50,7 @@ public:
     {}
 
 protected:
-    void getAdditionalItems(const GeoDataLatLonAltBox &box, qint32 number) override
+    void getAdditionalItems(const GeoDataLatLonAltBox &box, qint32 number)
     {
         Q_UNUSED( box )
         Q_UNUSED( number )
@@ -66,7 +66,7 @@ public:
         QObject( parent )
     {}
 
-private Q_SLOTS:
+ private slots:
     void init_testcase();
 
     void defaultConstructor();

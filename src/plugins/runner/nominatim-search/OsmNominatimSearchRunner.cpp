@@ -5,25 +5,23 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "OsmNominatimSearchRunner.h"
 
 #include "MarbleDebug.h"
 #include "MarbleLocale.h"
+#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
-#include "GeoDataLatLonAltBox.h"
-#include "HttpDownloadManager.h"
-#include "StyleBuilder.h"
-#include "osm/OsmPlacemarkData.h"
+#include "TinyWebBrowser.h"
 
 #include <QString>
 #include <QVector>
 #include <QUrl>
 #include <QTimer>
+#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QDomDocument>
 
@@ -63,7 +61,7 @@ void OsmNominatimRunner::search( const QString &searchTerm, const GeoDataLatLonB
 
     }
     m_request.setUrl(QUrl(url));
-    m_request.setRawHeader("User-Agent", HttpDownloadManager::userAgent("Browser", "OsmNominatimRunner") );
+    m_request.setRawHeader("User-Agent", TinyWebBrowser::userAgent("Browser", "OsmNominatimRunner") );
 
     QEventLoop eventLoop;
 
@@ -90,17 +88,6 @@ void OsmNominatimRunner::startSearch()
             this, SLOT(returnNoResults()));
 }
 
-GeoDataExtendedData OsmNominatimRunner::extractChildren(const QDomNode &node)
-{
-    GeoDataExtendedData data;
-    QDomNodeList nodes = node.childNodes();
-    for (int i=0, n=nodes.length(); i<n; ++i) {
-        QDomNode child = nodes.item(i);
-        data.addValue( GeoDataData( child.nodeName(), child.toElement().text() ) );
-    }
-    return data;
-}
-
 
 void OsmNominatimRunner::handleResult( QNetworkReply* reply )
 {   
@@ -113,55 +100,45 @@ void OsmNominatimRunner::handleResult( QNetworkReply* reply )
 
     QVector<GeoDataPlacemark*> placemarks;
     QDomElement root = xml.documentElement();
-    QDomNodeList places = root.elementsByTagName(QStringLiteral("place"));
+    QDomNodeList places = root.elementsByTagName("place");
     for (int i=0; i<places.size(); ++i) {
         QDomNode place = places.at(i);
         QDomNamedNodeMap attributes = place.attributes();
-        QString lon = attributes.namedItem(QStringLiteral("lon")).nodeValue();
-        QString lat = attributes.namedItem(QStringLiteral("lat")).nodeValue();
-        QString desc = attributes.namedItem(QStringLiteral("display_name")).nodeValue();
-        QString key = attributes.namedItem(QStringLiteral("class")).nodeValue();
-        QString value = attributes.namedItem(QStringLiteral("type")).nodeValue();
-
-        OsmPlacemarkData data;
-
-        GeoDataExtendedData placemarkData = extractChildren(place);
-        placemarkData.addValue(GeoDataData(QStringLiteral("class"), key));
-        placemarkData.addValue(GeoDataData(QStringLiteral("type"), value));
+        QString lon = attributes.namedItem("lon").nodeValue();
+        QString lat = attributes.namedItem("lat").nodeValue();
+        QString desc = attributes.namedItem("display_name").nodeValue();
+        QString key = attributes.namedItem("class").nodeValue();
+        QString value = attributes.namedItem("type").nodeValue();
 
         QString name = place.firstChildElement(value).text();
-        QString road = place.firstChildElement(QStringLiteral("road")).text();
-        placemarkData.addValue(GeoDataData(QStringLiteral("name"), name));
+        QString road = place.firstChildElement("road").text();
 
-        QString city = place.firstChildElement(QStringLiteral("city")).text();
+        QString city = place.firstChildElement("city").text();
         if( city.isEmpty() ) {
-            city = place.firstChildElement(QStringLiteral("town")).text();
+            city = place.firstChildElement("town").text();
             if( city.isEmpty() ) {
-                city = place.firstChildElement(QStringLiteral("village")).text();
+                city = place.firstChildElement("village").text();
             } if( city.isEmpty() ) {
-                city = place.firstChildElement(QStringLiteral("hamlet")).text();
+                city = place.firstChildElement("hamlet").text();
             }
         }
 
-        QString administrative = place.firstChildElement(QStringLiteral("county")).text();
+        QString administrative = place.firstChildElement("county").text();
         if( administrative.isEmpty() ) {
-            administrative = place.firstChildElement(QStringLiteral("region")).text();
+            administrative = place.firstChildElement("region").text();
             if( administrative.isEmpty() ) {
-                administrative = place.firstChildElement(QStringLiteral("state")).text();
-                data.addTag(QStringLiteral("addr:state"), administrative);
-            } else {
-                data.addTag(QStringLiteral("district"), administrative);
+                administrative = place.firstChildElement("state").text();
             }
         }
 
-        QString country = place.firstChildElement(QStringLiteral("country")).text();
+        QString country = place.firstChildElement("country").text();
 
         QString description;
         for (int i=0; i<place.childNodes().size(); ++i) {
             QDomElement item = place.childNodes().at(i).toElement();
-            description += item.nodeName() + QLatin1Char(':') + item.text() + QLatin1Char('\n');
+            description += item.nodeName() + ':' + item.text() + '\n';
         }
-        description += QLatin1String("Category: ") + key + QLatin1Char('/') + value;
+        description += "Category: " + key + '/' + value;
 
         if (!lon.isEmpty() && !lat.isEmpty() && !desc.isEmpty()) {
             QString placemarkName;
@@ -172,42 +149,36 @@ void OsmNominatimRunner::handleResult( QNetworkReply* reply )
             }
             if (!road.isEmpty() && road != placemarkName ) {
                 if( !placemarkName.isEmpty() ) {
-                    placemarkName += QLatin1String(", ");
+                    placemarkName += ", ";
                 }
                 placemarkName += road;
-                data.addTag(QStringLiteral("addr:street"), road);
             }
-            if (!city.isEmpty() && !placemarkName.contains(QLatin1Char(',')) && city != placemarkName) {
+            if (!city.isEmpty() && !placemarkName.contains(",") && city != placemarkName) {
                 if( !placemarkName.isEmpty() ) {
-                    placemarkName += QLatin1String(", ");
+                    placemarkName += ", ";
                 }
                 placemarkName += city;
-                data.addTag(QStringLiteral("addr:city"), city);
             }
-            if (!administrative.isEmpty() && !placemarkName.contains(QLatin1Char(',')) && administrative != placemarkName) {
+            if (!administrative.isEmpty()&& !placemarkName.contains(",") && administrative != placemarkName) {
                 if( !placemarkName.isEmpty() ) {
-                    placemarkName += QLatin1String(", ");
+                    placemarkName += ", ";
                 }
                 placemarkName += administrative;
             }
-            if (!country.isEmpty() && !placemarkName.contains(QLatin1Char(',')) && country != placemarkName) {
+            if (!country.isEmpty()&& !placemarkName.contains(",") && country != placemarkName) {
                 if( !placemarkName.isEmpty() ) {
-                    placemarkName += QLatin1String(", ");
+                    placemarkName += ", ";
                 }
                 placemarkName += country;
-                data.addTag(QStringLiteral("addr:country"), country);
             }
             if (placemarkName.isEmpty()) {
                 placemarkName = desc;
             }
             placemark->setName( placemarkName );
             placemark->setDescription(description);
-            placemark->setAddress(desc);
             placemark->setCoordinate( lon.toDouble(), lat.toDouble(), 0, GeoDataCoordinates::Degree );
-            const auto category = StyleBuilder::determineVisualCategory(data);
+            GeoDataFeature::GeoDataVisualCategory category = GeoDataFeature::OsmVisualCategory( key + '=' + value );
             placemark->setVisualCategory( category );
-            placemark->setExtendedData(placemarkData);
-            placemark->setOsmData(data);
             placemarks << placemark;
         }
     }
@@ -217,4 +188,4 @@ void OsmNominatimRunner::handleResult( QNetworkReply* reply )
 
 } // namespace Marble
 
-#include "moc_OsmNominatimSearchRunner.cpp"
+#include "OsmNominatimSearchRunner.moc"

@@ -10,7 +10,6 @@
 
 #include "GeoWriter.h"
 
-#include "GeoDocument.h"
 #include "GeoTagWriter.h"
 #include "KmlElementDictionary.h"
 #include "DgmlElementDictionary.h"
@@ -39,7 +38,9 @@ bool GeoWriter::write(QIODevice* device, const GeoNode *feature)
     const GeoTagWriter* writer = GeoTagWriter::recognizes(name);
     if( writer ) {
         //FIXME is this too much of a hack?
-        writer->write(/* node = */ 0, *this); // node is never used in write()
+        //geodataobject is never used in this context
+        GeoNode node;
+        writer->write( &node, *this );
     } else {
         mDebug() << "There is no GeoWriter registered for: " << name;
         return false;
@@ -98,13 +99,6 @@ void GeoWriter::writeOptionalElement( const QString &key, const QString &value, 
 {
     if( value != defaultValue ) {
         writeElement( key, value );
-    }
-}
-
-void GeoWriter::writeOptionalAttribute( const QString &key, const QString &value, const QString &defaultValue )
-{
-    if( value != defaultValue ) {
-        writeAttribute( key, value );
     }
 }
 

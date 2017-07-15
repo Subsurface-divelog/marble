@@ -11,27 +11,27 @@
 #ifndef NODEMODEL_H
 #define NODEMODEL_H
 
-#include "GeoDataCoordinates.h"
 #include <QAbstractListModel>
 
 namespace Marble
 {
 
+class GeoDataCoordinates;
+
 class NodeModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit NodeModel( QObject *parent = 0 );
-    int rowCount( const QModelIndex &parent ) const override;
-    int columnCount( const QModelIndex &parent ) const override;
-    QVariant data( const QModelIndex &index, int role ) const override;
-    QVariant headerData( int section, Qt::Orientation orientation, int role ) const override;
+    NodeModel( QObject *parent = 0 );
+    int rowCount( const QModelIndex &parent ) const;
+    int columnCount( const QModelIndex &parent ) const;
+    QVariant data( const QModelIndex &index, int role ) const;
+    QVariant headerData( int section, Qt::Orientation orientation, int role ) const;
     void clear();
-    Qt::ItemFlags flags(const QModelIndex & index) const override ;
-public Q_SLOTS:
+public slots:
     int addNode( const GeoDataCoordinates &node );
 private:
-    QVector<GeoDataCoordinates> m_nodes;
+    QList<GeoDataCoordinates> m_nodes;
 };
 
 }

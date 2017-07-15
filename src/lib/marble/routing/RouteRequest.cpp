@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "RouteRequest.h"
@@ -18,7 +18,6 @@
 
 #include <QMap>
 #include <QPainter>
-#include <QDebug>
 
 namespace Marble
 {
@@ -212,25 +211,8 @@ void RouteRequest::insert( int index, const GeoDataCoordinates &coordinates, con
     GeoDataPlacemark placemark;
     placemark.setCoordinate( coordinates );
     placemark.setName( name );
-    insert(index, placemark);
-}
-
-void RouteRequest::insert(int index, const GeoDataPlacemark &placemark)
-{
     d->m_route.insert( index, placemark );
     emit positionAdded( index );
-}
-
-void RouteRequest::swap(int index1, int index2)
-{
-    if (index1 < 0 || index2 < 0 || index1 > d->m_route.size()-1 || index2 > d->m_route.size()-1) {
-        return;
-    }
-
-    qSwap(d->m_route[index1], d->m_route[index2]);
-
-    emit positionChanged(index1, d->m_route[index1].coordinate());
-    emit positionChanged(index2, d->m_route[index2].coordinate());
 }
 
 void RouteRequest::append( const GeoDataCoordinates &coordinates, const QString &name )
@@ -257,14 +239,9 @@ void RouteRequest::remove( int index )
 
 void RouteRequest::addVia( const GeoDataCoordinates &position )
 {
+    int index = d->viaIndex( position );
     GeoDataPlacemark placemark;
     placemark.setCoordinate( position );
-    addVia(placemark);
-}
-
-void RouteRequest::addVia(const GeoDataPlacemark &placemark)
-{
-    int index = d->viaIndex( placemark.coordinate() );
     d->m_route.insert( index, placemark );
     emit positionAdded( index );
 }
@@ -300,7 +277,7 @@ QString RouteRequest::name( int index ) const
 void RouteRequest::setVisited( int index, bool visited )
 {
     if ( index >= 0 && index < d->m_route.size() ) {
-        d->m_route[index].extendedData().addValue(GeoDataData(QStringLiteral("routingVisited"), visited));
+        d->m_route[index].extendedData().addValue( GeoDataData( "routingVisited", visited ) );
         QMap<PixmapElement, QPixmap>::iterator iter = d->m_pixmapCache.begin();
         while ( iter != d->m_pixmapCache.end() ) {
              if ( iter.key().index == index ) {
@@ -317,8 +294,8 @@ bool RouteRequest::visited( int index ) const
 {
     bool visited = false;
     if ( index >= 0 && index < d->m_route.size() ) {
-        if (d->m_route[index].extendedData().contains(QStringLiteral("routingVisited"))) {
-            visited = d->m_route[index].extendedData().value(QStringLiteral("routingVisited")).value().toBool();
+        if ( d->m_route[index].extendedData().contains( "routingVisited" ) ) {
+            visited = d->m_route[index].extendedData().value( "routingVisited" ).value().toBool();
         }
     }
     return visited;
@@ -326,10 +303,12 @@ bool RouteRequest::visited( int index ) const
 
 void RouteRequest::reverse()
 {
-    std::reverse(d->m_route.begin(), d->m_route.end());
     int const total = d->m_route.size();
-    for (int i = 0; i < total; ++i) {
+    int const upper = total / 2;
+    for( int i=0; i<upper; ++i ) {
+        qSwap( d->m_route[i], d->m_route[total-i-1] );
         setVisited( i, false );
+        setVisited( total-i-1, false );
     }
 }
 
@@ -356,5 +335,4 @@ const GeoDataPlacemark &RouteRequest::operator [](int index) const
 
 } // namespace Marble
 
-
-#include "moc_RouteRequest.cpp"
+#include "RouteRequest.moc"

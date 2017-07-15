@@ -1,14 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-     This xml file is free software licensed under the GNU LGPL. You can
-     find a copy of this license in LICENSE.txt in the top directory of
-     the source code.
--->
 <dgml xmlns="http://edu.kde.org/marble/dgml/2.0">
     <document>
         <head>
-            <!-- the license here applies to the actual map content, not this dgml file. See the license header above for the dgml file license -->
-            <license short="Public Domain">Source: Made with Natural Earth. Free vector and raster map data @ naturalearthdata.com., License: Public Domain</license>
+            <license short="CIA / Public Domain" attribution="always">Source: Micro World Data Bank in Polygons („MWDB-POLY / MWDBII“), CIA; Global Associates, Ltd.; Fred Pospeschil und Antonio Rivera, License: Public Domain</license>
             <name>Plain Map</name>
             <target>earth</target>
             <theme>plain</theme>
@@ -44,7 +38,7 @@
                     <pen color="transparent" style="nopen"/>
                     <brush color="#f2efe9" />
                 </geodata>
-                <geodata name="lake" property="waterbodies">
+                <geodata name="lake" property="waterbodies" colorize="sea">
                     <sourcefile> naturalearth/ne_50m_lakes.pn2 </sourcefile>
                     <brush color="#99b3cc" />
                     <pen color="transparent" style="nopen"/>

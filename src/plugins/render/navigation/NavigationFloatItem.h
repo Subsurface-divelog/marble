@@ -5,13 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2008 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2008 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2013 Mohammed Nafees  <nafees.technocool@gmail.com>
 //
 
 #ifndef NAVIGATION_FLOAT_ITEM_H
 #define NAVIGATION_FLOAT_ITEM_H
 
+#include <QObject>
 #include <QMenu>
 
 #include "MarbleGlobal.h"
@@ -36,7 +37,7 @@ class WidgetGraphicsItem;
 class NavigationFloatItem: public AbstractFloatItem
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.NavigationFloatItem")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.NavigationFloatItem" )
 
     Q_INTERFACES( Marble::RenderPluginInterface )
 
@@ -44,46 +45,46 @@ MARBLE_PLUGIN( NavigationFloatItem )
 
  public:
     explicit NavigationFloatItem( const MarbleModel *marbleModel = 0 );
-    ~NavigationFloatItem() override;
+    ~NavigationFloatItem();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    void setProjection( const ViewportParams *viewport ) override;
+    void setProjection( const ViewportParams *viewport );
 
     static QPixmap pixmap( const QString &Id );
 
-    QHash<QString,QVariant> settings() const override;
+    QHash<QString,QVariant> settings() const;
 
-    void setSettings( const QHash<QString, QVariant> &settings ) override;
+    void setSettings( const QHash<QString, QVariant> &settings );
 
  protected:
-    bool eventFilter( QObject *object, QEvent *e ) override;
-    void paintContent( QPainter *painter ) override;
-    void contextMenuEvent( QWidget *w, QContextMenuEvent *e ) override;
+    bool eventFilter( QObject *object, QEvent *e );
+    void paintContent( QPainter *painter );
+    void contextMenuEvent( QWidget *w, QContextMenuEvent *e );
 
  private Q_SLOTS:
     /** Map theme was changed, adjust controls */
-    void selectTheme( const QString& theme );
+    void selectTheme( QString theme );
 
     /** Enable/disable zoom in/out buttons */
     void updateButtons( int zoomValue );

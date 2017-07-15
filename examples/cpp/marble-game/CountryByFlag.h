@@ -13,17 +13,24 @@
 
 // Qt
 #include <QObject>
+#include <QList>
+
+// Marble
+#include <marble_export.h>
+
+class QString;
+class QImage;
 
 namespace Marble
 {
 class CountryByFlagPrivate;
 class MarbleWidget;
 
-class CountryByFlag : public QObject
+class MARBLE_EXPORT CountryByFlag : public QObject
 {
     Q_OBJECT;
 public:
-    explicit CountryByFlag( MarbleWidget *marbleWidget );
+    CountryByFlag( MarbleWidget *marbleWidget );
     ~CountryByFlag();
 
 public Q_SLOTS:
@@ -43,3 +50,4 @@ private:
 }   // namespace Marble
 
 #endif   // MARBLE_COUNTRY_BY_FLAG
+    

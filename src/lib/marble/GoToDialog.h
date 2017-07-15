@@ -5,13 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_GOTODIALOG_H
 #define MARBLE_GOTODIALOG_H
 
 #include "marble_export.h"
+#include "GeoDataCoordinates.h"
 
 #include <QDialog>
 
@@ -21,7 +22,6 @@ namespace Marble
 {
 
 class GeoDataPlacemark;
-class GeoDataCoordinates;
 class GoToDialogPrivate;
 class MarbleModel;
 
@@ -37,7 +37,7 @@ class MARBLE_EXPORT GoToDialog: public QDialog
 public:
     explicit GoToDialog( MarbleModel* marbleModel, QWidget * parent = 0, Qt::WindowFlags f = 0 );
 
-    ~GoToDialog() override;
+    ~GoToDialog();
 
     /** Toggle whether routing items (source, destination and via points) are visible */
     void setShowRoutingItems( bool show );
@@ -55,7 +55,7 @@ public:
 
     Q_PRIVATE_SLOT( d, void startSearch() )
 
-    Q_PRIVATE_SLOT( d, void updateSearchResult( const QVector<GeoDataPlacemark*>& placemarks ) )
+    Q_PRIVATE_SLOT( d, void updateSearchResult( QVector<GeoDataPlacemark*> placemarks ) )
 
     Q_PRIVATE_SLOT( d, void updateSearchMode() )
 

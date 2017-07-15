@@ -10,10 +10,7 @@
 
 #include "GeoDataListStyle.h"
 #include "GeoDataTypes.h"
-#include "GeoDataItemIcon.h"
 #include "MarbleDirs.h"
-
-#include <QDataStream>
 
 namespace Marble
 {
@@ -95,7 +92,7 @@ GeoDataListStyle::ListItemType GeoDataListStyle::listItemType() const
     return d->m_listItemType;
 }
 
-void GeoDataListStyle::setListItemType(ListItemType type)
+void GeoDataListStyle::setListItemType( const ListItemType &type )
 {
     d->m_listItemType = type;
 }

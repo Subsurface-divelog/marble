@@ -16,7 +16,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QRegion>
+#include <Qt>
 
 #include "RenderPluginInterface.h"
 #include "marble_export.h"
@@ -65,7 +65,7 @@ class MARBLE_EXPORT RenderPlugin : public QObject, public RenderPluginInterface
     };
 
     explicit RenderPlugin( const MarbleModel *marbleModel );
-    ~RenderPlugin() override;
+    virtual ~RenderPlugin();
 
     /**
      * @brief String that should be displayed in GUI
@@ -198,9 +198,9 @@ class MARBLE_EXPORT RenderPlugin : public QObject, public RenderPluginInterface
      */
     virtual RenderType renderType() const;
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
-    QString runtimeTrace() const override;
+    virtual QString runtimeTrace() const;
 
  public Q_SLOTS:
     /**
@@ -305,7 +305,7 @@ class MARBLE_EXPORT RenderPlugin : public QObject, public RenderPluginInterface
     /**
      * This signal is emitted if the settings of the RenderPlugin changed.
      */
-    void settingsChanged( const QString& nameId );
+    void settingsChanged( QString nameId );
 
     /**
      * This signal is emitted if the actions that the plugin supports change in
@@ -318,10 +318,10 @@ class MARBLE_EXPORT RenderPlugin : public QObject, public RenderPluginInterface
      * @p dirtyRegion which is the region the view will change in. If dirtyRegion.isEmpty() returns
      * true, the whole viewport has to be repainted.
      */
-    void repaintNeeded( const QRegion& dirtyRegion = QRegion() );
+    void repaintNeeded( QRegion dirtyRegion = QRegion() );
 
  protected:
-    bool eventFilter( QObject *, QEvent * ) override;
+    bool eventFilter( QObject *, QEvent * );
 
  private:
     friend class RenderPluginModel;
@@ -338,7 +338,7 @@ class MARBLE_EXPORT RenderPlugin : public QObject, public RenderPluginInterface
 };
 
 #define MARBLE_PLUGIN(T) public:\
-    RenderPlugin* newInstance( const MarbleModel *marbleModel ) const override { return new T( marbleModel ); }
+    virtual RenderPlugin* newInstance( const MarbleModel *marbleModel ) const { return new T( marbleModel ); }
 }
 
 #endif

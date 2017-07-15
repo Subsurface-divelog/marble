@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "HostipPlugin.h"
@@ -18,7 +18,7 @@ namespace Marble
 HostipPlugin::HostipPlugin( QObject *parent ) :
     SearchRunnerPlugin( parent )
 {
-    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
+    setSupportedCelestialBodies( QStringList() << "earth" );
     setCanWorkOffline( false );
 }
 
@@ -34,12 +34,12 @@ QString HostipPlugin::guiString() const
 
 QString HostipPlugin::nameId() const
 {
-    return QStringLiteral("hostip");
+    return "hostip";
 }
 
 QString HostipPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString HostipPlugin::description() const
@@ -49,13 +49,13 @@ QString HostipPlugin::description() const
 
 QString HostipPlugin::copyrightYears() const
 {
-    return QStringLiteral("2010");
+    return "2010";
 }
 
-QVector<PluginAuthor> HostipPlugin::pluginAuthors() const
+QList<PluginAuthor> HostipPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
 }
 
 SearchRunner* HostipPlugin::newRunner() const
@@ -72,4 +72,6 @@ bool HostipPlugin::canWork() const
 
 }
 
-#include "moc_HostipPlugin.cpp"
+Q_EXPORT_PLUGIN2( HostipPlugin, Marble::HostipPlugin )
+
+#include "HostipPlugin.moc"

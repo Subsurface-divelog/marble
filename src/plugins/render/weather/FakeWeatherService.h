@@ -22,12 +22,12 @@ class FakeWeatherService : public AbstractWeatherService
  
  public:
     explicit FakeWeatherService( const MarbleModel *model, QObject *parent );
-    ~FakeWeatherService() override;
+    ~FakeWeatherService();
     
  public Q_SLOTS:
     void getAdditionalItems( const GeoDataLatLonAltBox& box,
-                             qint32 number = 10 ) override;
-    void getItem( const QString &id ) override;
+                             qint32 number = 10 );
+    virtual void getItem( const QString &id );
 };
 
 } // namespace Marble

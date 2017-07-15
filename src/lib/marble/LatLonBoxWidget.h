@@ -24,7 +24,7 @@ class MARBLE_EXPORT LatLonBoxWidget: public QWidget
 
  public:
     explicit LatLonBoxWidget( QWidget * const parent = 0, Qt::WindowFlags const f = 0 );
-    ~LatLonBoxWidget() override;
+    ~LatLonBoxWidget();
     GeoDataLatLonBox latLonBox() const;
     void setLatLonBox( GeoDataLatLonBox const & );
 

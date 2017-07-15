@@ -104,6 +104,7 @@
 %Include MapWizard.sip
 %Include MarbleAboutDialog.sip
 %Include MarbleColors.sip
+%Include MarbleControlBox.sip
 %Include MarbleDirs.sip
 %Include MarbleGlobal.sip
 %Include MarbleGraphicsGridLayout.sip
@@ -114,6 +115,7 @@
 %Include MarbleRunnerManager.sip
 %Include MarbleWebView.sip
 %Include MarbleWidget.sip
+%Include NavigationWidget.sip
 %Include ParseRunnerPlugin.sip
 %Include ParsingRunner.sip
 %Include Planet.sip

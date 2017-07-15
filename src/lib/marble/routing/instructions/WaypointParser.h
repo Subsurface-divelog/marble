@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_WAYPOINTPARSER_H
@@ -14,11 +14,10 @@
 #include "RoutingWaypoint.h"
 #include "marble_export.h"
 
+#include <QTextStream>
 #include <QMap>
 #include <QVariant>
 #include <QStringList>
-
-class QTextStream;
 
 namespace Marble
 {

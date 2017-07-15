@@ -9,6 +9,7 @@
 
 #include "KmlParser.h"
 #include "KmlElementDictionary.h"
+#include "GeoDataDocument.h"
 
 namespace Marble {
 
@@ -35,8 +36,7 @@ bool KmlParser::isValidElement(const QString& tagName) const
             namespaceUri() == kml::kmlTag_nameSpace21   ||
             namespaceUri() == kml::kmlTag_nameSpace22   ||
             namespaceUri() == kml::kmlTag_nameSpaceGx22 ||
-            namespaceUri() == kml::kmlTag_nameSpaceOgc22||
-            namespaceUri() == kml::kmlTag_nameSpaceMx );
+            namespaceUri() == kml::kmlTag_nameSpaceOgc22 );
 }
 
 GeoDocument* KmlParser::createDocument() const

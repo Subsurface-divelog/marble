@@ -15,6 +15,7 @@
 #include "MarbleDebug.h"
 
 #include <QFile>
+#include <QFileInfo>
 
 namespace Marble
 {
@@ -28,14 +29,14 @@ JsonRunner::~JsonRunner()
 {
 }
 
-GeoDataDocument *JsonRunner::parseFile(const QString &fileName, DocumentRole role, QString &error)
+void JsonRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
     // Check file exists
     QFile file( fileName );
     if ( !file.exists() ) {
-        error = QStringLiteral("File %1 does not exist").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+        qWarning() << "File" << fileName << "does not exist!";
+        emit parsingFinished( 0 );
+        return;
     }
 
     // Open file in right mode
@@ -46,9 +47,8 @@ GeoDataDocument *JsonRunner::parseFile(const QString &fileName, DocumentRole rol
 
     // Start parsing
     if ( !parser.read( &file ) ) {
-        error = QStringLiteral("Could not parse GeoJSON from %1").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+        emit parsingFinished( 0, "Could not parse GeoJSON" );
+        return;
     }
 
     GeoDataDocument* document = parser.releaseDocument();
@@ -56,9 +56,9 @@ GeoDataDocument *JsonRunner::parseFile(const QString &fileName, DocumentRole rol
     document->setDocumentRole( role );
     document->setFileName( fileName );
 
-    return document;
+    emit parsingFinished( document );
 }
 
 }
 
-#include "moc_JsonRunner.cpp"
+#include "JsonRunner.moc"

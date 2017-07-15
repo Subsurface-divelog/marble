@@ -19,6 +19,8 @@
 #include "MarbleGraphicsGridLayout.h"
 #include "ViewportParams.h"
 
+#include <QLCDNumber>
+
 namespace Marble
 {
 
@@ -48,7 +50,7 @@ Speedometer::~Speedometer()
 
 QStringList Speedometer::backendTypes() const
 {
-    return QStringList(QStringLiteral("speedometer"));
+    return QStringList( "speedometer" );
 }
 
 QString Speedometer::name() const
@@ -63,12 +65,12 @@ QString Speedometer::guiString() const
 
 QString Speedometer::nameId() const
 {
-    return QStringLiteral("speedometer");
+    return QString( "speedometer" );
 }
 
 QString Speedometer::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString Speedometer::description() const
@@ -78,18 +80,18 @@ QString Speedometer::description() const
 
 QString Speedometer::copyrightYears() const
 {
-    return QStringLiteral("2011");
+    return "2011";
 }
 
-QVector<PluginAuthor> Speedometer::pluginAuthors() const
+QList<PluginAuthor> Speedometer::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" );
 }
 
 QIcon Speedometer::icon () const
 {
-    return QIcon(QStringLiteral(":/icons/speedometer.png"));
+    return QIcon(":/icons/speedometer.png");
 }
 
 void Speedometer::initialize ()
@@ -116,7 +118,7 @@ bool Speedometer::isInitialized () const
     return m_widgetItem;
 }
 
-void Speedometer::updateLocation( const GeoDataCoordinates& coordinates, qreal speed )
+void Speedometer::updateLocation( GeoDataCoordinates coordinates, qreal speed )
 {
     Q_UNUSED( coordinates );
 
@@ -151,4 +153,6 @@ void Speedometer::updateLocation( const GeoDataCoordinates& coordinates, qreal s
 
 }
 
-#include "moc_Speedometer.cpp"
+Q_EXPORT_PLUGIN2( Speedometer, Marble::Speedometer )
+
+#include "Speedometer.moc"

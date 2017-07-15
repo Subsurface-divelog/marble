@@ -39,9 +39,6 @@
 #include "GeoDataPlacemark.h"
 #include "GeoDataStyle.h"
 #include "GeoDataPolyStyle.h"
-#include "GeoDataLinearRing.h"
-#include "GeoDataPolygon.h"
-#include "GeoDataMultiGeometry.h"
 #include "MarbleDebug.h"
 
 #include <QFile>
@@ -64,12 +61,18 @@ Pn2Runner::~Pn2Runner()
 
 bool Pn2Runner::errorCheckLat( qint16 lat ) 
 {
-    return !(lat >= -10800 && lat <= +10800);
+    if ( lat >= -10800 && lat <= +10800 )
+        return false;
+    else
+        return true;
 }
 
 bool Pn2Runner::errorCheckLon( qint16 lon )
 {
-    return !(lon >= -21600 && lon <= +21600);
+    if ( lon >= -21600 && lon <= +21600 )
+        return false;
+    else
+        return true;
 }
 
 bool Pn2Runner::importPolygon( QDataStream &stream, GeoDataLineString* linestring, quint32 nrAbsoluteNodes ) 
@@ -108,25 +111,22 @@ bool Pn2Runner::importPolygon( QDataStream &stream, GeoDataLineString* linestrin
         }
     }
 
-    *linestring = linestring->optimized();
-
     return error;
 }
 
-GeoDataDocument *Pn2Runner::parseFile(const QString &fileName, DocumentRole role, QString &error)
+void Pn2Runner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
     QFileInfo fileinfo( fileName );
-    if (fileinfo.suffix().compare(QLatin1String("pn2"), Qt::CaseInsensitive) != 0) {
-        error = QStringLiteral("File %1 does not have a pn2 suffix").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+    if( fileinfo.suffix().compare( "pn2", Qt::CaseInsensitive ) != 0 ) {
+        emit parsingFinished( 0 );
+        return;
     }
 
     QFile  file( fileName );
     if ( !file.exists() ) {
-        error = QStringLiteral("File %1 does not exist").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+        qWarning( "File does not exist!" );
+        emit parsingFinished( 0 );
+        return;
     }
 
     file.open( QIODevice::ReadOnly );
@@ -135,18 +135,16 @@ GeoDataDocument *Pn2Runner::parseFile(const QString &fileName, DocumentRole role
     m_stream >> m_fileHeaderVersion >> m_fileHeaderPolygons >> m_isMapColorField;
 
     switch( m_fileHeaderVersion ) {
-        case 1: return parseForVersion1( fileName, role );
+        case 1: parseForVersion1( fileName, role );
                 break;
-        case 2: return parseForVersion2( fileName, role );
+        case 2: parseForVersion2( fileName, role );
                 break;
         default: qDebug() << "File can't be parsed. We don't have parser for file header version:" << m_fileHeaderVersion;
                 break;
     }
-
-    return nullptr;
 }
 
-GeoDataDocument* Pn2Runner::parseForVersion1(const QString& fileName, DocumentRole role)
+void Pn2Runner::parseForVersion1(const QString& fileName, DocumentRole role)
 {
     GeoDataDocument *document = new GeoDataDocument();
     document->setDocumentRole( role );
@@ -156,7 +154,7 @@ GeoDataDocument* Pn2Runner::parseForVersion1(const QString& fileName, DocumentRo
     quint32 ID, nrAbsoluteNodes;
     quint8 flag, prevFlag = -1;
 
-    GeoDataStyle::Ptr style;
+    GeoDataStyle *style =0;
     GeoDataPolygon *polygon = new GeoDataPolygon;
 
     for ( quint32 currentPoly = 1; ( currentPoly <= m_fileHeaderPolygons ) && ( !error ) && ( !m_stream.atEnd() ); currentPoly++ ) {
@@ -188,7 +186,7 @@ GeoDataDocument* Pn2Runner::parseForVersion1(const QString& fileName, DocumentRo
             if ( flag == OUTERBOUNDARY && m_isMapColorField ) {
                 quint8 colorIndex;
                 m_stream >> colorIndex;
-                style = GeoDataStyle::Ptr(new GeoDataStyle);
+                style = new GeoDataStyle;
                 GeoDataPolyStyle polyStyle;
                 polyStyle.setColorIndex( colorIndex );
                 style->setPolyStyle( polyStyle );
@@ -234,13 +232,15 @@ GeoDataDocument* Pn2Runner::parseForVersion1(const QString& fileName, DocumentRo
     if ( error ) {
         delete document;
         document = 0;
-        return nullptr;
+        emit parsingFinished( 0, "Errors occurred while parsing the .pn2 file!" );
+        return;
     }
     document->setFileName( fileName );
-    return document;
+
+    emit parsingFinished( document );
 }
 
-GeoDataDocument* Pn2Runner::parseForVersion2( const QString &fileName, DocumentRole role )
+void Pn2Runner::parseForVersion2( const QString &fileName, DocumentRole role )
 {
     GeoDataDocument *document = new GeoDataDocument();
     document->setDocumentRole( role );
@@ -253,7 +253,7 @@ GeoDataDocument* Pn2Runner::parseForVersion2( const QString &fileName, DocumentR
     quint8 flag, prevFlag = -1;
 
     GeoDataPolygon *polygon = new GeoDataPolygon;
-    GeoDataStyle::Ptr style;
+    GeoDataStyle *style =0;
     GeoDataPlacemark *placemark =0; // new GeoDataPlacemark;
 
     quint32 currentPoly;
@@ -284,7 +284,7 @@ GeoDataDocument* Pn2Runner::parseForVersion2( const QString &fileName, DocumentR
             if( m_isMapColorField ) {
                 quint8 colorIndex;
                 m_stream >> colorIndex;
-                style = GeoDataStyle::Ptr(new GeoDataStyle);
+                style = new GeoDataStyle;
                 GeoDataPolyStyle polyStyle;
                 polyStyle.setColorIndex( colorIndex );
                 polyStyle.setFill( true );
@@ -396,13 +396,15 @@ GeoDataDocument* Pn2Runner::parseForVersion2( const QString &fileName, DocumentR
     if ( error ) {
         delete document;
         document = 0;
-        return nullptr;
+        emit parsingFinished( 0, "Errors occurred while parsing the .pn2 file!" );
+        return;
     }
     document->setFileName( fileName );
-    return document;
+
+    emit parsingFinished( document );
 }
 
 }
 
 
-#include "moc_Pn2Runner.cpp"
+#include "Pn2Runner.moc"

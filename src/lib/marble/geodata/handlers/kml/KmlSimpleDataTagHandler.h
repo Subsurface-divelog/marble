@@ -12,6 +12,7 @@
 #define MARBLE_KMLSIMPLEDATATAGHANDLER_H
 
 #include "GeoTagHandler.h"
+#include "GeoDataSimpleData.h"
 
 namespace Marble
 {
@@ -21,7 +22,7 @@ namespace kml
 class KmlSimpleDataTagHandler : public GeoTagHandler
 {
 public:
-    GeoNode* parse( GeoParser& ) const override;
+    virtual GeoNode* parse( GeoParser& ) const;
 };
 
 }

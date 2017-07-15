@@ -15,8 +15,6 @@
 #include "FrameGraphicsItem.h"
 #include "marble_export.h"
 
-#include <QSize>
-
 class QImage;
 class QIcon;
 
@@ -34,9 +32,9 @@ class MARBLE_EXPORT LabelGraphicsItem : public FrameGraphicsItem
 {
  public:
     explicit LabelGraphicsItem( MarbleGraphicsItem *parent = 0 );
-    ~LabelGraphicsItem() override;
+    ~LabelGraphicsItem();
 
-    void setContentSize( const QSizeF &contentSize ) override;
+    void setContentSize( const QSizeF &contentSize );
 
     QString text() const;
     void setText( const QString& text );
@@ -53,11 +51,12 @@ class MARBLE_EXPORT LabelGraphicsItem : public FrameGraphicsItem
     void clear();
 
  protected:
-    void paintContent( QPainter *painter ) override;
+    void paintContent( QPainter *painter );
 
  private:
     Q_DISABLE_COPY( LabelGraphicsItem )
-    Q_DECLARE_PRIVATE(LabelGraphicsItem)
+
+    LabelGraphicsItemPrivate * const d;
 };
 
 } // namespace Marble

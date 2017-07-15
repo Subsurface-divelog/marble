@@ -22,14 +22,13 @@
 #ifndef MARBLE_GEOSCENEMAP_H
 #define MARBLE_GEOSCENEMAP_H
 
+#include <QColor>
+#include <QString>
 #include <QVector>
 
 #include <geodata_export.h>
 
 #include "GeoDocument.h"
-
-class QColor;
-class QString;
 
 namespace Marble
 {
@@ -46,8 +45,8 @@ class GEODATA_EXPORT GeoSceneMap : public GeoNode
 {
  public:
     GeoSceneMap();
-    ~GeoSceneMap() override;
-    const char* nodeType() const override;
+    ~GeoSceneMap();
+    virtual const char* nodeType() const;
 
     QColor backgroundColor() const;
     void setBackgroundColor( const QColor& );

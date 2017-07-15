@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "ExternalEditorDialog.h"
@@ -35,12 +35,11 @@ public:
 ExternalEditorDialogPrivate::ExternalEditorDialogPrivate() :
         m_defaultEditor( potlatch )
 {
-    QString path = QProcessEnvironment::systemEnvironment().value(QStringLiteral("PATH"), QStringLiteral("/usr/local/bin:/usr/bin:/bin"));
-    auto const applications = QStringList() << merkaartor << josm;
-    for( const QString &application: applications ) {
+    QString path = QProcessEnvironment::systemEnvironment().value( "PATH", "/usr/local/bin:/usr/bin:/bin" );
+    foreach( const QString &application, QStringList() << merkaartor << josm ) {
         m_installedEditors[application] = false;
         /** @todo: what's the qt way to get the path entry separator? Will be a semicolon on Windows */
-        for( const QString &dir: path.split( QLatin1Char( ':' ) ) ) {
+        foreach( const QString &dir, path.split( QLatin1Char( ':' ) ) ) {
             QFileInfo executable( QDir( dir ), application );
             if ( executable.exists() ) {
                 m_installedEditors[application] = true;
@@ -91,26 +90,26 @@ void ExternalEditorDialog::updateDefaultEditor( int index )
         d->m_defaultEditor = merkaartor;
         description = tr( "Merkaartor is an OpenStreetMap editor that is powerful and easy to use. It integrates well into the used workspace." );
         if ( !d->m_installedEditors[d->m_defaultEditor] ) {
-            description += QLatin1String(" <b>") + tr("Please ask your system administrator to install %1 on your system.").arg(QStringLiteral("Merkaartor")) + QLatin1String("</b>");
+            description += " <b>" + tr( "Please ask your system administrator to install %1 on your system." ).arg( "Merkaartor") + "</b>";
         }
         break;
     case 2:
         d->m_defaultEditor = josm;
         description = tr( "JOSM is a powerful OpenStreetMap editor which is more complex to use than other editors. It is built on the Java platform and therefor runs on all systems for which Java is available but does not integrate well into the workspace. A Java SE-compatible runtime is required." );
         if ( !d->m_installedEditors[d->m_defaultEditor] ) {
-            description += QLatin1String(" <b>") + tr("Please ask your system administrator to install %1 on your system.").arg(QStringLiteral("JOSM")) + QLatin1String("</b>");
+            description += " <b>" + tr( "Please ask your system administrator to install %1 on your system." ).arg( "JOSM" ) + "</b>";
         }
         break;
     default:
         d->m_defaultEditor = potlatch;
-        description = tr( "iD is a very easy to use OpenStreetMap editor, though lacks the power of Merkaartor and JOSM. It runs on all platforms with a web browser." );
+        description = tr( "Potlatch is a very easy to use OpenStreetMap editor, though lacks the power of Merkaartor and JOSM. It runs on all platforms for which web browsers with Flash support are available. Performance of Potlatch is depending on the quality of the installed Flash version." );
         break;
     }
 
-    screenshotLabel->setPixmap(QPixmap(QLatin1String(":/data/editors/") + d->m_defaultEditor + QLatin1String(".png")));
+    screenshotLabel->setPixmap( QPixmap( ":/data/editors/" + d->m_defaultEditor + ".png" ) );
     descriptionLabel->setText( description );
 }
 
 }
 
-#include "moc_ExternalEditorDialog.cpp"
+#include "ExternalEditorDialog.moc"

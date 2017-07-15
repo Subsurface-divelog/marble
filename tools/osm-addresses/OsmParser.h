@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_OSMPARSER_H
@@ -16,16 +16,18 @@
 #include "OsmPlacemark.h"
 #include "OsmRegionTree.h"
 
+#include "GeoDataLineString.h"
+#include "GeoDataPolygon.h"
+
 #include <QObject>
 #include <QFileInfo>
+#include <QMap>
 #include <QHash>
 #include <QList>
 #include <QPair>
 
 namespace Marble
 {
-
-class GeoDataLineString;
 
 enum ElementType {
     NoType,
@@ -92,7 +94,7 @@ public:
     }
 
     bool compatible( const Way &aWay ) const {
-        for( const Way & way: ways ) {
+        foreach( const Way & way, ways ) {
             if ( way.nodes.first() == aWay.nodes.first() ) return true;
             if ( way.nodes.last()  == aWay.nodes.first() ) return true;
             if ( way.nodes.first() == aWay.nodes.last() ) return true;
@@ -103,7 +105,7 @@ public:
     }
 
     bool compatible( const WayMerger &other ) const {
-        for( const Way & way: ways ) {
+        foreach( const Way & way, ways ) {
             if ( other.compatible( way ) ) {
                 return true;
             }
@@ -180,7 +182,7 @@ private:
     QList< QList<Way> > merge( const QList<Way> &ways ) const;
 
     template<class T, class S>
-    bool contains( const T &outer, const S &inner ) const {
+    bool contains( const T &outer, const T &inner ) const {
         for ( int i = 0; i < inner.size(); ++i ) {
             if ( !outer.contains( inner[i] ) ) {
                 bool onBorder = false;

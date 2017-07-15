@@ -13,28 +13,24 @@
 #ifndef MARBLEABSTRACTPRESENTER_H
 #define MARBLEABSTRACTPRESENTER_H
 
+#include <QSharedPointer>
 #include <QList>
-
+#include "GeoDataLookAt.h"
 #include "GeoDataLatLonBox.h"
+#include "MarbleMap.h"
+#include "MarbleModel.h"
 #include "MarblePhysics.h"
-#include <marble_export.h>
 
 namespace Marble
 {
-
-class GeoDataPlacemark;
-class GeoDataLookAt;
-class MarbleMap;
-class MarbleModel;
-class ViewportParams;
-
-    class MARBLE_EXPORT MarbleAbstractPresenter : public QObject
+    class MarbleAbstractPresenter : public QObject
     {
     Q_OBJECT
 
-    Q_SIGNALS:
+    signals:
         void zoomChanged(int zoom);
         void distanceChanged(const QString& distanceString);
+        void updateRequired();
 
         /** This signal is emitted when a new rectangle region is selected over the map
         *  The list of double values includes coordinates in degrees using the following:
@@ -43,8 +39,9 @@ class ViewportParams;
         void regionSelected(const QList<double>&);
 
     public:
-        explicit MarbleAbstractPresenter(MarbleMap *map, QObject *parent = 0);
-        ~MarbleAbstractPresenter() override;
+        MarbleAbstractPresenter();
+        void initialize(MarbleModel *model, MarbleMap *map);
+        virtual ~MarbleAbstractPresenter();
 
         qreal moveStep() const;
         int radius() const;
@@ -113,7 +110,7 @@ class ViewportParams;
         ViewportParams *viewport();
         const ViewportParams* viewport() const;
 
-    public Q_SLOTS:
+    public slots:
         void rotateBy(const qreal deltaLon, const qreal deltaLat, FlyToMode mode = Instant);
         void flyTo(const GeoDataLookAt &newLookAt, FlyToMode mode = Automatic);
         void goHome(FlyToMode mode = Automatic);
@@ -123,7 +120,6 @@ class ViewportParams;
         void zoomViewBy(int zoomStep, FlyToMode mode = Instant);
         void zoomIn(FlyToMode mode = Automatic);
         void zoomOut(FlyToMode mode = Automatic);
-        void zoomAtBy(const QPoint &pos, int zoomStep);
 
         void setViewContext(ViewContext viewContext);
 
@@ -131,7 +127,6 @@ class ViewportParams;
         void centerOn(const GeoDataCoordinates &point, bool animated = false);
         void centerOn(const GeoDataLatLonBox& box, bool animated = false);
         void centerOn(const GeoDataPlacemark& placemark, bool animated = false);
-        void headingOn(qreal heading);
         void setCenterLatitude(qreal lat, FlyToMode mode);
         void setCenterLongitude(qreal lon, FlyToMode mode);
 
@@ -141,7 +136,9 @@ class ViewportParams;
         void setSelection(const QRect& region);
 
     private:
-        MarbleMap *const m_map;
+        //MarbleAbstractPresenter owns these
+        MarbleModel m_model;
+        MarbleMap m_map;
         MarblePhysics m_physics;
 
         bool m_animationsEnabled;

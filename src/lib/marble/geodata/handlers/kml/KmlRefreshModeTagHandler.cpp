@@ -12,18 +12,17 @@ KML_DEFINE_TAG_HANDLER( refreshMode )
 
 GeoNode* KmlrefreshModeTagHandler::parse( GeoParser& parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_refreshMode)));
-
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_refreshMode ) );
     GeoStackItem parentItem = parser.parentElement();
     QString content = parser.readElementText().trimmed();
     GeoDataLink::RefreshMode mode;
 
     if ( parentItem.is<GeoDataLink>()) {
-        if (content == QLatin1String("onChange")) {
+        if( content == QString( "onChange" ) ) {
             mode = GeoDataLink::OnChange;
-        } else if (content == QLatin1String("onExpire")) {
+        } else if( content == QString( "onExpire" ) ) {
             mode = GeoDataLink::OnExpire;
-        } else if (content == QLatin1String("onInterval")) {
+        } else if( content == QString( "onInterval" ) ) {
             mode = GeoDataLink::OnInterval;
         } else {
             mode = GeoDataLink::OnChange;

@@ -20,6 +20,7 @@
 #include <QVector>
 #include <QApplication>
 #include <QImage>
+#include <QImageReader>
 #include <QPainter>
 
 #include "MarbleGlobal.h"
@@ -43,7 +44,7 @@ class TileCreatorPrivate
          m_verify( false ),
          m_source( source )
      {
-        if (m_dem == QLatin1String("true")) {
+        if ( m_dem == "true" ) {
             m_tileQuality = 70;
         } else {
             m_tileQuality = 85;
@@ -70,13 +71,13 @@ class TileCreatorPrivate
 class TileCreatorSourceImage : public TileCreatorSource
 {
 public:
-    explicit TileCreatorSourceImage( const QString &sourcePath )
+    TileCreatorSourceImage( const QString &sourcePath )
         : m_sourceImage( QImage( sourcePath ) ),
           m_cachedRowNum( -1 )
     {
     }
 
-    QSize fullImageSize() const override
+    virtual QSize fullImageSize() const
     {
         if ( m_sourceImage.size().width() > 21600 || m_sourceImage.height() > 10800 ) {
             qDebug("Install map too large!");
@@ -85,7 +86,7 @@ public:
         return m_sourceImage.size();
     }
 
-    QImage tile(int n, int m, int maxTileLevel) override
+    virtual QImage tile(int n, int m, int maxTileLevel)
     {
         int  mmax = TileLoaderHelper::levelToColumn( defaultLevelZeroColumns, maxTileLevel );
         int  nmax = TileLoaderHelper::levelToRow( defaultLevelZeroRows, maxTileLevel );
@@ -171,13 +172,14 @@ TileCreator::TileCreator(const QString& sourceDir, const QString& installMap,
     // If the sourceDir starts with a '/' assume an absolute path.
     // Otherwise assume a relative marble data path
     if ( QDir::isAbsolutePath( sourceDir ) ) {
-        sourcePath = sourceDir + QLatin1Char('/') + installMap;
+        sourcePath = sourceDir + '/' + installMap;
         mDebug() << "Trying absolute path*:" << sourcePath;
     }
     else {
-        sourcePath = MarbleDirs::path(QLatin1String("maps/") + sourceDir + QLatin1Char('/') + installMap);
+        sourcePath = MarbleDirs::path( "maps/" + sourceDir
+                                    + '/' + installMap );
         mDebug() << "Trying relative path*:"
-                << QLatin1String("maps/") + sourceDir + QLatin1Char('/') + installMap;
+                << "maps/" + sourceDir + '/' + installMap;
     }
 
     mDebug() << "Creating tiles from*: " << sourcePath;
@@ -185,8 +187,8 @@ TileCreator::TileCreator(const QString& sourceDir, const QString& installMap,
     d->m_source = new TileCreatorSourceImage( sourcePath );
 
     if ( d->m_targetDir.isNull() )
-        d->m_targetDir = MarbleDirs::localPath() + QLatin1String("/maps/")
-            + sourcePath.section(QLatin1Char('/'), -3, -2) + QLatin1Char('/');
+        d->m_targetDir = MarbleDirs::localPath() + "/maps/"
+            + sourcePath.section( '/', -3, -2 ) + '/';
 
     setTerminationEnabled( true );
 }
@@ -210,13 +212,13 @@ void TileCreator::cancelTileCreation()
 
 void TileCreator::run()
 {
-    if (d->m_resume && d->m_tileFormat == QLatin1String("jpg") && d->m_tileQuality != 100) {
+    if ( d->m_resume && d->m_tileFormat == "jpg" && d->m_tileQuality != 100 ) {
         qWarning() << "Resuming jpegs is only supported with tileQuality 100";
         return;
     }
 
-    if (!d->m_targetDir.endsWith(QLatin1Char('/')))
-        d->m_targetDir += QLatin1Char('/');
+    if ( !d->m_targetDir.endsWith('/') )
+        d->m_targetDir += '/';
 
     mDebug() << "Installing tiles to: " << d->m_targetDir;
 
@@ -286,7 +288,7 @@ void TileCreator::run()
 
     for ( int n = 0; n < nmax; ++n ) {
         QString dirName( d->m_targetDir
-                         + QString("%1/%2").arg(maxTileLevel).arg(n, tileDigits, 10, QLatin1Char('0')));
+                         + QString("%1/%2").arg(maxTileLevel).arg( n, tileDigits, 10, QChar('0') ) );
         if ( !QDir( dirName ).exists() ) 
             ( QDir::root() ).mkpath( dirName );
     }
@@ -300,10 +302,10 @@ void TileCreator::run()
             if ( d->m_cancelled ) 
                 return;
 
-            tileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+            tileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                        .arg( maxTileLevel )
-                                       .arg(n, tileDigits, 10, QLatin1Char('0'))
-                                       .arg(m, tileDigits, 10, QLatin1Char('0'))
+                                       .arg( n, tileDigits, 10, QChar('0') )
+                                       .arg( m, tileDigits, 10, QChar('0') ) )
                                        .arg( d->m_tileFormat );
 
             if ( QFile::exists( tileName ) && d->m_resume ) {
@@ -319,13 +321,13 @@ void TileCreator::run()
                     return;
                 }
 
-                if (d->m_dem == QLatin1String("true")) {
+                if ( d->m_dem == "true" ) {
                     tile = tile.convertToFormat(QImage::Format_Indexed8,
                                                 grayScalePalette,
                                                 Qt::ThresholdDither);
                 }
 
-                bool  ok = tile.save(tileName, d->m_tileFormat.toLatin1().data(), d->m_tileFormat == QLatin1String("jpg") ? 100 : d->m_tileQuality);
+                bool  ok = tile.save( tileName, d->m_tileFormat.toLatin1().data(), d->m_tileFormat == "jpg" ? 100 : d->m_tileQuality );
                 if ( !ok )
                     mDebug() << "Error while writing Tile: " << tileName;
 
@@ -375,9 +377,9 @@ void TileCreator::run()
 
         for ( int n = 0; n < nmaxit; ++n ) {
             QString  dirName( d->m_targetDir
-                              + QString("%1/%2")
+                              + ( QString("%1/%2")
                                   .arg(tileLevel)
-                                  .arg(n, tileDigits, 10, QLatin1Char('0')));
+                                  .arg( n, tileDigits, 10, QChar('0') ) ) );
 
             // mDebug() << "dirName: " << dirName;
             if ( !QDir( dirName ).exists() ) 
@@ -389,40 +391,40 @@ void TileCreator::run()
                 if ( d->m_cancelled )
                     return;
 
-                QString newTileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+                QString newTileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                            .arg( tileLevel )
-                                           .arg(n, tileDigits, 10, QLatin1Char('0'))
-                                           .arg(m, tileDigits, 10, QLatin1Char('0'))
+                                           .arg( n, tileDigits, 10, QChar('0') )
+                                           .arg( m, tileDigits, 10, QChar('0') ) )
                                            .arg( d->m_tileFormat );
 
                 if ( QFile::exists( newTileName ) && d->m_resume ) {
                     //mDebug() << newTileName << "exists already";
                 } else {
-                    tileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+                    tileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                             .arg( tileLevel + 1 )
-                                            .arg(2*n, tileDigits, 10, QLatin1Char('0'))
-                                            .arg(2*m, tileDigits, 10, QLatin1Char('0'))
+                                            .arg( 2*n, tileDigits, 10, QChar('0') )
+                                            .arg( 2*m, tileDigits, 10, QChar('0') ) )
                                             .arg( d->m_tileFormat );
                     QImage  img_topleft( tileName );
 
-                    tileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+                    tileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                             .arg( tileLevel + 1 )
-                                            .arg(2*n, tileDigits, 10, QLatin1Char('0'))
-                                            .arg(2*m+1, tileDigits, 10, QLatin1Char('0'))
+                                            .arg( 2*n, tileDigits, 10, QChar('0') )
+                                            .arg( 2*m+1, tileDigits, 10, QChar('0') ) )
                                             .arg( d->m_tileFormat );
                     QImage  img_topright( tileName );
 
-                    tileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+                    tileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                             .arg( tileLevel + 1 )
-                                            .arg(2*n+1, tileDigits, 10, QLatin1Char('0'))
-                                            .arg(2*m, tileDigits, 10, QLatin1Char('0'))
+                                            .arg( 2*n+1, tileDigits, 10, QChar('0') )
+                                            .arg( 2*m, tileDigits, 10, QChar('0') ) )
                                             .arg( d->m_tileFormat );
                     QImage  img_bottomleft( tileName );
 
-                    tileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+                    tileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                             .arg( tileLevel + 1 )
-                                            .arg(2*n+1, tileDigits, 10, QLatin1Char('0'))
-                                            .arg(2*m+1, tileDigits, 10, QLatin1Char('0'))
+                                            .arg( 2*n+1, tileDigits, 10, QChar('0') )
+                                            .arg( 2*m+1, tileDigits, 10, QChar('0') ) )
                                             .arg( d->m_tileFormat );
                     QImage  img_bottomright( tileName );
 
@@ -437,7 +439,7 @@ void TileCreator::run()
                     }
                     QImage  tile = img_topleft;
 
-                    if (d->m_dem == QLatin1String("true")) {
+                    if ( d->m_dem == "true" ) {
 
                         tile.setColorTable( grayScalePalette );
                         uchar* destLine;
@@ -509,7 +511,7 @@ void TileCreator::run()
 
                     // Saving at 100% JPEG quality to have a high-quality
                     // version to create the remaining needed tiles from.
-                    bool  ok = tile.save(newTileName, d->m_tileFormat.toLatin1().data(), d->m_tileFormat == QLatin1String("jpg") ? 100 : d->m_tileQuality);
+                    bool  ok = tile.save( newTileName, d->m_tileFormat.toLatin1().data(), d->m_tileFormat == "jpg" ? 100 : d->m_tileQuality );
                     if ( ! ok )
                         mDebug() << "Error while writing Tile: " << newTileName;
                 }
@@ -526,7 +528,7 @@ void TileCreator::run()
     }
     mDebug() << "Tile creation completed.";
 
-    if (d->m_tileFormat == QLatin1String("jpg") && d->m_tileQuality != 100) {
+    if ( d->m_tileFormat == "jpg" && d->m_tileQuality != 100 ) {
 
         // Applying correct lower JPEG compression now that we created all tiles
         int savedTilesCount = 0;
@@ -543,10 +545,10 @@ void TileCreator::run()
 
                     savedTilesCount++;
 
-                    tileName = d->m_targetDir + QString("%1/%2/%2_%3.%4")
+                    tileName = d->m_targetDir + ( QString("%1/%2/%2_%3.%4")
                                             .arg( tileLevel )
-                                            .arg(n, tileDigits, 10, QLatin1Char('0'))
-                                            .arg(m, tileDigits, 10, QLatin1Char('0'))
+                                            .arg( n, tileDigits, 10, QChar('0') )
+                                            .arg( m, tileDigits, 10, QChar('0') ) )
                                             .arg( d->m_tileFormat );
                     QImage tile( tileName );
 
@@ -619,4 +621,4 @@ bool TileCreator::verifyExactResult() const
 
 }
 
-#include "moc_TileCreator.cpp"
+#include "TileCreator.moc"

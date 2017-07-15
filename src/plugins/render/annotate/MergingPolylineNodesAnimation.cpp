@@ -15,7 +15,6 @@
 #include "PolylineAnnotation.h"
 #include "GeoDataCoordinates.h"
 #include "GeoDataPlacemark.h"
-#include "GeoDataLineString.h"
 #include "MarbleMath.h"
 
 
@@ -82,4 +81,4 @@ qreal MergingPolylineNodesAnimation::nodesDistance()
 
 } // namespace Marble
 
-#include "moc_MergingPolylineNodesAnimation.cpp"
+#include "MergingPolylineNodesAnimation.moc"

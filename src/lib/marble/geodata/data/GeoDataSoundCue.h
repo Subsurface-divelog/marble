@@ -13,22 +13,18 @@
 
 #include "GeoDataTourPrimitive.h"
 
-#include <QString>
-
 namespace Marble
 {
 
-/**
- */
 class GEODATA_EXPORT GeoDataSoundCue : public GeoDataTourPrimitive
 {
 public:
     GeoDataSoundCue();
-    ~GeoDataSoundCue() override;
+    ~GeoDataSoundCue();
 
     bool operator==( const GeoDataSoundCue &other ) const;
     bool operator!=( const GeoDataSoundCue &other ) const;
-    const char *nodeType() const override;
+    const char *nodeType() const;
 
     QString href() const;
     void setHref(const QString &url);

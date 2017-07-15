@@ -15,11 +15,10 @@
 #include <QPair>
 #include <QHash>
 
-#include <marble_export.h>
-
 namespace Marble
 {
 
+class GeoDataObject;
 class GeoNode;
 class GeoWriter;
 
@@ -29,7 +28,7 @@ class GeoWriter;
  * XML formats. The system used to implement this writing system is very strongly
  * based on the @see GeoTagHandler system.
  */
-class MARBLE_EXPORT GeoTagWriter
+class GeoTagWriter
 {
 public:
     virtual bool write( const GeoNode *node, GeoWriter& writer ) const = 0;
@@ -58,7 +57,6 @@ private:
     // Only our registrar is allowed to register tag writers.
     friend struct GeoTagWriterRegistrar;
     static void registerWriter(const QualifiedName&, const GeoTagWriter*);
-    static void unregisterWriter(const QualifiedName&);
 
 private:
     //Collect the Tag Writers and provide a singleton like accessor
@@ -68,7 +66,6 @@ private:
 private:
     // Only our writer is allowed to access tag handlers.
     friend class GeoWriter;
-    friend class GeoDataDocumentWriter;
     static const GeoTagWriter* recognizes(const QualifiedName&);
 };
 
@@ -76,19 +73,10 @@ private:
 struct GeoTagWriterRegistrar
 {
 public:
-    GeoTagWriterRegistrar(const GeoTagWriter::QualifiedName& name, const GeoTagWriter* writer) :
-        m_name(name)
+    GeoTagWriterRegistrar(const GeoTagWriter::QualifiedName& name, const GeoTagWriter* writer)
     {
         GeoTagWriter::registerWriter(name, writer);
     }
-
-    ~GeoTagWriterRegistrar()
-    {
-        GeoTagWriter::unregisterWriter(m_name);
-    }
-
-private:
-    GeoTagWriter::QualifiedName m_name;
 };
 
 }

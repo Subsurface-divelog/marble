@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
@@ -14,6 +14,7 @@
 #include <marble/MarbleWidget.h>
 #include <marble/MarbleModel.h>
 #include <marble/ReverseGeocodingRunnerManager.h>
+#include <GeoDataPlacemark.h>
 
 using namespace Marble;
 

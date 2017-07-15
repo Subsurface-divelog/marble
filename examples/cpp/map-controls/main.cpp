@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
@@ -27,7 +27,7 @@ int main(int argc, char** argv)
     MarbleWidget *mapWidget = new MarbleWidget();
 
     // Load the Plain map
-    mapWidget->setMapThemeId(QStringLiteral("earth/plain/plain.dgml"));
+    mapWidget->setMapThemeId("earth/plain/plain.dgml");
 
     // Hide the FloatItems: OverviewMap, ScaleBar and Compass
     mapWidget->setShowOverviewMap(false);

@@ -25,8 +25,8 @@ class SVGXmlHandler : public QXmlDefaultHandler
     SVGXmlHandler( QDataStream * out, const QString & path, int header );
     // virtual bool startDocument();
     // virtual bool endDocument();
-    bool  startElement(const QString&, const QString&, const QString&,
-                               const QXmlAttributes&) override;
+    virtual bool  startElement(const QString&, const QString&, const QString&,
+                               const QXmlAttributes&);
     // virtual bool endElement();
 
  private:

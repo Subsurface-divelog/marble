@@ -10,9 +10,7 @@
 
 #include "FoursquarePlugin.h"
 #include "FoursquareModel.h"
-
 #include <QSettings>
-#include <QIcon>
 
 namespace Marble {
 
@@ -47,12 +45,12 @@ QString FoursquarePlugin::guiString() const
 
 QString FoursquarePlugin::nameId() const
 {
-    return QStringLiteral("foursquare");
+    return "foursquare";
 }
 
 QString FoursquarePlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString FoursquarePlugin::description() const
@@ -62,26 +60,26 @@ QString FoursquarePlugin::description() const
 
 QString FoursquarePlugin::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> FoursquarePlugin::pluginAuthors() const
+QList<PluginAuthor> FoursquarePlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"))
-            << PluginAuthor(QStringLiteral("Utku Aydın"), QStringLiteral("utkuaydin34@gmail.com"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" )
+            << PluginAuthor( QString::fromUtf8( "Utku Aydın" ), "utkuaydin34@gmail.com" );
 }
 
 QIcon FoursquarePlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/places.png"));
+    return QIcon(":/icons/places.png");
 }
 
 bool FoursquarePlugin::isAuthenticated()
 {
     QSettings settings;
-
-    return !settings.value(QStringLiteral("access_token")).isNull();
+    
+    return !settings.value( "access_token" ).isNull();
 }
 
 bool FoursquarePlugin::storeAccessToken(const QString& tokenUrl)
@@ -90,7 +88,7 @@ bool FoursquarePlugin::storeAccessToken(const QString& tokenUrl)
     if( tokenUrl.startsWith( expected ) ) {
         QSettings settings;
         QString url = tokenUrl;
-        settings.setValue(QStringLiteral("access_token"), url.remove(expected));
+        settings.setValue( "access_token", url.remove( expected ) );
         return true;
     } else {
         return false;
@@ -99,5 +97,6 @@ bool FoursquarePlugin::storeAccessToken(const QString& tokenUrl)
 
 }
 
-#include "moc_FoursquarePlugin.cpp"
+Q_EXPORT_PLUGIN2(FoursquarePlugin, Marble::FoursquarePlugin)
+#include "FoursquarePlugin.moc"
 

@@ -5,13 +5,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ALTERNATIVEROUTESMODEL_H
 #define MARBLE_ALTERNATIVEROUTESMODEL_H
 
-#include "marble_export.h"
+#include "GeoDataLineString.h"
 
 #include <QAbstractListModel>
 
@@ -26,7 +26,6 @@ namespace Marble
 
 class RouteRequest;
 class GeoDataDocument;
-class GeoDataLineString;
 
 class MARBLE_EXPORT AlternativeRoutesModel : public QAbstractListModel
 {
@@ -42,20 +41,20 @@ public:
     explicit AlternativeRoutesModel( QObject *parent = 0 );
 
     /** Destructor */
-    ~AlternativeRoutesModel() override;
+    ~AlternativeRoutesModel();
 
     // Model querying
 
     /** Overload of QAbstractListModel */
-    int rowCount ( const QModelIndex &parent = QModelIndex() ) const override;
+    int rowCount ( const QModelIndex &parent = QModelIndex() ) const;
 
     /** Overload of QAbstractListModel */
-    QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
+    QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 
     /** Overload of QAbstractListModel */
-    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const override;
+    QVariant data ( const QModelIndex &index, int role = Qt::DisplayRole ) const;
 
-    const GeoDataDocument *route(int index) const;
+    GeoDataDocument* route( int index );
 
     // Model data filling
 
@@ -75,7 +74,7 @@ public:
     /** Remove all alternative routes from the model */
     void clear();
 
-    const GeoDataDocument *currentRoute() const;
+    GeoDataDocument* currentRoute();
 
     /** Returns the waypoints contained in the route as a linestring */
     static const GeoDataLineString* waypoints( const GeoDataDocument* document );
@@ -84,7 +83,7 @@ public Q_SLOTS:
     void setCurrentRoute( int index );
 
 Q_SIGNALS:
-    void currentRouteChanged(const GeoDataDocument *newRoute);
+    void currentRouteChanged( GeoDataDocument* newRoute );
     void currentRouteChanged( int index );
 
 private Q_SLOTS:

@@ -12,11 +12,13 @@
 #define MARBLE_GEODATAPOINTPRIVATE_H
 
 #include "GeoDataGeometry_p.h"
+#include "GeoDataCoordinates_p.h"
 
 namespace Marble
 {
 
-class GeoDataPointPrivate : public GeoDataGeometryPrivate
+class GeoDataPointPrivate : public GeoDataGeometryPrivate,
+                            public GeoDataCoordinatesPrivate
 {
 public:
     GeoDataCoordinates m_coordinates;
@@ -25,11 +27,16 @@ public:
     {
     }
 
-    GeoDataGeometryPrivate *copy() const override
+    virtual GeoDataGeometryPrivate* copy()
     { 
         GeoDataPointPrivate* copy = new  GeoDataPointPrivate;
         *copy = *this;
         return copy;
+    }
+
+    virtual EnumGeometryId geometryId() const
+    {
+        return GeoDataPointId;
     }
 };
 

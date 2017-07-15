@@ -12,16 +12,14 @@
 #define GEODATAIMAGEPYRAMID_H
 
 #include "GeoDataObject.h"
-#include "geodata_export.h"
+#include "marble_export.h"
 
 namespace Marble
 {
 
 class GeoDataImagePyramidPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataImagePyramid : public GeoDataObject
+class MARBLE_EXPORT GeoDataImagePyramid : public GeoDataObject
 {
 public:
     GeoDataImagePyramid();
@@ -29,13 +27,13 @@ public:
     GeoDataImagePyramid( const GeoDataImagePyramid &other );
 
     GeoDataImagePyramid& operator=( const GeoDataImagePyramid &other );
-    bool operator==( const GeoDataImagePyramid &other ) const;
-    bool operator!=( const GeoDataImagePyramid &other ) const;
+    bool operator==( const GeoDataImagePyramid &other );
+    bool operator!=( const GeoDataImagePyramid &other );
 
-    ~GeoDataImagePyramid() override;
+    ~GeoDataImagePyramid();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     enum GridOrigin {
         LowerLeft,
@@ -43,16 +41,16 @@ public:
     };
 
     int tileSize() const;
-    void setTileSize(int tileSize);
+    void setTileSize( const int &tileSize );
 
     int maxWidth() const;
-    void setMaxWidth(int maxWidth);
+    void setMaxWidth( const int &maxWidth );
 
     int maxHeight() const;
-    void setMaxHeight(int maxHeight);
+    void setMaxHeight( const int &maxHeight );
 
     GridOrigin gridOrigin() const;
-    void setGridOrigin(GridOrigin gridOrigin);
+    void setGridOrigin( const GridOrigin &gridOrigin );
 
 private:
     GeoDataImagePyramidPrivate* const d;

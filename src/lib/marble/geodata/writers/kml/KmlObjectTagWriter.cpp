@@ -5,12 +5,10 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2014 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2014 Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "KmlObjectTagWriter.h"
-
-#include "GeoWriter.h"
 
 namespace Marble {
 

@@ -17,6 +17,8 @@
 
 #include <cmath>
 
+#include <QCoreApplication>
+
 #include "MarbleDebug.h"
 #include "MarbleGlobal.h"
 
@@ -31,27 +33,23 @@ GeoDataPoint::GeoDataPoint( qreal lon, qreal lat, qreal alt,
                             GeoDataCoordinates::Unit unit )
     : GeoDataGeometry( new GeoDataPointPrivate )
 {
-    Q_D(GeoDataPoint);
-    d->m_coordinates = GeoDataCoordinates(lon, lat, alt, unit);
-    d->m_latLonAltBox = GeoDataLatLonAltBox(d->m_coordinates);
+    p()->m_coordinates = GeoDataCoordinates( lon, lat, alt, unit );
+    p()->m_latLonAltBox = GeoDataLatLonAltBox( p()->m_coordinates );
 }
 
 GeoDataPoint::GeoDataPoint( const GeoDataPoint& other )
     : GeoDataGeometry( other )
+    
 {
-    Q_D(GeoDataPoint);
-    const GeoDataPointPrivate * const otherD = other.d_func();
-
-    d->m_coordinates = otherD->m_coordinates;
-    d->m_latLonAltBox = otherD->m_latLonAltBox;
+    p()->m_coordinates = other.p()->m_coordinates;
+    p()->m_latLonAltBox = other.p()->m_latLonAltBox;
 }
 
 GeoDataPoint::GeoDataPoint( const GeoDataCoordinates& other )
     : GeoDataGeometry ( new GeoDataPointPrivate )
 {
-    Q_D(GeoDataPoint);
-    d->m_coordinates = other;
-    d->m_latLonAltBox = GeoDataLatLonAltBox(d->m_coordinates);
+    p()->m_coordinates = other;
+    p()->m_latLonAltBox = GeoDataLatLonAltBox( p()->m_coordinates );
 }
 
 GeoDataPoint::GeoDataPoint()
@@ -63,16 +61,6 @@ GeoDataPoint::GeoDataPoint()
 GeoDataPoint::~GeoDataPoint()
 {
     // nothing to do
-}
-
-EnumGeometryId GeoDataPoint::geometryId() const
-{
-    return GeoDataPointId;
-}
-
-GeoDataGeometry *GeoDataPoint::copy() const
-{
-    return new GeoDataPoint(*this);
 }
 
 bool GeoDataPoint::operator==( const GeoDataPoint &other ) const
@@ -89,16 +77,23 @@ bool GeoDataPoint::operator!=( const GeoDataPoint &other ) const
 void GeoDataPoint::setCoordinates( const GeoDataCoordinates &coordinates )
 {
     detach();
-
-    Q_D(GeoDataPoint);
-    d->m_coordinates = coordinates;
-    d->m_latLonAltBox = GeoDataLatLonAltBox(d->m_coordinates);
+    p()->m_coordinates = coordinates;
+    p()->m_latLonAltBox = GeoDataLatLonAltBox( p()->m_coordinates );
 }
 
 const GeoDataCoordinates &GeoDataPoint::coordinates() const
 {
-    Q_D(const GeoDataPoint);
-    return d->m_coordinates;
+    return p()->m_coordinates;
+}
+
+GeoDataPointPrivate* GeoDataPoint::p()
+{
+    return static_cast<GeoDataPointPrivate*>(GeoDataGeometry::d);
+}
+
+const GeoDataPointPrivate* GeoDataPoint::p() const
+{
+    return static_cast<GeoDataPointPrivate*>(GeoDataGeometry::d);
 }
 
 const char* GeoDataPoint::nodeType() const
@@ -113,16 +108,12 @@ void GeoDataPoint::detach()
 
 void GeoDataPoint::pack( QDataStream& stream ) const
 {
-    Q_D(const GeoDataPoint);
-    d->m_coordinates.pack(stream);
-    // TODO: what about m_latLonAltBox and base class?
+    p()->m_coordinates.pack( stream );
 }
 
 void GeoDataPoint::unpack( QDataStream& stream )
 {
-    Q_D(GeoDataPoint);
-    d->m_coordinates.unpack(stream);
-    // TODO: what about m_latLonAltBox and base class?
+    p()->m_coordinates.unpack( stream );
 }
 
 }

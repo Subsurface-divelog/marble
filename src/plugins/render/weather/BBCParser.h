@@ -41,14 +41,14 @@ class BBCParser : public AbstractWorkerThread, public QXmlStreamReader
 {
     Q_OBJECT
 public:
-    ~BBCParser() override;
+    ~BBCParser();
 
     static BBCParser *instance();
     void scheduleRead( const QString& path, BBCWeatherItem *item, const QString& type );
 
 protected:
-    bool workAvailable() override;
-    void work() override;
+    bool workAvailable();
+    void work();
 
 Q_SIGNALS:
     void parsedFile();

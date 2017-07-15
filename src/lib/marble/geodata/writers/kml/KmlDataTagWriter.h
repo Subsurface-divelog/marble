@@ -19,7 +19,7 @@ namespace Marble
 class KmlDataTagWriter : public GeoTagWriter
 {
 public:
-    bool write( const GeoNode *node, GeoWriter& writer ) const override;
+    virtual bool write( const GeoNode *node, GeoWriter& writer ) const;
 };
 
 }

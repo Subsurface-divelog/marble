@@ -16,10 +16,14 @@
 #include "marble_export.h"
 
 // Qt
-#include <QVector>
+#include <QList>
+
+class QPoint;
 
 namespace Marble
 {
+
+class ViewportParams;
 
 class ScreenGraphicsItemPrivate;
 
@@ -34,7 +38,7 @@ class MARBLE_EXPORT ScreenGraphicsItem : public MarbleGraphicsItem
 
     explicit ScreenGraphicsItem( MarbleGraphicsItem *parent = 0 );
 
-    ~ScreenGraphicsItem() override;
+    virtual ~ScreenGraphicsItem();
 
     /**
      * @brief Set the position of the ScreenGraphicsItem
@@ -76,9 +80,8 @@ class MARBLE_EXPORT ScreenGraphicsItem : public MarbleGraphicsItem
      *
      * Positive x-coordinates are counted left-aligned from the left border of the map.
      * Positive y-coordinates are counted top-aligned from the top border of the map.
-     * @since 0.26.0
      */
-    QVector<QPointF> absolutePositions() const;
+    QList<QPointF> absolutePositions() const;
 
     /**
      * Returns the flags of the item.
@@ -92,12 +95,13 @@ class MARBLE_EXPORT ScreenGraphicsItem : public MarbleGraphicsItem
     void setFlags( GraphicsItemFlags flags );
 
  protected:
-    explicit ScreenGraphicsItem(ScreenGraphicsItemPrivate *dd);
+    explicit ScreenGraphicsItem( ScreenGraphicsItemPrivate *d_ptr );
 
-    bool eventFilter( QObject *, QEvent * ) override;
+    virtual bool eventFilter( QObject *, QEvent * );
 
  private:
-    Q_DECLARE_PRIVATE(ScreenGraphicsItem)
+    ScreenGraphicsItemPrivate *p();
+    const ScreenGraphicsItemPrivate *p() const;
 };
 
 } // Namespace Marble

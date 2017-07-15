@@ -9,13 +9,7 @@
 //
 
 #include "GeoDataUpdate.h"
-
-#include "GeoDataCreate.h"
-#include "GeoDataDelete.h"
-#include "GeoDataChange.h"
 #include "GeoDataTypes.h"
-
-#include <QString>
 
 namespace Marble
 {
@@ -31,7 +25,7 @@ public:
 };
 
 GeoDataUpdatePrivate::GeoDataUpdatePrivate() :
-    m_create( 0 ), m_delete( 0 ), m_change( 0 )
+    m_create( 0 ), m_delete( 0 ), m_change( 0 ), m_targetHref( "" )
 {
 }
 
@@ -91,12 +85,7 @@ void GeoDataUpdate::setTargetHref( const QString &targetHref )
     d->m_targetHref = targetHref;
 }
 
-const GeoDataChange *GeoDataUpdate::change() const
-{
-    return d->m_change;
-}
-
-GeoDataChange *GeoDataUpdate::change()
+GeoDataChange* GeoDataUpdate::change() const
 {
     return d->m_change;
 }
@@ -110,12 +99,7 @@ void GeoDataUpdate::setChange( GeoDataChange* change )
     }
 }
 
-const GeoDataCreate *GeoDataUpdate::create() const
-{
-    return d->m_create;
-}
-
-GeoDataCreate *GeoDataUpdate::create()
+GeoDataCreate* GeoDataUpdate::create() const
 {
     return d->m_create;
 }
@@ -129,12 +113,7 @@ void GeoDataUpdate::setCreate( GeoDataCreate* create )
     }
 }
 
-const GeoDataDelete *GeoDataUpdate::getDelete() const
-{
-    return d->m_delete;
-}
-
-GeoDataDelete *GeoDataUpdate::getDelete()
+GeoDataDelete* GeoDataUpdate::getDelete() const
 {
     return d->m_delete;
 }

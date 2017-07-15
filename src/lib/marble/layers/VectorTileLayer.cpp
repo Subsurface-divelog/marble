@@ -20,19 +20,16 @@
 #include "GeoPainter.h"
 #include "GeoSceneGroup.h"
 #include "GeoSceneTypes.h"
-#include "GeoSceneVectorTileDataset.h"
+#include "GeoSceneVectorTile.h"
 #include "MarbleDebug.h"
 #include "TileLoader.h"
 #include "ViewportParams.h"
-#include "RenderState.h"
-#include "GeoDataDocument.h"
 #include "GeoDataLatLonAltBox.h"
-#include "HttpDownloadManager.h"
 
 namespace Marble
 {
 
-class Q_DECL_HIDDEN VectorTileLayer::Private
+class VectorTileLayer::Private
 {
 public:
     Private(HttpDownloadManager *downloadManager,
@@ -42,15 +39,14 @@ public:
 
     ~Private();
 
-    void updateTile(const TileId &tileId, GeoDataDocument* document);
-    void updateLayerSettings();
+    void updateTextureLayers();
 
 public:
     VectorTileLayer  *const m_parent;
     TileLoader m_loader;
-    QVector<VectorTileModel *> m_tileModels;
-    QVector<VectorTileModel *> m_activeTileModels;
-    const GeoSceneGroup *m_layerSettings;
+    QVector<VectorTileModel *> m_texmappers;
+    QVector<VectorTileModel *> m_activeTexmappers;
+    const GeoSceneGroup *m_textureLayerSettings;
 
     // TreeModel for displaying GeoDataDocuments
     GeoDataTreeModel *const m_treeModel;
@@ -62,58 +58,51 @@ VectorTileLayer::Private::Private(HttpDownloadManager *downloadManager,
                                   const PluginManager *pluginManager,
                                   VectorTileLayer *parent,
                                   GeoDataTreeModel *treeModel) :
-    m_parent(parent),
-    m_loader(downloadManager, pluginManager),
-    m_tileModels(),
-    m_activeTileModels(),
-    m_layerSettings(0),
-    m_treeModel(treeModel)
+    m_parent( parent ),
+    m_loader( downloadManager, pluginManager ),
+    m_texmappers(),
+    m_activeTexmappers(),
+    m_textureLayerSettings( 0 ),
+    m_treeModel( treeModel )
 {
-    m_threadPool.setMaxThreadCount(1);
+    m_threadPool.setMaxThreadCount( 1 );
 }
 
 VectorTileLayer::Private::~Private()
 {
-    qDeleteAll(m_activeTileModels);
+    qDeleteAll( m_activeTexmappers );
 }
 
-void VectorTileLayer::Private::updateTile(const TileId &tileId, GeoDataDocument* document)
+void VectorTileLayer::Private::updateTextureLayers()
 {
-    for (VectorTileModel *mapper: m_activeTileModels) {
-        mapper->updateTile(tileId, document);
-    }
-}
+    m_activeTexmappers.clear();
 
-void VectorTileLayer::Private::updateLayerSettings()
-{
-    m_activeTileModels.clear();
-
-    for (VectorTileModel *candidate: m_tileModels) {
+    foreach ( VectorTileModel *candidate, m_texmappers ) {
+        // Check if the GeoSceneTiled is a TextureTile or VectorTile.
+        // Only VectorTiles have to be used.
         bool enabled = true;
-        if (m_layerSettings) {
-            const bool propertyExists = m_layerSettings->propertyValue(candidate->name(), enabled);
-            enabled |= !propertyExists; // if property doesn't exist, enable layer nevertheless
+        if ( m_textureLayerSettings ) {
+            const bool propertyExists = m_textureLayerSettings->propertyValue( candidate->name(), enabled );
+            enabled |= !propertyExists; // if property doesn't exist, enable texture nevertheless
         }
-        if (enabled) {
-            m_activeTileModels.append(candidate);
-            mDebug() << "enabling vector layer" << candidate->name();
+        if ( enabled ) {
+            m_activeTexmappers.append( candidate );
+            mDebug() << "enabling texture" << candidate->name();
         } else {
             candidate->clear();
-            mDebug() << "disabling vector layer" << candidate->name();
+            mDebug() << "disabling texture" << candidate->name();
         }
     }
 }
 
 VectorTileLayer::VectorTileLayer(HttpDownloadManager *downloadManager,
                                  const PluginManager *pluginManager,
-                                 GeoDataTreeModel *treeModel)
+                                 GeoDataTreeModel *treeModel )
     : QObject()
-    , d(new Private(downloadManager, pluginManager, this, treeModel))
+    , d( new Private( downloadManager, pluginManager, this, treeModel ) )
 {
-    qRegisterMetaType<TileId>("TileId");
-    qRegisterMetaType<GeoDataDocument*>("GeoDataDocument*");
-
-    connect(&d->m_loader, SIGNAL(tileCompleted(TileId, GeoDataDocument*)), this, SLOT(updateTile(TileId, GeoDataDocument*)));
+    qRegisterMetaType<TileId>( "TileId" );
+    qRegisterMetaType<GeoDataDocument*>( "GeoDataDocument*" );
 }
 
 VectorTileLayer::~VectorTileLayer()
@@ -123,91 +112,55 @@ VectorTileLayer::~VectorTileLayer()
 
 QStringList VectorTileLayer::renderPosition() const
 {
-    return QStringList(QStringLiteral("SURFACE"));
+    return QStringList() << "SURFACE";
 }
 
 RenderState VectorTileLayer::renderState() const
 {
-    return RenderState(QStringLiteral("Vector Tiles"));
+    return RenderState( "Vector Tiles" );
 }
 
-int VectorTileLayer::tileZoomLevel() const
+bool VectorTileLayer::render( GeoPainter *painter, ViewportParams *viewport,
+                              const QString &renderPos, GeoSceneLayer *layer )
 {
-    int level = -1;
-    for (const auto *mapper: d->m_activeTileModels) {
-        level = qMax(level, mapper->tileZoomLevel());
-    }
-    return level;
-}
+    Q_UNUSED( painter );
+    Q_UNUSED( renderPos );
+    Q_UNUSED( layer );
 
-QString VectorTileLayer::runtimeTrace() const
-{
-    int tiles = 0;
-    for (const auto *mapper: d->m_activeTileModels) {
-        tiles += mapper->cachedDocuments();
-    }
-    int const layers = d->m_activeTileModels.size();
-    return QStringLiteral("Vector Tiles: %1 tiles in %2 layers").arg(tiles).arg(layers);
-}
-
-bool VectorTileLayer::render(GeoPainter *painter, ViewportParams *viewport,
-                             const QString &renderPos, GeoSceneLayer *layer)
-{
-    Q_UNUSED(painter);
-    Q_UNUSED(renderPos);
-    Q_UNUSED(layer);
-
-    int const oldLevel = tileZoomLevel();
-    int level = 0;
-    for (VectorTileModel *mapper: d->m_activeTileModels) {
-        mapper->setViewport(viewport->viewLatLonAltBox());
-        level = qMax(level, mapper->tileZoomLevel());
-    }
-    if (oldLevel != level && level >= 0) {
-        emit tileLevelChanged(level);
+    foreach ( VectorTileModel *mapper, d->m_activeTexmappers ) {
+        mapper->setViewport( viewport->viewLatLonAltBox(), viewport->radius() );
     }
 
     return true;
 }
 
-void VectorTileLayer::reload()
-{
-    for (auto mapper : d->m_activeTileModels) {
-        mapper->reload();
-    }
-}
-
 void VectorTileLayer::reset()
 {
-    for (VectorTileModel *mapper: d->m_tileModels) {
+    foreach ( VectorTileModel *mapper, d->m_texmappers ) {
         mapper->clear();
     }
 }
 
-void VectorTileLayer::setMapTheme(const QVector<const GeoSceneVectorTileDataset *> &textures, const GeoSceneGroup *textureLayerSettings)
+void VectorTileLayer::setMapTheme( const QVector<const GeoSceneVectorTile *> &textures, const GeoSceneGroup *textureLayerSettings )
 {
-    qDeleteAll(d->m_tileModels);
-    d->m_tileModels.clear();
-    d->m_activeTileModels.clear();
+    qDeleteAll( d->m_texmappers );
+    d->m_texmappers.clear();
+    d->m_activeTexmappers.clear();
 
-    for (const GeoSceneVectorTileDataset *layer: textures) {
-        d->m_tileModels << new VectorTileModel(&d->m_loader, layer, d->m_treeModel, &d->m_threadPool);
+    foreach ( const GeoSceneVectorTile *layer, textures ) {
+        d->m_texmappers << new VectorTileModel( &d->m_loader, layer, d->m_treeModel, &d->m_threadPool );
     }
 
-    d->m_layerSettings = textureLayerSettings;
+    d->m_textureLayerSettings = textureLayerSettings;
 
-    if (d->m_layerSettings) {
-        connect(d->m_layerSettings, SIGNAL(valueChanged(QString, bool)),
-                this,                      SLOT(updateLayerSettings()));
+    if ( d->m_textureLayerSettings ) {
+        connect( d->m_textureLayerSettings, SIGNAL(valueChanged(QString,bool)),
+                 this,                      SLOT(updateTextureLayers()) );
     }
 
-    d->updateLayerSettings();
-    auto const level = tileZoomLevel();
-    if (level >= 0) {
-        emit tileLevelChanged(level);
-    }
+    d->updateTextureLayers();
 }
 
 }
 
-#include "moc_VectorTileLayer.cpp"
+#include "VectorTileLayer.moc"

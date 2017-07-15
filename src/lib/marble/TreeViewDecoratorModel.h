@@ -10,7 +10,11 @@
 #ifndef TREEVIEWDECORATORMODEL_H
 #define TREEVIEWDECORATORMODEL_H
 
+#include "GeoDataTreeModel.h"
+
 #include <QSortFilterProxyModel>
+#include <QWidget>
+#include <QVector>
 
 namespace Marble
 {
@@ -20,16 +24,16 @@ class TreeViewDecoratorModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
-public Q_SLOTS:
+public slots:
     void trackExpandedState( const QModelIndex &index );
     void trackCollapsedState( const QModelIndex &index );
 
 public:
     explicit TreeViewDecoratorModel( QObject *parent = 0 );
-    QVariant data( const QModelIndex & proxyIndex, int role = Qt::DisplayRole ) const override;
+    QVariant data( const QModelIndex & proxyIndex, int role = Qt::DisplayRole ) const;
 
 protected:
-    bool filterAcceptsRow( int sourceRow, const QModelIndex &sourceParent ) const override;
+    bool filterAcceptsRow( int sourceRow, const QModelIndex &sourceParent ) const;
 
 private:
     QList<QPersistentModelIndex> m_expandedRows;

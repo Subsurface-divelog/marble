@@ -13,13 +13,13 @@
 #include <QFile>
 #include <QDir>
 #include <QLocale>
+#include <QSettings>
 #include <QTranslator>
-#include <QStandardPaths>
+#include <QProcessEnvironment>
 
 #include "QtMainWindow.h"
 
 #include "MapThemeManager.h"
-#include "MarbleWidgetInputHandler.h"
 #include "MarbleDirs.h"
 #include "MarbleDebug.h"
 #include "MarbleTest.h"
@@ -39,64 +39,27 @@
 
 using namespace Marble;
  
-// load translation file from normal "KDE Applications" packaging installation
-static bool loadTranslation(const QString &localeDirName, QApplication &app)
-{
-    const QString subPath = QLatin1String("locale/") + localeDirName + QLatin1String("/LC_MESSAGES/marble_qt.qm");
-    const QString fullPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, subPath);
-    if (fullPath.isEmpty()) {
-        return false;
-    }
-
-    QTranslator* translator = new QTranslator(&app);
-    if (!translator->load(fullPath)) {
-        delete translator;
-        return false;
-    }
-
-    app.installTranslator(translator);
-
-    return true;
-}
-
-// load KDE translators system based translations
-// TODO: document other possible supported translation systems, if any, and where their catalog files are
-static void loadTranslations(QApplication &app)
-{
-    // Quote from ecm_create_qm_loader created code:
-    // The way Qt translation system handles plural forms makes it necessary to
-    // have a translation file which contains only plural forms for `en`.
-    // That's why we load the `en` translation unconditionally, then load the
-    // translation for the current locale to overload it.
-    const QString en(QStringLiteral("en"));
-
-    loadTranslation(en, app);
-
-    QLocale locale = QLocale::system();
-    if (locale.name() != en) {
-        if (!loadTranslation(locale.name(), app)) {
-            loadTranslation(locale.bcp47Name(), app);
-        }
-    }
-}
-
-
 int main(int argc, char *argv[])
 {
-    QApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
+#if QT_VERSION < 0x050000
+    // The GraphicsSystem needs to be set before the instantiation of the
+    // QApplication. Therefore we need to parse the current setting 
+    // in this unusual place :-/
+    QSettings graphicsSettings("KDE", "Marble Virtual Globe"); // keep the parameters here
+    QString const graphicsString = graphicsSettings.value("View/graphicsSystem", "raster").toString();
+    QApplication::setGraphicsSystem( graphicsString );
+#endif
 
     QApplication app(argc, argv);
     app.setApplicationName( "Marble Virtual Globe" );
     app.setOrganizationName( "KDE" );
     app.setOrganizationDomain( "kde.org" );
-#if QT_VERSION >= 0x050700
-    app.setDesktopFileName(QStringLiteral("org.kde.marble-qt"));
-#endif
+    // Widget translation
 
-    // Load Qt translation system catalog for libmarblewidget, the plugins and this app
-    loadTranslations(app);
-
-    app.setApplicationDisplayName(MainWindow::tr("Marble - Virtual Globe"));
+    QString      lang = QLocale::system().name().section('_', 0, 0);
+    QTranslator  translator;
+    translator.load( "marble-" + lang, MarbleDirs::path(QString("lang") ) );
+    app.installTranslator(&translator);
 
     // For non static builds on mac and win
     // we need to be sure we can find the qt image
@@ -105,7 +68,7 @@ int main(int argc, char *argv[])
 
 #ifdef Q_WS_WIN
     QApplication::addLibraryPath( QApplication::applicationDirPath() 
-        + QDir::separator() + QLatin1String("plugins"));
+        + QDir::separator() + "plugins" );
 #endif
 #ifdef Q_OS_MACX
     QApplication::instance()->setAttribute(Qt::AA_DontShowIconsInMenus);
@@ -122,7 +85,7 @@ int main(int argc, char *argv[])
     // lets try to set the qt plugin search path...
     if (myPath.contains(".app"))
     {
-      myPath += QLatin1String("/Contents/plugins");
+      myPath += "/Contents/plugins";
       QApplication::addLibraryPath( myPath );
       qDebug( "Added %s to plugin search path", qPrintable( myPath ) );
     }
@@ -135,7 +98,7 @@ int main(int argc, char *argv[])
     QString coordinatesString;
     QString distanceString;
     QString geoUriString;
-    MarbleGlobal::Profiles profiles = MarbleGlobal::getInstance()->profiles();
+    MarbleGlobal::Profiles profiles = MarbleGlobal::detectProfiles();
 
     QStringList args = QApplication::arguments();
 
@@ -158,7 +121,6 @@ int main(int argc, char *argv[])
         qWarning() << "  --runtimeTrace.............. Show the time spent and other debug info of each layer";
         qWarning() << "  --tile-id................... Write the identifier of texture tiles on top of them";
         qWarning() << "  --timedemo ................. Measure the paint performance while moving the map and quit";
-        qWarning() << "  --debug-polygons .............Display the polygon nodes and their index for debugging";
         qWarning();
         qWarning() << "profile options (note that marble should automatically detect which profile to use. Override that with the options below):";
         qWarning() << "  --highresolution ........... Enforce the profile for devices with high resolution (e.g. desktop computers)";
@@ -272,31 +234,26 @@ int main(int argc, char *argv[])
 
     for ( int i = 1; i < args.count(); ++i ) {
         const QString arg = args.at(i);
-        if (arg == QLatin1String("--timedemo")) {
+        if ( arg == "--timedemo" )
+        {
             window->resize(900, 640);
             MarbleTest marbleTest( window->marbleWidget() );
             marbleTest.timeDemo();
             return 0;
         }
-        else if (arg == QLatin1String("--fps")) {
+        else if( arg == "--fps" ) {
             window->marbleControl()->marbleWidget()->setShowFrameRate( true );
         }
-        else if (arg == QLatin1String("--tile-id")) {
-            window->marbleControl()->marbleWidget()->setShowTileId(true);
+        else if ( arg == "--tile-id" )
+        {
+        window->marbleControl()->marbleWidget()->setShowTileId(true);
         }
-        else if (arg == QLatin1String("--runtimeTrace")) {
+        else if( arg == "--runtimeTrace" ) {
             window->marbleControl()->marbleWidget()->setShowRuntimeTrace( true );
-        }
-        else if (arg == QLatin1String("--debug-polygons")) {
-            window->marbleControl()->marbleWidget()->setShowDebugPolygons( true );
         }
         else if ( i != dataPathIndex && QFile::exists( arg ) )
             window->addGeoDataFile( arg );
     }
-
-    auto const marbleWidget = window->marbleControl()->marbleWidget();
-    bool const debugModeEnabled = marbleWidget->showRuntimeTrace() || marbleWidget->showDebugPolygons() || MarbleDebug::isEnabled();
-    marbleWidget->inputHandler()->setDebugModeEnabled(debugModeEnabled);
 
     return app.exec();
 }

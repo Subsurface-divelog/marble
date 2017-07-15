@@ -16,7 +16,6 @@
 #include "GeoPainter.h"
 #include "MarbleDirs.h"
 #include "ViewportParams.h"
-#include "RenderState.h"
 
 #include <QPixmap>
 
@@ -29,7 +28,7 @@ MarbleSplashLayer::MarbleSplashLayer()
 
 QStringList MarbleSplashLayer::renderPosition() const
 {
-    return QStringList(QStringLiteral("SURFACE"));
+    return QStringList() << "SURFACE";
 }
 
 bool MarbleSplashLayer::render( GeoPainter *painter, ViewportParams *viewport,
@@ -40,7 +39,7 @@ bool MarbleSplashLayer::render( GeoPainter *painter, ViewportParams *viewport,
 
     painter->save();
 
-    QPixmap logoPixmap(MarbleDirs::path(QStringLiteral("svg/marble-logo-inverted-72dpi.png")));
+    QPixmap logoPixmap( MarbleDirs::path( "svg/marble-logo-inverted-72dpi.png" ) );
 
     if ( logoPixmap.width() > viewport->width() * 0.7
          || logoPixmap.height() > viewport->height() * 0.7 )
@@ -69,7 +68,7 @@ bool MarbleSplashLayer::render( GeoPainter *painter, ViewportParams *viewport,
 
 RenderState MarbleSplashLayer::renderState() const
 {
-    return RenderState(QStringLiteral("Splash Screen"));
+    return RenderState( "Splash Screen" );
 }
 
 

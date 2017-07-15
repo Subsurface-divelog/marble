@@ -13,11 +13,13 @@
 #include "ViewportParams.h"
 
 #include <QFontMetrics>
+#include <QPixmap>
+#include <QSvgRenderer>
  
 namespace Marble
 {
 
-QFont FoursquareItem::s_font = QFont( QStringLiteral( "Sans Serif" ), 8 );
+QFont FoursquareItem::s_font = QFont( "Sans Serif", 8 );
 
 FoursquareItem::FoursquareItem(QObject* parent)
     : AbstractDataPluginItem( parent ),
@@ -169,4 +171,4 @@ void FoursquareItem::paint( QPainter* painter )
 
 }
 
-#include "moc_FoursquareItem.cpp"
+#include "FoursquareItem.moc"

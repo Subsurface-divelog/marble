@@ -11,7 +11,7 @@
 #ifndef COMPASS_FLOAT_ITEM_H
 #define COMPASS_FLOAT_ITEM_H
 
-#include <QPixmap>
+#include <QObject>
 
 #include "AbstractFloatItem.h"
 #include "DialogConfigurationInterface.h"
@@ -33,48 +33,48 @@ namespace Marble
 class CompassFloatItem  : public AbstractFloatItem, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.CompassFloatItem")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.CompassFloatItem" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( CompassFloatItem )
  public:
     CompassFloatItem();
     explicit CompassFloatItem( const MarbleModel *marbleModel );
-    ~CompassFloatItem () override;
+    ~CompassFloatItem ();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
     
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    QPainterPath backgroundShape() const override;
+    QPainterPath backgroundShape() const;
 
-    void setProjection( const ViewportParams *viewport ) override;
+    void setProjection( const ViewportParams *viewport );
 
-    void paintContent( QPainter *painter ) override;
+    void paintContent( QPainter *painter );
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
-    QHash<QString,QVariant> settings() const override;
+    QHash<QString,QVariant> settings() const;
 
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    void setSettings( const QHash<QString,QVariant> &settings );
 
 private Q_SLOTS:
    void readSettings();

@@ -12,15 +12,15 @@
 #define MARBLE_KMLTIMESTAMPTAGWRITER_H
 
 #include "GeoTagWriter.h"
+#include "GeoDataTimeStamp.h"
 
 namespace Marble
 {
-class GeoDataTimeStamp;
 
 class KmlTimeStampTagWriter : public GeoTagWriter
 {
 public:
-    bool write( const GeoNode *node, GeoWriter& writer ) const override;
+    virtual bool write( const GeoNode *node, GeoWriter& writer ) const;
 
     static QString toString( const GeoDataTimeStamp &timestamp );
 };

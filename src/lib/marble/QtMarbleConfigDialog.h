@@ -12,6 +12,7 @@
 #define MARBLE_QTMARBLECONFIGDIALOG_H
 
 #include <QDialog>
+#include <QLocale>
 
 #include "marble_export.h"
 #include "MarbleGlobal.h"
@@ -32,16 +33,19 @@ class MARBLE_EXPORT QtMarbleConfigDialog : public QDialog
     public:
     explicit QtMarbleConfigDialog(MarbleWidget *marbleWidget, CloudSyncManager *syncManager = 0,
                                    QWidget *parent = 0 );
-    ~QtMarbleConfigDialog() override;
+    ~QtMarbleConfigDialog();
 
     // View Settings
     
     MarbleLocale::MeasurementSystem measurementSystem() const;
     Marble::AngleUnit angleUnit() const;
-    void setAngleUnit(Marble::AngleUnit unit);
     Marble::MapQuality stillQuality() const;
     Marble::MapQuality animationQuality() const;
     QFont mapFont() const;
+
+    // View
+    Marble::GraphicsSystem graphicsSystem() const;
+
 
     // Navigation Settings
     int onStartup() const;
@@ -104,7 +108,7 @@ class MARBLE_EXPORT QtMarbleConfigDialog : public QDialog
 
     Q_SIGNALS:
     /**
-     * This signal is emitted when the loaded settings were changed.
+     * This signal is emitted when when the loaded settings were changed.
      * Either by the user or by loading them initially from disk.
      */
     void settingsChanged();

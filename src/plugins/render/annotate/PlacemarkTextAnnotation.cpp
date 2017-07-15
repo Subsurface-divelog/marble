@@ -16,14 +16,13 @@
 // Qt
 #include <QApplication>
 #include <QPalette>
+#include <QImage>
 #include <QDebug>
 
 // Marble
 #include "AbstractProjection.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataStyle.h"
-#include "GeoDataIconStyle.h"
-#include "GeoDataLabelStyle.h"
 #include "GeoPainter.h"
 #include "ViewportParams.h"
 #include "MarbleDirs.h"
@@ -39,11 +38,11 @@ PlacemarkTextAnnotation::PlacemarkTextAnnotation( GeoDataPlacemark *placemark ) 
     m_labelColor( QColor() )
 {
     if ( placemark->style()->iconStyle().iconPath().isNull() ) {
-        GeoDataStyle::Ptr newStyle(new GeoDataStyle( *placemark->style() ));
-        newStyle->iconStyle().setIconPath(MarbleDirs::path(QStringLiteral("bitmaps/redflag_22.png")));
+        GeoDataStyle *newStyle = new GeoDataStyle( *placemark->style() );
+        newStyle->iconStyle().setIcon( QImage() );
+        newStyle->iconStyle().setIconPath( MarbleDirs::path("bitmaps/redflag_22.png") );
         placemark->setStyle( newStyle );
     }
-    setPaintLayers(QStringList() << "PlacemarkTextAnnotation");
 }
 
 PlacemarkTextAnnotation::~PlacemarkTextAnnotation()
@@ -51,14 +50,12 @@ PlacemarkTextAnnotation::~PlacemarkTextAnnotation()
     // nothing to do
 }
 
-void PlacemarkTextAnnotation::paint(GeoPainter *painter, const ViewportParams *viewport, const QString &layer , int tileZoomLevel)
+void PlacemarkTextAnnotation::paint( GeoPainter *painter, const ViewportParams *viewport )
 {
-    Q_UNUSED(layer);
     Q_UNUSED( painter );
-    Q_UNUSED(tileZoomLevel);
     m_viewport = viewport;
 
-    GeoDataStyle::Ptr newStyle(new GeoDataStyle(*placemark()->style()));
+    GeoDataStyle *newStyle = new GeoDataStyle(*placemark()->style());
     GeoDataLabelStyle labelStyle = newStyle->labelStyle();
 
     if (labelStyle.color() != QApplication::palette().highlight().color())
@@ -136,9 +133,6 @@ bool PlacemarkTextAnnotation::mouseMoveEvent( QMouseEvent *event )
 
     if ( m_movingPlacemark ) {
         placemark()->setCoordinate( lon, lat );
-        return true;
-    } else {
-        setRequest( SceneGraphicsItem::ChangeCursorPlacemarkHover );
         return true;
     }
 

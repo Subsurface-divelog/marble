@@ -13,7 +13,10 @@
 #include "KmlParser.h"
 #include "KmlDocument.h"
 #include "MarbleDebug.h"
+
+#ifdef MARBLE_HAVE_QUAZIP
 #include "KmzHandler.h"
+#endif
 
 #include <QFile>
 #include <QFileInfo>
@@ -30,30 +33,33 @@ KmlRunner::~KmlRunner()
 {
 }
 
-GeoDataDocument *KmlRunner::parseFile(const QString &fileName, DocumentRole role, QString &error)
+void KmlRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
     QString kmlFileName = fileName;
     QString kmzPath;
     QStringList kmzFiles;
 
+#ifdef MARBLE_HAVE_QUAZIP
     QFileInfo const kmzFile( fileName );
-    if (kmzFile.exists() && kmzFile.suffix().toLower() == QLatin1String("kmz")) {
+    if ( kmzFile.exists() && kmzFile.suffix().toLower() == "kmz" ) {
         KmzHandler kmzHandler;
-        if ( kmzHandler.open( fileName, error ) ) {
+        if ( kmzHandler.open( fileName ) ) {
             kmlFileName = kmzHandler.kmlFile();
             kmzPath = kmzHandler.kmzPath();
             kmzFiles = kmzHandler.kmzFiles();
         } else {
-            mDebug() << error;
-            return nullptr;
+            qWarning() << "File " << fileName << " is not a valid .kmz file";
+            emit parsingFinished( 0 );
+            return;
         }
     }
+#endif
 
-    QFile file( kmlFileName );
+    QFile  file( kmlFileName );
     if ( !file.exists() ) {
-        error = QStringLiteral("File %1 does not exist").arg(kmlFileName);
-        mDebug() << error;
-        return nullptr;
+        qWarning() << "File" << kmlFileName << "does not exist!";
+        emit parsingFinished( 0 );
+        return;
     }
 
     // Open file in right mode
@@ -62,9 +68,8 @@ GeoDataDocument *KmlRunner::parseFile(const QString &fileName, DocumentRole role
     KmlParser parser;
 
     if ( !parser.read( &file ) ) {
-        error = parser.errorString();
-        mDebug() << error;
-        return nullptr;
+        emit parsingFinished( 0, parser.errorString() );
+        return;
     }
     GeoDocument* document = parser.releaseDocument();
     Q_ASSERT( document );
@@ -75,9 +80,9 @@ GeoDataDocument *KmlRunner::parseFile(const QString &fileName, DocumentRole role
     doc->setFiles( kmzPath, kmzFiles );
 
     file.close();
-    return doc;
+    emit parsingFinished( doc );
 }
 
 }
 
-#include "moc_KmlRunner.cpp"
+#include "KmlRunner.moc"

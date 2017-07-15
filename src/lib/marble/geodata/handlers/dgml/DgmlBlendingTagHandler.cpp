@@ -18,7 +18,7 @@
 #include "DgmlAttributeDictionary.h"
 #include "DgmlElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoSceneTileDataset.h"
+#include "GeoSceneTiled.h"
 #include "MarbleDebug.h"
 
 namespace Marble
@@ -32,7 +32,7 @@ static GeoTagHandlerRegistrar registrar( GeoParser::QualifiedName( dgmlTag_Blend
 GeoNode* DgmlBlendingTagHandler::parse( GeoParser& parser ) const
 {
     // Check whether the tag is valid
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(dgmlTag_Blending)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( dgmlTag_Blending ));
 
     // Checking for parent item
     GeoStackItem parentItem = parser.parentElement();
@@ -42,7 +42,7 @@ GeoNode* DgmlBlendingTagHandler::parse( GeoParser& parser ) const
     // Attribute name, default to ""
     const QString name = parser.attribute( dgmlAttr_name ).trimmed();
     mDebug() << "DgmlBlendingTagHandler::parse" << name;
-    parentItem.nodeAs<GeoSceneTileDataset>()->setBlending( name );
+    parentItem.nodeAs<GeoSceneTiled>()->setBlending( name );
     return 0;
 }
 

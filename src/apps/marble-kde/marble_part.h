@@ -14,22 +14,28 @@
 #ifndef MARBLE_MARBLEPART_H
 #define MARBLE_MARBLEPART_H
 
-#include <kparts/readonlypart.h>
+#include <kparts/part.h>
 #include <QHash>
+#include <QDateTime>
+#include <kmenu.h>
+#include <kurl.h>
 #include "MarbleGlobal.h"
+#include "cloudsync/CloudSyncManager.h"
 #include <krecentfilesaction.h>
-#include <QDomNode>
+#include <KDE/KWallet/Wallet>
 
 #include "ui_MarbleCloudSyncSettingsWidget.h"
 
 class KAboutData;
-class QAction;
+class KAction;
 class KToggleAction;
 class KConfigDialog;
 class KToolBar;
 
 class QLabel;
+class QPrinter;
 class QProgressBar;
+class QStandardItemModel;
 
 namespace KParts
 {
@@ -42,6 +48,7 @@ namespace Marble
 class MovieCaptureDialog;
 class ControlView;
 class DownloadRegionDialog;
+class RoutingProfilesWidget;
 class SunControlWidget;
 class TimeControlWidget;
 class GeoDataFolder;
@@ -52,7 +59,7 @@ class MarblePart: public KParts::ReadOnlyPart
 
   public:
     MarblePart( QWidget *parentWidget, QObject *parent, const QVariantList& );
-    ~MarblePart() override;
+    virtual ~MarblePart();
 
     ControlView *controlView() const;
 
@@ -66,8 +73,8 @@ class MarblePart: public KParts::ReadOnlyPart
     void initializeCustomTimezone();
 
   public Q_SLOTS:
-    bool  openUrl( const QUrl &url ) override;
-    bool  openFile() override;
+    bool  openUrl( const KUrl &url );
+    bool  openFile();
     void  showPosition( const QString& position);
     void  showZoomLevel( const int );
     void  showDateTime();
@@ -194,44 +201,44 @@ class MarblePart: public KParts::ReadOnlyPart
 
   private:
     // All the functionality is provided by this widget.
-    ControlView       *m_controlView;
+    ControlView       *m_controlView; // MarbleControlBox and MarbleWidget
     SunControlWidget  *m_sunControlDialog;
     TimeControlWidget *m_timeControlDialog;
     DownloadRegionDialog *m_downloadRegionDialog;
     MovieCaptureDialog *m_movieCaptureDialog;
 
     // Actions for the GUI.
-    QAction      *m_exportMapAction;
-    QAction      *m_printMapAction;
-    QAction      *m_printPreviewAction;
-    QAction      *m_workOfflineAction;
-    QAction      *m_copyMapAction;
-    QAction      *m_copyCoordinatesAction;
-    QAction      *m_showCloudsAction;
-    QAction      *m_fullScreenAct;
-    QAction      *m_openAct;
-    QAction      *m_newStuffAction;
-    QAction      *m_downloadRegionAction;
-    QAction      *m_controlSunAction;
-    QAction      *m_controlTimeAction;
-    QAction      *m_lockFloatItemsAct;
-    QAction      *m_mapWizardAct;
-    QAction      *m_externalMapEditorAction;
-    QAction      *m_recordMovieAction;
-    QAction      *m_stopRecordingAction;
+    KAction      *m_exportMapAction;
+    KAction      *m_printMapAction;
+    KAction      *m_printPreviewAction;
+    KAction      *m_workOfflineAction;
+    KAction      *m_copyMapAction;
+    KAction      *m_copyCoordinatesAction;
+    KAction      *m_showCloudsAction;
+    KAction      *m_fullScreenAct;
+    KAction      *m_openAct;
+    KAction      *m_newStuffAction;
+    KAction      *m_downloadRegionAction;
+    KAction      *m_controlSunAction;
+    KAction      *m_controlTimeAction;
+    KAction      *m_lockFloatItemsAct;
+    KAction      *m_mapWizardAct;
+    KAction      *m_externalMapEditorAction;
+    KAction      *m_recordMovieAction;
+    KAction      *m_stopRecordingAction;
     KRecentFilesAction *m_recentFilesAction;
 
     //Bookmark Menu
-    QAction *m_addBookmarkAction;
-    QAction *m_toggleBookmarkDisplayAction;
-    QAction *m_setHomeAction;
-    QAction *m_manageBookmarksAction;
+    KAction *m_addBookmarkAction;
+    KAction *m_toggleBookmarkDisplayAction;
+    KAction *m_setHomeAction;
+    KAction *m_manageBookmarksAction;
     // Actions for the status bar
-    QAction      *m_showPositionAction;
-    QAction      *m_showDateTimeAction;
-    QAction      *m_showAltitudeAction;
-    QAction      *m_showTileZoomLevelAction;
-    QAction      *m_showDownloadProgressAction;
+    KAction      *m_showPositionAction;
+    KAction      *m_showDateTimeAction;
+    KAction      *m_showAltitudeAction;
+    KAction      *m_showTileZoomLevelAction;
+    KAction      *m_showDownloadProgressAction;
 
     // Action for the tool bar
     KToggleAction *m_showShadow;
@@ -242,10 +249,12 @@ class MarblePart: public KParts::ReadOnlyPart
 
     QHash<QString, int> m_pluginEnabled;
 
+    KWallet::Wallet *m_wallet;
+
     QString m_position;
     QString m_clock;
     QString m_tileZoomLevel;
-    QString m_lastFileOpenPath;
+    KUrl m_lastFileOpenPath;
 
     // Items for the statusbar.
     QLabel       *m_positionLabel;
@@ -255,6 +264,10 @@ class MarblePart: public KParts::ReadOnlyPart
     QProgressBar *m_downloadProgressBar;
 
     KParts::StatusBarExtension *m_statusBarExtension;
+
+    // Information about the graphics system
+    GraphicsSystem m_initialGraphicsSystem;
+    GraphicsSystem m_previousGraphicsSystem;
 
     QHash< int, int > m_timezone;
     QMap<int, QString> m_externalEditorMapping;

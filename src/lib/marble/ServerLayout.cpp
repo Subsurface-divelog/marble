@@ -11,19 +11,20 @@
 // Own
 #include "ServerLayout.h"
 
-#include "GeoSceneTileDataset.h"
-#include "GeoDataLatLonBox.h"
+#include "GeoSceneTiled.h"
 #include "MarbleGlobal.h"
 #include "TileId.h"
 
+#if QT_VERSION >= 0x050000
 #include <QUrlQuery>
+#endif
 
-#include <cmath>
+#include <math.h>
 
 namespace Marble
 {
 
-ServerLayout::ServerLayout( GeoSceneTileDataset *textureLayer )
+ServerLayout::ServerLayout( GeoSceneTiled *textureLayer )
     : m_textureLayer( textureLayer )
 {
 }
@@ -32,18 +33,19 @@ ServerLayout::~ServerLayout()
 {
 }
 
-MarbleServerLayout::MarbleServerLayout( GeoSceneTileDataset *textureLayer )
+MarbleServerLayout::MarbleServerLayout( GeoSceneTiled *textureLayer )
     : ServerLayout( textureLayer )
 {
 }
 
 QUrl MarbleServerLayout::downloadUrl( const QUrl &prototypeUrl, const TileId &id ) const
 {
-    const QString path = QString( "%1/%2/%3/%3_%4.%5" )
+    const QString path = QString( "%1maps/%2/%3/%4/%4_%5.%6" )
         .arg( prototypeUrl.path() )
+        .arg( m_textureLayer->sourceDir() )
         .arg( id.zoomLevel() )
-        .arg(id.y(), tileDigits, 10, QLatin1Char('0'))
-        .arg(id.x(), tileDigits, 10, QLatin1Char('0'))
+        .arg( id.y(), tileDigits, 10, QChar('0') )
+        .arg( id.x(), tileDigits, 10, QChar('0') )
         .arg( m_textureLayer->fileFormat().toLower() );
 
     QUrl url = prototypeUrl;
@@ -57,13 +59,8 @@ QString MarbleServerLayout::name() const
     return "Marble";
 }
 
-QString ServerLayout::sourceDir() const
-{
-    return m_textureLayer ? m_textureLayer->sourceDir() : QString();
-}
 
-
-OsmServerLayout::OsmServerLayout( GeoSceneTileDataset *textureLayer )
+OsmServerLayout::OsmServerLayout( GeoSceneTiled *textureLayer )
     : ServerLayout( textureLayer )
 {
 }
@@ -88,24 +85,22 @@ QString OsmServerLayout::name() const
 }
 
 
-CustomServerLayout::CustomServerLayout( GeoSceneTileDataset *texture )
+CustomServerLayout::CustomServerLayout( GeoSceneTiled *texture )
     : ServerLayout( texture )
 {
 }
 
 QUrl CustomServerLayout::downloadUrl( const QUrl &prototypeUrl, const TileId &id ) const
 {
-    const GeoDataLatLonBox bbox = m_textureLayer->tileProjection()->geoCoordinates(id);
-
+#if QT_VERSION < 0x050000
+    QString urlStr = prototypeUrl.toString();
+#else
     QString urlStr = prototypeUrl.toString( QUrl::DecodeReserved );
+#endif
 
     urlStr.replace( "{zoomLevel}", QString::number( id.zoomLevel() ) );
     urlStr.replace( "{x}", QString::number( id.x() ) );
     urlStr.replace( "{y}", QString::number( id.y() ) );
-    urlStr.replace( "{west}", QString::number( bbox.west( GeoDataCoordinates::Degree ), 'f', 12 ) );
-    urlStr.replace( "{south}", QString::number( bbox.south( GeoDataCoordinates::Degree ), 'f', 12 ) );
-    urlStr.replace( "{east}", QString::number( bbox.east( GeoDataCoordinates::Degree ), 'f', 12 ) );
-    urlStr.replace( "{north}", QString::number( bbox.north( GeoDataCoordinates::Degree ), 'f', 12 ) );
 
     return QUrl( urlStr );
 }
@@ -116,26 +111,30 @@ QString CustomServerLayout::name() const
 }
 
 
-WmsServerLayout::WmsServerLayout( GeoSceneTileDataset *texture )
+WmsServerLayout::WmsServerLayout( GeoSceneTiled *texture )
     : ServerLayout( texture )
 {
 }
 
 QUrl WmsServerLayout::downloadUrl( const QUrl &prototypeUrl, const Marble::TileId &tileId ) const
 {
-    const GeoDataLatLonBox box = m_textureLayer->tileProjection()->geoCoordinates(tileId);
+    GeoDataLatLonBox box = tileId.toLatLonBox( m_textureLayer );
 
+#if QT_VERSION < 0x050000
+    QUrl url = prototypeUrl;
+#else
     QUrlQuery url(prototypeUrl.query());
+#endif
     url.addQueryItem( "service", "WMS" );
     url.addQueryItem( "request", "GetMap" );
     url.addQueryItem( "version", "1.1.1" );
     if ( !url.hasQueryItem( "styles" ) )
         url.addQueryItem( "styles", "" );
     if ( !url.hasQueryItem( "format" ) ) {
-        if (m_textureLayer->fileFormat().toLower() == QLatin1String("jpg"))
+        if ( m_textureLayer->fileFormat().toLower() == "jpg" )
             url.addQueryItem( "format", "image/jpeg" );
         else
-            url.addQueryItem("format", QLatin1String("image/") + m_textureLayer->fileFormat().toLower());
+            url.addQueryItem( "format", "image/" + m_textureLayer->fileFormat().toLower() );
     }
     if ( !url.hasQueryItem( "srs" ) ) {
         url.addQueryItem( "srs", epsgCode() );
@@ -144,13 +143,17 @@ QUrl WmsServerLayout::downloadUrl( const QUrl &prototypeUrl, const Marble::TileI
         url.addQueryItem( "layers", m_textureLayer->name() );
     url.addQueryItem( "width", QString::number( m_textureLayer->tileSize().width() ) );
     url.addQueryItem( "height", QString::number( m_textureLayer->tileSize().height() ) );
-    url.addQueryItem( "bbox", QString( "%1,%2,%3,%4" ).arg( QString::number( box.west( GeoDataCoordinates::Degree ), 'f', 12 ),
-                                                            QString::number( box.south( GeoDataCoordinates::Degree ), 'f', 12 ),
-                                                            QString::number( box.east( GeoDataCoordinates::Degree ), 'f', 12 ),
-                                                            QString::number( box.north( GeoDataCoordinates::Degree ), 'f', 12 ) ) );
+    url.addQueryItem( "bbox", QString( "%1,%2,%3,%4" ).arg( QString::number( box.west( GeoDataCoordinates::Degree ), 'f', 12 ) )
+                                                      .arg( QString::number( box.south( GeoDataCoordinates::Degree ), 'f', 12 ) )
+                                                      .arg( QString::number( box.east( GeoDataCoordinates::Degree ), 'f', 12 ) )
+                                                      .arg( QString::number( box.north( GeoDataCoordinates::Degree ), 'f', 12 ) ) );
+#if QT_VERSION < 0x050000
+    return url;
+#else
     QUrl finalUrl = prototypeUrl;
     finalUrl.setQuery(url);
     return finalUrl;
+#endif
 }
 
 QString WmsServerLayout::name() const
@@ -160,10 +163,10 @@ QString WmsServerLayout::name() const
 
 QString WmsServerLayout::epsgCode() const
 {
-    switch (m_textureLayer->tileProjectionType()) {
-        case GeoSceneAbstractTileProjection::Equirectangular:
+    switch ( m_textureLayer->projection() ) {
+        case GeoSceneTiled::Equirectangular:
             return "EPSG:4326";
-        case GeoSceneAbstractTileProjection::Mercator:
+        case GeoSceneTiled::Mercator:
             return "EPSG:3785";
     }
 
@@ -171,14 +174,18 @@ QString WmsServerLayout::epsgCode() const
     return QString();
 }
 
-QuadTreeServerLayout::QuadTreeServerLayout( GeoSceneTileDataset *textureLayer )
+QuadTreeServerLayout::QuadTreeServerLayout( GeoSceneTiled *textureLayer )
     : ServerLayout( textureLayer )
 {
 }
 
 QUrl QuadTreeServerLayout::downloadUrl( const QUrl &prototypeUrl, const Marble::TileId &id ) const
 {
+#if QT_VERSION < 0x050000
+    QString urlStr = prototypeUrl.toString();
+#else
     QString urlStr = prototypeUrl.toString( QUrl::DecodeReserved );
+#endif
 
     urlStr.replace( "{quadIndex}", encodeQuadTree( id ) );
 
@@ -205,7 +212,7 @@ QString QuadTreeServerLayout::encodeQuadTree( const Marble::TileId &id )
     return tileNum;
 }
 
-TmsServerLayout::TmsServerLayout(GeoSceneTileDataset *textureLayer )
+TmsServerLayout::TmsServerLayout(GeoSceneTiled *textureLayer )
     : ServerLayout( textureLayer )
 {
 }

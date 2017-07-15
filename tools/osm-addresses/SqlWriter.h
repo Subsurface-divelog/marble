@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef SQLWRITER_H
@@ -13,8 +13,8 @@
 
 #include "Writer.h"
 
+#include <QMap>
 #include <QPair>
-#include <QHash>
 #include <QSqlQuery>
 
 namespace Marble
@@ -25,11 +25,11 @@ class SqlWriter : public Writer
 public:
     explicit SqlWriter( const QString &filename, QObject* parent = 0 );
 
-    ~SqlWriter() override;
+    ~SqlWriter();
 
-    void addOsmRegion( const OsmRegion &region ) override;
+    void addOsmRegion( const OsmRegion &region );
 
-    void addOsmPlacemark( const OsmPlacemark &placemark ) override;
+    void addOsmPlacemark( const OsmPlacemark &placemark );
 
     void saveDatabase( const QString &filename ) const;
 

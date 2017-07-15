@@ -15,18 +15,19 @@
 #include <QObject>
 
 // Marble
-#include <marble/GeoDataCoordinates.h>
+#include <marble_export.h>
+#include <GeoDataCoordinates.h>
 
 namespace Marble
 {
 class CountryByShapePrivate;
 class MarbleWidget;
 
-class CountryByShape : public QObject
+class MARBLE_EXPORT CountryByShape : public QObject
 {
     Q_OBJECT
 public:
-    explicit CountryByShape( MarbleWidget *widget );
+    CountryByShape( MarbleWidget *widget );
     ~CountryByShape();
 
 Q_SIGNALS:

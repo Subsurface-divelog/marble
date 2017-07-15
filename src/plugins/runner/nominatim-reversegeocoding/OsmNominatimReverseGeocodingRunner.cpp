@@ -5,22 +5,23 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "OsmNominatimReverseGeocodingRunner.h"
 
 #include "MarbleDebug.h"
 #include "MarbleLocale.h"
+#include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
-#include "HttpDownloadManager.h"
-#include "osm/OsmPlacemarkData.h"
+#include "TinyWebBrowser.h"
 
 #include <QString>
+#include <QVector>
 #include <QUrl>
 #include <QTimer>
+#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QDomDocument>
 
@@ -57,7 +58,7 @@ void OsmNominatimRunner::reverseGeocoding( const GeoDataCoordinates &coordinates
     QString url = QString( base + query ).arg( lon ).arg( lat ).arg( MarbleLocale::languageCode() );
 
     m_request.setUrl(QUrl(url));
-    m_request.setRawHeader("User-Agent", HttpDownloadManager::userAgent("Browser", "OsmNominatimRunner") );
+    m_request.setRawHeader("User-Agent", TinyWebBrowser::userAgent("Browser", "OsmNominatimRunner") );
 
     QEventLoop eventLoop;
 
@@ -99,16 +100,26 @@ void OsmNominatimRunner::handleResult( QNetworkReply* reply )
     }
 
     QDomElement root = xml.documentElement();
-    QDomNodeList places = root.elementsByTagName(QStringLiteral("result"));
+    QDomNodeList places = root.elementsByTagName( "result" );
     if ( places.size() == 1 ) {
         QString address = places.item( 0 ).toElement().text();
         GeoDataPlacemark placemark;
-        placemark.setVisualCategory(GeoDataPlacemark::Coordinate);
         placemark.setAddress( address );
         placemark.setCoordinate( m_coordinates );
 
-        QDomNode details = root.firstChildElement(QStringLiteral("addressparts"));
-        extractChildren( details, placemark );
+        QDomNodeList details = root.elementsByTagName( "addressparts" );
+        if ( details.size() == 1 ) {
+            GeoDataExtendedData extendedData;
+            addData( details, "road", &extendedData );
+            addData( details, "house_number", &extendedData );
+            addData( details, "village", &extendedData );
+            addData( details, "city", &extendedData );
+            addData( details, "county", &extendedData );
+            addData( details, "state", &extendedData );
+            addData( details, "postcode", &extendedData );
+            addData( details, "country", &extendedData );
+            placemark.setExtendedData( extendedData );
+        }
 
         emit reverseGeocodingFinished( m_coordinates, placemark );
     } else {
@@ -116,37 +127,15 @@ void OsmNominatimRunner::handleResult( QNetworkReply* reply )
     }
 }
 
-void OsmNominatimRunner::extractChildren(const QDomNode &node, GeoDataPlacemark &placemark)
+void OsmNominatimRunner::addData( const QDomNodeList &node, const QString &key, GeoDataExtendedData *extendedData )
 {
-    QMap<QString, QString> tagTranslator;
-    tagTranslator["house_number"] = "addr:housenumber";
-    tagTranslator["road"] = "addr:street";
-    tagTranslator["suburb"] = "addr:suburb";
-    tagTranslator["city"] = "addr:city";
-    tagTranslator["state_district"] = "addr:district";
-    tagTranslator["state"] = "addr:state";
-    tagTranslator["postcode"] = "addr:postcode";
-    tagTranslator["country_code"] = "addr:country"; // correct mapping
-    // @todo Find a proper mapping for those
-    //tagTranslator["village"] = "";
-    //tagTranslator["town"] = "";
-
-    GeoDataExtendedData data;
-    OsmPlacemarkData osmData;
-    QDomNodeList nodes = node.childNodes();
-    for (int i=0, n=nodes.length(); i<n; ++i) {
-        QDomNode child = nodes.item(i);
-        data.addValue( GeoDataData( child.nodeName(), child.toElement().text() ) );
-
-        if (tagTranslator.contains(child.nodeName())) {
-            QString const key = tagTranslator[child.nodeName()];
-            osmData.addTag(key, child.toElement().text());
-        }
+    QDomNodeList child = node.item( 0 ).toElement().elementsByTagName( key );
+    if ( child.size() > 0 ) {
+        QString text = child.item( 0 ).toElement().text();
+        extendedData->addValue( GeoDataData( key, text ) );
     }
-    placemark.setExtendedData(data);
-    placemark.setOsmData(osmData);
 }
 
 } // namespace Marble
 
-#include "moc_OsmNominatimReverseGeocodingRunner.cpp"
+#include "OsmNominatimReverseGeocodingRunner.moc"

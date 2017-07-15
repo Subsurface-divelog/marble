@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 
@@ -15,15 +15,15 @@
 #include "SearchRunner.h"
 
 #include <QString>
+#include <QHostInfo>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 
 class QNetworkReply;
-class QDomNode;
+class QDomNodeList;
 
 namespace Marble
 {
-class GeoDataExtendedData;
 
 class OsmNominatimRunner : public SearchRunner
 {
@@ -31,9 +31,9 @@ class OsmNominatimRunner : public SearchRunner
 public:
     explicit OsmNominatimRunner(QObject *parent = 0);
 
-    ~OsmNominatimRunner() override;
+    ~OsmNominatimRunner();
 
-    void search( const QString &searchTerm, const GeoDataLatLonBox &preferred ) override;
+    void search( const QString &searchTerm, const GeoDataLatLonBox &preferred );
 
 private Q_SLOTS:
     // Forward a result to the search or reverse geocoding handler
@@ -45,9 +45,8 @@ private Q_SLOTS:
     void startSearch();
 
 private:
-    static GeoDataExtendedData extractChildren(const QDomNode &node);
-
     QNetworkAccessManager m_manager;
+
     QNetworkRequest m_request;
 };
 

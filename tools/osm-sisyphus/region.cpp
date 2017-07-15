@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "region.h"
@@ -32,17 +32,17 @@ QString Region::country() const
     return m_country;
 }
 
-void Region::setName(const QString& arg)
+void Region::setName(QString arg)
 {
     m_name = arg;
 }
 
-void Region::setContinent(const QString& arg)
+void Region::setContinent(QString arg)
 {
     m_continent = arg;
 }
 
-void Region::setCountry(const QString& arg)
+void Region::setCountry(QString arg)
 {
     m_country = arg;
 }

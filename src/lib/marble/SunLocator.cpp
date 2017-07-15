@@ -24,8 +24,6 @@
 
 #include "src/lib/astro/solarsystem.h"
 
-#include <QDateTime>
-
 #include <cmath>
 // M_PI is sometimes defined in <cmath>
 #ifndef M_PI 
@@ -36,6 +34,9 @@ namespace Marble
 {
 
 using std::sin;
+using std::cos;
+using std::asin;
+using std::abs;
 
 class SunLocatorPrivate
 {
@@ -43,7 +44,6 @@ public:
     SunLocatorPrivate( const MarbleClock *clock, const Planet *planet )
         : m_lon( 0.0 ),
           m_lat( 0.0 ),
-          m_twilightZone( 0.0 ),
           m_clock( clock ),
           m_planet( planet )
     {
@@ -51,8 +51,6 @@ public:
 
     qreal m_lon;
     qreal m_lat;
-
-    qreal m_twilightZone;
 
     const MarbleClock *const m_clock;
     const Planet *m_planet;
@@ -63,7 +61,6 @@ SunLocator::SunLocator( const MarbleClock *clock, const Planet *planet )
   : QObject(),
     d( new SunLocatorPrivate( clock, planet ))
 {
-    updateTwilightZone();
 }
 
 SunLocator::~SunLocator()
@@ -83,7 +80,7 @@ void SunLocator::updatePosition()
                 dateTime.time().hour(), dateTime.time().minute(),
                 (double)dateTime.time().second());
     QString const pname = planetId.at(0).toUpper() + planetId.right(planetId.size() - 1);
-    QByteArray name = pname.toLatin1();
+    QByteArray const name = pname.toLatin1();
     sys.setCentralBody( name.data() );
 
     double ra = 0.0;
@@ -97,21 +94,6 @@ void SunLocator::updatePosition()
 #endif
 }
 
-void SunLocator::updateTwilightZone()
-{
-    const QString planetId = d->m_planet->id();
-
-    if (planetId == QLatin1String("earth") || planetId == QLatin1String("venus")) {
-        d->m_twilightZone = 0.1; // this equals 18 deg astronomical twilight.
-    }
-    else if (planetId == QLatin1String("mars")) {
-        d->m_twilightZone = 0.05;
-    }
-    else {
-        d->m_twilightZone = 0.0;
-    }
-
-}
 
 qreal SunLocator::shading(qreal lon, qreal a, qreal c) const
 {
@@ -128,13 +110,23 @@ qreal SunLocator::shading(qreal lon, qreal a, qreal c) const
       theta = 2*asin(sqrt(h))
     */
 
+    qreal twilightZone = 0.0;
+
+    QString planetId = d->m_planet->id();
+    if ( planetId == "earth" || planetId == "venus") {
+        twilightZone = 0.1; // this equals 18 deg astronomical twilight.
+    }
+    else if ( planetId == "mars" ) {
+        twilightZone = 0.05;
+    }
+
     qreal brightness;
-    if ( h <= 0.5 - d->m_twilightZone / 2.0 )
+    if ( h <= 0.5 - twilightZone / 2.0 )
         brightness = 1.0;
-    else if ( h >= 0.5 + d->m_twilightZone / 2.0 )
+    else if ( h >= 0.5 + twilightZone / 2.0 )
         brightness = 0.0;
     else
-        brightness = ( 0.5 + d->m_twilightZone/2.0 - h ) / d->m_twilightZone;
+        brightness = ( 0.5 + twilightZone/2.0 - h ) / twilightZone;
 
     return brightness;
 }
@@ -210,7 +202,6 @@ void SunLocator::setPlanet( const Planet *planet )
 
     mDebug() << "SunLocator::setPlanet(Planet*)";
     d->m_planet = planet;
-    updateTwilightZone();
     updatePosition();
 
     // Initially there might be no planet set.
@@ -233,4 +224,4 @@ qreal SunLocator::getLat() const
 
 }
 
-#include "moc_SunLocator.cpp"
+#include "SunLocator.moc"

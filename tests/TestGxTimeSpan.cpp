@@ -12,10 +12,9 @@
 
 #include <GeoDataDocument.h>
 #include <GeoDataTimeSpan.h>
-#include <GeoDataTimeStamp.h>
 #include <MarbleDebug.h>
+#include <GeoDataFolder.h>
 #include "TestUtils.h"
-#include <GeoDataLookAt.h>
 #include <GeoDataCamera.h>
 #include <GeoDataPlacemark.h>
 
@@ -24,7 +23,7 @@ using namespace Marble;
 class TestGxTimeSpan : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void simpleParseTest();
 };

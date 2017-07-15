@@ -10,8 +10,6 @@
 
 #include "SoundTrack.h"
 
-#include "PlaybackSoundCueItem.h"
-
 namespace Marble
 {
 
@@ -21,7 +19,7 @@ SoundTrack::SoundTrack( PlaybackSoundCueItem* item )
     m_progress = 0;
     m_delayBeforeTrackStarts = 0;
     m_paused = true;
-    connect( &m_timer, SIGNAL(timeout()), this, SLOT(playSlot()) );
+    connect( &m_timer, SIGNAL( timeout() ), this, SLOT( playSlot() ) );
 }
 
 void SoundTrack::setDelayBeforeTrackStarts( double delay )
@@ -106,4 +104,4 @@ void SoundTrack::setPaused( bool pause )
 
 }
 
-#include "moc_SoundTrack.cpp"
+#include "SoundTrack.moc"

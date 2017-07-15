@@ -13,6 +13,9 @@
 
 #include <QWidget>
 #include <QFileDialog>
+#include <QLineEdit>
+#include <QLabel>
+#include <QComboBox>
 #include "MarbleDebug.h"
 
 #include "MarbleGlobal.h"
@@ -25,7 +28,7 @@ class PlacemarkEditHeaderPrivate : public Ui::PlacemarkEditHeaderPrivate
 {
 
 public:
-    explicit PlacemarkEditHeaderPrivate(PlacemarkEditHeader *_q);
+    PlacemarkEditHeaderPrivate(PlacemarkEditHeader *_q);
     ~PlacemarkEditHeaderPrivate();
     void init(QWidget* parent);
     void setNotation(GeoDataCoordinates::Notation notation);
@@ -116,7 +119,7 @@ void PlacemarkEditHeaderPrivate::setIconLink(const QString &iconLink)
     if( !pixmap.isNull() ) {
         QIcon icon(pixmap);
         m_iconLink->setText(iconLink);
-        iconLinkButton->setText(QString());
+        iconLinkButton->setText( "" );
         iconLinkButton->setIcon( icon );
     }
 }
@@ -153,7 +156,7 @@ QString PlacemarkEditHeaderPrivate::id() const
 
 QString PlacemarkEditHeaderPrivate::setId( const QString &id, bool isNew )
 {
-    QString newId = id.toLower().replace(QLatin1Char(' '), QLatin1Char('_'));
+    QString newId = id.toLower().replace( ' ', '_' );
     if( newId == m_idString && !isNew ) {
         return newId;
     }
@@ -166,7 +169,7 @@ QString PlacemarkEditHeaderPrivate::setId( const QString &id, bool isNew )
         m_idValid = true;
         if ( m_idFilter.contains( newId ) ) {
             QStringList filter;
-            for ( const QString &filterString : m_idFilter ) {
+            foreach ( QString filterString , m_idFilter ) {
                 if( filterString.startsWith( newId ) ) {
                     filter.append( filterString );
                 }
@@ -303,10 +306,7 @@ void PlacemarkEditHeaderPrivate::selectAll()
 using namespace Marble;
 
 PlacemarkEditHeader::PlacemarkEditHeader(QWidget *parent, GeoDataCoordinates::Notation notation,
-                                         const QString& name,
-                                         const QString& iconLink,
-                                         const QString& id,
-                                         const QStringList &idFilter)
+                                         QString name, QString iconLink, QString id, const QStringList &idFilter)
     : QWidget( parent ), d(new PlacemarkEditHeaderPrivate(this))
 {
     d->init(this);
@@ -482,4 +482,4 @@ void PlacemarkEditHeader::updateValues()
 
 
 
-#include "moc_PlacemarkEditHeader.cpp"
+#include "PlacemarkEditHeader.moc"

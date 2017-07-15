@@ -19,6 +19,7 @@
 #include "SoundCueEditWidget.h"
 #include "MarbleWidget.h"
 #include "geodata/data/GeoDataSoundCue.h"
+#include "GeoDataTypes.h"
 #include "MarblePlacemarkModel.h"
 
 namespace Marble {
@@ -34,18 +35,18 @@ SoundCueEditWidget::SoundCueEditWidget( const QModelIndex &index, QWidget *paren
     layout->setSpacing( 5 );
 
     QLabel* iconLabel = new QLabel;
-    iconLabel->setPixmap(QPixmap(QStringLiteral(":/marble/playback-play.png")));
+    iconLabel->setPixmap( QPixmap( ":/marble/playback-play.png" ) );
     layout->addWidget( iconLabel );
 
     m_lineEdit->setPlaceholderText( "Audio location" );
     m_lineEdit->setText( soundCueElement()->href() );
     layout->addWidget( m_lineEdit );
 
-    m_button2->setIcon(QIcon(QStringLiteral(":/marble/document-open.png")));
+    m_button2->setIcon( QIcon( ":/marble/document-open.png" ) );
     connect(m_button2, SIGNAL(clicked()), this, SLOT(open()));
     layout->addWidget( m_button2 );
 
-    m_button->setIcon(QIcon(QStringLiteral(":/marble/document-save.png")));
+    m_button->setIcon( QIcon( ":/marble/document-save.png" ) );
     connect(m_button, SIGNAL(clicked()), this, SLOT(save()));
     layout->addWidget( m_button );
 
@@ -78,11 +79,10 @@ GeoDataSoundCue* SoundCueEditWidget::soundCueElement()
 {
     GeoDataObject *object = qvariant_cast<GeoDataObject*>(m_index.data( MarblePlacemarkModel::ObjectPointerRole ) );
     Q_ASSERT( object );
-    auto soundCue = geodata_cast<GeoDataSoundCue>(object);
-    Q_ASSERT(soundCue);
-    return soundCue;
+    Q_ASSERT( object->nodeType() == GeoDataTypes::GeoDataSoundCueType );
+    return static_cast<GeoDataSoundCue*>( object );
 }
 
 } // namespace Marble
 
-#include "moc_SoundCueEditWidget.cpp"
+#include "SoundCueEditWidget.moc"

@@ -49,11 +49,11 @@ class GEODATA_EXPORT GeoSceneDocument : public QObject,
 
  public:
     GeoSceneDocument();
-    ~GeoSceneDocument() override;
+    ~GeoSceneDocument();
     
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
-    bool isGeoSceneDocument() const override { return true; }
+    virtual bool isGeoSceneDocument() const { return true; }
 
     const GeoSceneHead* head() const;
     GeoSceneHead* head();
@@ -68,7 +68,7 @@ class GEODATA_EXPORT GeoSceneDocument : public QObject,
     GeoSceneLegend* legend();
 
  Q_SIGNALS:
-    void valueChanged( const QString&, bool );
+    void valueChanged( QString, bool );
 
  private:
     Q_DISABLE_COPY( GeoSceneDocument )

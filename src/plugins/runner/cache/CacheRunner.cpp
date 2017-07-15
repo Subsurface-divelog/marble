@@ -11,13 +11,10 @@
 
 #include "GeoDataDocument.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
 #include "GeoDataPlacemark.h"
-#include "MarbleDebug.h"
 
 #include <QFile>
 #include <QDataStream>
-#include <QSet>
 
 namespace Marble
 {
@@ -33,13 +30,13 @@ CacheRunner::~CacheRunner()
 {
 }
 
-GeoDataDocument* CacheRunner::parseFile( const QString &fileName, DocumentRole role, QString& error )
+void CacheRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
     QFile file( fileName );
     if ( !file.exists() ) {
-        error = QStringLiteral("File %1 does not exist").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+        qWarning( "File does not exist!" );
+        emit parsingFinished( 0 );
+        return;
     }
 
     file.open( QIODevice::ReadOnly );
@@ -49,16 +46,17 @@ GeoDataDocument* CacheRunner::parseFile( const QString &fileName, DocumentRole r
     quint32 magic;
     in >> magic;
     if ( magic != MarbleMagicNumber ) {
-        return nullptr;
+        emit parsingFinished( 0 );
+        return;
     }
 
     // Read the version
     qint32 version;
     in >> version;
     if ( version < 015 ) {
-        error = QStringLiteral("Bad cache file %1: Version %2 is too old, need 15 or later").arg(fileName).arg(version);
-        mDebug() << error;
-        return nullptr;
+        qDebug( "Bad Cache file - too old!" );
+        emit parsingFinished( 0 );
+        return;
     }
     /*
       if (version > 002) {
@@ -83,42 +81,37 @@ GeoDataDocument* CacheRunner::parseFile( const QString &fileName, DocumentRole r
     qint8    tmpint8;
     qint16   tmpint16;
 
-    // share string data on the heap at least for this file
-    QSet<QString> stringPool;
-    const QString gmtId = QStringLiteral("gmt");
-    const QString dstId = QStringLiteral("dst");
-
     while ( !in.atEnd() ) {
         GeoDataPlacemark *mark = new GeoDataPlacemark;
-        in >> tmpstr; tmpstr = *stringPool.insert(tmpstr);
+        in >> tmpstr;
         mark->setName( tmpstr );
         in >> lon >> lat >> alt;
         mark->setCoordinate( (qreal)(lon), (qreal)(lat), (qreal)(alt) );
-        in >> tmpstr; tmpstr = *stringPool.insert(tmpstr);
+        in >> tmpstr;
         mark->setRole( tmpstr );
-        in >> tmpstr; tmpstr = *stringPool.insert(tmpstr);
+        in >> tmpstr;
         mark->setDescription( tmpstr );
-        in >> tmpstr; tmpstr = *stringPool.insert(tmpstr);
+        in >> tmpstr;
         mark->setCountryCode( tmpstr );
-        in >> tmpstr; tmpstr = *stringPool.insert(tmpstr);
+        in >> tmpstr;
         mark->setState( tmpstr );
         in >> area;
         mark->setArea( (qreal)(area) );
         in >> tmpint64;
         mark->setPopulation( tmpint64 );
         in >> tmpint16;
-        mark->extendedData().addValue(GeoDataData(gmtId, int(tmpint16)));
+        mark->extendedData().addValue( GeoDataData( "gmt", int( tmpint16 ) ) );
         in >> tmpint8;
-        mark->extendedData().addValue(GeoDataData(dstId, int(tmpint8)));
+        mark->extendedData().addValue( GeoDataData( "dst", int( tmpint8 ) ) );
 
         document->append( mark );
     }
     document->setFileName( fileName );
 
     file.close();
-    return document;
+    emit parsingFinished( document );
 }
 
 }
 
-#include "moc_CacheRunner.cpp"
+#include "CacheRunner.moc"

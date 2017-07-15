@@ -14,13 +14,17 @@
 #include "TinyWebBrowser.h"
 
 // Qt
+#include <QFileInfo>
 #include <QPointer>
+#include <QRegExp>
 #include <QAction>
 #include <QDesktopServices>
 #include <QPainter>
 #ifndef QT_NO_PRINTER
 #include <QPrintDialog>
 #include <QPrinter>
+#endif
+#include <QTextFrame>
 
 // Marble
 #include "MarbleGlobal.h"
@@ -39,7 +43,7 @@ static QString guessWikipediaDomain()
 {
     const QString code = MarbleLocale::languageCode();
 
-    return QLatin1String("https://") + code + QLatin1String(".m.wikipedia.org/");
+    return QString ( "http://%1.m.wikipedia.org/" ).arg ( code );
 }
 
 TinyWebBrowser::TinyWebBrowser( QWidget* parent )
@@ -67,7 +71,7 @@ TinyWebBrowser::~TinyWebBrowser()
 
 void TinyWebBrowser::setWikipediaPath( const QString& relativeUrl )
 {
-    QUrl url(relativeUrl);
+    QUrl url = relativeUrl;
     if ( url.isRelative() )
         url = QUrl( guessWikipediaDomain() ).resolved( url );
     load( url );
@@ -75,7 +79,7 @@ void TinyWebBrowser::setWikipediaPath( const QString& relativeUrl )
 
 void TinyWebBrowser::print()
 {
-#ifndef QT_NO_PRINTER
+#ifndef QT_NO_PRINTER	
     QPrinter printer;
 
     QPointer<QPrintDialog> dlg = new QPrintDialog( &printer, this );
@@ -96,12 +100,21 @@ QWebView *TinyWebBrowser::createWindow( QWebPage::WebWindowType type )
     return view;
 }
 
-void TinyWebBrowser::openExternalLink( const QUrl& url )
+void TinyWebBrowser::openExternalLink( QUrl url )
 {
     QDesktopServices::openUrl( url );
+}
+
+QByteArray TinyWebBrowser::userAgent(const QString &platform, const QString &component)
+{
+    QString result( "Mozilla/5.0 (compatible; Marble/%1; %2; %3; %4)" );
+    bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
+    QString const device = smallScreen ? "MobileDevice" : "DesktopDevice";
+    result = result.arg( MARBLE_VERSION_STRING, device, platform, component);
+    return result.toLatin1();
 }
 
 
 } // namespace Marble
 
-#include "moc_TinyWebBrowser.cpp"
+#include "TinyWebBrowser.moc"

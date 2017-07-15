@@ -88,4 +88,4 @@ void Thread::setReadyStatus()
     m_waitCondition.wakeAll();
 }
 
-#include "moc_Thread.cpp"
+#include "Thread.moc"

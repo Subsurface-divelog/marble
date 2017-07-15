@@ -14,7 +14,7 @@
 
 #include "AbstractDataPluginItem.h"
 
-#include <QDateTime>
+#include <QDate>
 #include <QFont>
 
 namespace Marble
@@ -27,15 +27,15 @@ class EarthquakeItem : public AbstractDataPluginItem
 public:
     explicit EarthquakeItem( QObject *parent );
 
-    ~EarthquakeItem() override;
+    ~EarthquakeItem();
 
     // Returns true if the item is paintable
-    bool initialized() const override;
+    bool initialized() const;
 
     // Here the item gets painted
-    void paint( QPainter *painter ) override;
+    void paint( QPainter *painter );
 
-    bool operator<( const AbstractDataPluginItem *other ) const override;
+    bool operator<( const AbstractDataPluginItem *other ) const;
 
     // Magnitude whose value we use to determine circle's diameter
     double magnitude() const;

@@ -14,12 +14,13 @@
 
 #include <cmath>
 
-#include <qmath.h>
+#include <QtCore/qmath.h>
 #include <QRunnable>
 
 #include "MarbleGlobal.h"
 #include "GeoPainter.h"
 #include "GeoDataPolygon.h"
+#include "GeoDataDocument.h"
 #include "MarbleDebug.h"
 #include "Quaternion.h"
 #include "ScanlineTextureMapperContext.h"
@@ -37,7 +38,7 @@ class SphericalScanlineTextureMapper::RenderJob : public QRunnable
 public:
     RenderJob( StackedTileLoader *tileLoader, int tileLevel, QImage *canvasImage, const ViewportParams *viewport, MapQuality mapQuality, int yTop, int yBottom );
 
-    void run() override;
+    virtual void run();
 
 private:
     StackedTileLoader *const m_tileLoader;
@@ -103,7 +104,11 @@ void SphericalScanlineTextureMapper::mapTexture( GeoPainter *painter,
 
     QRect rect( viewport->width() / 2 - radius, viewport->height() / 2 - radius,
                 2 * radius, 2 * radius);
+#if QT_VERSION < 0x050000
+    rect = rect.intersect( dirtyRect );
+#else
     rect = rect.intersected( dirtyRect );
+#endif
     painter->drawImage( rect, m_canvasImage, rect );
 }
 

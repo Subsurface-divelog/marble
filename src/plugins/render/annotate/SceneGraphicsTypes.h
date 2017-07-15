@@ -8,8 +8,8 @@
 // Copyright 2014      Calin Cruceru   <crucerucalincristian@gmail.com
 //
 
-#ifndef MARBLE_SCENEGRAPHICSTYPES_H
-#define MARBLE_SCENEGRAPHICSTYPES_H
+#ifndef SCENEGRAPHICTYPES_H
+#define SCENEGRAPHICTYPES_H
 
 namespace Marble
 {
@@ -21,12 +21,10 @@ namespace Marble
 
 namespace SceneGraphicsTypes
 {
-
-extern const char SceneGraphicAreaAnnotation[];
-extern const char SceneGraphicGroundOverlay[];
-extern const char SceneGraphicTextAnnotation[];
-extern const char SceneGraphicPolylineAnnotation[];
-
+    extern const char *SceneGraphicAreaAnnotation;
+    extern const char *SceneGraphicGroundOverlay;
+    extern const char *SceneGraphicTextAnnotation;
+    extern const char *SceneGraphicPolylineAnnotation;
 }
 
 }

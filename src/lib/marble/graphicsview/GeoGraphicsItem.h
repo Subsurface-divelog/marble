@@ -14,7 +14,6 @@
 
 // Marble
 #include "marble_export.h"
-#include "GeoDataStyle.h"
 
 class QString;
 
@@ -23,25 +22,10 @@ namespace Marble
 
 class GeoDataFeature;
 class GeoDataLatLonAltBox;
-class GeoDataCoordinates;
 class GeoGraphicsItemPrivate;
+class GeoDataStyle;
 class GeoPainter;
-class StyleBuilder;
 class ViewportParams;
-class GeoDataRelation;
-
-class RenderContext
-{
-public:
-    bool operator==(const RenderContext &other) const;
-    bool operator!=(const RenderContext &other) const;
-
-    explicit RenderContext(int tileLevel = -1);
-    int tileLevel() const;
-
-private:
-    int m_tileLevel;
-};
 
 class MARBLE_EXPORT GeoGraphicsItem
 {
@@ -98,19 +82,23 @@ class MARBLE_EXPORT GeoGraphicsItem
     /**
      * Returns the bounding box covered by the item.
      */
-    virtual const GeoDataLatLonAltBox &latLonAltBox() const = 0;
+    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
 
+    /**
+     * Set the box used to determine if an item is active or inactive. If an empty box is passed
+     * the item will be shown in every case.
+     */
+    void setLatLonAltBox( const GeoDataLatLonAltBox& latLonAltBox );
+    
     /**
      * Returns the style of item.
      */
-    GeoDataStyle::ConstPtr style() const;
+    const GeoDataStyle* style() const;
 
     /**
      * Set the style for the item.
      */
-    void setStyleBuilder(const StyleBuilder *styleBuilder);
-
-    void resetStyle();
+    void setStyle( const GeoDataStyle* style );
 
     /**
      * Set the style which will be used when
@@ -118,7 +106,7 @@ class MARBLE_EXPORT GeoGraphicsItem
      * GeoGraphicsItem takes ownership of the
      * passed style and deletes it when appropriate.
      */
-    void setHighlightStyle( const GeoDataStyle::ConstPtr &highlightStyle );
+    void setHighlightStyle( GeoDataStyle *highlightStyle );
 
     /**
      * Returns the z value of the item
@@ -130,42 +118,24 @@ class MARBLE_EXPORT GeoGraphicsItem
      */
     void setZValue( qreal z );
 
-    static bool zValueLessThan(GeoGraphicsItem* one, GeoGraphicsItem* two);
-    static bool styleLessThan(GeoGraphicsItem* one, GeoGraphicsItem* two);
-    static bool zValueAndStyleLessThan(GeoGraphicsItem* one, GeoGraphicsItem* two);
-
     /**
      * Paints the item using the given GeoPainter.
      *
      * Note that depending on the projection and zoom level, the item may be visible more than once,
      * which is taken care of by GeoPainter.
      */
-    virtual void paint(GeoPainter *painter, const ViewportParams *viewport, const QString &layer, int tileZoomLevel) = 0;
+    virtual void paint( GeoPainter *painter, const ViewportParams *viewport ) = 0;
 
     void setHighlighted( bool highlight );
 
     bool isHighlighted() const;
 
-    QStringList paintLayers() const;
-
-    void setPaintLayers(const QStringList &paintLayers);
-
-    void setRenderContext(const RenderContext &renderContext);
-
-    /**
-     * @brief contains Returns true if the item contains the given coordinates
-     * @param coordinates
-     * @param screenPosition
-     * @return
-     */
-    virtual bool contains(const QPoint &screenPosition, const ViewportParams *viewport) const;
-
-    void setRelations(const QSet<const GeoDataRelation *> &relations);
-
  protected:
-    virtual void handleRelationUpdate(const QVector<const GeoDataRelation *> &relations);
-
     GeoGraphicsItemPrivate *const d;
+
+ private:
+    GeoGraphicsItemPrivate *p();
+    const GeoGraphicsItemPrivate *p() const;
 };
 
 } // Namespace Marble

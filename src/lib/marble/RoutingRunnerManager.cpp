@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2008 Henry de Valence <hdevalence@gmail.com>
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2010-2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 
@@ -18,6 +18,7 @@
 #include "MarbleMath.h"
 #include "Planet.h"
 #include "GeoDataDocument.h"
+#include "GeoDataPlacemark.h"
 #include "PluginManager.h"
 #include "RoutingRunnerPlugin.h"
 #include "RunnerTask.h"
@@ -32,7 +33,7 @@ namespace Marble
 
 class MarbleModel;
 
-class Q_DECL_HIDDEN RoutingRunnerManager::Private
+class RoutingRunnerManager::Private
 {
 public:
     Private( RoutingRunnerManager *parent, const MarbleModel *marbleModel );
@@ -69,7 +70,7 @@ template<typename T>
 QList<T*> RoutingRunnerManager::Private::plugins( const QList<T*> &plugins ) const
 {
     QList<T*> result;
-    for( T* plugin: plugins ) {
+    foreach( T* plugin, plugins ) {
         if ( ( m_marbleModel && m_marbleModel->workOffline() && !plugin->canWorkOffline() ) ) {
             continue;
         }
@@ -133,7 +134,7 @@ void RoutingRunnerManager::retrieveRoute( const RouteRequest *request )
     d->m_routingResult.clear();
 
     QList<RoutingRunnerPlugin*> plugins = d->plugins( d->m_pluginManager->routingRunnerPlugins() );
-    for( RoutingRunnerPlugin* plugin: plugins ) {
+    foreach( RoutingRunnerPlugin* plugin, plugins ) {
         if ( !profile.name().isEmpty() && !profile.pluginSettings().contains( plugin->nameId() ) ) {
             continue;
         }
@@ -144,7 +145,7 @@ void RoutingRunnerManager::retrieveRoute( const RouteRequest *request )
         d->m_routingTasks << task;
     }
 
-    for( RoutingTask* task: d->m_routingTasks ) {
+    foreach( RoutingTask* task, d->m_routingTasks ) {
         QThreadPool::globalInstance()->start( task );
     }
 
@@ -171,4 +172,4 @@ QVector<GeoDataDocument*> RoutingRunnerManager::searchRoute( const RouteRequest 
 
 }
 
-#include "moc_RoutingRunnerManager.cpp"
+#include "RoutingRunnerManager.moc"

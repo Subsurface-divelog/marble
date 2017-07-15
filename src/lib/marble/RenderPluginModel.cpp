@@ -16,7 +16,7 @@
 namespace Marble
 {
 
-class Q_DECL_HIDDEN RenderPluginModel::Private
+class RenderPluginModel::Private
 {
 public:
     Private();
@@ -59,21 +59,21 @@ void RenderPluginModel::setRenderPlugins( const QList<RenderPlugin *> &renderPlu
     }
 
     d->m_renderPlugins = renderPlugins;
-    std::sort( d->m_renderPlugins.begin(), d->m_renderPlugins.end(), Private::renderPluginGuiStringLessThan );
+    qSort( d->m_renderPlugins.begin(), d->m_renderPlugins.end(), Private::renderPluginGuiStringLessThan );
 
     QStandardItem *parentItem = invisibleRootItem();
-    for ( RenderPlugin *plugin: d->m_renderPlugins ) {
+    foreach ( RenderPlugin *plugin, d->m_renderPlugins ) {
         parentItem->appendRow( plugin->item() );
     }
 }
 
-QVector<PluginAuthor> RenderPluginModel::pluginAuthors( const QModelIndex &index ) const
+QList<PluginAuthor> RenderPluginModel::pluginAuthors( const QModelIndex &index ) const
 {
     if ( !index.isValid() )
-        return QVector<PluginAuthor>();
+        return QList<PluginAuthor>();
 
     if ( index.row() < 0 || index.row() >= d->m_renderPlugins.count() )
-        return QVector<PluginAuthor>();
+        return QList<PluginAuthor>();
 
     return d->m_renderPlugins.at( index.row() )->pluginAuthors();
 }
@@ -92,18 +92,18 @@ DialogConfigurationInterface *RenderPluginModel::pluginDialogConfigurationInterf
 
 void RenderPluginModel::retrievePluginState()
 {
-    for ( RenderPlugin *plugin: d->m_renderPlugins ) {
+    foreach ( RenderPlugin *plugin, d->m_renderPlugins ) {
         plugin->retrieveItemState();
     }
 }
 
 void RenderPluginModel::applyPluginState()
 {
-    for ( RenderPlugin *plugin: d->m_renderPlugins ) {
+    foreach ( RenderPlugin *plugin, d->m_renderPlugins ) {
         plugin->applyItemState();
     }
 }
 
 }
 
-#include "moc_RenderPluginModel.cpp"
+#include "RenderPluginModel.moc"

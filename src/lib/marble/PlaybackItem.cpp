@@ -20,4 +20,4 @@ PlaybackItem::~PlaybackItem()
 
 }
 
-#include "moc_PlaybackItem.cpp"
+#include "PlaybackItem.moc"

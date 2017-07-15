@@ -16,6 +16,7 @@
 
 #include "RoutingRunnerPlugin.h"
 
+class QModelIndex;
 class QStandardItemModel;
 class QHBoxLayout;
 class Ui_RoutingProfileSettingsDialog;
@@ -30,11 +31,11 @@ class RoutingProfileSettingsDialog : public QDialog
     Q_OBJECT
 public:
     RoutingProfileSettingsDialog( const PluginManager *pluginManager, RoutingProfilesModel *profilesModel, QWidget *parent = 0 );
-    ~RoutingProfileSettingsDialog() override;
+    ~RoutingProfileSettingsDialog();
 
     void editProfile( int profileIndex );
 
-private Q_SLOTS:
+private slots:
     void updateConfigWidget();
 
     void openConfigDialog();

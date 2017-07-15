@@ -145,7 +145,5 @@
 	<string>Marble.icns</string>
 	<key>CFBundleExecutable</key>
 	<string>marble-qt</string>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
 </dict>
 </plist>

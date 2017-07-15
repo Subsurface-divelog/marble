@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2012   Mohammed Nafees   <nafees.technocool@gmail.com>
-// Copyright 2012   Dennis Nienhüser  <nienhueser@kde.org>
+// Copyright 2012   Dennis Nienhüser  <earthwings@gentoo.org>
 // Copyright 2012   Illya Kovalevskyy <illya.kovalevskyy@gmail.com>
 //
 
@@ -38,17 +38,17 @@ class MARBLE_EXPORT PopupLayer : public QObject, public LayerInterface
     Q_OBJECT
 public:
     explicit PopupLayer( MarbleWidget *widget, QObject* parent = 0 );
-    ~PopupLayer() override;
+    ~PopupLayer();
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString &, GeoSceneLayer * ) override;
-    bool eventFilter( QObject *, QEvent * ) override;
-    qreal zValue() const override;
+                 const QString &, GeoSceneLayer * );
+    virtual bool eventFilter( QObject *, QEvent * );
+    qreal zValue() const;
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
-    QString runtimeTrace() const override { return QStringLiteral("PopupLayer"); }
+    virtual QString runtimeTrace() const { return "PopupLayer"; }
 
     /**
      * @brief Is popup item visible

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 // A simple tool to read a .kml file and write it back to a new .kml file
@@ -14,7 +14,7 @@
 #include <MarbleWidget.h>
 #include <ParsingRunnerManager.h>
 #include <PluginManager.h>
-#include <GeoDataDocumentWriter.h>
+#include <GeoWriter.h>
 
 #include <QApplication>
 #include <QFile>
@@ -49,5 +49,12 @@ int main(int argc, char** argv)
         return 2;
     }
 
-    GeoDataDocumentWriter::write(outputFilename, *document);
+
+    QFile output(outputFilename);
+    if (!output.open(QIODevice::WriteOnly)) {
+        qDebug() << "Unable to write to " << output.fileName();
+        return 3;
+    }
+
+    GeoWriter().write(&output, dynamic_cast<GeoDataFeature*>(document));
 }

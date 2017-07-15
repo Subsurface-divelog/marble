@@ -12,10 +12,11 @@
 #define GEOCUTE_PROVIDER_H
 
 #include <QObject>
+#include <QString>
 
 #include "Status.h"
 
-class QString;
+
 
 namespace GeoCute
 {
@@ -30,7 +31,7 @@ class Provider : public QObject
         virtual ~Provider();
         Status status() const;
 
-    Q_SIGNALS:
+    signals:
         void statusChanged(GeoCute::Status status);
     
     private:

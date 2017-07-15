@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2010      Siddharth Srivastava <akssps011@gmail.com>
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "RoutingPlugin.h"
@@ -17,7 +17,6 @@
 #include "Planet.h"
 #include "AudioOutput.h"
 #include "GeoDataCoordinates.h"
-#include "GeoDataLookAt.h"
 #include "GeoPainter.h"
 #include "MarbleGraphicsGridLayout.h"
 #include "MarbleModel.h"
@@ -28,7 +27,6 @@
 #include "PluginManager.h"
 #include "PositionTracking.h"
 #include "PositionProviderPlugin.h"
-#include "routing/Route.h"
 #include "routing/RoutingManager.h"
 #include "routing/RoutingModel.h"
 #include "routing/RouteRequest.h"
@@ -36,8 +34,18 @@
 #include "ViewportParams.h"
 #include "WidgetGraphicsItem.h"
 
+#include <QRect>
+#include <QWidget>
+#include <QToolButton>
+#include <QFont>
+#include <QActionGroup>
+#include <QPixmap>
 #include <QDialog>
 #include <QPushButton>
+#include <QSpacerItem>
+#if QT_VERSION < 0x050000
+#include <QPlastiqueStyle>
+#endif
 
 namespace Marble
 {
@@ -116,7 +124,7 @@ RoutingPluginPrivate::RoutingPluginPrivate( RoutingPlugin *parent ) :
 
 QString RoutingPluginPrivate::richText( const QString &source )
 {
-    return QLatin1String("<font size=\"+1\" color=\"black\">") + source + QLatin1String("</font>");
+    return QString( "<font size=\"+1\" color=\"black\">%1</font>" ).arg( source );
 }
 
 QString RoutingPluginPrivate::fuzzyDistance( qreal length )
@@ -288,7 +296,7 @@ void RoutingPluginPrivate::updateDestinationInformation()
 
         updateButtonVisibility();
 
-        QString pixmap = MarbleDirs::path(QStringLiteral("bitmaps/routing_step.png"));
+        QString pixmap = MarbleDirs::path( "bitmaps/routing_step.png" );
         pixmapHtml = QString( "<img src=\"%1\" />" ).arg( pixmap );
 
         qreal planetRadius = m_marbleWidget->model()->planet()->radius();
@@ -444,7 +452,7 @@ RoutingPlugin::~RoutingPlugin()
 
 QStringList RoutingPlugin::backendTypes() const
 {
-    return QStringList(QStringLiteral("routing"));
+    return QStringList( "routing" );
 }
 
 QString RoutingPlugin::name() const
@@ -459,12 +467,12 @@ QString RoutingPlugin::guiString() const
 
 QString RoutingPlugin::nameId() const
 {
-    return QStringLiteral("routing");
+    return QString( "routing" );
 }
 
 QString RoutingPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString RoutingPlugin::description() const
@@ -474,19 +482,19 @@ QString RoutingPlugin::description() const
 
 QString RoutingPlugin::copyrightYears() const
 {
-    return QStringLiteral("2010");
+    return "2010";
 }
 
-QVector<PluginAuthor> RoutingPlugin::pluginAuthors() const
+QList<PluginAuthor> RoutingPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Siddharth Srivastava"), QStringLiteral("akssps011@gmail.com"))
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Siddharth Srivastava", "akssps011@gmail.com" )
+            << PluginAuthor( QString::fromUtf8( "Dennis Nienhüser" ), "earthwings@gentoo.org" );
 }
 
 QIcon RoutingPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/routeplanning.png"));
+    return QIcon(":/icons/routeplanning.png");
 }
 
 void RoutingPlugin::initialize()
@@ -505,6 +513,18 @@ void RoutingPlugin::initialize()
     d->m_widget.routingButton->setEnabled( false );
     connect( d->m_widget.instructionLabel, SIGNAL(linkActivated(QString)),
              this, SLOT(reverseRoute()) );
+
+#if QT_VERSION < 0x050000
+    bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
+    if ( smallScreen ) {
+        /** @todo: The maemo styling of the progressbar adds a black background and some frame
+          * which are even painted when no background painting is requested like WidgetItem does.
+          * This looks really bad on a float item. Using a different style here, but that is only
+          * a workaround.
+          */
+        d->m_widget.progressBar->setStyle( new QPlastiqueStyle );
+    }
+#endif
 
     MarbleGraphicsGridLayout *layout = new MarbleGraphicsGridLayout( 1, 1 );
     layout->addItem( d->m_widgetItem, 0, 0 );
@@ -552,9 +572,9 @@ QHash<QString,QVariant> RoutingPlugin::settings() const
 {
     QHash<QString, QVariant> result = AbstractFloatItem::settings();
 
-    result.insert(QStringLiteral("muted"), d->m_audio->isMuted());
-    result.insert(QStringLiteral("sound"), d->m_audio->isSoundEnabled());
-    result.insert(QStringLiteral("speaker"), d->m_audio->speaker());
+    result.insert( "muted", d->m_audio->isMuted() );
+    result.insert( "sound", d->m_audio->isSoundEnabled() );
+    result.insert( "speaker", d->m_audio->speaker() );
 
     return result;
 }
@@ -563,9 +583,9 @@ void RoutingPlugin::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractFloatItem::setSettings( settings );
 
-    d->m_audio->setMuted(settings.value(QStringLiteral("muted"), false).toBool());
-    d->m_audio->setSoundEnabled(settings.value(QStringLiteral("sound"), true).toBool());
-    d->m_audio->setSpeaker(settings.value(QStringLiteral("speaker")).toString());
+    d->m_audio->setMuted( settings.value( "muted", false ).toBool() );
+    d->m_audio->setSoundEnabled( settings.value( "sound", true ).toBool() );
+    d->m_audio->setSpeaker( settings.value( "speaker" ).toString() );
 
     d->readSettings();
 }
@@ -588,4 +608,6 @@ QDialog *RoutingPlugin::configDialog()
 
 }
 
-#include "moc_RoutingPlugin.cpp"
+Q_EXPORT_PLUGIN2( RoutingPlugin, Marble::RoutingPlugin )
+
+#include "RoutingPlugin.moc"

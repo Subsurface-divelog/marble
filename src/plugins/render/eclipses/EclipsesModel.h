@@ -12,6 +12,8 @@
 #define MARBLE_ECLIPSESMODEL_H
 
 #include <QAbstractItemModel>
+#include <QDateTime>
+#include <QPixmap>
 
 #include "GeoDataCoordinates.h"
 #include "MarbleModel.h"
@@ -38,7 +40,7 @@ class EclipsesModel : public QAbstractItemModel
 public:
     explicit EclipsesModel( const MarbleModel *model, QObject *parent = 0 );
 
-    ~EclipsesModel() override;
+    ~EclipsesModel();
 
     /**
      * @brief Return the current observation point
@@ -132,14 +134,14 @@ public:
 
     // QT abstract item model interface
     QModelIndex index( int row, int column,
-                       const QModelIndex &parent = QModelIndex() ) const override;
-    QModelIndex parent( const QModelIndex &index ) const override;
-    int rowCount( const QModelIndex &parent = QModelIndex() ) const override;
-    int columnCount( const QModelIndex &parent = QModelIndex() ) const override;
+                       const QModelIndex &parent = QModelIndex() ) const;
+    QModelIndex parent( const QModelIndex &index ) const;
+    int rowCount( const QModelIndex &parent = QModelIndex() ) const;
+    int columnCount( const QModelIndex &parent = QModelIndex() ) const;
     QVariant data( const QModelIndex &index,
-                   int role = Qt::DisplayRole ) const override;
+                   int role = Qt::DisplayRole ) const;
     QVariant headerData( int section, Qt::Orientation orientation,
-                         int role = Qt::DisplayRole ) const override;
+                         int role = Qt::DisplayRole ) const;
 
 public Q_SLOTS:
     /**

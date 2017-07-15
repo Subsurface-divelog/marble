@@ -10,7 +10,9 @@
 
 #include <QString>
 #include <QUrl>
+#if QT_VERSION >= 0x050000
 #include <QUrlQuery>
+#endif
 
 #include "Planet.h"
 #include "PlanetFactory.h"
@@ -22,7 +24,7 @@ namespace Marble {
 GeoUriParser::GeoUriParser( const QString& geoUri )
     : m_geoUri( geoUri ),
       m_coordinates(),
-      m_planet(PlanetFactory::construct(QStringLiteral("earth")))
+      m_planet( PlanetFactory::construct( "earth" ) )
 {
 }
 
@@ -30,7 +32,7 @@ void GeoUriParser::setGeoUri( const QString &geoUri )
 {
     m_geoUri = geoUri;
     m_coordinates = GeoDataCoordinates();
-    m_planet = PlanetFactory::construct(QStringLiteral("earth"));
+    m_planet = PlanetFactory::construct( "earth" );
 }
 
 QString GeoUriParser::geoUri() const
@@ -50,6 +52,13 @@ Planet GeoUriParser::planet() const
 
 QString GeoUriParser::queryValue(const QUrl& url, const QString& one, const QString& two)
 {
+#if QT_VERSION < 0x050000
+    QString value = url.queryItemValue( one );
+    if ( value.isEmpty() && !two.isEmpty() ) {
+        value = url.queryItemValue( two );
+    }
+    return value;
+#else
     QUrlQuery query( url );
     if ( query.hasQueryItem( one ) ) {
         return query.queryItemValue( one );
@@ -58,6 +67,7 @@ QString GeoUriParser::queryValue(const QUrl& url, const QString& one, const QStr
     }
 
     return QString();
+#endif
 }
 
 bool GeoUriParser::parse()
@@ -80,8 +90,8 @@ bool GeoUriParser::parse()
             // this is not a bug! The '<=' was intended, otherwise we would skip that last Cgroups's data!
             for ( int i = 4; i <= geoUriRegexp.captureCount(); ++i )
             {
-                if (geoUriRegexp.capturedTexts()[i] == QLatin1String("crs")) {
-                    for ( const QString& str: PlanetFactory::planetList()) {
+                if ( geoUriRegexp.capturedTexts()[i] == "crs" ) {
+                    foreach ( const QString& str, PlanetFactory::planetList()) {
                         if ( geoUriRegexp.captureCount() < i+1 ) {
                             i = geoUriRegexp.captureCount() + 1;
                             break;
@@ -92,7 +102,7 @@ bool GeoUriParser::parse()
                         }
                     }
                     ++i;
-                } else if (geoUriRegexp.capturedTexts()[i] == QLatin1String("u")) {
+                } else if ( geoUriRegexp.capturedTexts()[i] == "u" ) {
                     mDebug() << "Captured uncertainity parameter, but this is not supported by Marble (yet).";
                     ++i;
                 }
@@ -104,8 +114,8 @@ bool GeoUriParser::parse()
             return true;
         }
     }
-    if ( m_geoUri.startsWith(QLatin1String("worldwind://goto/")) ) {
-        m_geoUri.replace(QStringLiteral("goto/"), QStringLiteral("goto/?"));
+    if ( m_geoUri.startsWith("worldwind://goto/") ) {
+        m_geoUri = m_geoUri.replace("goto/", "goto/?");
         QUrl worldwindUrl( m_geoUri );
 
         double lat = queryValue(worldwindUrl, "lat", "latitude").toDouble();
@@ -117,7 +127,7 @@ bool GeoUriParser::parse()
         //QString layer = worldwindUrl.queryItemValue("layer");
         QString world = queryValue(worldwindUrl, "world");
 
-        for ( const QString& str: PlanetFactory::planetList()) {
+        foreach ( const QString& str, PlanetFactory::planetList()) {
             if ( world.contains(str, Qt::CaseInsensitive) ) {
                 m_planet = PlanetFactory::construct( str );
                 break;

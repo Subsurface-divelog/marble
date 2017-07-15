@@ -11,8 +11,6 @@
 #ifndef MARBLE_LABELGRAPHICSITEMPRIVATE_H
 #define MARBLE_LABELGRAPHICSITEMPRIVATE_H
 
-#include "FrameGraphicsItem_p.h"
-
 #include <QString>
 #include <QSizeF>
 #include <QImage>
@@ -25,11 +23,10 @@ namespace Marble
 
 class LabelGraphicsItem;
 
-class LabelGraphicsItemPrivate : public FrameGraphicsItemPrivate
+class LabelGraphicsItemPrivate
 {
  public:
-    LabelGraphicsItemPrivate(LabelGraphicsItem *labelGraphicsItem,
-                             MarbleGraphicsItem *parent);
+    explicit LabelGraphicsItemPrivate( LabelGraphicsItem *parent );
 
     // TODO: This has to go up to MarbleGraphicsItem
     static QFont font();
@@ -39,6 +36,8 @@ class LabelGraphicsItemPrivate : public FrameGraphicsItemPrivate
     QIcon m_icon;
 
     QSizeF m_minimumSize;
+
+    LabelGraphicsItem *m_parent;
 };
 
 } // namespace Marble

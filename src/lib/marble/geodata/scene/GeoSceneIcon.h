@@ -39,15 +39,13 @@ class GEODATA_EXPORT GeoSceneIcon : public GeoNode
 {
  public:
     GeoSceneIcon();
-    ~GeoSceneIcon() override;
+    ~GeoSceneIcon();
 
     QString pixmap() const;
     void setPixmap(const QString&);
 
     QColor color() const;
     void setColor(const QColor&);
-
-    const char *nodeType() const override;
 
  private:
     // FIXME: d-pointerfy

@@ -20,12 +20,10 @@ namespace Marble
 
 class CycleStreetsConfigWidget : public RoutingRunnerPlugin::ConfigWidget
 {
-    Q_OBJECT
-
 public:
     CycleStreetsConfigWidget();
-    void loadSettings( const QHash<QString, QVariant> &settings ) override;
-    QHash<QString, QVariant> settings() const override;
+    virtual void loadSettings( const QHash<QString, QVariant> &settings );
+    virtual QHash<QString, QVariant> settings() const;
 
 private:
     Ui::CycleStreetsConfigWidget *ui_configWidget;
@@ -40,6 +38,7 @@ CycleStreetsConfigWidget::CycleStreetsConfigWidget()
     ui_configWidget->plan->addItem( tr( "balanced" ), "balanced" );
     ui_configWidget->plan->addItem( tr( "fastest" ), "fastest" );
     ui_configWidget->plan->addItem( tr( "quietest" ), "quietest" );
+    ui_configWidget->plan->addItem( tr( "shortest" ), "shortest" );
 
     if ( MarbleGlobal::getInstance()->locale()->measurementSystem() == MarbleLocale::MetricSystem ) {
         ui_configWidget->speed->addItem( tr( "slow (16 km/h)" ), "16" );
@@ -57,24 +56,24 @@ void CycleStreetsConfigWidget::loadSettings( const QHash<QString, QVariant> &set
     QHash<QString, QVariant> settings = settings_;
 
     // Check if all fields are filled and fill them with default values.
-    if (!settings.contains(QStringLiteral("plan"))) {
-        settings.insert(QStringLiteral("plan"), QStringLiteral("balanced"));
+    if ( !settings.contains( "plan" ) ) {
+        settings.insert( "plan", "balanced" );
     }
-    if (!settings.contains(QStringLiteral("speed"))) {
-        settings.insert(QStringLiteral("speed"), QStringLiteral("20"));
+    if ( !settings.contains( "speed" ) ) {
+        settings.insert( "speed", "20" );
     }
     ui_configWidget->plan->setCurrentIndex(
-                ui_configWidget->plan->findData(settings.value(QStringLiteral("plan"))));
+                ui_configWidget->plan->findData( settings.value( "plan" ) ));
     ui_configWidget->speed->setCurrentIndex(
-                ui_configWidget->speed->findData(settings.value(QStringLiteral("speed"))));
+                ui_configWidget->speed->findData( settings.value( "speed" ) ));
 }
 
 QHash<QString, QVariant> CycleStreetsConfigWidget::settings() const
 {
     QHash<QString,QVariant> settings;
-    settings.insert(QStringLiteral("plan"),
+    settings.insert( "plan",
                      ui_configWidget->plan->itemData( ui_configWidget->plan->currentIndex() ) );
-    settings.insert(QStringLiteral("speed"),
+    settings.insert( "speed",
                      ui_configWidget->speed->itemData( ui_configWidget->speed->currentIndex() ) );
     return settings;
 }
@@ -82,7 +81,7 @@ QHash<QString, QVariant> CycleStreetsConfigWidget::settings() const
 CycleStreetsPlugin::CycleStreetsPlugin( QObject *parent ) :
     RoutingRunnerPlugin( parent )
 {
-    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
+    setSupportedCelestialBodies( QStringList() << "earth" );
     setCanWorkOffline( false );
     setStatusMessage( tr ( "This service requires an Internet connection." ) );
 }
@@ -99,12 +98,12 @@ QString CycleStreetsPlugin::guiString() const
 
 QString CycleStreetsPlugin::nameId() const
 {
-    return QStringLiteral("cyclestreets");
+    return "cyclestreets";
 }
 
 QString CycleStreetsPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString CycleStreetsPlugin::description() const
@@ -114,13 +113,13 @@ QString CycleStreetsPlugin::description() const
 
 QString CycleStreetsPlugin::copyrightYears() const
 {
-    return QStringLiteral("2013");
+    return "2013";
 }
 
-QVector<PluginAuthor> CycleStreetsPlugin::pluginAuthors() const
+QList<PluginAuthor> CycleStreetsPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Mihail Ivchenko"), QStringLiteral("ematirov@gmail.com"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( QString::fromUtf8( "Mihail Ivchenko" ), "ematirov@gmail.com" );
 }
 
 RoutingRunner *CycleStreetsPlugin::newRunner() const
@@ -135,9 +134,13 @@ RoutingRunnerPlugin::ConfigWidget *CycleStreetsPlugin::configWidget()
 
 bool CycleStreetsPlugin::supportsTemplate( RoutingProfilesModel::ProfileTemplate profileTemplate ) const
 {
-    return profileTemplate == RoutingProfilesModel::BicycleTemplate;
+    QSet<RoutingProfilesModel::ProfileTemplate> availableTemplates;
+    availableTemplates.insert( RoutingProfilesModel::BicycleTemplate );
+    return availableTemplates.contains( profileTemplate );
 }
 
 }
 
-#include "CycleStreetsPlugin.moc" // needed for Q_OBJECT here in source
+Q_EXPORT_PLUGIN2( CycleStreetsPlugin, Marble::CycleStreetsPlugin )
+
+#include "CycleStreetsPlugin.moc"

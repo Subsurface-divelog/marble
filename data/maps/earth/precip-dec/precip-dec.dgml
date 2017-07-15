@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-     This xml file is free software licensed under the GNU LGPL. You can
-     find a copy of this license in LICENSE.txt in the top directory of
-     the source code.
--->
 <dgml xmlns="http://edu.kde.org/marble/dgml/2.0">
     <document>
         <head>
-            <!-- the license here applies to the actual map content, not this dgml file. See the license header above for the dgml file license -->
-            <license short="Legates, Willmott / CC by-SA 3.0">Legates, D.R. und Willmott, C.J. 1989. Average Monthly Surface Air Temperature and Precipitation</license>
             <name>Precipitation (December)</name>
             <target>earth</target>
             <theme>precip-dec</theme>
@@ -55,32 +48,31 @@
                     <palette type="land">precipcolors.leg</palette>
                 </filter>
             </layer>
-            <layer name="naturalearth" backend="geodata">
-                <geodata name="coast">
-                    <sourcefile> naturalearth/ne_50m_land.pn2 </sourcefile>
-                    <pen color="#555753"/>
-                </geodata>
-                <geodata name="lake" property="waterbodies">
-                    <sourcefile> naturalearth/ne_50m_lakes.pn2 </sourcefile>
-                    <pen color="#555753"/>
-                </geodata>
-                <geodata name="border" property="borders">
-                    <sourcefile> naturalearth/ne_50m_admin_0_boundary_lines_land.pn2 </sourcefile>
-                    <pen color="#555753" width="1" />
-                </geodata>
-                <geodata name="breakawaydisputed" property="borders">
-                    <sourcefile> naturalearth/ne_50m_admin_0_breakaway_disputed_areas.pn2 </sourcefile>
-                    <pen color="#555753" width="1" style="dotline"/>
-                </geodata>
-                <geodata name="international dateline" property="borders">
+        
+            <layer name="mwdbii" backend="vector">
+                <vector name="pcoast">
+                    <sourcefile> mwdbii/PCOAST.PNT </sourcefile>
+                    <pen color="#555753" />
+                    <brush color="transparent" />
+                </vector>
+                <vector name="pdiffborder" feature="borders">
+                    <sourcefile> mwdbii/PDIFFBORDER.PNT </sourcefile>
+                    <pen color="#555753" />
+                </vector>
+                <vector name="pusa48" feature="borders">
+                    <sourcefile> mwdbii/PUSA48.DIFF.PNT </sourcefile>
+                    <pen color="#555753" />
+                </vector>
+                <vector name="international dateline" feature="borders">
                     <sourcefile> mwdbii/DATELINE.PNT </sourcefile>
                     <pen color="#000000" />
-                </geodata>
-                <geodata name="rivers" property="waterbodies">
-                    <sourcefile> naturalearth/ne_50m_rivers_lake_centerlines.pn2 </sourcefile>
+                </vector>
+                <vector name="rivers" feature="waterbodies">
+                    <sourcefile> mwdbii/RIVER.PNT </sourcefile>
                     <pen color="#637bff" />
-                </geodata>
+                </vector>
             </layer>
+        
             <layer name="standardplaces" backend="geodata">
                 <geodata name="cityplacemarks">
                     <sourcefile>cityplacemarks.cache</sourcefile>

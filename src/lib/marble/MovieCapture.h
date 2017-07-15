@@ -12,7 +12,8 @@
 #define MOVIECAPTURE_H
 
 #include <QObject>
-#include <QVector>
+#include <QTimer>
+#include <QDir>
 
 #include "marble_export.h"
 
@@ -26,8 +27,7 @@ class MovieCapturePrivate;
 class MovieFormat
 {
 public:
-    MovieFormat() {}
-    explicit MovieFormat( const QString &type, const QString &name, const QString &extension) :
+    explicit MovieFormat( QString type, QString name, QString extension) :
         m_type( type ),
         m_name( name ),
         m_extension( extension )
@@ -48,15 +48,15 @@ class MARBLE_EXPORT MovieCapture : public QObject
 public:
     enum SnapshotMethod { TimeDriven, DataDriven };
     MovieCapture(MarbleWidget *widget, QObject *parent);
-    ~MovieCapture() override;
+    ~MovieCapture();
 
     int fps() const;
     QString destination() const;
-    QVector<MovieFormat> availableFormats();
+    QList<MovieFormat> availableFormats();
     MovieCapture::SnapshotMethod snapshotMethod() const;
     bool checkToolsAvailability();
 
-public Q_SLOTS:
+public slots:
     void setFps(int fps);
     void setFilename(const QString &path);
     void setSnapshotMethod(MovieCapture::SnapshotMethod method);
@@ -65,10 +65,10 @@ public Q_SLOTS:
     void stopRecording();
     void cancelRecording();
 
-private Q_SLOTS:
+private slots:
     void processWrittenMovie(int exitCode);
 
-Q_SIGNALS:
+signals:
     void rateCalculated( double );
     void errorOccured();
 
@@ -77,12 +77,10 @@ protected:
 
 private:
     Q_DECLARE_PRIVATE(MovieCapture)
-    QVector<MovieFormat> m_supportedFormats;
+    QList<MovieFormat> m_supportedFormats;
 
 };
 
 } // namespace Marble
-
-Q_DECLARE_TYPEINFO(Marble::MovieFormat, Q_MOVABLE_TYPE);
 
 #endif // MOVIECAPTURE_H

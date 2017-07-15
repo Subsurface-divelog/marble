@@ -57,12 +57,12 @@ class GEODATA_EXPORT GeoDataLatLonBox : public GeoDataObject
     GeoDataLatLonBox();
     GeoDataLatLonBox( qreal north, qreal south, qreal east, qreal west, GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian );
     GeoDataLatLonBox( const GeoDataLatLonBox & );
-    ~GeoDataLatLonBox() override;
+    virtual ~GeoDataLatLonBox();
 
     GeoDataLatLonBox& operator=( const GeoDataLatLonBox& other );
 
     /// Provides type information for downcasting a GeoData
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
      * @brief Get the northern boundary of the bounding box.
@@ -103,24 +103,10 @@ class GEODATA_EXPORT GeoDataLatLonBox : public GeoDataObject
     void setBoundaries( qreal north, qreal south, qreal east, qreal west, GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian );
 
     /**
-     * @brief Changes the differences between the boundaries and the center by the given factor, keeping the center unchanged
-     * @param verticalFactor Vertical scale factor (affects north and south boundaries)
-     * @param horizontalFactor Horizontal scale factor (affects west and east boundaries)
-     */
-    void scale(qreal verticalFactor, qreal horizontalFactor) const;
-    GeoDataLatLonBox scaled(qreal verticalFactor, qreal horizontalFactor) const;
-
-    /**
      * @brief Get the width of the longitude interval
      * @return the angle covered by the longitude range.
      */
     qreal width( GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian ) const;
-
-    /**
-     * @brief Get the width of the longitude interval. East and west parameters are in radians.
-     * @return the angle covered by the longitude range in given unit.
-     */
-    static qreal width( qreal east, qreal west, GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian );
 
     /**
      * @brief Get the height of the latitude interval
@@ -129,26 +115,11 @@ class GEODATA_EXPORT GeoDataLatLonBox : public GeoDataObject
     qreal height( GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian ) const;
 
     /**
-     * @brief Get the height of the latitude interval. North and south parameters are in radians.
-     * @return the angle covered by the latitude range in given unit.
-     */
-    static qreal height( qreal north, qreal south, GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian );
-
-    /**
      * @brief Detect whether the bounding box crosses the IDL.
      * @return @c true  the bounding box crosses the +/-180 deg longitude.
      *         @c false the bounding box doesn't cross the +/-180 deg longitude.
      */
     bool     crossesDateLine() const;
-
-    /**
-     * @brief Detect whether the bounding box crosses the IDL.
-     * @param east radians east.
-     * @param west radians west.
-     * @return @c true  the bounding box crosses the +/-180 deg longitude.
-     *         @c false the bounding box doesn't cross the +/-180 deg longitude.
-     */
-    static bool crossesDateLine(qreal east, qreal west);
 
     /**
      * @brief returns the center of this box
@@ -165,14 +136,6 @@ class GEODATA_EXPORT GeoDataLatLonBox : public GeoDataObject
 
     virtual bool contains( const GeoDataCoordinates & ) const;
     bool     contains( const GeoDataLatLonBox & ) const;
-
-    /**
-     * @brief Detect whether the bounding box contains a point of given lon and lat.
-     * @param lon longitude in radians.
-     * @param lat latitude in radians.
-     * @return true if the box contains given point, false otherwise
-     */
-    bool contains(qreal lon, qreal lat) const; //Optimized version for overlay painting
 
     virtual bool intersects( const GeoDataLatLonBox & ) const;
 
@@ -210,16 +173,6 @@ class GEODATA_EXPORT GeoDataLatLonBox : public GeoDataObject
     virtual bool isEmpty() const;
 
     /**
-     * @brief Indicates whether two bounding boxes are roughly equal.
-     *        The factor specifies the margin threshold relative to the left handside
-     *        bounding box within which both bounding boxes are considered equal.
-     * @return Return value is true if both bounding box are approximately equal.
-     */
-    static bool fuzzyCompare(const GeoDataLatLonBox& lhs,
-                             const GeoDataLatLonBox& rhs,
-                             const qreal factor = 0.01);
-
-    /**
      * @brief Resets the bounding box to its uninitialised state (and thus contains nothing).
      */
     virtual void clear();
@@ -233,9 +186,9 @@ class GEODATA_EXPORT GeoDataLatLonBox : public GeoDataObject
     GeoDataLatLonBox& operator |=( const GeoDataLatLonBox& other) ;
 
     /// Serialize the contents of the feature to @p stream.
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /// Unserialize the contents of the feature from @p stream.
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
  private:
     GeoDataLatLonBoxPrivate  * const d;

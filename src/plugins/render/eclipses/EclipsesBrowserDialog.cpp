@@ -24,8 +24,7 @@ namespace Marble {
 EclipsesBrowserDialog::EclipsesBrowserDialog( const MarbleModel *model,
                                         QWidget *parent )
     : QDialog( parent ),
-    m_marbleModel( model ),
-    m_browserWidget(nullptr)
+    m_marbleModel( model )
 {
     initialize();
 }
@@ -33,7 +32,6 @@ EclipsesBrowserDialog::EclipsesBrowserDialog( const MarbleModel *model,
 EclipsesBrowserDialog::~EclipsesBrowserDialog()
 {
     delete m_eclModel;
-    delete m_browserWidget;
 }
 
 void EclipsesBrowserDialog::setYear( int year )
@@ -86,7 +84,6 @@ void EclipsesBrowserDialog::updateButtonStates()
 
 void EclipsesBrowserDialog::initialize()
 {
-    delete m_browserWidget;
     m_browserWidget = new Ui::EclipsesBrowserDialog();
     m_browserWidget->setupUi( this );
 
@@ -118,5 +115,5 @@ void EclipsesBrowserDialog::initialize()
 
 } // namespace Marble
 
-#include "moc_EclipsesBrowserDialog.cpp"
+#include "EclipsesBrowserDialog.moc"
 

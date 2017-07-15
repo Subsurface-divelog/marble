@@ -43,7 +43,7 @@ class GEODATA_EXPORT GeoSceneProperty : public QObject,
 
  public:
     explicit GeoSceneProperty( const QString& name );
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
     
     QString name() const;
     bool available() const;
@@ -54,7 +54,7 @@ class GEODATA_EXPORT GeoSceneProperty : public QObject,
     void setValue( bool value );
 
  Q_SIGNALS:
-    void valueChanged( const QString&, bool );
+    void valueChanged( QString, bool );
 
  private:
     // FIXME: d-pointerfy

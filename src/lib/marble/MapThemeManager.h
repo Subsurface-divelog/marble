@@ -14,12 +14,13 @@
 #define MARBLE_MAPTHEMEMANAGER_H
 
 #include <QObject>
+#include <QStringList>
 
 #include "marble_export.h"
 
+class QStandardItem;
 class QStandardItemModel;
 class QString;
-class QStringList;
 
 namespace Marble
 {
@@ -50,7 +51,7 @@ class MARBLE_EXPORT MapThemeManager : public QObject
 
  public:
     explicit MapThemeManager(QObject *parent = 0);
-    ~MapThemeManager() override;
+    ~MapThemeManager();
 
     /**
      * @brief Returns a list of all locally available map theme IDs

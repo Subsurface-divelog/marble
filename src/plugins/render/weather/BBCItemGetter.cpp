@@ -16,6 +16,7 @@
 
 // Qt
 #include <QMutexLocker>
+#include <QUrl>
 
 using namespace Marble;
 
@@ -49,7 +50,7 @@ void BBCItemGetter::setStationList( const QList<BBCStation>& items )
 BBCStation BBCItemGetter::station( const QString &id )
 {
     QString const bbcIdTemplate = QString( "bbc%1" );
-    for( const BBCStation &station: m_items ) {
+    foreach( const BBCStation &station, m_items ) {
         if ( bbcIdTemplate.arg( station.bbcId() ) == id ) {
             return station;
         }
@@ -92,4 +93,4 @@ void BBCItemGetter::work()
     }
 }
 
-#include "moc_BBCItemGetter.cpp"
+#include "BBCItemGetter.moc"

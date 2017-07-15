@@ -88,7 +88,7 @@ bool EclipsesModel::withLunarEclipses() const
 
 EclipsesItem* EclipsesModel::eclipseWithIndex( int index )
 {
-    for( EclipsesItem *item: m_items ) {
+    foreach( EclipsesItem *item, m_items ) {
         if( item->index() == index ) {
             return item;
         }
@@ -208,5 +208,5 @@ void EclipsesModel::update()
 
 } // namespace Marble
 
-#include "moc_EclipsesModel.cpp"
+#include "EclipsesModel.moc"
 

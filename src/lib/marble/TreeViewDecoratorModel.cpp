@@ -10,14 +10,12 @@
 #include "TreeViewDecoratorModel.h"
 #include "MarbleDebug.h"
 #include "GeoDataFolder.h"
+#include "GeoDataTypes.h"
 #include "GeoDataObject.h"
 #include "GeoDataContainer.h"
 #include "GeoDataStyle.h"
-#include "GeoDataListStyle.h"
-#include "GeoDataItemIcon.h"
+#include "GeoDataTour.h"
 #include "MarblePlacemarkModel.h"
-
-#include <QImage>
 
 namespace Marble
 {
@@ -32,9 +30,11 @@ bool TreeViewDecoratorModel::filterAcceptsRow( int sourceRow, const QModelIndex 
 {
     QModelIndex rowIndex = sourceModel()->index( sourceRow, 0, sourceParent );
 
-    const GeoDataObject* object = qvariant_cast<GeoDataObject*>( rowIndex.data( MarblePlacemarkModel::ObjectPointerRole ) );
-    const GeoDataObject* parent = object->parent();
-    if (const auto container = dynamic_cast<const GeoDataContainer *>(parent)) {
+    GeoDataObject* object = qvariant_cast<GeoDataObject*>( rowIndex.data( MarblePlacemarkModel::ObjectPointerRole ) );
+    GeoDataObject* parent = object->parent();
+    if ( parent->nodeType() == GeoDataTypes::GeoDataFolderType ||
+         parent->nodeType() == GeoDataTypes::GeoDataDocumentType ) {
+        GeoDataContainer *container = static_cast<GeoDataContainer *>( parent );
         if ( container->style()->listStyle().listItemType() == GeoDataListStyle::CheckHideChildren ) {
             return false;
         }
@@ -54,7 +54,7 @@ QVariant TreeViewDecoratorModel::data( const QModelIndex &proxyIndex, int role) 
         return QSortFilterProxyModel::data(proxyIndex, role);
     }
 
-    if (geodata_cast<GeoDataFolder>(object)) {
+    if ( object->nodeType() != GeoDataTypes::GeoDataFolderType ) {
         return QSortFilterProxyModel::data(proxyIndex, role);
     }
 
@@ -62,7 +62,7 @@ QVariant TreeViewDecoratorModel::data( const QModelIndex &proxyIndex, int role) 
 
     bool const expandedState = m_expandedRows.contains( QPersistentModelIndex( proxyIndex ) );
 
-    for (GeoDataItemIcon *icon: folder->style()->listStyle().itemIconList()) {
+    foreach (GeoDataItemIcon *icon, folder->style()->listStyle().itemIconList()) {
         if ( ! expandedState ) {
             if ( icon->state() == GeoDataItemIcon::Closed ) {
                 return icon->icon();
@@ -88,5 +88,5 @@ void TreeViewDecoratorModel::trackCollapsedState( const QModelIndex &index )
 }
 
 }
-#include "moc_TreeViewDecoratorModel.cpp"
+#include "TreeViewDecoratorModel.moc"
 

@@ -15,8 +15,7 @@
 #include "geodata_export.h"
 
 #include <QObject>
-
-class QDateTime;
+#include <QDateTime>
 
 namespace Marble
 {
@@ -30,7 +29,7 @@ class GEODATA_EXPORT MarbleClock : public QObject
  public:
     explicit MarbleClock( QObject* parent = 0 );
 
-    ~MarbleClock() override;
+    ~MarbleClock();
 
     /**
      * @brief Determine how much of the current day has elapsed

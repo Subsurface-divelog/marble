@@ -9,7 +9,7 @@
 // as included in KDE 4.5. See there for its authors:
 // http://api.kde.org/4.x-api/kdelibs-apidocs/kdeui/html/klineedit_8cpp.html
 //
-// Copyright 2010,2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010,2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "MarbleLineEdit.h"
@@ -45,7 +45,7 @@ public:
 
     int m_iconSize;
 
-    explicit MarbleLineEditPrivate( MarbleLineEdit* parent );
+    MarbleLineEditPrivate( MarbleLineEdit* parent );
 
     void createProgressAnimation();
 };
@@ -123,8 +123,7 @@ void MarbleLineEdit::setDecorator(const QPixmap &decorator)
     QString const postfixDirection  = layoutDirection() == Qt::LeftToRight ? "right" : "left";
     QString styleSheet = QString( ":enabled { padding-%1: %2; %3}").arg( postfixDirection ).arg( padding ).arg( decoratorStyleSheet );
 
-    bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
-    if ( !smallScreen ) {
+    if ( !MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen ) {
         setStyleSheet( styleSheet );
     }
 }
@@ -147,8 +146,8 @@ void MarbleLineEdit::updateClearButtonIcon( const QString& text )
     }
 
     QString const direction = layoutDirection() == Qt::LeftToRight ? "rtl" : "ltr";
-    int const size = (MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen) ? 32 : 16;
-    QPixmap pixmap = QPixmap(QStringLiteral(":/icons/%1x%1/edit-clear-locationbar-%2.png").arg(size).arg(direction));
+    int const size = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen ? 32 : 16;
+    QPixmap pixmap = QPixmap( QString( ":/icons/%1x%1/edit-clear-locationbar-%2.png").arg( size ).arg( direction ) );
     d->m_clearButton->setPixmap( pixmap );
 }
 
@@ -208,4 +207,4 @@ void MarbleLineEdit::resizeEvent( QResizeEvent * event )
 
 } // namespace Marble
 
-#include "moc_MarbleLineEdit.cpp"
+#include "MarbleLineEdit.moc"

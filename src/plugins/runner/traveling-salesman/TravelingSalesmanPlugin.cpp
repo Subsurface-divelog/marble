@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "TravelingSalesmanPlugin.h"
@@ -17,7 +17,7 @@ namespace Marble
 TravelingSalesmanPlugin::TravelingSalesmanPlugin( QObject *parent ) : RunnerPlugin( parent )
 {
     setCapabilities( Routing );
-    setSupportedCelestialBodies(QStringList(QStringLiteral("earth")));
+    setSupportedCelestialBodies( QStringList() << "earth" );
     setCanWorkOffline( true );
     setName( tr( "Traveling Salesman" ) );
     setNameId( "travelingsalesman" );
@@ -32,4 +32,6 @@ MarbleAbstractRunner* TravelingSalesmanPlugin::newRunner() const
 
 }
 
-#include "moc_TravelingSalesmanPlugin.cpp"
+Q_EXPORT_PLUGIN2( TravelingSalesmanPlugin, Marble::TravelingSalesmanPlugin )
+
+#include "TravelingSalesmanPlugin.moc"

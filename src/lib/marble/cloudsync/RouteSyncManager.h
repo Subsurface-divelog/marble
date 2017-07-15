@@ -13,8 +13,6 @@
 
 #include "marble_export.h"
 
-#include <QObject>
-
 namespace Marble {
 
 class CloudSyncManager;
@@ -30,7 +28,7 @@ class MARBLE_EXPORT RouteSyncManager : public QObject
     
 public:
     explicit RouteSyncManager( CloudSyncManager *cloudSyncManager );
-    ~RouteSyncManager() override;
+    ~RouteSyncManager();
 
     void setRoutingManager( RoutingManager *routingManager );
 
@@ -78,7 +76,7 @@ public:
      */
     QVector<RouteItem> cachedRouteList() const;
 
-public Q_SLOTS:
+public slots:
     /**
      * Uploads the route with given timestamp.
      * @param timestamp Timestamp of the route which will be uploaded.
@@ -124,7 +122,7 @@ public Q_SLOTS:
      */
     void updateUploadProgressbar( qint64 sent, qint64 total );
 
-private Q_SLOTS:
+private slots:
     /**
      * Appends downloaded route list to RouteSyncManager's private list
      * and then forwards the list to CloudRouteModel
@@ -133,7 +131,7 @@ private Q_SLOTS:
     void setRouteModelItems( const QVector<RouteItem> &routeList );
 
 
-Q_SIGNALS:
+signals:
     void routeSyncEnabledChanged(bool enabled);
     void routeListDownloadProgress( qint64 received, qint64 total );
     void routeUploadProgress( qint64 sent, qint64 total );

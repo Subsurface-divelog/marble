@@ -26,7 +26,7 @@
 #include "DgmlAttributeDictionary.h"
 #include "DgmlElementDictionary.h"
 #include "GeoParser.h"
-#include "GeoSceneTileDataset.h"
+#include "GeoSceneTiled.h"
 #include "ServerLayout.h"
 
 namespace Marble
@@ -38,7 +38,7 @@ DGML_DEFINE_TAG_HANDLER(StorageLayout)
 GeoNode* DgmlStorageLayoutTagHandler::parse(GeoParser& parser) const
 {
     // Check whether the tag is valid
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(dgmlTag_StorageLayout)));
+    Q_ASSERT(parser.isStartElement() && parser.isValidElement(dgmlTag_StorageLayout));
 
     // Attribute levelZeroColumns, default to value of the oldest tile themes
     int levelZeroColumns = 2;
@@ -54,13 +54,6 @@ GeoNode* DgmlStorageLayoutTagHandler::parse(GeoParser& parser) const
         levelZeroRows = levelZeroRowsStr.toInt();
     }
 
-    // Attribute minimumTileLevel
-    int minimumTileLevel = 0;
-    const QString minimumTileLevelStr = parser.attribute( dgmlAttr_minimumTileLevel ).trimmed();
-    if ( !minimumTileLevelStr.isEmpty() ) {
-        minimumTileLevel = minimumTileLevelStr.toInt();
-    }
-
     // Attribute maximumTileLevel
     int maximumTileLevel = -1;
     const QString maximumTileLevelStr = parser.attribute( dgmlAttr_maximumTileLevel ).trimmed();
@@ -68,32 +61,29 @@ GeoNode* DgmlStorageLayoutTagHandler::parse(GeoParser& parser) const
         maximumTileLevel = maximumTileLevelStr.toInt();
     }
 
-    // Attribute maximumTileLevel
-    const QString tileLevels = parser.attribute( dgmlAttr_tileLevels ).trimmed();
-
     // Checking for parent item
     GeoStackItem parentItem = parser.parentElement();
     if (parentItem.represents(dgmlTag_Texture) || parentItem.represents(dgmlTag_Vectortile)) {
-        GeoSceneTileDataset *texture = parentItem.nodeAs<GeoSceneTileDataset>();
+        GeoSceneTiled *texture = parentItem.nodeAs<GeoSceneTiled>();
 
         // Attribute mode
-        GeoSceneTileDataset::StorageLayout storageLayout = GeoSceneTileDataset::OpenStreetMap;
+        GeoSceneTiled::StorageLayout storageLayout = GeoSceneTiled::OpenStreetMap;
         ServerLayout *serverLayout = 0;
         const QString modeStr = parser.attribute(dgmlAttr_mode).trimmed();
-        if (modeStr == QLatin1String("OpenStreetMap"))
+        if ( modeStr == "OpenStreetMap" )
             serverLayout = new OsmServerLayout( texture );
-        else if (modeStr == QLatin1String("Custom"))
+        else if ( modeStr == "Custom" )
             serverLayout = new CustomServerLayout( texture );
-        else if (modeStr == QLatin1String("WebMapService"))
+        else if ( modeStr == "WebMapService" )
             serverLayout = new WmsServerLayout( texture );
-        else if (modeStr == QLatin1String("QuadTree"))
+        else if ( modeStr == "QuadTree" )
             serverLayout = new QuadTreeServerLayout( texture );
-        else if (modeStr == QLatin1String("TileMapService"))
+        else if ( modeStr == "TileMapService" )
         {
-            storageLayout = GeoSceneTileDataset::TileMapService;
+            storageLayout = GeoSceneTiled::TileMapService;
             serverLayout = new TmsServerLayout( texture );
         } else {
-            storageLayout = GeoSceneTileDataset::Marble;
+            storageLayout = GeoSceneTiled::Marble;
             serverLayout = new MarbleServerLayout( texture );
 
             if ( !modeStr.isEmpty() ) {
@@ -103,9 +93,7 @@ GeoNode* DgmlStorageLayoutTagHandler::parse(GeoParser& parser) const
 
         texture->setLevelZeroColumns( levelZeroColumns );
         texture->setLevelZeroRows( levelZeroRows );
-        texture->setMinimumTileLevel( minimumTileLevel );
         texture->setMaximumTileLevel( maximumTileLevel );
-        texture->setTileLevels( tileLevels );
         texture->setStorageLayout( storageLayout );
         texture->setServerLayout( serverLayout );
     }

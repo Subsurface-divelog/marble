@@ -83,4 +83,4 @@ void GeoSceneProperty::setValue( bool value )
 
 }
 
-#include "moc_GeoSceneProperty.cpp"
+#include "GeoSceneProperty.moc"

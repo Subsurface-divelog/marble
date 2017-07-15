@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012       Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012       Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_SEARCHWIDGET_H
@@ -29,13 +29,12 @@ public:
 
     void setMarbleWidget( MarbleWidget* widget );
 
-    ~SearchWidget() override;
+    ~SearchWidget();
 
 private:
-    Q_PRIVATE_SLOT( d, void setSearchResult( const QVector<GeoDataPlacemark*>& ) )
+    Q_PRIVATE_SLOT( d, void setSearchResult( QVector<GeoDataPlacemark*> ) )
     Q_PRIVATE_SLOT( d, void search( const QString &searchTerm, SearchMode searchMode ) )
     Q_PRIVATE_SLOT( d, void centerMapOn( const QModelIndex &index ) )
-    Q_PRIVATE_SLOT( d, void handlePlanetChange() )
 
     SearchWidgetPrivate* const d;
 

@@ -43,7 +43,7 @@ namespace Marble
 class StackedTileLoaderPrivate
 {
 public:
-    explicit StackedTileLoaderPrivate( MergedLayerDecorator *mergedLayerDecorator )
+    StackedTileLoaderPrivate( MergedLayerDecorator *mergedLayerDecorator )
         : m_layerDecorator( mergedLayerDecorator )
     {
         m_tileCache.setMaxCost( 20000 * 1024 ); // Cache size measured in bytes
@@ -77,7 +77,7 @@ int StackedTileLoader::tileRowCount( int level ) const
     return d->m_layerDecorator->tileRowCount( level );
 }
 
-const GeoSceneAbstractTileProjection *StackedTileLoader::tileProjection() const
+GeoSceneTiled::Projection StackedTileLoader::tileProjection() const
 {
     return d->m_layerDecorator->tileProjection();
 }
@@ -219,6 +219,8 @@ RenderState StackedTileLoader::renderState() const
 
 void StackedTileLoader::clear()
 {
+    mDebug() << Q_FUNC_INFO;
+
     qDeleteAll( d->m_tilesOnDisplay );
     d->m_tilesOnDisplay.clear();
     d->m_tileCache.clear(); // clear the tile cache in physical memory
@@ -228,4 +230,4 @@ void StackedTileLoader::clear()
 
 }
 
-#include "moc_StackedTileLoader.cpp"
+#include "StackedTileLoader.moc"

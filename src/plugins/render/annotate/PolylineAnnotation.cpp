@@ -23,9 +23,9 @@
 #include "MarbleMath.h"
 #include "GeoDataLineString.h"
 #include "GeoDataPlacemark.h"
+#include "GeoDataTypes.h"
 #include "ViewportParams.h"
 #include "MergingPolylineNodesAnimation.h"
-#include "osm/OsmPlacemarkData.h"
 
 
 namespace Marble
@@ -36,7 +36,10 @@ const int PolylineAnnotation::selectedDim = 15;
 const int PolylineAnnotation::mergedDim = 20;
 const int PolylineAnnotation::hoveredDim = 20;
 const QColor PolylineAnnotation::regularColor = Oxygen::aluminumGray3;
+const QColor PolylineAnnotation::selectedColor = QApplication::palette().highlight().color();
 const QColor PolylineAnnotation::mergedColor = Oxygen::emeraldGreen6;
+const QColor PolylineAnnotation::hoveredColor = QApplication::palette().highlight().color();
+
 
 PolylineAnnotation::PolylineAnnotation( GeoDataPlacemark *placemark ) :
     SceneGraphicsItem( placemark ),
@@ -49,7 +52,7 @@ PolylineAnnotation::PolylineAnnotation( GeoDataPlacemark *placemark ) :
     m_virtualHoveredNode( -1 )
 
 {
-    setPaintLayers(QStringList() << "PolylineAnnotation");
+    // nothing to do
 }
 
 PolylineAnnotation::~PolylineAnnotation()
@@ -57,12 +60,10 @@ PolylineAnnotation::~PolylineAnnotation()
     delete m_animation;
 }
 
-void PolylineAnnotation::paint(GeoPainter *painter, const ViewportParams *viewport , const QString &layer, int tileZoomLevel)
+void PolylineAnnotation::paint( GeoPainter *painter, const ViewportParams *viewport )
 {
-    Q_UNUSED(layer);
-    Q_UNUSED(tileZoomLevel);
     m_viewport = viewport;
-    Q_ASSERT(geodata_cast<GeoDataLineString>(placemark()->geometry()));
+    Q_ASSERT( placemark()->geometry()->nodeType() == GeoDataTypes::GeoDataLineStringType );
 
     painter->save();
     if ( state() == SceneGraphicsItem::DrawingPolyline || !m_regionsInitialized ) {
@@ -88,7 +89,6 @@ void PolylineAnnotation::setupRegionsLists( GeoPainter *painter )
     QVector<GeoDataCoordinates>::ConstIterator itEnd = line.constEnd();
 
     m_nodesList.clear();
-    m_nodesList.reserve(line.size());
     for ( ; itBegin != itEnd; ++itBegin ) {
         const PolylineNode newNode = PolylineNode( painter->regionFromEllipse( *itBegin, regularDim, regularDim ) );
         m_nodesList.append( newNode );
@@ -144,8 +144,6 @@ void PolylineAnnotation::drawNodes( GeoPainter *painter )
 
     QColor glowColor = QApplication::palette().highlightedText().color();
     glowColor.setAlpha(120);
-    auto const selectedColor = QApplication::palette().highlight().color();
-    auto const hoveredColor = selectedColor;
 
     for ( int i = 0; i < line.size(); ++i ) {
         // The order here is important, because a merged node can be at the same time selected.
@@ -277,10 +275,6 @@ void PolylineAnnotation::move( const GeoDataCoordinates &source, const GeoDataCo
 {
     GeoDataLineString *lineString = static_cast<GeoDataLineString*>( placemark()->geometry() );
     GeoDataLineString oldLineString = *lineString;
-    OsmPlacemarkData *osmData = 0;
-    if ( placemark()->hasOsmData() ) {
-        osmData = &placemark()->osmData();
-    }
     lineString->clear();
 
     const qreal deltaLat = destination.latitude() - source.latitude();
@@ -297,9 +291,7 @@ void PolylineAnnotation::move( const GeoDataCoordinates &source, const GeoDataCo
         qpos.rotateAroundAxis(rotAxis);
         qpos.getSpherical( lonRotated, latRotated );
         GeoDataCoordinates movedPoint( lonRotated, latRotated, 0 );
-        if ( osmData ) {
-            osmData->changeNodeReference( oldLineString.at( i ), movedPoint );
-        }
+
         lineString->append( movedPoint );
     }
 }
@@ -353,19 +345,14 @@ void PolylineAnnotation::deleteAllSelectedNodes()
     }
 
     GeoDataLineString *line = static_cast<GeoDataLineString*>( placemark()->geometry() );
-    OsmPlacemarkData *osmData = 0;
-    if ( placemark()->hasOsmData() ) {
-        osmData = &placemark()->osmData();
-    }
+
     for ( int i = 0; i < line->size(); ++i ) {
         if ( m_nodesList.at(i).isSelected() ) {
             if ( m_nodesList.size() <= 2 ) {
                 setRequest( SceneGraphicsItem::RemovePolylineRequest );
                 return;
             }
-            if ( osmData ) {
-                osmData->removeNodeReference( line->at( i ) );
-            }
+
             m_nodesList.removeAt( i );
             line->remove( i );
             --i;
@@ -380,17 +367,9 @@ void PolylineAnnotation::deleteClickedNode()
     }
 
     GeoDataLineString *line = static_cast<GeoDataLineString*>( placemark()->geometry() );
-    OsmPlacemarkData *osmData = 0;
-    if ( placemark()->hasOsmData() ) {
-        osmData = &placemark()->osmData();
-    }
     if ( m_nodesList.size() <= 2 ) {
         setRequest( SceneGraphicsItem::RemovePolylineRequest );
         return;
-    }
-
-    if ( osmData ) {
-        osmData->removeMemberReference( m_clickedNodeIndex );
     }
 
     m_nodesList.removeAt( m_clickedNodeIndex );
@@ -594,24 +573,11 @@ bool PolylineAnnotation::processEditingOnMove( QMouseEvent *mouseEvent )
 
     if ( m_interactingObj == InteractingNode ) {
         GeoDataLineString *line = static_cast<GeoDataLineString*>( placemark()->geometry() );
-        OsmPlacemarkData *osmData = 0;
-        if ( placemark()->hasOsmData() ) {
-            osmData = &placemark()->osmData();
-        }
-
-        // Keeping the OsmPlacemarkData synchronized with the geometry
-        if ( osmData ) {
-            osmData->changeNodeReference( line->at( m_clickedNodeIndex ), newCoords );
-        }
         line->at(m_clickedNodeIndex) = newCoords;
 
         return true;
     } else if ( m_interactingObj == InteractingPolyline ) {
         GeoDataLineString *lineString = static_cast<GeoDataLineString*>( placemark()->geometry() );
-        OsmPlacemarkData *osmData = 0;
-        if ( placemark()->hasOsmData() ) {
-            osmData = &placemark()->osmData();
-        }
         const GeoDataLineString oldLineString = *lineString;
         lineString->clear();
 
@@ -629,9 +595,7 @@ bool PolylineAnnotation::processEditingOnMove( QMouseEvent *mouseEvent )
             qpos.rotateAroundAxis(rotAxis);
             qpos.getSpherical( lonRotated, latRotated );
             GeoDataCoordinates movedPoint( lonRotated, latRotated, 0 );
-            if ( osmData ) {
-                osmData->changeNodeReference( oldLineString.at( i ), movedPoint );
-            }
+
             lineString->append( movedPoint );
         }
 
@@ -818,7 +782,6 @@ bool PolylineAnnotation::dealWithHovering( QMouseEvent *mouseEvent )
 
             m_hoveredNodeIndex = index;
             m_nodesList[index].setFlag( flag );
-            setRequest( ChangeCursorPolylineNodeHover );
         }
 
         return true;
@@ -830,7 +793,6 @@ bool PolylineAnnotation::dealWithHovering( QMouseEvent *mouseEvent )
     }
 
     // This means that the interior of the polyline has been hovered so we catch this event too.
-    setRequest( ChangeCursorPolylineLineHover );
     return true;
 }
 

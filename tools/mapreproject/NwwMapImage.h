@@ -1,5 +1,5 @@
-#ifndef NWWMAPIMAGE_H
-#define NWWMAPIMAGE_H
+#ifndef NWWIMAGE_H
+#define NWWIMAGE_H
 
 #include "mapreproject.h"
 #include "ReadOnlyMapImage.h"
@@ -18,12 +18,12 @@ class NwwMapImage: public ReadOnlyMapImage
 public:
     NwwMapImage( QDir const & baseDirectory, int const tileLevel );
 
-    QRgb pixel( double const lonRad, double const latRad ) override;
-    QRgb pixel( int const x, int const y ) override;
+    virtual QRgb pixel( double const lonRad, double const latRad );
+    virtual QRgb pixel( int const x, int const y );
 
     void setBaseDirectory( QDir const & baseDirectory );
     void setCacheSizeBytes( int const cacheSizeBytes );
-    void setInterpolationMethod( InterpolationMethod * const method ) override;
+    void setInterpolationMethod( InterpolationMethod * const method );
     void setTileLevel( int const level );
 
 private:

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <MarbleWidget.h>
@@ -27,9 +27,9 @@ class Cheeeeze : private QThread { public: using QThread::msleep; };
 
 QPixmap resize(const QPixmap &pixmap)
 {
-    if ( QProcess::execute("convert", QStringList() << "-version") == 0 ) {
-        QString const inputFile = QDir::tempPath() + QLatin1String("/marble-preview.png");
-        QString const outputFile = QDir::tempPath() + QLatin1String("/marble-preview-scaled.png");
+    if ( QProcess::execute("convert -version") == 0 ) {
+        QString const inputFile = QDir::tempPath() + "/marble-preview.png";
+        QString const outputFile = QDir::tempPath() + "/marble-preview-scaled.png";
         if ( pixmap.save( inputFile )
              && QProcess::execute( "convert", QStringList() << inputFile << "-resize" << "130x130"
                                    << "-sharpen" << "1x1" << outputFile ) == 0
@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     MarbleWidget *mapWidget = new MarbleWidget;
     mapWidget->setMapThemeId( argv[1] );
     QStringList const features = QStringList() << "atmosphere";
-    for( RenderPlugin* plugin: mapWidget->renderPlugins() ) {
+    foreach( RenderPlugin* plugin, mapWidget->renderPlugins() ) {
         if ( !features.contains( plugin->nameId() ) ) {
             plugin->setEnabled( false );
         }

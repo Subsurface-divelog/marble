@@ -13,11 +13,11 @@
 
 #include <QDialog>
 
+#include "GeoDataGroundOverlay.h"
+#include "TextureLayer.h"
+
 namespace Marble
 {
-class TextureLayer;
-
-class GeoDataGroundOverlay;
 
 class EditGroundOverlayDialog : public QDialog
 {
@@ -25,14 +25,14 @@ class EditGroundOverlayDialog : public QDialog
 
 public:
     EditGroundOverlayDialog( GeoDataGroundOverlay *overlay, TextureLayer *textureLayer, QWidget *parent = 0 );
-    ~EditGroundOverlayDialog() override;
+    ~EditGroundOverlayDialog();
 
-private Q_SLOTS:
+private slots:
     void updateGroundOverlay();
     void setGroundOverlayUpdated();
     void checkFields();
 
-Q_SIGNALS:
+signals:
     void groundOverlayUpdated( GeoDataGroundOverlay* );
 
 private:

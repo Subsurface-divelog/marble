@@ -14,7 +14,7 @@
 #define MARBLE_MAINWINDOW_H
  
 
-#include <KXmlGui/KXmlGuiWindow>
+#include <KDE/KXmlGuiWindow>
 
 class QActionGroup;
 class QAction;
@@ -33,17 +33,14 @@ class MainWindow : public KXmlGuiWindow
  public:
     explicit MainWindow( const QString& marbleDataPath = QString(), 
                          QWidget *parent = 0 );
-    ~MainWindow() override;
+    ~MainWindow();
 
     ControlView* marbleControl() const;
     MarbleWidget* marbleWidget() const;
 
- public Q_SLOTS:
-    void updateWindowTitle();
+ public slots:
+    void setMapTitle();
     void changeViewSize( QAction* );
-
- protected:
-    void closeEvent( QCloseEvent *event ) override;
 
  private:
     QSize m_savedSize;

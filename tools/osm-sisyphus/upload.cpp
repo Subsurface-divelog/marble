@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "upload.h"
@@ -18,6 +18,7 @@
 #include <QDir>
 #include <QTemporaryFile>
 #include <QUrl>
+#include <QDomDocument>
 
 Upload::Upload(QObject *parent) :
     QObject(parent), m_uploadFiles(true)
@@ -27,8 +28,8 @@ Upload::Upload(QObject *parent) :
 
 void Upload::changeStatus(const Package &package, const QString &status, const QString &message)
 {
-    Logger::instance().setStatus(package.region.id() + QLatin1Char('_') + package.transport,
-                                 package.region.name() + QLatin1String(" (") + package.transport + QLatin1Char(')'), status, message);
+    Logger::instance().setStatus( package.region.id() + '_' + package.transport,
+                                  package.region.name() + QLatin1String( " (" ) + package.transport + ')', status, message);
 }
 
 void Upload::processQueue()
@@ -64,20 +65,20 @@ bool Upload::upload(const Package &package)
     ssh.waitForFinished(1000 * 60 * 10); // wait up to 10 minutes for mkdir to complete
     if (ssh.exitStatus() != QProcess::NormalExit || ssh.exitCode() != 0) {
         qDebug() << "Failed to create remote directory " << remoteDir;
-        changeStatus(package, "error", QLatin1String("Failed to create remote directory: ") + ssh.readAllStandardError());
+        changeStatus( package, "error", "Failed to create remote directory: " + ssh.readAllStandardError());
         return false;
     }
 
     QProcess scp;
     arguments.clear();
     arguments << package.file.absoluteFilePath();
-    const QString target = remoteDir + QLatin1Char('/') + package.file.fileName();
-    arguments << auth + QLatin1Char(':') + target;
+    QString target = remoteDir + '/' + package.file.fileName();
+    arguments << auth + ':' + target;
     scp.start("scp", arguments);
     scp.waitForFinished(1000 * 60 * 60 * 12); // wait up to 12 hours for upload to complete
     if (scp.exitStatus() != QProcess::NormalExit || scp.exitCode() != 0) {
         qDebug() << "Failed to upload " << target;
-        changeStatus(package, "error", QLatin1String("Failed to upload file: ") + scp.readAllStandardError());
+        changeStatus( package, "error", "Failed to upload file: " + scp.readAllStandardError());
         return false;
     }
 
@@ -94,7 +95,7 @@ void Upload::deleteFile(const QFileInfo &file)
 bool Upload::adjustNewstuffFile(const Package &package)
 {
     if (m_xml.isNull()) {
-        QTemporaryFile tempFile(QDir::tempPath() + QLatin1String("/monav-maps-XXXXXX.xml"));
+        QTemporaryFile tempFile(QDir::tempPath() + "/monav-maps-XXXXXX.xml");
         tempFile.setAutoRemove(false);
         tempFile.open();
         QString monavFilename = tempFile.fileName();
@@ -105,7 +106,7 @@ bool Upload::adjustNewstuffFile(const Package &package)
         wget.waitForFinished(1000 * 60 * 60 * 12); // wait up to 12 hours for download to complete
         if (wget.exitStatus() != QProcess::NormalExit || wget.exitCode() != 0) {
             qDebug() << "Failed to download newstuff file from filesmaster.kde.org";
-            changeStatus( package, "error", QLatin1String("Failed to sync newstuff file: ") + wget.readAllStandardError());
+            changeStatus( package, "error", "Failed to sync newstuff file: " + wget.readAllStandardError());
             return false;
         }
 
@@ -127,10 +128,10 @@ bool Upload::adjustNewstuffFile(const Package &package)
 
     QDomElement root = m_xml.documentElement();
     QDomNodeList regions = root.elementsByTagName( "stuff" );
-    for ( int i = 0; i < int(regions.length()); ++i ) {
+    for ( unsigned int i = 0; i < regions.length(); ++i ) {
         QDomNode node = regions.item( i );
         if (!node.namedItem("payload").isNull()) {
-            QUrl url(node.namedItem("payload").toElement().text());
+            QUrl url = node.namedItem("payload").toElement().text();
             QFileInfo fileInfo(url.path());
             if (fileInfo.fileName() == package.file.fileName()) {
                 QString removeFile;
@@ -207,7 +208,7 @@ bool Upload::adjustNewstuffFile(const Package &package)
 
 bool Upload::uploadNewstuff()
 {
-    QTemporaryFile outFile(QDir::tempPath() + QLatin1String("/monav-maps-out-XXXXXX.xml"));
+    QTemporaryFile outFile(QDir::tempPath() + "/monav-maps-out-XXXXXX.xml");
     outFile.open();
     QTextStream outStream(&outFile);
     outStream << m_xml.toString(2);
@@ -301,4 +302,4 @@ QString Upload::releaseDate() const
     return QDateTime::currentDateTime().toString("MM/dd/yy");
 }
 
-#include "moc_upload.cpp"
+#include "upload.moc"

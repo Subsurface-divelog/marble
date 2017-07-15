@@ -10,8 +10,6 @@
 
 #include "AnimatedUpdateTrack.h"
 
-#include "PlaybackAnimatedUpdateItem.h"
-
 namespace Marble
 {
 
@@ -21,11 +19,11 @@ AnimatedUpdateTrack::AnimatedUpdateTrack( PlaybackAnimatedUpdateItem* item )
     m_progress = 0;
     m_delayBeforeTrackStarts = 0;
     m_paused = true;
-    connect( &m_timer, SIGNAL(timeout()), this, SLOT(playSlot()) );
-    connect( m_item, SIGNAL(balloonHidden()), this, SIGNAL(balloonHidden()) );
-    connect( m_item, SIGNAL(balloonShown(GeoDataPlacemark*)), this, SIGNAL(balloonShown(GeoDataPlacemark*)) );
-    connect( m_item, SIGNAL(updated(GeoDataFeature*)), this, SIGNAL(updated(GeoDataFeature*)) );
-    connect( m_item, SIGNAL(added(GeoDataContainer*,GeoDataFeature*,int)), this, SIGNAL(added(GeoDataContainer*,GeoDataFeature*,int)) );
+    connect( &m_timer, SIGNAL( timeout() ), this, SLOT( playSlot() ) );
+    connect( m_item, SIGNAL( balloonHidden() ), this, SIGNAL( balloonHidden() ) );
+    connect( m_item, SIGNAL( balloonShown( GeoDataPlacemark* ) ), this, SIGNAL( balloonShown( GeoDataPlacemark* ) ) );
+    connect( m_item, SIGNAL( updated( GeoDataFeature* ) ), this, SIGNAL( updated( GeoDataFeature* ) ) );
+    connect( m_item, SIGNAL(added(GeoDataContainer*,GeoDataFeature*,int)), this, SIGNAL( added(GeoDataContainer*,GeoDataFeature*,int)) );
     connect( m_item, SIGNAL(removed(const GeoDataFeature*)), this, SIGNAL(removed(const GeoDataFeature*)) );
 }
 
@@ -113,4 +111,4 @@ void AnimatedUpdateTrack::setPaused( bool pause )
 
 }
 
-#include "moc_AnimatedUpdateTrack.cpp"
+#include "AnimatedUpdateTrack.moc"

@@ -11,6 +11,8 @@
 #ifndef MARBLE_GEODATATIMEPRIMITIVE_H
 #define MARBLE_GEODATATIMEPRIMITIVE_H
 
+#include <QString>
+
 #include "GeoDataObject.h"
 
 #include "geodata_export.h"
@@ -33,7 +35,7 @@ class GEODATA_EXPORT GeoDataTimePrimitive : public GeoDataObject
 {
   public:
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     GeoDataTimePrimitive& operator=( const GeoDataTimePrimitive& other );
 
@@ -41,17 +43,17 @@ class GEODATA_EXPORT GeoDataTimePrimitive : public GeoDataObject
      * @brief Serialize the styleselector to a stream
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
 
     /**
      * @brief  Unserialize the styleselector from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
     GeoDataTimePrimitive();
     GeoDataTimePrimitive( const GeoDataTimePrimitive& other );
-    ~GeoDataTimePrimitive() override;
+    ~GeoDataTimePrimitive();
 private:
     GeoDataTimePrimitivePrivate * const d;
 };

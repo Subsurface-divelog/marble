@@ -13,11 +13,11 @@
 #ifndef POSITION_MARKER_H
 #define POSITION_MARKER_H
 
+#include <QObject>
 #include <QHash>
 #include <QVector>
 #include <QColor>
-#include <QPolygon>
-#include <QPixmap>
+#include <QAbstractButton>
 
 #include "DialogConfigurationInterface.h"
 #include "RenderPlugin.h"
@@ -35,60 +35,60 @@ namespace Marble
 class PositionMarker  : public RenderPlugin, public DialogConfigurationInterface
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.PositionMarker")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.PositionMarker" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     Q_INTERFACES( Marble::DialogConfigurationInterface )
     MARBLE_PLUGIN( PositionMarker )
  public:
     explicit PositionMarker(const MarbleModel *marbleModel = 0 );
-    ~PositionMarker () override;
+    ~PositionMarker ();
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    QDialog *configDialog() override;
+    QDialog *configDialog();
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString& renderPos, GeoSceneLayer * layer = 0 ) override;
+                 const QString& renderPos, GeoSceneLayer * layer = 0 );
 
     // Overriding LayerInterface to paint on top of the route
-    qreal zValue() const override;
+    virtual qreal zValue() const;
 
     /**
      * @return: The settings of the item.
      */
-    QHash<QString,QVariant> settings() const override;
+    virtual QHash<QString,QVariant> settings() const;
 
     /**
      * Set the settings of the item.
      */
-    void setSettings( const QHash<QString,QVariant> &settings ) override;
+    virtual void setSettings( const QHash<QString,QVariant> &settings );
 
 
- public Q_SLOTS:
+ public slots:
     void readSettings();
     void writeSettings();
 

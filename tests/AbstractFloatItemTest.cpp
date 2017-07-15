@@ -30,21 +30,18 @@ class NullFloatItem : public AbstractFloatItem
         AbstractFloatItem( model )
     {}
 
-    QString name() const override { return QStringLiteral("Null Float Item"); }
-    QString nameId() const override { return QStringLiteral("null"); }
-    QString version() const override { return QStringLiteral("0.0"); }
-    QString description() const override { return QStringLiteral("A null float item just for testing."); }
-    QIcon icon() const override { return QIcon(); }
-    QString copyrightYears() const override { return QStringLiteral("2013"); }
-    QVector<PluginAuthor> pluginAuthors() const override
-    {
-        return QVector<PluginAuthor>() << PluginAuthor(QStringLiteral("Bernhard Beschow"), QStringLiteral("bbeschow@cs.tu-berlin.de"));
-    }
-    void initialize() override {}
-    bool isInitialized() const override { return true; }
-    QStringList backendTypes() const override { return QStringList(QStringLiteral("null")); }
-    QString guiString() const override { return QStringLiteral("Null"); }
-    RenderPlugin *newInstance( const MarbleModel * ) const override { return 0; }
+    QString name() const { return "Null Float Item"; }
+    QString nameId() const { return "null"; }
+    QString version() const { return "0.0"; }
+    QString description() const { return "A null float item just for testing."; }
+    QIcon icon() const { return QIcon(); }
+    QString copyrightYears() const { return "2013"; }
+    QList<PluginAuthor> pluginAuthors() const { return QList<PluginAuthor>() << PluginAuthor( "Bernhard Beschow", "bbeschow@cs.tu-berlin.de" ); }
+    void initialize() {}
+    bool isInitialized() const { return true; }
+    QStringList backendTypes() const { return QStringList() << "null"; }
+    QString guiString() const { return "Null"; }
+    RenderPlugin *newInstance( const MarbleModel * ) const { return 0; }
 };
 
 class AbstractFloatItemTest : public QObject
@@ -54,7 +51,7 @@ class AbstractFloatItemTest : public QObject
  public:
     AbstractFloatItemTest();
 
- private Q_SLOTS:
+ private slots:
     void defaultConstructor();
 
     void newInstance_data();
@@ -103,8 +100,7 @@ void AbstractFloatItemTest::newInstance_data()
     QTest::addColumn<const AbstractFloatItem *>( "factory" );
 
     foreach ( const AbstractFloatItem *factory, m_factories ) {
-        QTest::newRow(factory->nameId().toLatin1().constData())
-            << factory;
+        QTest::newRow( factory->nameId().toLatin1() ) << factory;
     }
 }
 
@@ -125,8 +121,7 @@ void AbstractFloatItemTest::setSettings_data()
     QTest::addColumn<const AbstractFloatItem *>( "factory" );
 
     foreach ( const AbstractFloatItem *factory, m_factories ) {
-        QTest::newRow(factory->nameId().toLatin1().constData())
-            << factory;
+        QTest::newRow( factory->nameId().toLatin1() ) << factory;
     }
 }
 
@@ -161,8 +156,7 @@ void AbstractFloatItemTest::setPosition_data()
     QTest::addColumn<const AbstractFloatItem *>( "factory" );
 
     foreach ( const AbstractFloatItem *factory, m_factories ) {
-        QTest::newRow(factory->nameId().toLatin1().constData())
-            << factory;
+        QTest::newRow( factory->nameId().toLatin1() ) << factory;
     }
 }
 

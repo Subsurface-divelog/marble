@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 // Copyright 2012,2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 
@@ -21,6 +21,8 @@
 #include "RoutingRunner.h"
 #include "RoutingRunnerManager.h"
 #include "routing/RouteRequest.h"
+
+#include <QTimer>
 
 namespace Marble
 {
@@ -83,21 +85,20 @@ ParsingTask::ParsingTask( ParsingRunner *runner, ParsingRunnerManager *manager, 
     QObject(),
     m_runner( runner ),
     m_fileName( fileName ),
-    m_role( role ),
-    m_manager(manager)
+    m_role( role )
 {
-    connect(this, SIGNAL(parsed(GeoDataDocument*,QString)), m_manager, SLOT(addParsingResult(GeoDataDocument*,QString)));
+    connect( m_runner, SIGNAL(parsingFinished(GeoDataDocument*,QString)),
+             manager, SLOT(addParsingResult(GeoDataDocument*,QString)) );
 }
 
 void ParsingTask::run()
 {
-    QString error;
-    GeoDataDocument* document = m_runner->parseFile( m_fileName, m_role, error );
-    emit parsed(document, error);
+    m_runner->parseFile( m_fileName, m_role );
     m_runner->deleteLater();
-    emit finished();
+
+    emit finished( this );
 }
 
 }
 
-#include "moc_RunnerTask.cpp"
+#include "RunnerTask.moc"

@@ -26,12 +26,12 @@ QString JsonPlugin::name() const
 
 QString JsonPlugin::nameId() const
 {
-    return QStringLiteral("GeoJSON");
+    return "GeoJSON";
 }
 
 QString JsonPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString JsonPlugin::description() const
@@ -41,13 +41,13 @@ QString JsonPlugin::description() const
 
 QString JsonPlugin::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> JsonPlugin::pluginAuthors() const
+QList<PluginAuthor> JsonPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Ander Pijoan"), QStringLiteral("ander.pijoan@deusto.es"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Ander Pijoan", "ander.pijoan@deusto.es" );
 }
 
 QString JsonPlugin::fileFormatDescription() const
@@ -57,7 +57,7 @@ QString JsonPlugin::fileFormatDescription() const
 
 QStringList JsonPlugin::fileExtensions() const
 {
-    return QStringList() << QStringLiteral("json") << QStringLiteral("geojson");
+    return QStringList() << "json";
 }
 
 ParsingRunner* JsonPlugin::newRunner() const
@@ -67,5 +67,7 @@ ParsingRunner* JsonPlugin::newRunner() const
 
 }
 
-#include "moc_JsonPlugin.cpp"
+Q_EXPORT_PLUGIN2( JsonPlugin, Marble::JsonPlugin )
+
+#include "JsonPlugin.moc"
 

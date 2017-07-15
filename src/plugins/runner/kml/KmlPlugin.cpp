@@ -6,7 +6,6 @@
 // the source code.
 //
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
-// Copyright 2015 Dennis Nienhüser <nienhueser@kde.org>
 
 #include "KmlPlugin.h"
 #include "KmlRunner.h"
@@ -26,12 +25,12 @@ QString KmlPlugin::name() const
 
 QString KmlPlugin::nameId() const
 {
-    return QStringLiteral("Kml");
+    return "Kml";
 }
 
 QString KmlPlugin::version() const
 {
-    return QStringLiteral("1.2");
+    return "1.1";
 }
 
 QString KmlPlugin::description() const
@@ -41,14 +40,14 @@ QString KmlPlugin::description() const
 
 QString KmlPlugin::copyrightYears() const
 {
-    return QStringLiteral("2011, 2013, 2015");
+    return "2011, 2013";
 }
 
-QVector<PluginAuthor> KmlPlugin::pluginAuthors() const
+QList<PluginAuthor> KmlPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"))
-            << PluginAuthor(QStringLiteral("Dennis Nienhüser"), QStringLiteral("nienhueser@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" )
+            << PluginAuthor( "Dennis Nienhüser", "earthwings@gentoo.org" );
 }
 
 QString KmlPlugin::fileFormatDescription() const
@@ -58,7 +57,11 @@ QString KmlPlugin::fileFormatDescription() const
 
 QStringList KmlPlugin::fileExtensions() const
 {
-    return QStringList() << QStringLiteral("kml") << QStringLiteral("kmz");
+#ifdef MARBLE_HAVE_QUAZIP
+    return QStringList() << "kml" << "kmz";
+#else
+    return QStringList() << "kml";
+#endif
 }
 
 ParsingRunner* KmlPlugin::newRunner() const
@@ -68,4 +71,6 @@ ParsingRunner* KmlPlugin::newRunner() const
 
 }
 
-#include "moc_KmlPlugin.cpp"
+Q_EXPORT_PLUGIN2( KmlPlugin, Marble::KmlPlugin )
+
+#include "KmlPlugin.moc"

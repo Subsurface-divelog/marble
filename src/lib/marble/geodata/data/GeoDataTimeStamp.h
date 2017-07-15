@@ -11,19 +11,19 @@
 #ifndef MARBLE_GEODATATIMESTAMP_H
 #define MARBLE_GEODATATIMESTAMP_H
 
+#include <QString>
+#include <QDateTime>
+
+#include "GeoDataObject.h"
 #include "GeoDataTimePrimitive.h"
 
 #include "geodata_export.h"
-
-class QDateTime;
 
 namespace Marble
 {
 
 class GeoDataTimeStampPrivate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataTimeStamp : public GeoDataTimePrimitive
 {
   public:
@@ -36,7 +36,7 @@ class GEODATA_EXPORT GeoDataTimeStamp : public GeoDataTimePrimitive
 
     GeoDataTimeStamp();
     GeoDataTimeStamp( const GeoDataTimeStamp& other );
-    ~GeoDataTimeStamp() override;
+    virtual ~GeoDataTimeStamp();
 
     /**
     * @brief assignment operator
@@ -51,7 +51,7 @@ class GEODATA_EXPORT GeoDataTimeStamp : public GeoDataTimePrimitive
 
 
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
     * @brief return the when time of timestamp
@@ -72,13 +72,13 @@ class GEODATA_EXPORT GeoDataTimeStamp : public GeoDataTimePrimitive
      * @brief Serialize the timestamp to a stream
      * @param  stream  the stream
      */
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
 
     /**
      * @brief  Unserialize the timestamp from a stream
      * @param  stream  the stream
      */
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
   private:
     GeoDataTimeStampPrivate * const d;

@@ -18,6 +18,8 @@
 
 namespace Marble {
 
+class GeoDataPlacemark;
+
 class MARBLE_EXPORT MergeItem : public QObject
 {
 
@@ -76,7 +78,7 @@ public:
     MergeItem::Resolution resolution() const;
     void setResolution( MergeItem::Resolution resolution );
 
-Q_SIGNALS:
+signals:
     void pathAChanged();
     void pathBChanged();
     void placemarkAChanged();

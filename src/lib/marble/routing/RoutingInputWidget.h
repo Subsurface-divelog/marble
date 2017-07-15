@@ -5,12 +5,14 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTINGINPUTWIDGET_H
 #define MARBLE_ROUTINGINPUTWIDGET_H
 
+#include "GeoDataCoordinates.h"
+#include "GeoDataPlacemark.h"
 #include "PositionProviderPluginInterface.h"
 
 #include <QWidget>
@@ -21,8 +23,6 @@ namespace Marble
 {
 
 class RoutingInputWidgetPrivate;
-class GeoDataCoordinates;
-class GeoDataPlacemark;
 class MarbleModel;
 class MarblePlacemarkModel;
 
@@ -42,7 +42,7 @@ public:
     explicit RoutingInputWidget( MarbleModel* model, int index, QWidget *parent = 0 );
 
     /** Destructor */
-    ~RoutingInputWidget() override;
+    ~RoutingInputWidget();
 
     /**
       * Returns true if the user has selected a valid geo position

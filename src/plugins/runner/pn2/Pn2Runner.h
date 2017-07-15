@@ -26,17 +26,21 @@ class Pn2Runner : public ParsingRunner
     Q_OBJECT
 public:
     explicit Pn2Runner(QObject *parent = 0);
-    ~Pn2Runner() override;
-    GeoDataDocument* parseFile( const QString &fileName, DocumentRole role, QString& error ) override;
-
-private:
+    ~Pn2Runner();
     static bool errorCheckLat( qint16 lat );
     static bool errorCheckLon( qint16 lon );
     static bool importPolygon( QDataStream &stream, GeoDataLineString* linestring, quint32 nrAbsoluteNodes );
+    virtual void parseFile( const QString &fileName, DocumentRole role );
 
-    GeoDataDocument* parseForVersion1( const QString &fileName, DocumentRole role );
-    GeoDataDocument* parseForVersion2( const QString &fileName, DocumentRole role );
+signals:
 
+public slots:
+
+protected:
+    void parseForVersion1( const QString &fileName, DocumentRole role );
+    void parseForVersion2( const QString &fileName, DocumentRole role );
+
+private:
     QDataStream m_stream;
     quint8 m_fileHeaderVersion;
     quint32 m_fileHeaderPolygons;

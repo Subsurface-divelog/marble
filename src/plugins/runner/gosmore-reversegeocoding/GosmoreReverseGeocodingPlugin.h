@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2012      Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 //
 
@@ -21,29 +21,29 @@ namespace Marble
 class GosmorePlugin : public ReverseGeocodingRunnerPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.GosmoreReverseGeocodingPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.GosmoreReverseGeocodingPlugin" )
     Q_INTERFACES( Marble::ReverseGeocodingRunnerPlugin )
 
 public:
     explicit GosmorePlugin( QObject *parent = 0 );
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    ReverseGeocodingRunner* newRunner() const override;
+    virtual ReverseGeocodingRunner* newRunner() const;
 
-    bool canWork() const override;
+    virtual bool canWork() const;
 };
 
 }

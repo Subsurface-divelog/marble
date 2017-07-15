@@ -25,12 +25,12 @@ QString CachePlugin::name() const
 
 QString CachePlugin::nameId() const
 {
-    return QStringLiteral("Cache");
+    return "Cache";
 }
 
 QString CachePlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString CachePlugin::description() const
@@ -40,13 +40,13 @@ QString CachePlugin::description() const
 
 QString CachePlugin::copyrightYears() const
 {
-    return QStringLiteral("2011");
+    return "2011";
 }
 
-QVector<PluginAuthor> CachePlugin::pluginAuthors() const
+QList<PluginAuthor> CachePlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Thibaut Gridel"), QStringLiteral("tgridel@free.fr"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Thibaut Gridel", "tgridel@free.fr" );
 }
 
 QString CachePlugin::fileFormatDescription() const
@@ -56,7 +56,7 @@ QString CachePlugin::fileFormatDescription() const
 
 QStringList CachePlugin::fileExtensions() const
 {
-    return QStringList(QStringLiteral("cache"));
+    return QStringList() << "cache";
 }
 
 ParsingRunner* CachePlugin::newRunner() const
@@ -66,4 +66,6 @@ ParsingRunner* CachePlugin::newRunner() const
 
 }
 
-#include "moc_CachePlugin.cpp"
+Q_EXPORT_PLUGIN2( CachePlugin, Marble::CachePlugin )
+
+#include "CachePlugin.moc"

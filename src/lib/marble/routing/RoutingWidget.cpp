@@ -5,19 +5,15 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "RoutingWidget.h"
 
 #include "GeoDataLineString.h"
-#include "GeoDataLookAt.h"
-#include "GeoDataPlaylist.h"
 #include "GeoDataTour.h"
 #include "GeoDataFlyTo.h"
 #include "GeoDataStyle.h"
-#include "GeoDataIconStyle.h"
-#include "GeoDataPlacemark.h"
 #include "TourPlayback.h"
 #include "Maneuver.h"
 #include "MarbleModel.h"
@@ -34,9 +30,7 @@
 #include "RoutingProfileSettingsDialog.h"
 #include "GeoDataDocument.h"
 #include "GeoDataTreeModel.h"
-#include "GeoDataCreate.h"
-#include "GeoDataUpdate.h"
-#include "GeoDataDelete.h"
+#include "GeoDataTypes.h"
 #include "AlternativeRoutesModel.h"
 #include "RouteSyncManager.h"
 #include "CloudRoutesDialog.h"
@@ -46,7 +40,10 @@
 #include "MarbleMath.h"
 #include "Planet.h"
 
+#include <QTime>
 #include <QTimer>
+#include <QSortFilterProxyModel>
+#include <QComboBox>
 #include <QPainter>
 #include <QFileDialog>
 #include <QKeyEvent>
@@ -102,7 +99,6 @@ public:
     int m_iconSize;
     int m_collapse_width;
     bool m_playing;
-    QString m_planetId;
 
     QToolBar *m_toolBar;
 
@@ -162,7 +158,6 @@ RoutingWidgetPrivate::RoutingWidgetPrivate( RoutingWidget *parent, MarbleWidget 
         m_iconSize( 16 ),
         m_collapse_width( 0 ),
         m_playing( false ),
-        m_planetId(marbleWidget->model()->planetId()),
         m_toolBar( 0 ),
         m_openRouteButton( 0 ),
         m_saveRouteButton( 0 ),
@@ -230,49 +225,49 @@ void RoutingWidgetPrivate::setupToolBar()
 
     m_openRouteButton = new QToolButton;
     m_openRouteButton->setToolTip( QObject::tr("Open Route") );
-    m_openRouteButton->setIcon(QIcon(QStringLiteral(":/icons/16x16/document-open.png")));
+    m_openRouteButton->setIcon( QIcon(":/icons/16x16/document-open.png") );
     m_toolBar->addWidget(m_openRouteButton);
 
     m_saveRouteButton = new QToolButton;
     m_saveRouteButton->setToolTip( QObject::tr("Save Route") );
-    m_saveRouteButton->setIcon(QIcon(QStringLiteral(":/icons/16x16/document-save.png")));
+    m_saveRouteButton->setIcon( QIcon(":/icons/16x16/document-save.png") );
     m_toolBar->addWidget(m_saveRouteButton);
 
     m_playButton = new QToolButton;
     m_playButton->setToolTip( QObject::tr("Preview Route") );
-    m_playButton->setIcon(QIcon(QStringLiteral(":/marble/playback-play.png")));
+    m_playButton->setIcon( QIcon( ":/marble/playback-play.png" ) );
     m_toolBar->addWidget(m_playButton);
 
     m_cloudSyncSeparator = m_toolBar->addSeparator();
     m_uploadToCloudAction = m_toolBar->addAction( QObject::tr("Upload to Cloud") );
     m_uploadToCloudAction->setToolTip( QObject::tr("Upload to Cloud") );
-    m_uploadToCloudAction->setIcon(QIcon(QStringLiteral(":/icons/cloud-upload.png")));
+    m_uploadToCloudAction->setIcon( QIcon(":/icons/cloud-upload.png") );
 
     m_openCloudRoutesAction = m_toolBar->addAction( QObject::tr("Manage Cloud Routes") );
     m_openCloudRoutesAction->setToolTip( QObject::tr("Manage Cloud Routes") );
-    m_openCloudRoutesAction->setIcon(QIcon(QStringLiteral(":/icons/cloud-download.png")));
+    m_openCloudRoutesAction->setIcon( QIcon(":/icons/cloud-download.png") );
 
     m_toolBar->addSeparator();
     m_addViaButton = new QToolButton;
     m_addViaButton->setToolTip( QObject::tr("Add Via") );
-    m_addViaButton->setIcon(QIcon(QStringLiteral(":/marble/list-add.png")));
+    m_addViaButton->setIcon( QIcon(":/marble/list-add.png") );
     m_toolBar->addWidget(m_addViaButton);
 
     m_reverseRouteButton = new QToolButton;
     m_reverseRouteButton->setToolTip( QObject::tr("Reverse Route") );
-    m_reverseRouteButton->setIcon(QIcon(QStringLiteral(":/marble/reverse.png")));
+    m_reverseRouteButton->setIcon( QIcon(":/marble/reverse.png") );
     m_toolBar->addWidget(m_reverseRouteButton);
 
     m_clearRouteButton = new QToolButton;
     m_clearRouteButton->setToolTip( QObject::tr("Clear Route") );
-    m_clearRouteButton->setIcon(QIcon(QStringLiteral(":/marble/edit-clear.png")));
+    m_clearRouteButton->setIcon( QIcon(":/marble/edit-clear.png") );
     m_toolBar->addWidget(m_clearRouteButton);
 
     m_toolBar->addSeparator();
 
     m_configureButton = new QToolButton;
     m_configureButton->setToolTip( QObject::tr("Settings") );
-    m_configureButton->setIcon(QIcon(QStringLiteral(":/icons/16x16/configure.png")));
+    m_configureButton->setIcon( QIcon(":/icons/16x16/configure.png") );
     m_toolBar->addWidget(m_configureButton);
 
     QObject::connect( m_openRouteButton, SIGNAL(clicked()),
@@ -393,10 +388,12 @@ RoutingWidget::RoutingWidget( MarbleWidget *marbleWidget, QWidget *parent ) :
         d->m_ui.directionsListView->setVisible( false );
         d->m_openRouteButton->setVisible( false );
         d->m_saveRouteButton->setVisible( false );
+#ifdef Q_WS_MAEMO_5
+        d->m_ui.directionsListView->setAttribute( Qt::WA_Maemo5StackedWindow );
+        d->m_ui.directionsListView->setWindowFlags( Qt::Window );
+        d->m_ui.directionsListView->setWindowTitle( tr( "Directions - Marble" ) );
+#endif // Q_WS_MAEMO_5
     }
-
-    connect( marbleWidget->model(), SIGNAL(themeChanged(QString)),
-             this, SLOT(handlePlanetChange()) );
 }
 
 RoutingWidget::~RoutingWidget()
@@ -477,7 +474,7 @@ void RoutingWidget::handleSearchResult( RoutingInputWidget *widget )
         activatePlacemark( model->index( 0, 0 ) );
     } else {
         QString const results = tr( "No placemark found" );
-        d->m_ui.resultLabel->setText(QLatin1String("<font color=\"red\">") + results + QLatin1String("</font>"));
+        d->m_ui.resultLabel->setText( "<font color=\"red\">" + results + "</font>" );
         d->m_ui.resultLabel->setVisible( true );
     }
 
@@ -539,7 +536,7 @@ void RoutingWidget::insertInputWidget( int index )
         connect( input, SIGNAL(targetValidityChanged(bool)),
                  this, SLOT(adjustSearchButton()) );
 
-        d->m_ui.inputLayout->insertWidget( index, input );
+        d->m_ui.routingLayout->insertWidget( index, input );
         d->adjustInputWidgets();
     }
 }
@@ -562,7 +559,7 @@ void RoutingWidget::removeInputWidget( int index )
     if ( index >= 0 && index < d->m_inputWidgets.size() ) {
         RoutingInputWidget *widget = d->m_inputWidgets.at( index );
         d->m_inputWidgets.remove( index );
-        d->m_ui.inputLayout->removeWidget( widget );
+        d->m_ui.routingLayout->removeWidget( widget );
         widget->deleteLater();
         if ( widget == d->m_activeInput ) {
             d->m_activeInput = 0;
@@ -594,7 +591,7 @@ void RoutingWidget::updateRouteState( RoutingManager::State state )
         d->m_ui.searchButton->setIcon( QIcon() );
         if ( d->m_routingManager->routingModel()->rowCount() == 0 ) {
             const QString results = tr( "No route found" );
-            d->m_ui.resultLabel->setText(QLatin1String("<font color=\"red\">") + results + QLatin1String("</font>"));
+            d->m_ui.resultLabel->setText( "<font color=\"red\">" + results + "</font>" );
             d->m_ui.resultLabel->setVisible( true );
         }
     }
@@ -737,7 +734,7 @@ void RoutingWidget::saveRoute()
     if ( !fileName.isEmpty() ) {
         // maemo 5 file dialog does not append the file extension
         if ( !fileName.endsWith(QLatin1String( ".kml" ), Qt::CaseInsensitive) ) {
-            fileName += QLatin1String(".kml");
+            fileName.append( ".kml" );
         }
         d->m_routingManager->setLastSavePath( QFileInfo( fileName ).absolutePath() );
         d->m_routingManager->saveRoute( fileName );
@@ -857,25 +854,22 @@ void RoutingWidget::resizeEvent(QResizeEvent *e)
 
 void RoutingWidget::toggleRoutePlay()
 {
-    if( !d->m_playback ){
-        if( d->m_routingModel->rowCount() != 0 ){
-            initializeTour();
-	}
-    }
-
     if (!d->m_playback)
         return;
 
     if( !d->m_playing ){
         d->m_playing = true;
-        d->m_playButton->setIcon(QIcon(QStringLiteral(":/marble/playback-pause.png")));
+        d->m_playButton->setIcon( QIcon( ":/marble/playback-pause.png" ) );
 
+        if( !d->m_playback ){
+            initializeTour();
+        }
         if( d->m_playback ){
             d->m_playback->play();
         }
     } else {
         d->m_playing = false;
-        d->m_playButton->setIcon(QIcon(QStringLiteral(":/marble/playback-play.png")));
+        d->m_playButton->setIcon( QIcon( ":/marble/playback-play.png" ) );
         d->m_playback->pause();
     }
 }
@@ -888,7 +882,7 @@ void RoutingWidget::initializeTour()
         delete d->m_document;
     }
     d->m_document = new GeoDataDocument;
-    d->m_document->setId(QStringLiteral("tourdoc"));
+    d->m_document->setId("tourdoc");
     d->m_document->append( d->m_tour );
 
     d->m_tour->setPlaylist( new GeoDataPlaylist );
@@ -901,8 +895,7 @@ void RoutingWidget::initializeTour()
     QList<WaypointInfo> waypoints;
     double totalDistance = 0.0;
     for( int i=0; i<route.size(); ++i ){
-        // TODO: QString( i )?
-        waypoints << WaypointInfo(i, totalDistance, route.at(i).path().first(), route.at(i).maneuver(), QLatin1String("start ") + QString(i));
+        waypoints << WaypointInfo( i, totalDistance, route.at(i).path().first(), route.at(i).maneuver(), QString("start ") + QString( i ) );
         totalDistance += route.at( i ).distance();
     }
 
@@ -957,7 +950,7 @@ void RoutingWidget::initializeTour()
             placemarkCreate->setId( waypointId );
             placemarkCreate->setTargetId( d->m_document->id() );
             placemarkCreate->setCoordinate( waypoint.coordinates );
-            GeoDataStyle::Ptr style(new GeoDataStyle);
+            GeoDataStyle *style = new GeoDataStyle;
             style->iconStyle().setIconPath( waypoint.maneuver.directionPixmap() );
             placemarkCreate->setStyle( style );
             updateCreate->update()->create()->append( placemarkCreate );
@@ -978,8 +971,8 @@ void RoutingWidget::initializeTour()
     d->m_playback->setMarbleWidget( d->m_widget );
     d->m_playback->setTour( d->m_tour );
     d->m_widget->model()->treeModel()->addDocument( d->m_document );
-    QObject::connect( d->m_playback, SIGNAL(finished()),
-                  this, SLOT(seekTourToStart()) );
+    QObject::connect( d->m_playback, SIGNAL( finished() ),
+                  this, SLOT( seekTourToStart() ) );
 }
 
 void RoutingWidget::centerOn( const GeoDataCoordinates &coordinates )
@@ -995,7 +988,7 @@ void RoutingWidget::centerOn( const GeoDataCoordinates &coordinates )
 void RoutingWidget::clearTour()
 {
     d->m_playing = false;
-    d->m_playButton->setIcon(QIcon(QStringLiteral(":/marble/playback-play.png")));
+    d->m_playButton->setIcon( QIcon( ":/marble/playback-play.png" ) );
     delete d->m_playback;
     d->m_playback = 0;
     if( d->m_document ){
@@ -1011,22 +1004,10 @@ void RoutingWidget::seekTourToStart()
     Q_ASSERT( d->m_playback );
     d->m_playback->stop();
     d->m_playback->seek( 0 );
-    d->m_playButton->setIcon(QIcon(QStringLiteral(":/marble/playback-play.png")));
+    d->m_playButton->setIcon( QIcon( ":/marble/playback-play.png" ) );
     d->m_playing = false;
-}
-
-void RoutingWidget::handlePlanetChange()
-{
-    const QString newPlanetId = d->m_widget->model()->planetId();
-
-    if (newPlanetId == d->m_planetId) {
-        return;
-    }
-
-    d->m_planetId = newPlanetId;
-    d->m_routingManager->clearRoute();
 }
 
 } // namespace Marble
 
-#include "moc_RoutingWidget.cpp"
+#include "RoutingWidget.moc"

@@ -20,9 +20,10 @@
 #include <QDebug>
 #include <QString>
 #include <QUrl>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
+#include <QMessageBox>
+#include <QScriptEngine>
+#include <QScriptValue>
+#include <QScriptValueIterator>
 
 namespace Marble {
 
@@ -56,44 +57,45 @@ void EarthquakeModel::setEndDate( const QDateTime& endDate )
 
 void EarthquakeModel::getAdditionalItems( const GeoDataLatLonAltBox& box, qint32 number )
 {
-    if (marbleModel()->planetId() != QLatin1String("earth")) {
+    if( marbleModel()->planetId() != "earth" ) {
         return;
     }
 
-    const QString geonamesUrl( QLatin1String("http://ws.geonames.org/earthquakesJSON") +
-        QLatin1String("?north=")   + QString::number(box.north() * RAD2DEG) +
-        QLatin1String("&south=")   + QString::number(box.south() * RAD2DEG) +
-        QLatin1String("&east=")    + QString::number(box.east() * RAD2DEG) +
-        QLatin1String("&west=")    + QString::number(box.west() * RAD2DEG) +
-        QLatin1String("&date=")    + m_endDate.toString("yyyy-MM-dd") +
-        QLatin1String("&maxRows=") + QString::number(number) +
-        QLatin1String("&username=marble") +
-        QLatin1String("&formatted=true"));
+    QString geonamesUrl( "http://ws.geonames.org/earthquakesJSON" );
+    geonamesUrl += "?north="   + QString::number( box.north() * RAD2DEG );
+    geonamesUrl += "&south="   + QString::number( box.south() * RAD2DEG );
+    geonamesUrl += "&east="    + QString::number( box.east() * RAD2DEG );
+    geonamesUrl += "&west="    + QString::number( box.west() * RAD2DEG );
+    geonamesUrl += "&date=" + m_endDate.toString( "yyyy-MM-dd" );
+    geonamesUrl += "&maxRows=" + QString::number( number );
+    geonamesUrl += "&username=marble";
+    geonamesUrl += "&formatted=true";
     downloadDescriptionFile( QUrl( geonamesUrl ) );
 }
 
 void EarthquakeModel::parseFile( const QByteArray& file )
 {
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(file);
-    QJsonValue earthquakesValue = jsonDoc.object().value(QStringLiteral("earthquakes"));
+    QScriptValue data;
+    QScriptEngine engine;
+
+    // Qt requires parentheses around json code
+    data = engine.evaluate( '(' + QString( file ) + ')' );
 
     // Parse if any result exists
-    if (earthquakesValue.isArray()) {
+    if ( data.property( "earthquakes" ).isArray() ) {
+        QScriptValueIterator iterator( data.property( "earthquakes" ) );
         // Add items to the list
         QList<AbstractDataPluginItem*> items;
-
-        QJsonArray earthquakeArray = earthquakesValue.toArray();
-        for (int earthquakeIndex = 0; earthquakeIndex < earthquakeArray.size(); ++earthquakeIndex) {
-            QJsonObject levelObject = earthquakeArray[earthquakeIndex].toObject();
-
-            // Converting earthquake's properties from JSON to appropriate types
-            const QString eqid = levelObject.value(QStringLiteral("eqid")).toString(); // Earthquake's ID
-            const double longitude = levelObject.value(QStringLiteral("lng")).toDouble();
-            const double latitude = levelObject.value(QStringLiteral("lat")).toDouble();
-            const double magnitude = levelObject.value(QStringLiteral("magnitude")).toDouble();
-            const QString dateString = levelObject.value(QStringLiteral("datetime")).toString();
-            const QDateTime date = QDateTime::fromString(dateString, QStringLiteral("yyyy-MM-dd hh:mm:ss"));
-            const double depth = levelObject.value(QStringLiteral("depth")).toDouble();
+        while ( iterator.hasNext() ) {
+            iterator.next();
+            // Converting earthquake's properties from QScriptValue to appropriate types
+            QString eqid = iterator.value().property( "eqid" ).toString(); // Earthquake's ID
+            double longitude = iterator.value().property( "lng" ).toNumber();
+            double latitude = iterator.value().property( "lat" ).toNumber();
+            double magnitude = iterator.value().property( "magnitude" ).toNumber();
+            QString data = iterator.value().property( "datetime" ).toString();
+            QDateTime date = QDateTime::fromString( data, "yyyy-MM-dd hh:mm:ss" );
+            double depth = iterator.value().property( "depth" ).toNumber();
 
             if( date <= m_endDate && date >= m_startDate && magnitude >= m_minMagnitude ) {
                 if( !itemExists( eqid ) ) {
@@ -117,4 +119,4 @@ void EarthquakeModel::parseFile( const QByteArray& file )
 
 }
 
-#include "moc_EarthquakeModel.cpp"
+#include "EarthquakeModel.moc"

@@ -35,14 +35,18 @@ SatellitesPlugin::SatellitesPlugin( const MarbleModel *marbleModel )
     : RenderPlugin( marbleModel ),
      m_satModel( 0 ),
      m_isInitialized( false ),
-     m_configDialog(nullptr)
+     m_configDialog( new SatellitesConfigDialog() )
 {
     connect( this, SIGNAL(settingsChanged(QString)), SLOT(updateSettings()) );
     connect( this, SIGNAL(enabledChanged(bool)), SLOT(enableModel(bool)) );
     connect( this, SIGNAL(visibilityChanged(bool,QString)), SLOT(visibleModel(bool)) );
 
+    connect( m_configDialog, SIGNAL(activatePluginClicked()), this, SLOT(activate()) );
+    connect( this, SIGNAL(visibilityChanged(bool,QString)),
+             m_configDialog, SLOT(setDialogActive(bool)) );
+
     setVisible( false );
-    setSettings(QHash<QString, QVariant>());
+    setSettings( QHash<QString, QVariant>() );
 
     m_showOrbitAction = new QAction( tr( "Display orbit" ), this );
     m_showOrbitAction->setCheckable( true );
@@ -65,17 +69,17 @@ SatellitesPlugin::~SatellitesPlugin()
 
 QStringList SatellitesPlugin::backendTypes() const
 {
-    return QStringList(QStringLiteral("satellites"));
+    return QStringList( "satellites" );
 }
 
 QString SatellitesPlugin::renderPolicy() const
 {
-    return QStringLiteral("ALWAYS");
+    return QString( "ALWAYS" );
 }
 
 QStringList SatellitesPlugin::renderPosition() const
 {
-    return QStringList(QStringLiteral("ORBIT"));
+    return QStringList( "ORBIT" );
 }
 
 QString SatellitesPlugin::name() const
@@ -85,7 +89,7 @@ QString SatellitesPlugin::name() const
 
 QString SatellitesPlugin::nameId() const
 {
-    return QStringLiteral("satellites");
+    return "satellites";
 }
 
 QString SatellitesPlugin::guiString() const
@@ -95,7 +99,7 @@ QString SatellitesPlugin::guiString() const
 
 QString SatellitesPlugin::version() const
 {
-    return QStringLiteral("2.0");
+    return "2.0";
 }
 
 QString SatellitesPlugin::description() const
@@ -105,15 +109,15 @@ QString SatellitesPlugin::description() const
 
 QString SatellitesPlugin::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> SatellitesPlugin::pluginAuthors() const
+QList<PluginAuthor> SatellitesPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Guillaume Martres"), QStringLiteral("smarter@ubuntu.com"))
-            << PluginAuthor(QStringLiteral("Rene Kuettner"), QStringLiteral("rene@bitkanal.net"))
-            << PluginAuthor(QStringLiteral("Gerhard Holtkamp"), QString());
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Guillaume Martres", "smarter@ubuntu.com" )
+            << PluginAuthor( "Rene Kuettner", "rene@bitkanal.net" )
+            << PluginAuthor( "Gerhard Holtkamp", "" );
 }
 
 QString SatellitesPlugin::aboutDataText() const
@@ -130,7 +134,7 @@ QString SatellitesPlugin::aboutDataText() const
 
 QIcon SatellitesPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/data/bitmaps/satellite.png"));
+    return QIcon( ":/data/bitmaps/satellite.png" );
 }
 
 RenderPlugin::RenderType SatellitesPlugin::renderType() const
@@ -148,12 +152,6 @@ void SatellitesPlugin::initialize()
         marbleModel()->clock() );
 
     m_configModel = new SatellitesConfigModel( this );
-
-    delete m_configDialog;
-    m_configDialog = new SatellitesConfigDialog();
-    connect( m_configDialog, SIGNAL(activatePluginClicked()), this, SLOT(activate()) );
-    connect( this, SIGNAL(visibilityChanged(bool,QString)),
-             m_configDialog, SLOT(setDialogActive(bool)) );
     m_configDialog->configWidget()->treeView->setModel( m_configModel );
 
     connect( m_satModel, SIGNAL(fileParsed(QString)),
@@ -217,10 +215,10 @@ bool SatellitesPlugin::eventFilter( QObject *object, QEvent *event )
     if( mouseEvent->button() == Qt::LeftButton ) {
         m_trackerList.clear();
         QVector<const GeoDataFeature*> vector = widget->whichFeatureAt( mouseEvent->pos() );
-        for (const GeoDataFeature *feature: vector) {
+        foreach (const GeoDataFeature *feature, vector) {
             const GeoDataPlacemark* placemark = dynamic_cast<const GeoDataPlacemark*>(feature);
             if ( placemark ) {
-                for (TrackerPluginItem *obj: m_satModel->items() ) {
+                foreach (TrackerPluginItem *obj, m_satModel->items() ) {
                     if( obj->placemark() == placemark ) {
                         m_showOrbitAction->data() = m_trackerList.size();
                         m_showOrbitAction->setChecked( obj->isTrackVisible() );
@@ -276,16 +274,12 @@ void SatellitesPlugin::setSettings( const QHash<QString, QVariant> &settings )
 {
     RenderPlugin::setSettings( settings );
 
-    // reset
-    m_newDataSources.clear();
-    // TODO: cancel also all on-going downloads
-
     // add default data sources
-    if (!settings.contains(QStringLiteral("dataSources"))) {
+    if( !settings.contains( "dataSources" ) ) {
         QStringList dsList;
-        dsList << QStringLiteral("http://www.celestrak.com/NORAD/elements/visual.txt");
-        m_settings.insert(QStringLiteral("dataSources"), dsList);
-        m_settings.insert(QStringLiteral("idList"), dsList);
+        dsList << "http://www.celestrak.com/NORAD/elements/visual.txt";
+        m_settings.insert( "dataSources", dsList );
+        m_settings.insert( "idList", dsList );
     }
     else {
         // HACK: KConfig can't guess the type of the settings, when we use
@@ -294,27 +288,27 @@ void SatellitesPlugin::setSettings( const QHash<QString, QVariant> &settings )
         // QVariant can handle the conversion for some types, like toDateTime()
         // but when calling toStringList() on a QVariant::String, it will
         // return a one element list
-        if (settings.value(QStringLiteral("dataSources")).type() == QVariant::String) {
-            m_settings.insert(QStringLiteral("dataSources"),
-                settings.value(QStringLiteral("dataSources")).toString().split(QLatin1Char(',')));
+        if( settings.value( "dataSources" ).type() == QVariant::String ) {
+            m_settings.insert( "dataSources",
+                settings.value( "dataSources" ).toString().split(QLatin1Char( ',' ) ) );
         }
-        if (settings.value(QStringLiteral("idList")).type() == QVariant::String) {
-            m_settings.insert(QStringLiteral("idList"),
-                settings.value(QStringLiteral("idList")).toString().split(QLatin1Char(',')));
+        if( settings.value( "idList" ).type() == QVariant::String ) {
+            m_settings.insert( "idList",
+                settings.value( "idList" ).toString().split(QLatin1Char( ',' ) ) );
         }
     }
 
     // add default user data source
-    if (!settings.contains(QStringLiteral("userDataSources"))) {
+    if( !settings.contains( "userDataSources" ) ) {
         QStringList udsList;
-        udsList << QStringLiteral("http://files.kde.org/marble/satellites/PlanetarySatellites.msc");
-        m_settings.insert(QStringLiteral("userDataSources"), udsList);
+        udsList << "http://files.kde.org/marble/satellites/PlanetarySatellites.msc";
+        m_settings.insert( "userDataSources", udsList );
         userDataSourceAdded( udsList[0] );
     }
-    else if (settings.value(QStringLiteral("userDataSources")).type() == QVariant::String) {
+    else if( settings.value( "userDataSources" ).type() == QVariant::String ) {
         // same HACK as above
-        m_settings.insert(QStringLiteral("userDataSources"),
-            settings.value(QStringLiteral("userDataSources")).toString().split(QLatin1Char(',')));
+        m_settings.insert( "userDataSources",
+            settings.value( "userDataSources" ).toString().split(QLatin1Char( ',' ) ) );
     }
 
     emit settingsChanged( nameId() );
@@ -323,16 +317,16 @@ void SatellitesPlugin::setSettings( const QHash<QString, QVariant> &settings )
 void SatellitesPlugin::readSettings()
 {
     m_configDialog->setUserDataSources(
-        m_settings.value(QStringLiteral("userDataSources")).toStringList());
+        m_settings.value( "userDataSources" ).toStringList() );
     m_configModel->loadSettings( m_settings );
     m_satModel->loadSettings( m_settings );
 }
 
 void SatellitesPlugin::writeSettings()
 {
-    m_settings.insert(QStringLiteral("userDataSources"), m_configDialog->userDataSources());
-    m_settings.insert(QStringLiteral("dataSources"), m_configModel->urlList());
-    m_settings.insert(QStringLiteral("idList"), m_configModel->idList());
+    m_settings.insert( "userDataSources", m_configDialog->userDataSources() );
+    m_settings.insert( "dataSources", m_configModel->urlList() );
+    m_settings.insert( "idList", m_configModel->idList() );
 
     emit settingsChanged( nameId() );
 }
@@ -343,17 +337,16 @@ void SatellitesPlugin::updateSettings()
         return;
     }
 
-    // TODO: cancel also all on-going downloads
     m_satModel->clear();
     
     m_configModel->clear();
     addBuiltInDataSources();
 
     // (re)load data sources
-    QStringList dsList = m_settings[QStringLiteral("dataSources")].toStringList();
-    dsList << m_settings[QStringLiteral("userDataSources")].toStringList();
+    QStringList dsList = m_settings["dataSources"].toStringList();
+    dsList << m_settings["userDataSources"].toStringList();
     dsList.removeDuplicates();
-    for( const QString &ds: dsList ) {
+    foreach( const QString &ds, dsList ) {
         mDebug() << "Loading satellite data from:" << ds;
         m_satModel->downloadFile( QUrl( ds ), ds );
     }
@@ -409,7 +402,7 @@ void SatellitesPlugin::updateDataSourceConfig( const QString &source )
 {
     mDebug() << "Updating orbiter configuration";
 
-    for( TrackerPluginItem *obj: m_satModel->items() ) {
+    foreach( TrackerPluginItem *obj, m_satModel->items() ) {
         // catalog items
         SatellitesMSCItem *item = dynamic_cast<SatellitesMSCItem*>( obj );
         if( ( item != NULL ) && ( item->catalog() == source ) ) {
@@ -436,9 +429,9 @@ void SatellitesPlugin::activateDataSource( const QString &source )
     // activate the given data source (select it)
     mDebug() << "Activating Data Source:" << source;
     QStringList list = m_configModel->fullIdList().filter( source );
-    QStringList idList = m_settings[QStringLiteral("idList")].toStringList();
+    QStringList idList = m_settings["idList"].toStringList();
     idList << list;
-    m_settings.insert(QStringLiteral("idList"), idList);
+    m_settings.insert( "idList", idList );
 }
 
 void SatellitesPlugin::addBuiltInDataSources()
@@ -501,5 +494,7 @@ void SatellitesPlugin::addBuiltInDataSources()
 
 } // namespace Marble
 
-#include "moc_SatellitesPlugin.cpp"
+Q_EXPORT_PLUGIN2( SatellitesPlugin, Marble::SatellitesPlugin )
+
+#include "SatellitesPlugin.moc"
 

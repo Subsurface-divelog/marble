@@ -14,6 +14,7 @@
 #include "MarbleWidget.h"
 
 #include <QStandardItemModel>
+#include <QDialog>
 #include "MarbleModel.h"
 #include "PluginManager.h"
 #include "RoutingRunnerPlugin.h"
@@ -25,7 +26,7 @@
 namespace Marble
 {
 
-class Q_DECL_HIDDEN RoutingProfilesWidget::Private
+class RoutingProfilesWidget::Private
 {
  public:
     Private( MarbleModel *marbleModel, RoutingProfilesWidget *parent );
@@ -134,4 +135,4 @@ void RoutingProfilesWidget::Private::updateButtons()
 
 }
 
-#include "moc_RoutingProfilesWidget.cpp"
+#include "RoutingProfilesWidget.moc"

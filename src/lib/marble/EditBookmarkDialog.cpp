@@ -14,16 +14,13 @@
 #include "ui_EditBookmarkDialog.h"
 
 #include "BookmarkManager.h"
-#include "GeoDataLookAt.h"
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPoint.h"
 #include "GeoDataStyle.h"
-#include "GeoDataIconStyle.h"
 #include "GeoDataFolder.h"
 #include "GeoDataCoordinates.h"
 #include "GeoDataExtendedData.h"
-#include "GeoDataData.h"
 #include "MarbleDirs.h"
 #include "MarbleModel.h"
 #include "MarbleWidget.h"
@@ -31,7 +28,7 @@
 #include "ReverseGeocodingRunnerManager.h"
 
 #include <QPointer>
-
+#include <QFileDialog>
 namespace Marble {
 
 class EditBookmarkDialogPrivate {
@@ -45,7 +42,7 @@ public:
 
     EditBookmarkDialogPrivate( EditBookmarkDialog* q, BookmarkManager *bookmarkManager );
 
-    void initComboBox(const GeoDataContainer* const container , int level=0);
+    void initComboBox( const GeoDataContainer* const container );
 
     void initialize();
 
@@ -75,7 +72,7 @@ void EditBookmarkDialogPrivate::initialize()
     bool const smallScreen = MarbleGlobal::getInstance()->profiles() & MarbleGlobal::SmallScreen;
     m_ui.m_header->setPositionVisible(!smallScreen);
     m_ui.m_header->setIdVisible( false );
-    m_ui.m_header->setIconLink(MarbleDirs::path(QStringLiteral("bitmaps/bookmark.png")));
+    m_ui.m_header->setIconLink( MarbleDirs::path( "bitmaps/bookmark.png" ) );
     QObject::connect( m_ui.m_newFolderButton, SIGNAL(clicked()), q, SLOT(openNewFolderDialog()) );
     QObject::connect( m_ui.m_header, SIGNAL(valueChanged()), q, SLOT(updateCoordinates()) );
 
@@ -83,16 +80,15 @@ void EditBookmarkDialogPrivate::initialize()
     initComboBox( m_bookmarkManager->document() );
 }
 
-void EditBookmarkDialogPrivate::initComboBox( const GeoDataContainer* const container, int level )
+void EditBookmarkDialogPrivate::initComboBox( const GeoDataContainer* const container )
 {
     m_bookmarkManager->ensureDefaultFolder();
-    for( GeoDataFolder *folder: container->folderList() ) {
+    foreach( GeoDataFolder *folder, container->folderList() ) {
         QVariant folderVariant;
         folderVariant.setValue(folder);
-        QString name = QString(' ').repeated(4*level) + folder->name();
-        m_ui.m_folders->addItem( name, folderVariant );
+        m_ui.m_folders->addItem( folder->name(), folderVariant );
         if( !folder->folderList().isEmpty() ) {
-            initComboBox( folder, level+1 );
+            initComboBox( folder );
         }
     }
 }
@@ -165,7 +161,7 @@ void EditBookmarkDialog::setMarbleWidget( MarbleWidget* widget )
     const GeoDataCoordinates::Notation notation =
         (defaultAngleUnit == DecimalDegree) ? GeoDataCoordinates::Decimal :
         (defaultAngleUnit == DMSDegree) ?     GeoDataCoordinates::DMS :
-        /* else, UTM */                       GeoDataCoordinates::UTM;
+        /* else, UTM */                       GeoDataCoordinates::DMS;
     d->m_ui.m_header->setNotation(notation);
 
     d->m_manager = new ReverseGeocodingRunnerManager( d->m_widget->model(), this );
@@ -196,17 +192,17 @@ void EditBookmarkDialogPrivate::retrieveGeocodeResult( const GeoDataCoordinates 
     //FIXME : Optimal logic for suggestion with distance consideration is required
 
     if( distance >= 3500 ) {
-        bookmarkName = data.value(QStringLiteral("country")).value().toString();
+        bookmarkName = data.value("country").value().toString() ;
     }
     else if( distance >= 200 ) {
-        bookmarkName = append(data.value(QStringLiteral("city")).value().toString(),
-                              data.value(QStringLiteral("state")).value().toString());
-        bookmarkName = append(bookmarkName, data.value(QStringLiteral("country")).value().toString());
+        bookmarkName = append( data.value("city").value().toString()
+                , data.value("state").value().toString() );
+        bookmarkName = append( bookmarkName, data.value("country").value().toString() ) ;
     }
     else {
-        bookmarkName = append(data.value(QStringLiteral("road")).value().toString(),
-                              data.value(QStringLiteral("city")).value().toString());
-        bookmarkName = append(bookmarkName, data.value(QStringLiteral("country")).value().toString());
+        bookmarkName = append( data.value("road").value().toString()
+            , data.value("city").value().toString());
+        bookmarkName = append( bookmarkName, data.value("country").value().toString() ) ;
     }
 
     if( bookmarkName.isEmpty() ) {
@@ -255,7 +251,8 @@ GeoDataPlacemark EditBookmarkDialog::bookmark() const
     GeoDataPlacemark bookmark;
     bookmark.setName( name() );
     bookmark.setDescription( description() );
-    GeoDataStyle::Ptr newStyle(new GeoDataStyle( *bookmark.style() ));
+    GeoDataStyle *newStyle = new GeoDataStyle( *bookmark.style() );
+    newStyle->iconStyle().setIcon( QImage() );
     newStyle->iconStyle().setIconPath( iconLink() );
     bookmark.setStyle( newStyle );
     //allow for HTML in the description
@@ -268,12 +265,12 @@ GeoDataPlacemark EditBookmarkDialog::bookmark() const
         bookmark.setAbstractView( lookat );
     }
 
-    bookmark.extendedData().addValue(GeoDataData(QStringLiteral("isBookmark"), true));
+    bookmark.extendedData().addValue( GeoDataData( "isBookmark", true ) );
 
     if(d->m_widget != 0) {
         const QString celestialName = d->m_widget->model()->planetId();
-        if (celestialName != QLatin1String("earth")) {
-            bookmark.extendedData().addValue(GeoDataData(QStringLiteral("celestialBody"), celestialName));
+        if(celestialName != "earth") {
+            bookmark.extendedData().addValue( GeoDataData( "celestialBody", celestialName ) );
         }
     }
 
@@ -311,4 +308,4 @@ QString EditBookmarkDialog::iconLink() const
 
 }
 
-#include "moc_EditBookmarkDialog.cpp"
+#include "EditBookmarkDialog.moc"

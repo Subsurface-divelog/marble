@@ -15,6 +15,9 @@
 #include "ScreenGraphicsItem.h"
 #include "marble_export.h"
 
+// Qt
+#include <QList>
+
 class QWidget;
 
 namespace Marble
@@ -27,7 +30,7 @@ class MARBLE_EXPORT WidgetGraphicsItem : public ScreenGraphicsItem
  public:
     explicit WidgetGraphicsItem( MarbleGraphicsItem *parent = 0 );
 
-    ~WidgetGraphicsItem() override;
+    virtual ~WidgetGraphicsItem();
 
     void setWidget( QWidget *widget );
     QWidget *widget() const;
@@ -36,13 +39,14 @@ class MARBLE_EXPORT WidgetGraphicsItem : public ScreenGraphicsItem
     /**
      * Paints the item in item coordinates.
      */
-    void paint( QPainter *painter ) override;
+    virtual void paint( QPainter *painter );
 
-    bool eventFilter( QObject *, QEvent * ) override;
+    virtual bool eventFilter( QObject *, QEvent * );
 
  private:
     Q_DISABLE_COPY( WidgetGraphicsItem )
-    Q_DECLARE_PRIVATE(WidgetGraphicsItem)
+
+    WidgetGraphicsItemPrivate * const d;
 };
 
 } // Namespace Marble

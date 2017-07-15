@@ -12,10 +12,11 @@
 #define REMOVEITEMEDITWIDGET_H
 
 #include <QWidget>
+#include <QModelIndex>
 
+class QLineEdit;
 class QToolButton;
 class QComboBox;
-class QModelIndex;
 
 namespace Marble
 {
@@ -27,7 +28,7 @@ class RemoveItemEditWidget: public QWidget
     Q_OBJECT
 
 public:
-    explicit RemoveItemEditWidget( const QModelIndex& index, QWidget* parent=0 );
+    RemoveItemEditWidget( const QModelIndex& index, QWidget* parent=0 );
     bool editable() const;
 
 Q_SIGNALS:
@@ -44,6 +45,7 @@ private Q_SLOTS:
 private:
     GeoDataAnimatedUpdate* animatedUpdateElement();
     QPersistentModelIndex m_index;
+    QLineEdit* m_lineEdit;
     QToolButton *m_button;
     QComboBox* m_comboBox;
 };

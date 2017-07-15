@@ -24,13 +24,14 @@
 #ifndef MARBLE_GEODATADOCUMENT_H
 #define MARBLE_GEODATADOCUMENT_H
 
+#include <QHash>
 #include <QMetaType>
+#include <QVector>
 
 #include "geodata_export.h"
 
 #include "GeoDataContainer.h"
 #include "GeoDocument.h"
-#include "GeoDataStyle.h"
 
 namespace Marble
 {
@@ -45,6 +46,7 @@ enum DocumentRole {
 };
 
 
+class GeoDataStyle;
 class GeoDataStyleMap;
 class GeoDataNetworkLinkControl;
 class GeoDataSchema;
@@ -66,25 +68,19 @@ class GEODATA_EXPORT GeoDataDocument : public GeoDocument,
 public:
     GeoDataDocument();
     GeoDataDocument( const GeoDataDocument& other );
-    ~GeoDataDocument() override;
-
-    GeoDataDocument& operator=(const GeoDataDocument& other);
+    ~GeoDataDocument();
 
     bool operator==( const GeoDataDocument &other ) const;
     bool operator!=( const GeoDataDocument &other ) const;
 
-    const char* nodeType() const override;
-
-    GeoDataFeature * clone() const override;
-
     /// Provides type information for downcasting a GeoData
-    bool isGeoDataDocument() const override { return true; }
+    virtual bool isGeoDataDocument() const { return true; }
 
     DocumentRole documentRole() const;
     void setDocumentRole( DocumentRole role );
 
     QString property() const;
-    void setProperty( const QString& property );
+    void setProperty( QString property );
 
     /**
      * @brief The filename of the document
@@ -126,7 +122,7 @@ public:
      * @brief Add a style to the style storage
      * @param style  the new style
      */
-    void addStyle(const GeoDataStyle::Ptr &style);
+    void addStyle( const GeoDataStyle& style );
 
     /**
      * @brief Add a style to the style storage
@@ -138,14 +134,13 @@ public:
      * @brief Return a style in the style storage
      * @param styleId  the id of the style
      */
-    GeoDataStyle::Ptr style( const QString& styleId );
-    GeoDataStyle::ConstPtr style( const QString& styleId ) const;
+    GeoDataStyle& style( const QString& styleId );
+    GeoDataStyle style( const QString& styleId ) const;
 
     /**
     * @brief dump a Vector of all styles
     */
-    QList<GeoDataStyle::Ptr> styles();
-    QList<GeoDataStyle::ConstPtr> styles() const;
+    QList<GeoDataStyle> styles() const;
 
     /**
     * @brief Add a stylemap to the stylemap storage
@@ -167,7 +162,7 @@ public:
     GeoDataStyleMap styleMap( const QString& styleId ) const;
 
     /**
-    * @brief dump a Vector of all stylemaps
+    * @brief dump a Vector of all styles
     */
     QList<GeoDataStyleMap> styleMaps() const;
 
@@ -196,12 +191,13 @@ public:
     QList<GeoDataSchema> schemas() const;
 
     // Serialize the Placemark to @p stream
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     // Unserialize the Placemark from @p stream
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
 private:
-    Q_DECLARE_PRIVATE(GeoDataDocument)
+    GeoDataDocumentPrivate *p();
+    const GeoDataDocumentPrivate *p() const;
 };
 
 }

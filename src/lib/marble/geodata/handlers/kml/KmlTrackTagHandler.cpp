@@ -13,7 +13,6 @@
 #include "GeoDataMultiTrack.h"
 #include "GeoDataTrack.h"
 #include "GeoDataPlacemark.h"
-#include "GeoDataMultiGeometry.h"
 #include "KmlElementDictionary.h"
 #include "MarbleDebug.h"
 
@@ -26,7 +25,7 @@ KML_DEFINE_TAG_HANDLER_GX22( Track )
 
 GeoNode *KmlTrackTagHandler::parse( GeoParser &parser ) const
 {
-    Q_ASSERT(parser.isStartElement() && parser.isValidElement(QLatin1String(kmlTag_Track)));
+    Q_ASSERT( parser.isStartElement() && parser.isValidElement( kmlTag_Track ) );
 
     GeoStackItem parentItem = parser.parentElement();
     GeoDataTrack *track = new GeoDataTrack();

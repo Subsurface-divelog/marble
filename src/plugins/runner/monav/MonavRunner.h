@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_MONAVRUNNER_H
@@ -25,10 +25,10 @@ class MonavRunner : public RoutingRunner
 public:
     explicit MonavRunner( const MonavPlugin* plugin, QObject *parent = 0 );
 
-    ~MonavRunner() override;
+    ~MonavRunner();
 
     // Overriding MarbleAbstractRunner
-    void retrieveRoute( const RouteRequest *request ) override;
+    virtual void retrieveRoute( const RouteRequest *request );
 
 #if 0
     // Overriding MarbleAbstractRunner

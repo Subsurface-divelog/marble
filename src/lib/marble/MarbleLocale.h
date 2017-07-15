@@ -15,7 +15,8 @@
 
 #include "marble_export.h"
 
-#include <QtGlobal>
+#include <QLocale>
+
 
 namespace Marble
 {

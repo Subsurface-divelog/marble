@@ -29,7 +29,7 @@ public:
     };
     Q_DECLARE_FLAGS(PolyNodeFlags, PolyNodeFlag)
 
-    explicit PolylineNode( const QRegion& region = QRegion() );
+    PolylineNode( QRegion region = QRegion() );
     ~PolylineNode();
 
     bool isSelected() const;
@@ -41,7 +41,7 @@ public:
 
     void setFlag( PolyNodeFlag flag, bool enabled = true );
     void setFlags( PolyNodeFlags flags );
-    void setRegion( const QRegion& newRegion );
+    void setRegion( QRegion newRegion );
 
     bool containsPoint( const QPoint &eventPos ) const;
 
@@ -51,7 +51,5 @@ private:
 };
 
 }
-
-Q_DECLARE_TYPEINFO(Marble::PolylineNode, Q_MOVABLE_TYPE);
 
 #endif

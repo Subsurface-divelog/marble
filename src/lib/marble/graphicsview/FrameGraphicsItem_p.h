@@ -13,22 +13,20 @@
 
 // Marble
 #include "FrameGraphicsItem.h"
-#include "ScreenGraphicsItem_p.h"
 
 // Qt
 #include<QDebug>
 #include<QBrush>
+#include<QPixmapCache>
 
 namespace Marble
 {
 
-class FrameGraphicsItemPrivate : public ScreenGraphicsItemPrivate
+class FrameGraphicsItemPrivate
 {
  public:
-    FrameGraphicsItemPrivate(FrameGraphicsItem *frameGraphicsItem,
-                             MarbleGraphicsItem *parent)
-        : ScreenGraphicsItemPrivate(frameGraphicsItem, parent),
-          m_frame(FrameGraphicsItem::NoFrame),
+    explicit FrameGraphicsItemPrivate( FrameGraphicsItem *parent )
+        : m_frame( FrameGraphicsItem::NoFrame ),
           m_contentSize( 0.0, 0.0 ),
           m_margin( 0.0 ),
           m_marginTop( 0.0 ),
@@ -39,8 +37,10 @@ class FrameGraphicsItemPrivate : public ScreenGraphicsItemPrivate
           m_borderWidth( 1.0 ),
           m_borderBrush( QBrush( Qt::black ) ),
           m_borderStyle( Qt::SolidLine ),
-          m_backgroundBrush(QBrush(QColor(192, 192, 192, 192)))
+          m_backgroundBrush( QBrush( QColor( 192, 192, 192, 192 ) ) ),
+          m_parent( parent )
     {
+        updateSize();
     }
 
     void updateSize()
@@ -55,7 +55,7 @@ class FrameGraphicsItemPrivate : public ScreenGraphicsItemPrivate
         totalSize += QSizeF( marginLeft + marginRight, marginTop + marginBottom );
         totalSize += QSizeF( m_padding * 2, m_padding * 2 );
 
-        m_marbleGraphicsItem->setSize(totalSize);
+        m_parent->setSize( totalSize );
     }
 
     FrameGraphicsItem::FrameType m_frame;
@@ -75,6 +75,8 @@ class FrameGraphicsItemPrivate : public ScreenGraphicsItemPrivate
     QBrush m_borderBrush;
     Qt::PenStyle m_borderStyle;
     QBrush m_backgroundBrush;
+
+    FrameGraphicsItem * const m_parent;
 };
 
 } // namespace Marble

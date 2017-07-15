@@ -12,9 +12,6 @@
 #include "GeoDataDocument.h"
 #include "GeoDataPlacemark.h"
 #include "GeoDataPolygon.h"
-#include "GeoDataLinearRing.h"
-#include "GeoDataPoint.h"
-#include "GeoDataMultiGeometry.h"
 #include "GeoDataSchema.h"
 #include "GeoDataSimpleField.h"
 #include "GeoDataStyle.h"
@@ -37,20 +34,18 @@ ShpRunner::~ShpRunner()
 {
 }
 
-GeoDataDocument *ShpRunner::parseFile(const QString &fileName, DocumentRole role, QString &error)
+void ShpRunner::parseFile( const QString &fileName, DocumentRole role = UnknownDocument )
 {
     QFileInfo fileinfo( fileName );
-    if (fileinfo.suffix().compare(QLatin1String("shp"), Qt::CaseInsensitive) != 0) {
-        error = QStringLiteral("File %1 does not have a shp suffix").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+    if( fileinfo.suffix().compare( "shp", Qt::CaseInsensitive ) != 0 ) {
+        emit parsingFinished( 0 );
+        return;
     }
 
     SHPHandle handle = SHPOpen( fileName.toStdString().c_str(), "rb" );
     if ( !handle ) {
-        error = QStringLiteral("Failed to read %1").arg(fileName);
-        mDebug() << error;
-        return nullptr;
+        emit parsingFinished( 0 );
+        return;
     }
     int entities;
     int shapeType;
@@ -69,9 +64,9 @@ GeoDataDocument *ShpRunner::parseFile(const QString &fileName, DocumentRole role
 
     if ( mapColorField != -1 ) {
         GeoDataSchema schema;
-        schema.setId(QStringLiteral("default"));
+        schema.setId("default");
         GeoDataSimpleField simpleField;
-        simpleField.setName(QStringLiteral("mapcolor13"));
+        simpleField.setName("mapcolor13");
         simpleField.setType( GeoDataSimpleField::Double );
         schema.addSimpleField( simpleField );
         document->addSchema( schema );
@@ -83,22 +78,20 @@ GeoDataDocument *ShpRunner::parseFile(const QString &fileName, DocumentRole role
         document->append( placemark );
 
         SHPObject *shape = SHPReadObject( handle, i );
-        if (nameField != -1) {
+        if( nameField ) {
             const char* info = DBFReadStringAttribute( dbfhandle, i, nameField );
-            // TODO: defaults to utf-8 encoding, but could be also something else, optionally noted in a .cpg file
             placemark->setName( info );
             mDebug() << "name " << placemark->name();
         }
-        if (noteField != -1) {
+        if( noteField ) {
             const char* note = DBFReadStringAttribute( dbfhandle, i, noteField );
-            // TODO: defaults to utf-8 encoding, see comment for name
             placemark->setDescription( note );
             mDebug() << "desc " << placemark->description();
         }
 
         double mapColor = DBFReadDoubleAttribute( dbfhandle, i, mapColorField );
         if ( mapColor ) {
-            GeoDataStyle::Ptr style(new GeoDataStyle);
+            GeoDataStyle *style = new GeoDataStyle;
             if ( mapColor >= 0 && mapColor <=255 ) {
                 quint8 colorIndex = quint8( mapColor );
                 style->polyStyle().setColorIndex( colorIndex );
@@ -186,6 +179,8 @@ GeoDataDocument *ShpRunner::parseFile(const QString &fileName, DocumentRole role
                         else {
                             poly->appendInnerBoundary( ring );
                         }
+                        // TODO: outer boundary per SHP spec is for the clockwise ring
+                        // and inner holes are anticlockwise
                     }
                     if ( polygonCount > 1 ) {
                         placemark->setGeometry( multigeom );
@@ -218,15 +213,15 @@ GeoDataDocument *ShpRunner::parseFile(const QString &fileName, DocumentRole role
 
     DBFClose( dbfhandle );
 
-    if (!document->isEmpty()) {
+    if ( document->size() ) {
         document->setFileName( fileName );
-        return document;
+        emit parsingFinished( document );
     } else {
         delete document;
-        return nullptr;
+        emit parsingFinished( 0 );
     }
 }
 
 }
 
-#include "moc_ShpRunner.cpp"
+#include "ShpRunner.moc"

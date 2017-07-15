@@ -9,11 +9,11 @@
 //
 
 #include <QApplication>
-#include <QQuickView>
+#include <QtQuick/QQuickView>
+#include <QFileInfo>
 
-#include <marble/declarative/MarbleQuickItem.h>
+#include <marble/MarbleQuickItem.h>
 #include <marble/MarbleMap.h>
-#include <marble/declarative/MarbleDeclarativePlugin.h>
 
 using namespace Marble;
 
@@ -23,20 +23,32 @@ Q_OBJECT
 
 public:
     MarbleDemoItem(QQuickItem *parent = 0) : MarbleQuickItem(parent)
-    {
-        // nothing to do
+    {   //TODO: setters -> properties
+        map()->setSize(width(), height());
+        map()->setShowFrameRate(false);
+        map()->setProjection(Spherical);
+        map()->setMapThemeId("earth/openstreetmap/openstreetmap.dgml");
+        map()->setShowAtmosphere(false);
+        map()->setShowCompass(false);
+        map()->setShowClouds(false);
+        map()->setShowCrosshairs(false);
+        map()->setShowGrid(false);
+        map()->setShowOverviewMap(false);
+        map()->setShowOtherPlaces(false);
+        map()->setShowScaleBar(false);
+        map()->setShowBackground(false);
     }
 
     void componentComplete()
     {
-        QQuickItem *pinch = findChild<QQuickItem*>(QStringLiteral("pinchArea"));
+        QQuickItem *pinch = findChild<QQuickItem*>("pinchArea");
         if (pinch)
         {
             pinch->installEventFilter(getEventFilter());
         }
     }
 
-public Q_SLOTS:
+public slots:
 
     void handlePinchStart(QPointF center)
     {
@@ -57,7 +69,7 @@ private:
     void makePinch(QPointF center, Qt::GestureState state, qreal scale = 1)
     {
         scale = sqrt(sqrt(scale));
-        scale = qBound(static_cast<qreal>(0.5), scale, static_cast<qreal>(2.0));
+        scale = qBound(0.5, scale, 2.0);
         pinch(center, scale, state);
     }
 };
@@ -67,9 +79,8 @@ class MapTestWrap : public QQuickView
 public:
     void start()
     {
-        MarbleDeclarativePlugin plugin;
-        plugin.registerTypes("org.kde.marble");
-        setSource(QUrl(QStringLiteral("qrc:/main.qml")));
+        qmlRegisterType<MarbleDemoItem>("MarbleItem", 1, 0, "MarbleItem");
+        setSource(QUrl("qrc:/main.qml"));
 
         if(status()!=QQuickView::Ready)
             qDebug("can't initialise view");
@@ -79,7 +90,7 @@ public:
         setFormat(format);
         setClearBeforeRendering(true);
         setColor(QColor(Qt::transparent));
-        setTitle(QStringLiteral("Marble in QML 2.0 demo"));
+        setTitle("Marble in QML 2.0 demo");
 
         show();
     }

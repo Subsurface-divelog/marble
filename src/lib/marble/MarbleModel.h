@@ -29,19 +29,24 @@
 
 #include "marble_export.h"
 
+#include <QDateTime>
+#include <QList>
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 #include "MarbleGlobal.h"
+#include "GeoDataCoordinates.h"
 
 class QItemSelectionModel;
 class QAbstractItemModel;
 class QTextDocument;
-class QDateTime;
 
 namespace Marble
 {
 
+class AbstractDataPlugin;
+class AbstractDataPluginItem;
 class GeoDataPlacemark;
 class GeoPainter;
 class MeasureTool;
@@ -53,6 +58,8 @@ class SunLocator;
 class TileCreator;
 class PluginManager;
 class GeoDataCoordinates;
+class GeoDataDocument;
+class GeoDataStyle;
 class GeoDataTreeModel;
 class GeoSceneDocument;
 class Planet;
@@ -103,7 +110,7 @@ class MARBLE_EXPORT MarbleModel : public QObject
      * @param parent the parent widget
      */
     explicit MarbleModel( QObject *parent = 0 );
-    ~MarbleModel() override;
+    virtual ~MarbleModel();
 
     /**
      * @brief Return the list of Placemarks as a QAbstractItemModel *
@@ -312,7 +319,7 @@ class MARBLE_EXPORT MarbleModel : public QObject
      * @see  mapTheme
      * @see  setMapTheme
      */
-    void themeChanged( const QString &mapTheme );
+    void themeChanged( QString mapTheme );
 
     void workOfflineChanged();
 

@@ -12,10 +12,11 @@
 #define OPENDESKTOPMODEL_H
  
 #include "AbstractDataPluginModel.h"
+#include "GeoDataLatLonAltBox.h"
+#include "MarbleWidget.h"
  
 namespace Marble {
  
-class MarbleWidget;
 class MarbleModel;
  
 class OpenDesktopModel : public AbstractDataPluginModel
@@ -24,7 +25,7 @@ class OpenDesktopModel : public AbstractDataPluginModel
  
 public:
     explicit OpenDesktopModel( const MarbleModel *marbleModel, QObject *parent = 0 );
-    ~OpenDesktopModel() override;
+    ~OpenDesktopModel();
 
     void setMarbleWidget(MarbleWidget *widget);
 
@@ -33,12 +34,12 @@ protected:
      * Generates the download url for the description file from the web service depending on
      * the @p box surrounding the view and the @p number of files to show.
      **/
-    void getAdditionalItems(const Marble::GeoDataLatLonAltBox& box, qint32 number = 10) override;
+    void getAdditionalItems(const Marble::GeoDataLatLonAltBox& box, qint32 number = 10);
     /**
      * Parses the @p file which getAdditionalItems downloads and
      * prepares the data for usage.
      **/
-    void parseFile(const QByteArray& file) override;
+    void parseFile(const QByteArray& file);
 
 private:
     MarbleWidget *m_marbleWidget;

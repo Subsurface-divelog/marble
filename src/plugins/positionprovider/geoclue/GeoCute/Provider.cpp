@@ -65,4 +65,4 @@ Status Provider::status() const
 
 
 
-#include "moc_Provider.cpp"
+#include "Provider.moc"

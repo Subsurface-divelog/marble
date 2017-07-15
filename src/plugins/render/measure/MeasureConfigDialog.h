@@ -22,7 +22,7 @@ class MeasureConfigDialog : public QDialog
 
 public:
     explicit MeasureConfigDialog(QDialog *parent = 0);
-    ~MeasureConfigDialog() override;
+    ~MeasureConfigDialog();
 
     bool showBearingLabel() const;
     bool showBearingLabelChange() const;
@@ -44,10 +44,10 @@ public:
     void setShowCircularArea(bool);
     void setPaintMode(MeasureToolPlugin::PaintMode);
 
-private Q_SLOTS:
+private slots:
     void updateTabs();
 
-Q_SIGNALS:
+signals:
     void applied();
 
 private:

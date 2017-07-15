@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include <QApplication>
@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     MarbleWidget *mapWidget = new MarbleWidget();
 
     // Load the OpenStreetMap map
-    mapWidget->setMapThemeId(QStringLiteral("earth/bluemarble/bluemarble.dgml"));
+    mapWidget->setMapThemeId("earth/bluemarble/bluemarble.dgml");
 
     mapWidget->setProjection( Mercator );
 
@@ -37,7 +37,7 @@ int main(int argc, char** argv)
     mapWidget->setShowScaleBar(false);
 
     foreach ( AbstractFloatItem * floatItem, mapWidget->floatItems() )
-        if (floatItem && floatItem->nameId() == QLatin1String("compass")) {
+        if ( floatItem && floatItem->nameId() == "compass" ) {
 
             // Put the compass onto the left hand side
             floatItem->setPosition( QPoint( 10, 10 ) );

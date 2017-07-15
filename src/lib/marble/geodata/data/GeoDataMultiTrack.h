@@ -22,26 +22,18 @@ namespace Marble
 class GeoDataMultiTrackPrivate;
 class GeoDataTrack;
 
-/**
- */
 class GEODATA_EXPORT GeoDataMultiTrack : public GeoDataGeometry
 {
 public:
     GeoDataMultiTrack();
     explicit GeoDataMultiTrack( const GeoDataGeometry& other );
 
-    ~GeoDataMultiTrack() override;
-
-    const char *nodeType() const override;
-
-    EnumGeometryId geometryId() const override;
-
-    GeoDataGeometry *copy() const override;
+    virtual ~GeoDataMultiTrack();
 
     bool operator==( const GeoDataMultiTrack& other ) const;
     bool operator!=( const GeoDataMultiTrack& other ) const;
 
-    const GeoDataLatLonAltBox& latLonAltBox() const override;
+    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
 
     int size() const;
     GeoDataTrack& at( int pos );
@@ -88,12 +80,12 @@ public:
                                                   QVector<GeoDataTrack*>::Iterator end );
 
     // Serialize the Placemark to @p stream
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     // Unserialize the Placemark from @p stream
-    void unpack( QDataStream& stream ) override;
-
+    virtual void unpack( QDataStream& stream );
  private:
-    Q_DECLARE_PRIVATE(GeoDataMultiTrack)
+    GeoDataMultiTrackPrivate *p();
+    const GeoDataMultiTrackPrivate *p() const;
 };
 
 }

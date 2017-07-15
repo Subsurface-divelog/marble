@@ -30,7 +30,7 @@ class MARBLE_EXPORT LegendWidget : public QWidget
 
  public:
     explicit LegendWidget( QWidget *parent = 0, Qt::WindowFlags f = 0 );
-    ~LegendWidget() override;
+    ~LegendWidget();
 
     /**
      * @brief Set a MarbleModel associated to this widget.

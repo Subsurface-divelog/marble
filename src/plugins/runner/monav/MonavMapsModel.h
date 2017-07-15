@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_MONAVMAPSMODEL_H
@@ -25,13 +25,13 @@ class MonavMapsModel : public QAbstractTableModel
 public:
     explicit MonavMapsModel( const QVector<MonavMap> &data, QObject * parent = 0 );
 
-    QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const override;
+    virtual QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
 
-    QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const override;
+    virtual QVariant data ( const QModelIndex & index, int role = Qt::DisplayRole ) const;
 
-    int rowCount ( const QModelIndex & parent = QModelIndex() ) const override;
+    virtual int rowCount ( const QModelIndex & parent = QModelIndex() ) const;
 
-    int columnCount ( const QModelIndex & parent = QModelIndex() ) const override;
+    virtual int columnCount ( const QModelIndex & parent = QModelIndex() ) const;
 
     static bool sortByName( const MonavMap &first, const MonavMap &second );
 
@@ -39,7 +39,7 @@ public:
 
     QString payload( int index ) const;
 
-    void setInstallableVersions( const QMap<QString, QString> &remoteMaps );
+    void setInstallableVersions( const QMap<QString, QString> localMaps );
 
 private:
     QVector<MonavMap> m_data;

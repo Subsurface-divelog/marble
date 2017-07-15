@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2012      Mayank Madan <maddiemadan@gmail.com>
-// Copyright 2013      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2013      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "KmlListStyleTagWriter.h"
@@ -42,7 +42,7 @@ bool KmlListStyleTagWriter::write( const GeoNode *node,
     QString const color = KmlColorStyleTagWriter::formatColor( listStyle->backgroundColor() );
     writer.writeOptionalElement( kml::kmlTag_bgColor, color, "ffffffff" );
 
-    for( GeoDataItemIcon* icon: listStyle->itemIconList() ) {
+    foreach( GeoDataItemIcon* icon, listStyle->itemIconList() ) {
         writer.writeStartElement(kml::kmlTag_ItemIcon);
         QString const state = iconStateToString( icon->state() );
         writer.writeOptionalElement( kml::kmlTag_state, state, "open" );
@@ -87,7 +87,7 @@ QString KmlListStyleTagWriter::iconStateToString( GeoDataItemIcon::ItemIconState
         stateList << "fetching2";
     }
 
-    return stateList.join(QLatin1Char(' '));
+    return stateList.join(" ");
 }
 
 }

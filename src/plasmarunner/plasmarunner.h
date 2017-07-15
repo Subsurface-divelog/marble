@@ -14,11 +14,11 @@
 // License along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 
-#ifndef MARBLE_PLASMARUNNER_H
-#define MARBLE_PLASMARUNNER_H
+#ifndef PLASMARUNNER_H
+#define PLASMARUNNER_H
 
 // Plasma
-#include <KRunner/AbstractRunner>
+#include <Plasma/AbstractRunner>
 
 
 namespace Marble
@@ -34,8 +34,8 @@ public:
     PlasmaRunner(QObject *parent, const QVariantList &args);
 
 public: // Plasma::AbstractRunner API
-    void match(Plasma::RunnerContext &context) override;
-    void run(const Plasma::RunnerContext &context, const Plasma::QueryMatch &match) override;
+    void match(Plasma::RunnerContext &context);
+    void run(const Plasma::RunnerContext &context, const Plasma::QueryMatch &match);
 
 private:
     void collectMatches(QList<Plasma::QueryMatch> &matches,

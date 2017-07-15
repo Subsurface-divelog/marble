@@ -16,53 +16,43 @@
 #include <QObject>
 #include "LayerInterface.h"
 #include "GeoDataCoordinates.h"
-#include "GeoDataRelation.h"
 
 class QAbstractItemModel;
 class QModelIndex;
 class QPoint;
+class QColor;
 
 namespace Marble
 {
 class GeoPainter;
 class GeoDataFeature;
-class GeoDataPlacemark;
-class GeoDataRelation;
-class StyleBuilder;
 class ViewportParams;
-
 class GeometryLayerPrivate;
+class GeoDataPlacemark;
 
 class GeometryLayer : public QObject, public LayerInterface
 {
     Q_OBJECT
 public:
-    explicit GeometryLayer(const QAbstractItemModel *model, const StyleBuilder *styleBuilder);
-    ~GeometryLayer() override;
+    explicit GeometryLayer( const QAbstractItemModel *model );
+    ~GeometryLayer();
 
-    QStringList renderPosition() const override;
+    virtual QStringList renderPosition() const;
 
-    bool render( GeoPainter *painter, ViewportParams *viewport,
+    virtual bool render( GeoPainter *painter, ViewportParams *viewport,
                          const QString& renderPos = QLatin1String("NONE"),
-                         GeoSceneLayer * layer = 0 ) override;
+                         GeoSceneLayer * layer = 0 );
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
-    QString runtimeTrace() const override;
-
-    bool hasFeatureAt(const QPoint& curpos, const ViewportParams * viewport);
+    virtual QString runtimeTrace() const;
 
     QVector<const GeoDataFeature*> whichFeatureAt( const QPoint& curpos, const ViewportParams * viewport );
 
-    void highlightRouteRelation(qint64 osmId, bool enabled);
-
-    void setVisibleRelationTypes(GeoDataRelation::RelationTypes relationTypes);
-
 public Q_SLOTS:
-    void addPlacemarks( const QModelIndex& index, int first, int last );
-    void removePlacemarks( const QModelIndex& index, int first, int last );
+    void addPlacemarks( QModelIndex index, int first, int last );
+    void removePlacemarks( QModelIndex index, int first, int last );
     void resetCacheData();
-    void setTileLevel(int tileLevel);
 
     /**
      * Finds all placemarks that contain the clicked point.

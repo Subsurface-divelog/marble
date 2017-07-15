@@ -29,12 +29,12 @@ public:
     {
     }
 
-    QSize fullImageSize() const override
+    virtual QSize fullImageSize() const
     {
         return QSize( 512*c_defaultTileSize*2, 512*c_defaultTileSize ); //512: 2**9 (9 zoom levels)
     }
 
-    QImage tile( int n, int m, int maxTileLevel ) override
+    virtual QImage tile( int n, int m, int maxTileLevel )
     {
         Q_ASSERT( maxTileLevel == 9 );
 
@@ -124,24 +124,24 @@ public:
 private:
     QString hgtFileName( int lng, int lat ) const
     {
-        QChar EW(QLatin1Char(lng >= 0 ? 'E' : 'W'));
-        QChar NS(QLatin1Char(lat >= 0 ? 'N' : 'S'));
+        QChar EW( lng >= 0 ? 'E' : 'W' );
+        QChar NS( lat >= 0 ? 'N' : 'S' );
 
         QStringList dirs;
         dirs << "Africa" << "Australia" << "Eurasia" << "Silands" << "North_America" << "South_America";
-        for( const QString &dir: dirs) {
-            QString fileName = m_sourceDir + QLatin1Char('/') + dir + QLatin1Char('/');
+        foreach( const QString &dir, dirs) {
+            QString fileName = m_sourceDir + '/' + dir + '/';
             if ( lat < 0 ) lat *= -1;
             fileName += QString( "%1%2%3%4.hgt" ).arg( NS ).arg( lat<0 ? lat*-1 : lat, 2, 10, QLatin1Char('0') )
                                         .arg( EW ).arg( lng<0 ? lng*-1 : lng, 3, 10, QLatin1Char('0' ) );
             //qDebug() << fileName;
 
-            if (!QFile::exists(fileName) && QFile::exists(fileName + QLatin1String(".zip"))) {
+            if ( !QFile::exists( fileName ) && QFile::exists( fileName + ".zip" ) ) {
                 qDebug() << "zip found, unzipping";
                 QProcess p;
-                p.execute("unzip", QStringList() << fileName + QLatin1String(".zip"));
+                p.execute("unzip", QStringList() << fileName + ".zip" );
                 p.waitForFinished();
-                QFile(QDir::currentPath() + QLatin1Char('/') + QFileInfo(fileName).fileName()).rename(fileName);
+                QFile( QDir::currentPath() + '/' + QFileInfo( fileName ).fileName()).rename(fileName);
             }
             if ( QFile::exists( fileName ) ) {
                 return fileName;

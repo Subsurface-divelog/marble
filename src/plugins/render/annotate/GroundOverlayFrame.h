@@ -12,12 +12,11 @@
 #define MARBLE_GROUNDOVERLAYFRAME_H
 
 #include "SceneGraphicsItem.h"
-#include "GeoDataCoordinates.h"
+#include "GeoDataGroundOverlay.h"
+#include "TextureLayer.h"
 
 namespace Marble
 {
-class TextureLayer;
-class GeoDataGroundOverlay;
 
 class GroundOverlayFrame : public SceneGraphicsItem
 {
@@ -25,60 +24,45 @@ public:
     GroundOverlayFrame( GeoDataPlacemark *placemark, GeoDataGroundOverlay *overlay, TextureLayer *textureLayer );
 
     enum MovedRegion {
-        NoRegion = -1,
-        NorthWest = 0,
+        NorthWest,
         SouthWest,
         SouthEast,
         NorthEast,
-        North,
-        South,
-        East,
-        West,
         Polygon
-    };
-
-    enum EditStatus {
-        Resize,
-        Rotate
     };
 
     void update();
 
-    bool containsPoint( const QPoint &eventPos ) const override;
+    virtual bool containsPoint( const QPoint &eventPos ) const;
 
-    void dealWithItemChange( const SceneGraphicsItem *other ) override;
+    virtual void dealWithItemChange( const SceneGraphicsItem *other );
 
-    void move( const GeoDataCoordinates &source, const GeoDataCoordinates &destination ) override;
+    virtual void move( const GeoDataCoordinates &source, const GeoDataCoordinates &destination );
 
     /**
      * @brief Provides information for downcasting a SceneGraphicsItem.
      */
-    const char *graphicType() const override;
+    virtual const char *graphicType() const;
 
 protected:
-    void paint( GeoPainter *painter, const ViewportParams *viewport, const QString &layer, int tileZoomLevel ) override;
-    bool mousePressEvent( QMouseEvent *event ) override;
-    bool mouseMoveEvent( QMouseEvent *event ) override;
-    bool mouseReleaseEvent( QMouseEvent *event ) override;
+    virtual void paint( GeoPainter *painter, const ViewportParams *viewport );
+    virtual bool mousePressEvent( QMouseEvent *event );
+    virtual bool mouseMoveEvent( QMouseEvent *event );
+    virtual bool mouseReleaseEvent( QMouseEvent *event );
 
-    void dealWithStateChange( SceneGraphicsItem::ActionState previousState ) override;
+    virtual void dealWithStateChange( SceneGraphicsItem::ActionState previousState );
 private:
     GeoDataGroundOverlay *m_overlay;
     TextureLayer         *m_textureLayer;
 
-    QVector<QRegion>   m_regionList;
-    GeoDataCoordinates m_movedHandleGeoCoordinates;
-    QPoint             m_movedHandleScreenCoordinates;
-    int                m_movedHandle;
-    int                m_hoveredHandle;
-    int                m_editStatus;
-    bool               m_editStatusChangeNeeded;
-    qreal              m_previousRotation;
-
-    QVector<QImage>    m_resizeIcons;
-    QVector<QImage>    m_rotateIcons;
+    QList<QRegion>     m_regionList;
+    GeoDataCoordinates m_movedPointCoordinates;
+    int                m_movedPoint;
 
     const ViewportParams *m_viewport;
+
+    static void rotateAroundCenter( qreal lon, qreal lat, qreal &rotatedLon, qreal &rotatedLat,
+                                    GeoDataLatLonBox &box, bool inverse = false );
 };
 
 }

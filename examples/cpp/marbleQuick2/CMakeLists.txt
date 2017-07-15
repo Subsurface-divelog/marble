@@ -4,22 +4,15 @@ PROJECT (${TARGET})
 include_directories(
  ${CMAKE_CURRENT_SOURCE_DIR}
  ${CMAKE_CURRENT_BINARY_DIR}
+ ${QT_INCLUDE_DIR}
 )
 
 set( ${TARGET}_SRC main.cpp)
 
-qt5_add_resources(marble_QRCS marbleQuick2.qrc)
-add_executable( ${TARGET} ${${TARGET}_SRC} ${marble_QRCS} )
+add_executable( ${TARGET} ${${TARGET}_SRC} )
 
-target_link_libraries( ${TARGET}
-    marblewidget
-    marbledeclarative
-)
-
-# TODO: marbledeclarative is a private lib currently, not a plugin, and headers are not installed
-# so do not install this example for now
-return()
-
+target_link_libraries( ${TARGET} ${OpenCV_LIBRARIES} marblewidget )
+target_link_libraries( ${TARGET} ${Qt5Core_LIBRARIES} ${Qt5Gui_LIBRARIES} ${Qt5Quick_LIBRARIES} ${Qt5Widget_LIBRARIES} )
 
 add_custom_command(TARGET ${TARGET} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different
                        ${CMAKE_CURRENT_SOURCE_DIR}/main.qml

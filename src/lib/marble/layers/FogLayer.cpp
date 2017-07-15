@@ -15,14 +15,13 @@
 
 #include "GeoPainter.h"
 #include "ViewportParams.h"
-#include "RenderState.h"
 
 namespace Marble
 {
     
 QStringList FogLayer::renderPosition() const
 {
-    return QStringList(QStringLiteral("ATMOSPHERE"));
+    return QStringList() << "ATMOSPHERE";
 }
 
 bool FogLayer::render( GeoPainter *painter,
@@ -80,7 +79,7 @@ bool FogLayer::render( GeoPainter *painter,
 
 RenderState FogLayer::renderState() const
 {
-    return RenderState(QStringLiteral("Fog"));
+    return RenderState( "Fog" );
 }
 
 }

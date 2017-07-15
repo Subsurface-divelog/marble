@@ -28,21 +28,21 @@ class MergingPolygonNodesAnimation : public QObject
 
 public:
     explicit MergingPolygonNodesAnimation( AreaAnnotation *polygon );
-    ~MergingPolygonNodesAnimation() override;
+    ~MergingPolygonNodesAnimation();
 
     enum NodesBoundary {
         InnerBoundary,
         OuterBoundary
     };
 
-public Q_SLOTS:
+public slots:
     void startAnimation();
 
-Q_SIGNALS:
+signals:
     void nodesMoved();
     void animationFinished();
 
-private Q_SLOTS:
+private slots:
     void updateNodes();
 
 private:

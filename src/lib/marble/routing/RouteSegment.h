@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTESEGMENT_H
@@ -15,7 +15,7 @@
 #include "GeoDataLineString.h"
 #include "GeoDataLatLonBox.h"
 
-#include <QtGlobal>
+#include <Qt>
 
 namespace Marble
 {
@@ -50,8 +50,6 @@ public:
     qreal distanceTo( const GeoDataCoordinates &point, GeoDataCoordinates &closest, GeoDataCoordinates &interpolated ) const;
 
     qreal minimalDistanceTo( const GeoDataCoordinates &point ) const;
-
-    qreal projectedDirection(const GeoDataCoordinates &point) const;
 
     bool operator==( const RouteSegment &other ) const;
 

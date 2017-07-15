@@ -34,7 +34,7 @@ class MARBLE_EXPORT TimeControlWidget : public QDialog
 
  public:
     explicit TimeControlWidget( MarbleClock* clock, QWidget* parent = 0 );
-    ~TimeControlWidget() override;
+    virtual ~TimeControlWidget();
 
  private Q_SLOTS:
     /**
@@ -65,7 +65,7 @@ class MARBLE_EXPORT TimeControlWidget : public QDialog
  protected:
     Q_DISABLE_COPY( TimeControlWidget )
 
-    void showEvent( QShowEvent* event ) override;
+    void showEvent( QShowEvent* event );
 
     Ui::TimeControlWidget *m_uiWidget;
 

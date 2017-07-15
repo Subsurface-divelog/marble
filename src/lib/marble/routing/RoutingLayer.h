@@ -5,28 +5,29 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTINGLAYER_H
 #define MARBLE_ROUTINGLAYER_H
 
+#include "GeoDataCoordinates.h"
 #include "LayerInterface.h"
 
-#include "MarbleGlobal.h"
-
-#include <QObject>
+#include <QModelIndex>
 #include <QRect>
+#include <QItemSelection>
 
-class QItemSelectionModel;
-class QModelIndex;
+class QAbstractProxyModel;
 
 namespace Marble
 {
 
 class MarbleWidget;
+class RoutingModel;
 class MarblePlacemarkModel;
 class RoutingLayerPrivate;
+class AlternativeRoutesModel;
 
 /**
   * @brief A paint layer that serves as a view on a route model
@@ -45,19 +46,19 @@ public:
     explicit RoutingLayer( MarbleWidget *widget, QWidget *parent = 0 );
 
     /** Destructor */
-    ~RoutingLayer() override;
+    ~RoutingLayer();
 
     /** Reimplemented from LayerInterface. We'll hover above the surface */
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
     /** Reimplemented from LayerInterface. */
-    qreal zValue() const override;
+    qreal zValue() const;
 
     /** Reimplemented from LayerInterface. Paints route items and placemarks */
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString &renderPos = "NONE", GeoSceneLayer *layer = 0 ) override;
+                 const QString &renderPos = "NONE", GeoSceneLayer *layer = 0 );
 
-    RenderState renderState() const override;
+    RenderState renderState() const;
 
     /**
       * Set the proxy model another QAbstractItemView uses that should share
@@ -88,8 +89,6 @@ public:
      */
     bool isInteractive() const;
 
-    QString runtimeTrace() const override;
-
 Q_SIGNALS:
     /**
       * A placemark was selected (clicked) by the user. The index belongs to
@@ -101,7 +100,7 @@ Q_SIGNALS:
 
 public:
     /** Overriding QWidget, used to make the layer interactive */
-    bool eventFilter( QObject *obj, QEvent *event ) override;
+    bool eventFilter( QObject *obj, QEvent *event );
 
 private Q_SLOTS:
     void removeViaPoint();

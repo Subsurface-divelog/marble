@@ -8,21 +8,20 @@
 // Copyright 2011 Guillaume Martres <smarter@ubuntu.com>
 //
 
-#ifndef MARBLE_GEODATATRACK_H
-#define MARBLE_GEODATATRACK_H
+#ifndef MARBLE_GEODATAGXTRACK_H
+#define MARBLE_GEODATAGXTRACK_H
 
+#include "GeoDataCoordinates.h"
 #include "GeoDataGeometry.h"
 
+#include <QDateTime>
 #include <QList>
-
-class QDateTime;
 
 namespace Marble {
 
 class GeoDataTrackPrivate;
 class GeoDataExtendedData;
 class GeoDataLineString;
-class GeoDataCoordinates;
 
 /**
  * @class GeoDataTrack
@@ -60,12 +59,6 @@ public:
     explicit GeoDataTrack( const GeoDataTrack &other );
 
     GeoDataTrack &operator=( const GeoDataTrack &other );
-
-    const char *nodeType() const override;
-
-    EnumGeometryId geometryId() const override;
-
-    GeoDataGeometry *copy() const override;
 
     /**
      * Returns the number of points in the track
@@ -109,14 +102,13 @@ public:
      * Returns the coordinates of all the points in the map, sorted by their
      * time value
      */
-    QVector<GeoDataCoordinates> coordinatesList() const;
+    QList<GeoDataCoordinates> coordinatesList() const;
 
     /**
      * Returns the time value of all the points in the map, in chronological
      * order.
-     * @since 0.26.0
      */
-    QVector<QDateTime> whenList() const;
+    QList<QDateTime> whenList() const;
 
     /**
      * If interpolate() is true, return the coordinates interpolated from the
@@ -181,8 +173,7 @@ public:
     /**
      * Return the ExtendedData assigned to the feature.
      */
-    const GeoDataExtendedData& extendedData() const;
-    GeoDataExtendedData& extendedData();
+    GeoDataExtendedData& extendedData() const;
 
     /**
      * Sets the ExtendedData of the feature.
@@ -190,16 +181,16 @@ public:
      */
     void setExtendedData( const GeoDataExtendedData& extendedData );
 
-    const GeoDataLatLonAltBox& latLonAltBox() const override;
-    void pack( QDataStream& stream ) const override;
-    void unpack( QDataStream& stream ) override;
+    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
+    virtual void pack( QDataStream& stream ) const;
+    virtual void unpack( QDataStream& stream );
 
 private:
-    Q_DECLARE_PRIVATE(GeoDataTrack)
+    GeoDataTrackPrivate *p() const;
 };
 
 }
 
 Q_DECLARE_METATYPE( Marble::GeoDataTrack* )
 
-#endif // MARBLE_GEODATATRACK_H
+#endif // MARBLE_GEODATAGXTRACK_H

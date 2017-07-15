@@ -18,13 +18,13 @@ class GpxParser : public GeoParser
 {
 public:
     GpxParser();
-    ~GpxParser() override;
+    virtual ~GpxParser();
 
 private:
-    bool isValidElement(const QString& tagName) const override;
-    bool isValidRootElement() override;
+    virtual bool isValidElement(const QString& tagName) const;
+    virtual bool isValidRootElement();
 
-    GeoDocument* createDocument() const override;
+    virtual GeoDocument* createDocument() const;
 
 };
 

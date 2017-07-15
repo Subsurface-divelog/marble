@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_ROUTINGINSTRUCTION_H
@@ -15,10 +15,9 @@
 #include "RoutingPoint.h"
 #include "marble_export.h"
 
+#include <QTextStream>
 #include <QVector>
-#include <QMetaType>
-
-class QTextStream;
+#include <QVariant>
 
 namespace Marble
 {

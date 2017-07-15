@@ -16,6 +16,8 @@
 
 #include "MarbleGlobal.h"
 
+#include "GeoDataObject.h"
+
 #include "geodata_export.h"
 
 #include "GeoDataLatLonBox.h"
@@ -61,13 +63,13 @@ class GEODATA_EXPORT GeoDataLatLonAltBox : public GeoDataLatLonBox
      */
     explicit GeoDataLatLonAltBox( const GeoDataCoordinates & coordinates );
     
-    ~GeoDataLatLonAltBox() override;
+    virtual ~GeoDataLatLonAltBox();
 
     GeoDataLatLonAltBox& operator=( const GeoDataLatLonAltBox& other );
     GeoDataLatLonAltBox& operator=( const GeoDataCoordinates& other );
 
     /// Provides type information for downcasting a GeoData
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /**
      * @brief qHash, for using GeoDataLatLonAltBox in a QCache as Key
@@ -97,7 +99,7 @@ class GEODATA_EXPORT GeoDataLatLonAltBox : public GeoDataLatLonBox
     AltitudeMode altitudeMode() const;
     void setAltitudeMode( const AltitudeMode altitudeMode );
 
-    bool contains( const GeoDataCoordinates & ) const override;
+    virtual bool contains( const GeoDataCoordinates & ) const;
     bool     contains( const GeoDataLatLonAltBox & ) const;
 
     /**
@@ -116,36 +118,36 @@ class GEODATA_EXPORT GeoDataLatLonAltBox : public GeoDataLatLonBox
     /**
      * @brief Creates a text string of the bounding box
      */
-    QString toString( GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian ) const override;
+    virtual QString toString( GeoDataCoordinates::Unit unit = GeoDataCoordinates::Radian ) const;
 
     /**
      * @brief Indicates whether the bounding box only contains a single 2D point ("singularity").
      * @return Return value is true if the height and the width of the bounding box equal zero.
      */
-    bool isNull() const override;
+    bool isNull() const;
 
     /**
      * @brief Resets the bounding box to its uninitialised state (and thus contains nothing).
      */
-    void clear() override;
+    virtual void clear();
 
     /**
      * @brief returns the center of this box
      * @return a coordinate, body-center of the box
      */
-    GeoDataCoordinates center() const override;
+    virtual GeoDataCoordinates center() const;
 
     /// Serialize the contents of the feature to @p stream.
-    void pack( QDataStream& stream ) const override;
+    virtual void pack( QDataStream& stream ) const;
     /// Unserialize the contents of the feature from @p stream.
-    void unpack( QDataStream& stream ) override;
+    virtual void unpack( QDataStream& stream );
 
  private:
     GeoDataLatLonAltBoxPrivate  * const d;
 };
 
 inline uint qHash( const GeoDataLatLonAltBox & r ){
-    return ::qHash(r.toString());
+    return qHash( QString (r.toString()) );
 }
 
 bool GEODATA_EXPORT operator==( GeoDataLatLonAltBox const& lhs, GeoDataLatLonAltBox const& rhs );

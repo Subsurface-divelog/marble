@@ -31,9 +31,9 @@ class GpsdThread: public QThread
  public:
     GpsdThread();
 
-    ~GpsdThread() override;
+    ~GpsdThread();
 
-    void run() override;
+    virtual void run();
 
     QString error() const;
 
@@ -43,7 +43,7 @@ Q_SIGNALS:
 private:
     GpsdConnection* m_connection;
     
- Q_SIGNALS:
+ signals:
     void gpsdInfo( gps_data_t data );
 };
 

@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 
@@ -32,10 +32,10 @@ class OSRMRunner : public RoutingRunner
 public:
     explicit OSRMRunner(QObject *parent = 0);
 
-    ~OSRMRunner() override;
+    ~OSRMRunner();
 
     // Overriding MarbleAbstractRunner
-    void retrieveRoute( const RouteRequest *request ) override;
+    virtual void retrieveRoute( const RouteRequest *request );
 
 private Q_SLOTS:
     /** Route data was retrieved via http */
@@ -58,6 +58,10 @@ private:
     QNetworkAccessManager m_networkAccessManager;
 
     QNetworkRequest m_request;
+
+    static QVector<QPair<GeoDataCoordinates,QString> > m_cachedHints;
+
+    static QString m_hintChecksum;
 };
 
 }

@@ -5,11 +5,12 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012 Dennis Nienhüser <earthwings@gentoo.org>
 
 #ifndef MARBLE_KMZHANDLER_H
 #define MARBLE_KMZHANDLER_H
 
+#include <QObject>
 #include <QStringList>
 
 namespace Marble {
@@ -17,7 +18,7 @@ namespace Marble {
 class KmzHandler
 {
 public:
-    bool open(const QString &file, QString &error);
+    bool open( const QString &file );
 
     QString kmlFile() const;
 

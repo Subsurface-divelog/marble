@@ -103,59 +103,59 @@ class WeatherDataPrivate
         if( s_iconPath.size() == 0 ) {
             // Clouds
             s_iconPath.insert( WeatherData::ConditionNotAvailable,
-                            MarbleDirs::path(QStringLiteral("weather/weather-none-available.png")));
+                            MarbleDirs::path( "weather/weather-none-available.png" ) );
             s_iconPath.insert( WeatherData::ClearDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-clear.png")));
+                            MarbleDirs::path( "weather/weather-clear.png" ) );
             s_iconPath.insert( WeatherData::ClearNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-clear-night.png")));
+                            MarbleDirs::path( "weather/weather-clear-night.png" ) );
             s_iconPath.insert( WeatherData::FewCloudsDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-few-clouds.png")));
+                            MarbleDirs::path( "weather/weather-few-clouds.png" ) );
             s_iconPath.insert( WeatherData::FewCloudsNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-few-clouds-night.png")));
+                            MarbleDirs::path( "weather/weather-few-clouds-night.png" ) );
             s_iconPath.insert( WeatherData::PartlyCloudyDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-clouds.png")));
+                            MarbleDirs::path( "weather/weather-clouds.png" ) );
             s_iconPath.insert( WeatherData::PartlyCloudyNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-clouds-night.png")));
+                            MarbleDirs::path( "weather/weather-clouds-night.png" ) );
             s_iconPath.insert( WeatherData::Overcast,
-                            MarbleDirs::path(QStringLiteral("weather/weather-many-clouds.png")));
+                            MarbleDirs::path( "weather/weather-many-clouds.png" ) );
 
             // Rain
             s_iconPath.insert( WeatherData::LightShowersDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-showers-scattered-day.png")));
+                            MarbleDirs::path( "weather/weather-showers-scattered-day.png" ) );
             s_iconPath.insert( WeatherData::LightShowersNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-showers-scattered-night.png")));
+                            MarbleDirs::path( "weather/weather-showers-scattered-night.png" ) );
             s_iconPath.insert( WeatherData::ShowersDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-showers-day.png")));
+                            MarbleDirs::path( "weather/weather-showers-day.png" ) );
             s_iconPath.insert( WeatherData::ShowersNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-showers-night.png")));
+                            MarbleDirs::path( "weather/weather-showers-night.png" ) );
             s_iconPath.insert( WeatherData::LightRain,
-                            MarbleDirs::path(QStringLiteral("weather/weather-showers-scattered.png")));
+                            MarbleDirs::path( "weather/weather-showers-scattered.png" ) );
             s_iconPath.insert( WeatherData::Rain,
-                            MarbleDirs::path(QStringLiteral("weather/weather-showers.png")));
+                            MarbleDirs::path( "weather/weather-showers.png" ) );
 
             // Special
             s_iconPath.insert( WeatherData::ChanceThunderstormDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-storm-day.png")));
+                            MarbleDirs::path( "weather/weather-storm-day.png" ) );
             s_iconPath.insert( WeatherData::ChanceThunderstormNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-storm-night.png")));
+                            MarbleDirs::path( "weather/weather-storm-night.png" ) );
             s_iconPath.insert( WeatherData::Thunderstorm,
-                            MarbleDirs::path(QStringLiteral("weather/weather-storm.png")));
+                            MarbleDirs::path( "weather/weather-storm.png" ) );
             s_iconPath.insert( WeatherData::Hail,
-                            MarbleDirs::path(QStringLiteral("weather/weather-hail.png")));
+                            MarbleDirs::path( "weather/weather-hail.png" ) );
             s_iconPath.insert( WeatherData::ChanceSnowDay,
-                            MarbleDirs::path(QStringLiteral("weather/weather-snow-scattered-day.png")));
+                            MarbleDirs::path( "weather/weather-snow-scattered-day.png" ) );
             s_iconPath.insert( WeatherData::ChanceSnowNight,
-                            MarbleDirs::path(QStringLiteral("weather/weather-snow-scattered-night.png")));
+                            MarbleDirs::path( "weather/weather-snow-scattered-night.png" ) );
             s_iconPath.insert( WeatherData::LightSnow,
-                            MarbleDirs::path(QStringLiteral("weather/weather-snow-scattered.png")));
+                            MarbleDirs::path( "weather/weather-snow-scattered.png" ) );
             s_iconPath.insert( WeatherData::Snow,
-                            MarbleDirs::path(QStringLiteral("weather/weather-snow.png")));
+                            MarbleDirs::path( "weather/weather-snow.png" ) );
             s_iconPath.insert( WeatherData::RainSnow,
-                            MarbleDirs::path(QStringLiteral("weather/weather-snow-rain.png")));
+                            MarbleDirs::path( "weather/weather-snow-rain.png" ) );
             s_iconPath.insert( WeatherData::Mist,
-                            MarbleDirs::path(QStringLiteral("weather/weather-mist.png")));
+                            MarbleDirs::path( "weather/weather-mist.png" ) );
             s_iconPath.insert( WeatherData::SandStorm,
-                            MarbleDirs::path(QStringLiteral("weather/weather-none-available.png")));
+                            MarbleDirs::path( "weather/weather-none-available.png" ) );
         }
     }
     
@@ -196,7 +196,10 @@ class WeatherDataPrivate
     static bool isPositiveValue( qreal value )
     {
         // A small tolerance
-        return value > -0.5;
+        if( value > -0.5 ) {
+            return true;
+        }
+        return false;
     }
     
     static QString generateTemperatureString( qreal temp, WeatherData::TemperatureUnit format )
@@ -206,7 +209,7 @@ class WeatherDataPrivate
         QString string = locale.toString( floor( fromKelvin( temp, format ) + 0.5 ) );
         switch ( format ) {
             case WeatherData::Kelvin:
-                string += QLatin1String(" K");
+                string += " K";
                 break;
             case WeatherData::Celsius:
                 string += QString::fromUtf8("°C");
@@ -421,7 +424,7 @@ QImage WeatherData::icon() const
 
 QString WeatherData::iconSource() const
 {
-    QString const invalid = MarbleDirs::path(QStringLiteral("weather/weather-none-available.png"));
+    QString const invalid = MarbleDirs::path( "weather/weather-none-available.png" );
     QString const icon = WeatherDataPrivate::s_iconPath.value( condition() );
     return icon == invalid ? "" : icon;
 }
@@ -589,7 +592,7 @@ QString WeatherData::windSpeedString( WeatherData::SpeedUnit unit ) const
     QLocale locale = QLocale::system();
     // We round to integer.
     QString string = locale.toString( floor( windSpeed( unit ) + 0.5 ) );
-    string += QLatin1Char(' ');
+    string += ' ';
     switch ( unit ) {
         case WeatherData::kph:
             string += QObject::tr("km/h");
@@ -748,7 +751,7 @@ QString WeatherData::pressureString( WeatherData::PressureUnit unit ) const
     QLocale locale = QLocale::system();
     // We round to integer.
     QString string = locale.toString( pressure( unit ), 'f', 2 );
-    string += QLatin1Char(' ');
+    string += ' ';
     switch ( unit ) {
         case WeatherData::HectoPascal:
             string += tr( "hPa" );

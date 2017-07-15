@@ -36,7 +36,7 @@ bool MarbleWidgetPlugin::isInitialized() const
 QWidget *MarbleWidgetPlugin::createWidget(QWidget *parent)
 {
     Marble::MarbleWidget* marbleWidget = new Marble::MarbleWidget( parent );
-    marbleWidget->setMapThemeId(QStringLiteral("earth/srtm/srtm.dgml"));
+    marbleWidget->setMapThemeId("earth/srtm/srtm.dgml");
 
     return marbleWidget;
 }
@@ -53,7 +53,7 @@ QString MarbleWidgetPlugin::group() const
 
 QIcon MarbleWidgetPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":/icons/marble.png"));
+    return QIcon(":/icons/marble.png");
 }
 
 QString MarbleWidgetPlugin::toolTip() const
@@ -96,4 +96,6 @@ QString MarbleWidgetPlugin::includeFile() const
     return "MarbleWidget.h";
 }
 
-#include "moc_MarbleWidgetPlugin.cpp"
+Q_EXPORT_PLUGIN2(MarbleWidgetPlugin, MarbleWidgetPlugin)
+
+#include "MarbleWidgetPlugin.moc"

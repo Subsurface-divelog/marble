@@ -25,12 +25,12 @@ QString Pn2Plugin::name() const
 
 QString Pn2Plugin::nameId() const
 {
-    return QStringLiteral("Pn2");
+    return "Pn2";
 }
 
 QString Pn2Plugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString Pn2Plugin::description() const
@@ -40,13 +40,13 @@ QString Pn2Plugin::description() const
 
 QString Pn2Plugin::copyrightYears() const
 {
-    return QStringLiteral("2012");
+    return "2012";
 }
 
-QVector<PluginAuthor> Pn2Plugin::pluginAuthors() const
+QList<PluginAuthor> Pn2Plugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Cezar Mocan"), QStringLiteral("mocancezar@gmail.com"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Cezar Mocan", "mocancezar@gmail.com" );
 }
 
 QString Pn2Plugin::fileFormatDescription() const
@@ -56,7 +56,7 @@ QString Pn2Plugin::fileFormatDescription() const
 
 QStringList Pn2Plugin::fileExtensions() const
 {
-    return QStringList(QStringLiteral("pn2"));
+    return QStringList() << "pn2";
 }
 
 ParsingRunner* Pn2Plugin::newRunner() const
@@ -66,4 +66,6 @@ ParsingRunner* Pn2Plugin::newRunner() const
 
 }
 
-#include "moc_Pn2Plugin.cpp"
+Q_EXPORT_PLUGIN2( Pn2Plugin, Marble::Pn2Plugin )
+
+#include "Pn2Plugin.moc"

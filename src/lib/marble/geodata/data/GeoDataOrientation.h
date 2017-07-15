@@ -11,16 +11,14 @@
 #ifndef GEODATAORIENTATION_H
 #define GEODATAORIENTATION_H
 
-#include "GeoDataObject.h"
+#include "GeoDataGeometry.h"
 #include "MarbleGlobal.h"
 
 namespace Marble {
 
 class GeoDataOrientationPrivate;
 
-/**
- */
-class GEODATA_EXPORT GeoDataOrientation: public GeoDataObject
+class MARBLE_EXPORT GeoDataOrientation: public GeoDataObject
 {
 public:
     GeoDataOrientation();
@@ -32,10 +30,10 @@ public:
     bool operator==( const GeoDataOrientation &other ) const;
     bool operator!=( const GeoDataOrientation &other ) const;
 
-    ~GeoDataOrientation() override;
+    ~GeoDataOrientation();
 
     /** Provides type information for downcasting a GeoNode */
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     /** Returns by how much degrees the camera has been rotated about the normal.
      *  Default value= 0. Range: 0-360 degrees

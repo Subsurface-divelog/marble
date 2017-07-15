@@ -6,9 +6,8 @@
 // the source code.
 //
 // Copyright 2012   Mohammed Nafees   <nafees.technocool@gmail.com>
-// Copyright 2012   Dennis Nienhüser  <nienhueser@kde.org>
+// Copyright 2012   Dennis Nienhüser  <earthwings@gentoo.org>
 // Copyright 2012   Illya Kovalevskyy <illya.kovalevskyy@gmail.com>
-// Copyright 2015   Imran Tatriev     <itatriev@gmail.com>
 //
 
 #include "PopupLayer.h"
@@ -20,15 +19,13 @@
 #include "PopupItem.h"
 #endif
 #include "ViewportParams.h"
-#include "RenderPlugin.h"
-#include "RenderState.h"
 
 #include <QSizeF>
 
 namespace Marble
 {
 
-class Q_DECL_HIDDEN PopupLayer::Private
+class PopupLayer::Private
 {
 public:
     Private( MarbleWidget *marbleWidget, PopupLayer *q );
@@ -51,8 +48,6 @@ public:
 #endif
     MarbleWidget *const m_widget;
     QSizeF m_requestedSize;
-    bool m_hasCrosshairsPlugin;
-    bool m_crosshairsVisible;
 };
 
 PopupLayer::Private::Private( MarbleWidget *marbleWidget, PopupLayer *q ) :
@@ -60,8 +55,6 @@ PopupLayer::Private::Private( MarbleWidget *marbleWidget, PopupLayer *q ) :
     m_popupItem( new PopupItem( q ) ),
 #endif
     m_widget( marbleWidget )
-    m_hasCrosshairsPlugin( false ),
-    m_crosshairsVisible( true )
 {
 }
 
@@ -70,13 +63,6 @@ PopupLayer::PopupLayer( MarbleWidget *marbleWidget, QObject *parent ) :
     d( new Private( marbleWidget, this ) )
 {
 #ifndef SUBSURFACE
-    for (const RenderPlugin *renderPlugin: d->m_widget->renderPlugins()) {
-        if (renderPlugin->nameId() == QLatin1String("crosshairs")) {
-            d->m_hasCrosshairsPlugin = true;
-            break;
-        }
-    }
-
     connect( d->m_popupItem, SIGNAL(repaintNeeded()), this, SIGNAL(repaintNeeded()) );
     connect( d->m_popupItem, SIGNAL(hide()), this, SLOT(hidePopupItem()) );
 #endif
@@ -89,7 +75,7 @@ PopupLayer::~PopupLayer()
 
 QStringList PopupLayer::renderPosition() const
 {
-    return QStringList(QStringLiteral("ALWAYS_ON_TOP"));
+    return QStringList( "ALWAYS_ON_TOP" );
 }
 
 bool PopupLayer::render( GeoPainter *painter, ViewportParams *viewport,
@@ -121,7 +107,7 @@ qreal PopupLayer::zValue() const
 
 RenderState PopupLayer::renderState() const
 {
-    return RenderState(QStringLiteral("Popup Window"));
+    return RenderState( "Popup Window" );
 }
 
 bool PopupLayer::visible() const
@@ -162,15 +148,6 @@ void PopupLayer::popup()
     coords.setLatitude( lat );
     coords.setLongitude( lon );
     d->m_widget->centerOn( coords, true );
-
-    if( d->m_hasCrosshairsPlugin ) {
-        d->m_crosshairsVisible = d->m_widget->showCrosshairs();
-
-        if( d->m_crosshairsVisible ) {
-            d->m_widget->setShowCrosshairs( false );
-        }
-    }
-
     setVisible( true );
 #endif
 }
@@ -237,13 +214,9 @@ void PopupLayer::Private::setAppropriateSize( const ViewportParams *viewport )
 
 void PopupLayer::hidePopupItem()
 {
-    if( d->m_hasCrosshairsPlugin && d->m_crosshairsVisible ) {
-        d->m_widget->setShowCrosshairs( d->m_crosshairsVisible );
-    }
-
     setVisible( false );
 }
 
 }
 
-#include "moc_PopupLayer.cpp"
+#include "PopupLayer.moc"

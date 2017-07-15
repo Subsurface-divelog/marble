@@ -9,41 +9,44 @@
 //
 
 #include "GeoDataCreate.h"
-
-#include "GeoDataContainer_p.h"
 #include "GeoDataTypes.h"
 
 namespace Marble
 {
 
-class GeoDataCreatePrivate : public GeoDataContainerPrivate
+class GeoDataCreatePrivate
 {
+public:
+    GeoDataCreatePrivate();
 };
 
-
-GeoDataCreate::GeoDataCreate()
-  : GeoDataContainer(new GeoDataCreatePrivate)
+GeoDataCreatePrivate::GeoDataCreatePrivate()
 {
 }
 
-GeoDataCreate::GeoDataCreate(const GeoDataCreate &other)
-  : GeoDataContainer(other, new GeoDataCreatePrivate(*other.d_func()))
+GeoDataCreate::GeoDataCreate() :
+    d( new GeoDataCreatePrivate )
+{
+}
+
+GeoDataCreate::GeoDataCreate( const Marble::GeoDataCreate &other ) :
+    GeoDataContainer(), d( new GeoDataCreatePrivate( *other.d ) )
 {
 }
 
 GeoDataCreate &GeoDataCreate::operator=( const GeoDataCreate &other )
 {
-    if (this != &other) {
-        Q_D(GeoDataCreate);
-        *d = *other.d_func();
-    }
-
+    GeoDataContainer::operator =( other );
+    *d = *other.d;
     return *this;
 }
 
 bool GeoDataCreate::operator==( const GeoDataCreate &other ) const
 {
-    return GeoDataContainer::equals(other);
+    if ( !GeoDataContainer::equals(other) ){
+        return false;
+    }
+    return true;
 }
 
 bool GeoDataCreate::operator!=( const GeoDataCreate &other ) const
@@ -53,11 +56,7 @@ bool GeoDataCreate::operator!=( const GeoDataCreate &other ) const
 
 GeoDataCreate::~GeoDataCreate()
 {
-}
-
-GeoDataFeature * GeoDataCreate::clone() const
-{
-    return new GeoDataCreate(*this);
+    delete d;
 }
 
 const char *GeoDataCreate::nodeType() const

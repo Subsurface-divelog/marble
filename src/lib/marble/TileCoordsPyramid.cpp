@@ -13,14 +13,12 @@
 
 #include "TileCoordsPyramid.h"
 
-#include <QRect>
-
 #include <algorithm>
 
 namespace Marble
 {
 
-class Q_DECL_HIDDEN TileCoordsPyramid::Private
+class TileCoordsPyramid::Private
 {
 public:
     Private( int const topLevel, int const bottomLevel );

@@ -25,7 +25,7 @@ class AbstractDataPluginTest : public QObject
 {
     Q_OBJECT
 
-private Q_SLOTS:
+ private slots:
     void initialize_data();
     void initialize();
 
@@ -42,7 +42,7 @@ void AbstractDataPluginTest::initialize_data()
         if ( !dataPlugin )
             continue;
 
-        QTest::newRow(plugin->nameId().toLatin1().constData()) << dataPlugin;
+        QTest::newRow( plugin->nameId().toLatin1() ) << dataPlugin;
     }
 }
 

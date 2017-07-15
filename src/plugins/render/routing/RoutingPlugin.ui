@@ -184,7 +184,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Zoom Out</string>
+      <string>zoom out</string>
      </property>
      <property name="text">
       <string>-</string>
@@ -216,7 +216,7 @@
       </sizepolicy>
      </property>
      <property name="toolTip">
-      <string>Zoom In</string>
+      <string>zoom in</string>
      </property>
      <property name="text">
       <string>+</string>

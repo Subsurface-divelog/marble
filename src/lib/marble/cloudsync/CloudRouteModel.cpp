@@ -10,22 +10,19 @@
 
 #include "CloudRouteModel.h"
 
-#include "RouteItem.h"
-
 #include "MarbleDebug.h"
 #include "MarbleDirs.h"
 
-#include <QIcon>
-#include <QUrl>
 #include <QSet>
 #include <QVector>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <QScriptValue>
+#include <QScriptEngine>
+#include <QScriptValueIterator>
 #include <QNetworkAccessManager>
 
 namespace Marble {
 
-class Q_DECL_HIDDEN CloudRouteModel::Private {
+class CloudRouteModel::Private {
 
 public:
     Private();
@@ -40,14 +37,16 @@ public:
     QMap<QNetworkReply*, int> m_previewQueue;
     QSet<QString> m_requestedPreviews;
 
+#if QT_VERSION >= 0x050000
     QHash<int, QByteArray> m_roleNames;
+#endif
 };
 
 CloudRouteModel::Private::Private() :
     m_totalSize( -1 ),
     m_downloadedSize( 0 )
 {
-    m_cacheDir = MarbleDirs::localPath() + QLatin1String("/cloudsync/cache/routes/");
+    m_cacheDir = MarbleDirs::localPath() + "/cloudsync/cache/routes/";
 }
 
 CloudRouteModel::CloudRouteModel( QObject* parent ) :
@@ -65,12 +64,11 @@ CloudRouteModel::CloudRouteModel( QObject* parent ) :
     roles[ IsCached ] = "isCached";
     roles[ IsDownloading ] = "isDownloading";
     roles[ IsOnCloud ] = "isOnCloud";
+#if QT_VERSION < 0x050000
+    setRoleNames( roles );
+#else
     d->m_roleNames = roles;
-}
-
-CloudRouteModel::~CloudRouteModel()
-{
-    delete d;
+#endif
 }
 
 QVariant CloudRouteModel::data( const QModelIndex& index, int role ) const
@@ -97,10 +95,12 @@ int CloudRouteModel::rowCount( const QModelIndex &parent ) const
     return parent.isValid() ? 0 : d->m_items.count();
 }
 
+#if QT_VERSION >= 0x050000
 QHash<int, QByteArray> CloudRouteModel::roleNames() const
 {
     return d->m_roleNames;
 }
+#endif
 
 void CloudRouteModel::setItems( const QVector<RouteItem> &items )
 {
@@ -113,7 +113,7 @@ void CloudRouteModel::setItems( const QVector<RouteItem> &items )
 
 bool CloudRouteModel::isCached( const QModelIndex &index ) const
 {
-    QFileInfo cacheDir(d->m_cacheDir + index.data(Timestamp).toString() + QLatin1String(".kml"));
+    QFileInfo cacheDir( d->m_cacheDir + index.data( Timestamp ).toString() + ".kml"  );
     return cacheDir.exists();
 }
 
@@ -184,4 +184,4 @@ void CloudRouteModel::updateProgress( qint64 currentSize, qint64 totalSize )
 
 }
 
-#include "moc_CloudRouteModel.cpp"
+#include "CloudRouteModel.moc"

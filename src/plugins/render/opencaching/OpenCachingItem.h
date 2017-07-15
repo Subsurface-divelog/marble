@@ -14,6 +14,7 @@
 #include "AbstractDataPluginItem.h"
 #include "OpenCachingCache.h"
 
+#include <QDate>
 #include <QPixmap>
 
 class QFont;
@@ -52,7 +53,7 @@ public:
 
     bool operator<( const AbstractDataPluginItem *other ) const;
 
-public Q_SLOTS:
+public slots:
     void showInfoDialog();
 
 private:
@@ -71,8 +72,8 @@ private:
     static QFont s_font;
     static QPixmap s_icon;
 
-private Q_SLOTS:
-    void updateDescriptionLanguage( const QString& language );
+private slots:
+    void updateDescriptionLanguage( QString language );
 
     void nextLogEntry();                                  ///< Display next log entry.
 

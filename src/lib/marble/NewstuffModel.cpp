@@ -5,14 +5,13 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #include "NewstuffModel.h"
 
 #include "MarbleDebug.h"
 #include "MarbleDirs.h"
-#include "MarbleZipReader.h"
 
 #include <QUrl>
 #include <QVector>
@@ -108,9 +107,11 @@ public:
 
     QList<Action> m_actionQueue;
 
+#if QT_VERSION >= 0x050000
     QHash<int, QByteArray> m_roleNames;
+#endif
 
-    explicit NewstuffModelPrivate( NewstuffModel* parent );
+    NewstuffModelPrivate( NewstuffModel* parent );
 
     QIcon preview( int index );
     void setPreview( int index, const QIcon &previewIcon );
@@ -136,10 +137,6 @@ public:
     static NewstuffItem importNode( const QDomNode &node );
 
     bool isTransitioning( int index ) const;
-
-    void unzip();
-
-    void updateRegistry(const QStringList &files);
 
     template<class T>
     static void readValue( const QDomNode &node, const QString &key, T* target );
@@ -311,7 +308,12 @@ void NewstuffModelPrivate::handleProviderData(QNetworkReply *reply)
 
     QDomElement root = xml.documentElement();
     QDomNodeList items = root.elementsByTagName( "stuff" );
-    for (int i=0 ; i < items.length(); ++i ) {
+#if QT_VERSION < 0x050000
+    unsigned int i=0;
+#else
+    int i=0;
+#endif
+    for ( ; i < items.length(); ++i ) {
         m_items << importNode( items.item( i ) );
     }
 
@@ -320,8 +322,8 @@ void NewstuffModelPrivate::handleProviderData(QNetworkReply *reply)
 
 bool NewstuffModelPrivate::canExecute( const QString &executable )
 {
-    QString path = QProcessEnvironment::systemEnvironment().value(QStringLiteral("PATH"), QStringLiteral("/usr/local/bin:/usr/bin:/bin"));
-    for( const QString &dir: path.split( QLatin1Char( ':' ) ) ) {
+    QString path = QProcessEnvironment::systemEnvironment().value( "PATH", "/usr/local/bin:/usr/bin:/bin" );
+    foreach( const QString &dir, path.split( QLatin1Char( ':' ) ) ) {
         QFileInfo application( QDir( dir ), executable );
         if ( application.exists() ) {
             return true;
@@ -337,10 +339,7 @@ void NewstuffModelPrivate::installMap()
         m_unpackProcess->close();
         delete m_unpackProcess;
         m_unpackProcess = 0;
-    } else if ( m_currentFile->fileName().endsWith( QLatin1String( "zip" ) ) ) {
-        unzip();
-    }
-    else if ( m_currentFile->fileName().endsWith( QLatin1String( "tar.gz" ) ) && canExecute( "tar" ) ) {
+    } else if ( m_currentFile->fileName().endsWith( QLatin1String( "tar.gz" ) ) && canExecute( "tar" ) ) {
         m_unpackProcess = new QProcess;
         QObject::connect( m_unpackProcess, SIGNAL(finished(int)),
                           m_parent, SLOT(contentsListed(int)) );
@@ -356,22 +355,15 @@ void NewstuffModelPrivate::installMap()
     }
 }
 
-void NewstuffModelPrivate::unzip()
-{
-    MarbleZipReader zipReader(m_currentFile->fileName());
-    QStringList files;
-    for(const MarbleZipReader::FileInfo &fileInfo: zipReader.fileInfoList()) {
-        files << fileInfo.filePath;
-    }
-    updateRegistry(files);
-    zipReader.extractAll(m_targetDirectory);
-    m_parent->mapInstalled(0);
-}
-
 void NewstuffModelPrivate::updateModel()
 {
     QDomNodeList items = m_root.elementsByTagName( "stuff" );
-    for (int i=0 ; i < items.length(); ++i ) {
+#if QT_VERSION < 0x050000
+    unsigned int i=0;
+#else
+    int i=0;
+#endif
+    for ( ; i < items.length(); ++i ) {
         QString const key = m_idTag == NewstuffModel::PayloadTag ? "payload" : "name";
         QDomNodeList matches = items.item( i ).toElement().elementsByTagName( key );
         if ( matches.size() == 1 ) {
@@ -379,7 +371,7 @@ void NewstuffModelPrivate::updateModel()
             bool found = false;
             for ( int j=0; j<m_items.size() && !found; ++j ) {
                 NewstuffItem &item = m_items[j];
-                if ( m_idTag == NewstuffModel::PayloadTag && item.m_payloadUrl.toString() == value ) {
+                if ( m_idTag == NewstuffModel::PayloadTag && item.m_payloadUrl == value ) {
                     item.m_registryNode = items.item( i );
                     found = true;
                 }
@@ -425,16 +417,16 @@ void NewstuffModelPrivate::uninstall( int index )
 
     QStringList directories;
     QStringList const files = m_items[index].installedFiles();
-    for( const QString &file: files ) {
-        if (file.endsWith(QLatin1Char('/'))) {
+    foreach( const QString &file, files ) {
+        if ( file.endsWith( '/' ) ) {
             directories << file;
         } else {
             QFile::remove( file );
         }
     }
 
-    std::sort( directories.begin(), directories.end(), NewstuffItem::deeperThan );
-    for( const QString &dir: directories ) {
+    qSort( directories.begin(), directories.end(), NewstuffItem::deeperThan );
+    foreach( const QString &dir, directories ) {
         QDir::root().rmdir( dir );
     }
 
@@ -462,12 +454,12 @@ void NewstuffModelPrivate::readValue( const QDomNode &node, const QString &key, 
 {
     QDomNodeList matches = node.toElement().elementsByTagName( key );
     if ( matches.size() == 1 ) {
-        *target = T(matches.at( 0 ).toElement().text());
+        *target = matches.at( 0 ).toElement().text();
     } else {
         for ( int i=0; i<matches.size(); ++i ) {
-            if ( matches.at( i ).attributes().contains(QStringLiteral("lang")) &&
-                 matches.at( i ).attributes().namedItem(QStringLiteral("lang")).toAttr().value() == QLatin1String("en")) {
-                *target = T(matches.at( i ).toElement().text());
+            if ( matches.at( i ).attributes().contains( "lang" ) &&
+                 matches.at( i ).attributes().namedItem( "lang").toAttr().value() == "en" ) {
+                *target = matches.at( i ).toElement().text();
                 return;
             }
         }
@@ -477,7 +469,7 @@ void NewstuffModelPrivate::readValue( const QDomNode &node, const QString &key, 
 NewstuffModel::NewstuffModel( QObject *parent ) :
     QAbstractListModel( parent ), d( new NewstuffModelPrivate( this ) )
 {
-    setTargetDirectory(MarbleDirs::localPath() + QLatin1String("/maps"));
+    setTargetDirectory( MarbleDirs::localPath() + "/maps" );
     // no default registry file
 
     connect( &d->m_networkAccessManager, SIGNAL(finished(QNetworkReply*)),
@@ -502,7 +494,11 @@ NewstuffModel::NewstuffModel( QObject *parent ) :
     roles[IsTransitioning] = "transitioning";
     roles[PayloadSize] = "size";
     roles[DownloadedSize] = "downloaded";
+#if QT_VERSION < 0x050000
+    setRoleNames( roles );
+#else
     d->m_roleNames = roles;
+#endif
 }
 
 NewstuffModel::~NewstuffModel()
@@ -557,10 +553,12 @@ QVariant NewstuffModel::data ( const QModelIndex &index, int role ) const
     return QVariant();
 }
 
+#if QT_VERSION >= 0x050000
 QHash<int, QByteArray> NewstuffModel::roleNames() const
 {
     return d->m_roleNames;
 }
+#endif
 
 
 int NewstuffModel::count() const
@@ -607,7 +605,7 @@ QString NewstuffModel::targetDirectory() const
 void NewstuffModel::setRegistryFile( const QString &filename, IdTag idTag )
 {
     QString registryFile = filename;
-    if (registryFile.startsWith(QLatin1Char('~')) && registryFile.length() > 1) {
+    if ( registryFile.startsWith( '~' ) && registryFile.length() > 1 ) {
         registryFile = QDir::homePath() + registryFile.mid( 1 );
     }
 
@@ -820,9 +818,52 @@ void NewstuffModel::mapUninstalled()
 
 void NewstuffModel::contentsListed( int exitStatus )
 {
+    emit installationProgressed( d->m_currentAction.first, 0.92 );
     if ( exitStatus == 0 ) {
-        QStringList const files = QString(d->m_unpackProcess->readAllStandardOutput()).split(QLatin1Char('\n'), QString::SkipEmptyParts);
-        d->updateRegistry(files);
+        if ( !d->m_registryFile.isEmpty() ) {
+            NewstuffItem &item = d->m_items[d->m_currentAction.first];
+            QDomNode node = item.m_registryNode;
+            NewstuffModelPrivate::NodeAction action = node.isNull() ? NewstuffModelPrivate::Append : NewstuffModelPrivate::Replace;
+            if ( node.isNull() ) {
+                node = d->m_root.appendChild( d->m_registryDocument.createElement( "stuff" ) );
+            }
+
+            node.toElement().setAttribute( "category", d->m_items[d->m_currentAction.first].m_category );
+            d->changeNode( node, d->m_registryDocument, "name", item.m_name, action );
+            d->changeNode( node, d->m_registryDocument, "providerid", d->m_provider, action );
+            d->changeNode( node, d->m_registryDocument, "author", item.m_author, action );
+            d->changeNode( node, d->m_registryDocument, "homepage", QString(), action );
+            d->changeNode( node, d->m_registryDocument, "licence", item.m_license, action );
+            d->changeNode( node, d->m_registryDocument, "version", item.m_version, action );
+            QString const itemId = d->m_idTag == PayloadTag ? item.m_payloadUrl.toString() : item.m_name;
+            d->changeNode( node, d->m_registryDocument, "id", itemId, action );
+            d->changeNode( node, d->m_registryDocument, "releasedate", item.m_releaseDate, action );
+            d->changeNode( node, d->m_registryDocument, "summary", item.m_summary, action );
+            d->changeNode( node, d->m_registryDocument, "changelog", QString(), action );
+            d->changeNode( node, d->m_registryDocument, "preview", item.m_previewUrl.toString(), action );
+            d->changeNode( node, d->m_registryDocument, "previewBig", item.m_previewUrl.toString(), action );
+            d->changeNode( node, d->m_registryDocument, "payload", item.m_payloadUrl.toString(), action );
+            d->changeNode( node, d->m_registryDocument, "status", "installed", action );
+            d->m_items[d->m_currentAction.first].m_registryNode = node;
+
+            bool hasChildren = true;
+            while ( hasChildren ) {
+                /** @todo FIXME: fileList does not contain all elements opposed to what docs say */
+                QDomNodeList fileList = node.toElement().elementsByTagName( "installedfile" );
+                hasChildren = !fileList.isEmpty();
+                for ( int i=0; i<fileList.count(); ++i ) {
+                    node.removeChild( fileList.at( i ) );
+                }
+            }
+
+            QStringList const files = QString( d->m_unpackProcess->readAllStandardOutput() ).split( '\n', QString::SkipEmptyParts );
+            foreach( const QString &file, files ) {
+                QDomNode fileNode = node.appendChild( d->m_registryDocument.createElement( "installedfile" ) );
+                fileNode.appendChild( d->m_registryDocument.createTextNode( d->m_targetDirectory + '/' + file ) );
+            }
+
+            d->saveRegistry();
+        }
 
         QObject::disconnect( d->m_unpackProcess, SIGNAL(finished(int)),
                              this, SLOT(contentsListed(int)) );
@@ -842,54 +883,6 @@ void NewstuffModel::contentsListed( int exitStatus )
     }
 }
 
-void NewstuffModelPrivate::updateRegistry(const QStringList &files)
-{
-    emit m_parent->installationProgressed( m_currentAction.first, 0.92 );
-    if ( !m_registryFile.isEmpty() ) {
-        NewstuffItem &item = m_items[m_currentAction.first];
-        QDomNode node = item.m_registryNode;
-        NewstuffModelPrivate::NodeAction action = node.isNull() ? NewstuffModelPrivate::Append : NewstuffModelPrivate::Replace;
-        if ( node.isNull() ) {
-            node = m_root.appendChild( m_registryDocument.createElement( "stuff" ) );
-        }
-
-        node.toElement().setAttribute( "category", m_items[m_currentAction.first].m_category );
-        changeNode( node, m_registryDocument, "name", item.m_name, action );
-        changeNode( node, m_registryDocument, "providerid", m_provider, action );
-        changeNode( node, m_registryDocument, "author", item.m_author, action );
-        changeNode( node, m_registryDocument, "homepage", QString(), action );
-        changeNode( node, m_registryDocument, "licence", item.m_license, action );
-        changeNode( node, m_registryDocument, "version", item.m_version, action );
-        QString const itemId = m_idTag == NewstuffModel::PayloadTag ? item.m_payloadUrl.toString() : item.m_name;
-        changeNode( node, m_registryDocument, "id", itemId, action );
-        changeNode( node, m_registryDocument, "releasedate", item.m_releaseDate, action );
-        changeNode( node, m_registryDocument, "summary", item.m_summary, action );
-        changeNode( node, m_registryDocument, "changelog", QString(), action );
-        changeNode( node, m_registryDocument, "preview", item.m_previewUrl.toString(), action );
-        changeNode( node, m_registryDocument, "previewBig", item.m_previewUrl.toString(), action );
-        changeNode( node, m_registryDocument, "payload", item.m_payloadUrl.toString(), action );
-        changeNode( node, m_registryDocument, "status", "installed", action );
-        m_items[m_currentAction.first].m_registryNode = node;
-
-        bool hasChildren = true;
-        while ( hasChildren ) {
-            /** @todo FIXME: fileList does not contain all elements opposed to what docs say */
-            QDomNodeList fileList = node.toElement().elementsByTagName( "installedfile" );
-            hasChildren = !fileList.isEmpty();
-            for ( int i=0; i<fileList.count(); ++i ) {
-                node.removeChild( fileList.at( i ) );
-            }
-        }
-
-        for( const QString &file: files ) {
-            QDomNode fileNode = node.appendChild( m_registryDocument.createElement( "installedfile" ) );
-            fileNode.appendChild(m_registryDocument.createTextNode(m_targetDirectory + QLatin1Char('/') + file));
-        }
-
-        saveRegistry();
-    }
-}
-
 void NewstuffModelPrivate::processQueue()
 {
     if ( m_actionQueue.empty() || m_currentAction.first >= 0 ) {
@@ -903,7 +896,7 @@ void NewstuffModelPrivate::processQueue()
     if ( m_currentAction.second == Install ) {
         if ( !m_currentFile ) {
             QFileInfo const file = m_items.at( m_currentAction.first ).m_payloadUrl.path();
-            m_currentFile = new QTemporaryFile(QDir::tempPath() + QLatin1String("/marble-XXXXXX-") + file.fileName());
+            m_currentFile = new QTemporaryFile( QDir::tempPath() + "/marble-XXXXXX-" + file.fileName() );
         }
 
         if ( m_currentFile->open() ) {
@@ -931,7 +924,7 @@ void NewstuffModelPrivate::processQueue()
 NewstuffItem NewstuffModelPrivate::importNode(const QDomNode &node)
 {
     NewstuffItem item;
-    item.m_category = node.attributes().namedItem(QStringLiteral("category")).toAttr().value();
+    item.m_category = node.attributes().namedItem( "category" ).toAttr().value();
     readValue<QString>( node, "name", &item.m_name );
     readValue<QString>( node, "author", &item.m_author );
     readValue<QString>( node, "licence", &item.m_license );
@@ -949,7 +942,7 @@ bool NewstuffModelPrivate::isTransitioning( int index ) const
         return true;
     }
 
-    for( const Action &action: m_actionQueue ) {
+    foreach( const Action &action, m_actionQueue ) {
         if ( action.first == index ) {
             return true;
         }
@@ -960,4 +953,4 @@ bool NewstuffModelPrivate::isTransitioning( int index ) const
 
 }
 
-#include "moc_NewstuffModel.cpp"
+#include "NewstuffModel.moc"

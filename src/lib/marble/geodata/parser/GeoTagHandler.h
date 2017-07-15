@@ -30,6 +30,7 @@ namespace Marble
 {
 
 class GeoNode;
+class GeoParser;
 
 /**
  * @brief A base class for XML tag handlers
@@ -90,7 +91,7 @@ private:
 
 // Macros to ease registering new handlers
 #define GEODATA_DEFINE_TAG_HANDLER(Module, UpperCaseModule, Name, NameSpace) \
-    static GeoTagHandlerRegistrar s_handler##Name##NameSpace(GeoParser::QualifiedName(QLatin1String(Module##Tag_##Name), QLatin1String(NameSpace)), \
+    static GeoTagHandlerRegistrar s_handler##Name##NameSpace(GeoParser::QualifiedName(Module##Tag_##Name, NameSpace), \
                                                              new UpperCaseModule##Name##TagHandler());
 
 }

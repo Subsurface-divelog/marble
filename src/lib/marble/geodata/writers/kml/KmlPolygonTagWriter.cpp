@@ -12,7 +12,6 @@
 #include "KmlPolygonTagWriter.h"
 
 #include "GeoDataPolygon.h"
-#include "GeoDataLinearRing.h"
 #include "GeoDataTypes.h"
 #include "GeoWriter.h"
 #include "KmlElementDictionary.h"

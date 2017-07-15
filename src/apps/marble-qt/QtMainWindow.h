@@ -16,6 +16,7 @@
 
 
 #include <QMainWindow>
+#include <QDateTime>
 #include <QVariantMap>
 #include "ControlView.h"
 
@@ -23,6 +24,7 @@ class QActionGroup;
 class QAction;
 class QLabel;
 class QMenu;
+class QPrinter;
 class QProgressBar;
 
 namespace Marble
@@ -44,7 +46,7 @@ public:
     explicit MainWindow(const QString& marbleDataPath = QString(),
                         const QVariantMap& cmdLineSettings = QVariantMap(),
                         QWidget *parent=0);
-    ~MainWindow() override;
+    ~MainWindow();
 
 
     ControlView* marbleControl() {
@@ -57,7 +59,7 @@ public:
     void addGeoDataFile( const QString &fileName );
 
 protected:
-    void  closeEvent( QCloseEvent *event ) override;
+    void  closeEvent(QCloseEvent *event);
 
 private:
     void  createActions();
@@ -82,7 +84,7 @@ private Q_SLOTS:
 
     void  changeRecordingState();
 
-    void  updateWindowTitle();
+    void  updateApplicationTitle(const QString&);
 
     // File Menu
     void  openFile();
@@ -121,7 +123,6 @@ private Q_SLOTS:
     void  enterWhatsThis();
     void  aboutMarble();
     void  handbook();
-    void  openForum();
 
     //Bookmark Menu
     void  openEditBookmarkDialog();
@@ -137,7 +138,6 @@ private Q_SLOTS:
     void  downloadRegion();
 
     void showZoomLevel( bool show );
-    void changeAngleDisplayUnit( QAction *action );
 
     void handleProgress( int, int );
     void removeProgressItem();
@@ -201,7 +201,6 @@ private:
     QAction *m_aboutQtAction;
     QAction *m_lockFloatItemsAction;
     QAction *m_handbookAction;
-    QAction *m_forumAction;
 
     // Status Bar
     QString     m_position;
@@ -214,10 +213,6 @@ private:
     QLabel      *m_clockLabel;
     QProgressBar *m_downloadProgressBar;
     QAction     *m_toggleTileLevelAction;
-    QActionGroup *m_angleDisplayUnitActionGroup;
-    QAction     *m_dmsDegreeAction;
-    QAction     *m_decimalDegreeAction;
-    QAction     *m_utmAction;
     void updateStatusBar();
 
     //Bookmark Menu

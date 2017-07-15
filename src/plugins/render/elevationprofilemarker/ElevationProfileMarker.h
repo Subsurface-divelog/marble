@@ -27,7 +27,7 @@ class GeoDataPlacemark;
 class ElevationProfileMarker : public RenderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.ElevationProfileMarker")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.ElevationProfileMarker" )
 
     Q_INTERFACES( Marble::RenderPluginInterface )
 
@@ -35,38 +35,38 @@ class ElevationProfileMarker : public RenderPlugin
 
  public:
     explicit ElevationProfileMarker( const MarbleModel *marbleModel = 0 );
-    ~ElevationProfileMarker() override;
+    ~ElevationProfileMarker();
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
-    qreal zValue() const override; // Overriding LayerInterface to paint on top of the route
+    qreal zValue() const; // Overriding LayerInterface to paint on top of the route
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 
-    void initialize() override;
+    void initialize();
 
-    bool isInitialized() const override;
+    bool isInitialized() const;
 
     bool render( GeoPainter *painter, ViewportParams *viewport,
-                 const QString &renderPos, GeoSceneLayer *layer = 0 ) override;
+                 const QString &renderPos, GeoSceneLayer *layer = 0 );
 
  private Q_SLOTS:
     void onGeoObjectAdded( GeoDataObject *object );

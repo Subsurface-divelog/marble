@@ -1,0 +1,107 @@
+// This file is part of the Marble Virtual Globe.
+//
+// This program is free software licensed under the GNU LGPL. You can
+// find a copy of this license in LICENSE.txt in the top directory of
+// the source code.
+//
+// Copyright 2011 Daniel Marth <danielmarth@gmx.at>
+// Copyright 2012 Dennis Nienhüser <earthwings@gentoo.org>
+
+import QtQuick 1.0
+import com.nokia.meego 1.0
+import org.kde.edu.marble 0.11
+
+PageStackWindow {
+    width: screen.displayWidth
+    height: screen.displayHeight
+
+    property Item marbleWidget: MainWidget {}
+    property bool inPortrait: width < height
+    property string components: "harmattan"
+
+    property alias navigationMenu: navigation
+
+    initialPage: "qrc:/activities/VirtualGlobe.qml"
+
+    // Stores the settings of the application.
+    MarbleSettings {
+        id: settings
+    }
+
+    // Displays all available activities and starts them if the user clicks on them.
+    Menu {
+        id: navigation
+        content: ActivitySelectionView {
+            id: activitySelection
+            width: pageStack.currentPage.width-50
+            height: 555
+            onItemSelected: navigation.close()
+        }
+    }
+
+    function showNavigation() {
+        navigation.open()
+    }
+
+    function openActivity( activity ) {
+        activitySelection.openActivity( activity )
+    }
+
+    function openPage( path ) {
+        pageStack.push( path )
+    }
+
+    Component.onCompleted: {
+        if ( settings.lastActivity === "" ) {
+            activitySelection.initializeDelayed()
+        } else {
+            activitySelection.openActivity( settings.lastActivity )
+        }
+    }
+
+    function icon( name, size ) {
+        if ( name === "actions/go-previous-view" ) {
+            return "image://theme/icon-m-toolbar-back"
+        } else if ( name === "actions/edit-find" ) {
+            return "image://theme/icon-m-toolbar-search"
+        } else if ( name === "actions/configure" ) {
+            return "image://theme/icon-m-toolbar-settings"
+        } else if ( name === "actions/go-up" ) {
+            return "image://theme/icon-m-toolbar-up"
+        } else if ( name === "places/user-identity" ) {
+            return "image://theme/icon-s-common-location"
+        } else if ( name === "devices/network-wireless" ) {
+            return "qrc:/marble/wireless.svg"
+        } else if ( name === "actions/show-menu" ) {
+            return "image://theme/icon-m-toolbar-view-menu"
+        } else if ( name === "actions/document-edit" ) {
+            return "image://theme/icon-m-toolbar-edit"
+        } else if ( name === "actions/edit-clear-locationbar-rtl" ) {
+            return "image://theme/icon-m-input-clear"
+        } else if ( name === "actions/text-speak" ) {
+            return "image://theme/icon-m-toolbar-volume"
+        } else if ( name === "status/task-attention" ) {
+            return "image://theme/icon-l-error"
+        } else if ( name === "actions/media-playback-start" ) {
+            return "image://theme/icon-m-toolbar-mediacontrol-play"
+        } else if ( name === "actions/dialog-cancel" ) {
+            return "image://theme/icon-s-cancel"
+        } else if ( name === "actions/dialog-close" ) {
+            return "image://theme/icon-s-cancel"
+        } else if ( name === "places/folder" ) {
+            return "image://theme/icon-m-common-directory"
+        } else if ( name === "mimetypes/unknown" ) {
+            return "image://theme/icon-m-content-document"
+        } else if ( name === "places/favorites" ) {
+            return "image://theme/icon-m-toolbar-favorite-mark"
+        } else if ( name === "actions/go-home" ) {
+            return "image://theme/icon-m-toolbar-home"
+        } else if ( name === "actions/download" ) {
+            return "image://theme/icon-s-transfer-download"
+        } else if ( name === "actions/upload" ) {
+            return "image://theme/icon-s-transfer-upload"
+        }
+
+        return name
+    }
+}

@@ -43,21 +43,26 @@ QUrl PhotoPluginModel::generateUrl( const QString& service,
                                     const QString& method,
                                     const QHash<QString,QString>& options )
 {
-    QString url;
-
-    if (service == QLatin1String("flickr"))
-        url += QLatin1String("https://www.flickr.com/services/rest/");
+    QString url( "" );
+    
+    if( service == "flickr" )
+        url += "https://www.flickr.com/services/rest/";
     else
         return QUrl();
-
-    url += QLatin1String("?method=") + method +
-           QLatin1String("&format=rest") +
-           QLatin1String("&api_key=") + flickrApiKey;
-
+    
+    url += "?method=";
+    url += method;
+    url += "&format=rest";
+    url += "&api_key=";
+    url += flickrApiKey;
+    
     QHash<QString,QString>::const_iterator it = options.constBegin();
     QHash<QString,QString>::const_iterator const end = options.constEnd();
     for (; it != end; ++it ) {
-        url += QLatin1Char('&') + it.key() + QLatin1Char('=') + it.value();
+        url += '&';
+        url += it.key();
+        url += '=';
+        url += it.value();
     }
     
     return QUrl( url );
@@ -67,16 +72,16 @@ void PhotoPluginModel::getAdditionalItems( const GeoDataLatLonAltBox& box,
                                            qint32 number )
 {
     // Flickr only supports images for earth
-    if (marbleModel()->planetId() != QLatin1String("earth")) {
+    if( marbleModel()->planetId() != "earth" ) {
         return;
     }
 
     if( box.west() <= box.east() ) {
-        const QString bbox =
-            QString::number(box.west() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(box.south() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(box.east() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(box.north() * RAD2DEG);
+        QString bbox( "" );
+        bbox += QString::number( box.west()  * RAD2DEG ) + ',';
+        bbox += QString::number( box.south()  * RAD2DEG ) + ',';
+        bbox += QString::number( box.east() * RAD2DEG ) + ',';
+        bbox += QString::number( box.north() * RAD2DEG );
     
         QHash<QString,QString> options;
         options.insert( "per_page", QString::number( number ) );
@@ -88,11 +93,11 @@ void PhotoPluginModel::getAdditionalItems( const GeoDataLatLonAltBox& box,
     }
     else {
         // Flickr api doesn't support bboxes with west > east so we have to split in two boxes
-        const QString bboxWest =
-            QString::number(box.west() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(box.south() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(180 ) + QLatin1Char(',') +
-            QString::number(box.north() * RAD2DEG);
+        QString bboxWest( "" );
+        bboxWest += QString::number( box.west() * RAD2DEG ) + ',';
+        bboxWest += QString::number( box.south()  * RAD2DEG ) + ',';
+        bboxWest += QString::number( 180 ) + ',';
+        bboxWest += QString::number( box.north() * RAD2DEG );
         
         QHash<QString,QString> optionsWest;
         optionsWest.insert( "per_page", QString::number( number/2 ) );
@@ -103,12 +108,12 @@ void PhotoPluginModel::getAdditionalItems( const GeoDataLatLonAltBox& box,
         downloadDescriptionFile( generateUrl( "flickr", "flickr.photos.search", optionsWest ) );
         
         
-        const QString bboxEast =
-            QString::number(-180) +QLatin1Char( ',') +
-            QString::number(box.south() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(box.east() * RAD2DEG) + QLatin1Char(',') +
-            QString::number(box.north() * RAD2DEG);
-
+        QString bboxEast( "" );
+        bboxEast += QString::number( -180 ) + ',';
+        bboxEast += QString::number( box.south()  * RAD2DEG ) + ',';
+        bboxEast += QString::number( box.east() * RAD2DEG ) + ',';
+        bboxEast += QString::number( box.north() * RAD2DEG );
+        
         QHash<QString,QString> optionsEast;
         optionsEast.insert( "per_page", QString::number( number/2 ) );
         optionsEast.insert( "bbox",     bboxEast );
@@ -152,4 +157,4 @@ void PhotoPluginModel::setLicenseValues( const QString &licenses )
     m_licenses = licenses;
 }
 
-#include "moc_PhotoPluginModel.cpp"
+#include "PhotoPluginModel.moc"

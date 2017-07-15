@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2011      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2011      Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2013      Bernhard Beschow  <bbeschow@cs.tu-berlin.de>
 //
 
@@ -132,12 +132,6 @@ bool DatabaseQuery::isPointOfInterest( const QString &category )
         pois["zoo"] = OsmPlacemark::TouristZoo;
         pois[QObject::tr( "airport" ).toLower()] = OsmPlacemark::TransportAirportTerminal;
         pois["airport"] = OsmPlacemark::TransportAirportTerminal;
-        pois[QObject::tr( "airport runway" ).toLower()] = OsmPlacemark::TransportAirportRunway;
-        pois["airport runway"] = OsmPlacemark::TransportAirportRunway;
-        pois[QObject::tr( "airport apron" ).toLower()] = OsmPlacemark::TransportAirportApron;
-        pois["airport apron"] = OsmPlacemark::TransportAirportApron;
-        pois[QObject::tr( "airport taxiway" ).toLower()] = OsmPlacemark::TransportAirportTaxiway;
-        pois["airport taxiway"] = OsmPlacemark::TransportAirportTaxiway;
         pois[QObject::tr( "bus station" ).toLower()] = OsmPlacemark::TransportBusStation;
         pois["bus station"] = OsmPlacemark::TransportBusStation;
         pois[QObject::tr( "bus stop" ).toLower()] = OsmPlacemark::TransportBusStop;
@@ -162,8 +156,6 @@ bool DatabaseQuery::isPointOfInterest( const QString &category )
         pois["speed camera"] = OsmPlacemark::TransportSpeedCamera;
         pois[QObject::tr( "taxi" ).toLower()] = OsmPlacemark::TransportTaxiRank;
         pois["taxi"] = OsmPlacemark::TransportTaxiRank;
-        pois[QObject::tr( "memorial" ).toLower()] = OsmPlacemark::HistoricMemorial;
-        pois["memorial"] = OsmPlacemark::HistoricMemorial;
     }
 
     Q_ASSERT( !pois.isEmpty() );

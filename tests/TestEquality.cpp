@@ -28,7 +28,6 @@
 #include <GeoDataLink.h>
 #include <GeoDataAnimatedUpdate.h>
 #include <GeoDataSoundCue.h>
-#include "GeoDataPlaylist.h"
 #include <GeoDataTourControl.h>
 #include <GeoDataWait.h>
 #include <GeoDataTour.h>
@@ -71,7 +70,6 @@
 #include <GeoDataFolder.h>
 #include <GeoDataSchemaData.h>
 #include <GeoDataSimpleData.h>
-#include <GeoDataUpdate.h>
 #include "TestUtils.h"
 
 using namespace Marble;
@@ -79,7 +77,7 @@ using namespace Marble;
 class TestEquality : public QObject
 {
     Q_OBJECT
-private Q_SLOTS:
+private slots:
     void initTestCase();
     void aliasTest();
     void accuracyTest();
@@ -561,7 +559,7 @@ void TestEquality::tourTest()
     tour1.setVisible( true );
     tour1.setRole( QString("Role1") );
 
-    GeoDataStyle::Ptr style1(new GeoDataStyle), style2(new GeoDataStyle);
+    GeoDataStyle style1, style2;
     GeoDataIconStyle iconStyle;
     QImage icon( 50, 50, QImage::Format_Mono );
     icon.fill( Qt::black );
@@ -577,7 +575,7 @@ void TestEquality::tourTest()
     labelStyle.setColor( Qt::blue );
     labelStyle.setScale( 1.0 );
     labelStyle.setAlignment( GeoDataLabelStyle::Center );
-    labelStyle.setFont( QFont( QStringLiteral( "Helvetica" ), 10 ) );
+    labelStyle.setFont( QFont( "Helvetica", 10 ) );
 
     GeoDataLineStyle lineStyle;
     QVector< qreal > pattern( 5, 6.2 );
@@ -613,12 +611,12 @@ void TestEquality::tourTest()
         listStyle.append( icon );
     }
 
-    style1->setIconStyle( iconStyle );
-    style1->setLineStyle( lineStyle );
-    style1->setLabelStyle( labelStyle );
-    style1->setPolyStyle( polyStyle );
-    style1->setBalloonStyle( balloon );
-    style1->setListStyle( listStyle );
+    style1.setIconStyle( iconStyle );
+    style1.setLineStyle( lineStyle );
+    style1.setLabelStyle( labelStyle );
+    style1.setPolyStyle( polyStyle );
+    style1.setBalloonStyle( balloon );
+    style1.setListStyle( listStyle );
 
     style2 = style1;
 
@@ -695,7 +693,7 @@ void TestEquality::tourTest()
     tour1.setTimeStamp( timeStamp1 );
     tour1.setExtendedData( extendedData1 );
     tour1.setRegion( region1 );
-    tour1.setStyle( style1 );
+    tour1.setStyle( &style1 );
     tour1.setStyleMap( &styleMap1 );
     tour2 = tour1;
 
@@ -896,23 +894,6 @@ void TestEquality::polygonTest()
     polygon1.appendInnerBoundary(innerBoundary11);
     QVERIFY( polygon1 != polygon2 );
 
-    QCOMPARE( polygon1 == polygon2, false );
-
-    /* Prepare for unequality test */
-    polygon2.appendInnerBoundary(innerBoundary11);
-    QVERIFY( polygon1 == polygon2 );
-
-    /* Test for unequality: make sure polygon's coordinates are not equal */
-    polygon2.appendInnerBoundary(innerBoundary11);
-    coord111.set(100,1);
-    innerBoundary11.clear();
-    innerBoundary11.append(coord111);
-    innerBoundary11.append(coord112);
-    innerBoundary11.append(coord113);
-    innerBoundary11.setTessellate(true);
-    polygon1.appendInnerBoundary(innerBoundary11);
-
-    QVERIFY( polygon1 != polygon2 );
     QCOMPARE( polygon1 == polygon2, false );
 }
 
@@ -1307,12 +1288,12 @@ void TestEquality::labelStyleTest()
     labelStyle1.setColor( Qt::blue );
     labelStyle1.setScale( 1.0 );
     labelStyle1.setAlignment( GeoDataLabelStyle::Center );
-    labelStyle1.setFont( QFont( QStringLiteral( "Helvetica" ), 10 ) );
+    labelStyle1.setFont( QFont( "Helvetica", 10 ) );
 
     labelStyle2.setColor( Qt::blue );
     labelStyle2.setScale( 1.0 );
     labelStyle2.setAlignment( GeoDataLabelStyle::Center );
-    labelStyle2.setFont( QFont( QStringLiteral( "Helvetica" ), 10 ) );
+    labelStyle2.setFont( QFont( "Helvetica", 10 ) );
 
     QCOMPARE( labelStyle1, labelStyle1 );
     QCOMPARE( labelStyle2, labelStyle2 );
@@ -1320,7 +1301,7 @@ void TestEquality::labelStyleTest()
     QVERIFY( labelStyle1 == labelStyle2);
 
     labelStyle2.setAlignment( GeoDataLabelStyle::Corner );
-    labelStyle2.setFont( QFont( QStringLiteral( "Helvetica [Cronyx]" ), 12 ) );
+    labelStyle2.setFont( QFont( "Helvetica [Cronyx]", 12 ) );
 
     QCOMPARE( labelStyle1, labelStyle1 );
     QCOMPARE( labelStyle2, labelStyle2 );
@@ -1346,7 +1327,7 @@ void TestEquality::styleTest()
     labelStyle.setColor( Qt::blue );
     labelStyle.setScale( 1.0 );
     labelStyle.setAlignment( GeoDataLabelStyle::Center );
-    labelStyle.setFont( QFont( QStringLiteral( "Helvetica" ), 10 ) );
+    labelStyle.setFont( QFont( "Helvetica", 10 ) );
 
     GeoDataLineStyle lineStyle;
     QVector< qreal > pattern( 5, 6.2 );

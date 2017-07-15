@@ -16,8 +16,6 @@
 #include "GeoSceneLayer.h"
 #include "DgmlElementDictionary.h"
 
-#include <QColor>
-
 namespace Marble
 {
 

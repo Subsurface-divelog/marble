@@ -16,11 +16,7 @@
 
 using namespace Marble;
 // Ui
-#ifdef MARBLE_NO_WEBKITWIDGETS
-#include "ui_NullLegendWidget.h"
-#else
 #include "ui_LegendWidget.h"
-#endif
 
 #include "MarbleLegendBrowser.h"
 
@@ -43,8 +39,8 @@ LegendWidget::LegendWidget( QWidget *parent, Qt::WindowFlags f )
 {
     d->setupUi( this );
     layout()->setMargin( 0 );
-    connect( d->m_marbleLegendBrowser, SIGNAL(tourLinkClicked(QString)),
-             this, SIGNAL(tourLinkClicked(QString)) );
+    connect( d->m_marbleLegendBrowser, SIGNAL(tourLinkClicked( const QString& )),
+             this, SIGNAL(tourLinkClicked( const QString& ) ) );
 }
 
 LegendWidget::~LegendWidget()
@@ -64,4 +60,4 @@ void LegendWidget::setMarbleModel( MarbleModel *model )
 
 }
 
-#include "moc_LegendWidget.cpp"
+#include "LegendWidget.moc"

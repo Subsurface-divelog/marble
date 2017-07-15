@@ -19,8 +19,6 @@ namespace Marble
 {
 class GeoDataCameraPrivate;
 
-/**
- */
 class GEODATA_EXPORT GeoDataCamera : public GeoDataAbstractView
 {
 public:
@@ -32,9 +30,9 @@ public:
     bool operator==( const GeoDataCamera &other ) const;
     bool operator!=( const GeoDataCamera &other ) const;
 
-    ~GeoDataCamera() override;
+    ~GeoDataCamera();
 
-    GeoDataAbstractView *copy() const override;
+    GeoDataAbstractView *copy() const;
 
     /**
      * @brief set the altitude in a GeoDataCamera object
@@ -105,7 +103,7 @@ public:
     void setCoordinates( const GeoDataCoordinates& coordinates );
 
     /// Provides type information for downcasting a GeoNode
-    const char* nodeType() const override;
+    virtual const char* nodeType() const;
 
     void detach();
 private:

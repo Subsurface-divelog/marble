@@ -12,12 +12,14 @@
 #define POSTALCODEPLUGIN_H
 
 #include "AbstractDataPlugin.h"
+#include "RenderPlugin.h"
+#include "RenderPluginInterface.h"
 
 namespace Marble {
 
 class PostalCodePlugin : public AbstractDataPlugin {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.PostalCodePlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.PostalCodePlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     MARBLE_PLUGIN( PostalCodePlugin )
 
@@ -26,23 +28,23 @@ class PostalCodePlugin : public AbstractDataPlugin {
 
     explicit PostalCodePlugin( const MarbleModel *marbleModel );
 
-    void initialize() override;
+    virtual void initialize();
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon() const override;
+    QIcon icon() const;
 };
 
 }

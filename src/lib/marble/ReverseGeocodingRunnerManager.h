@@ -6,7 +6,7 @@
 // the source code.
 //
 // Copyright 2008 Henry de Valence <hdevalence@gmail.com>
-// Copyright 2010 Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010 Dennis Nienhüser <earthwings@gentoo.org>
 // Copyright 2010-2013 Bernhard Beschow <bbeschow@cs.tu-berlin.de>
 // Copyright 2011 Thibaut Gridel <tgridel@free.fr>
 
@@ -39,7 +39,7 @@ public:
      */
     explicit ReverseGeocodingRunnerManager( const MarbleModel *marbleModel, QObject *parent = 0 );
 
-    ~ReverseGeocodingRunnerManager() override;
+    ~ReverseGeocodingRunnerManager();
 
     /**
      * Find the address and other meta information for a given geoposition.

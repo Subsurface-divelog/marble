@@ -10,6 +10,7 @@
 
 #include "SatellitesConfigDialog.h"
 
+#include <QPushButton>
 #include <QMessageBox>
 #include <QInputDialog>
 #include <QFileDialog>
@@ -379,5 +380,5 @@ QString SatellitesConfigDialog::translation( const QString &from ) const
 
 } // namespace Marble
 
-#include "moc_SatellitesConfigDialog.cpp"
+#include "SatellitesConfigDialog.moc"
 

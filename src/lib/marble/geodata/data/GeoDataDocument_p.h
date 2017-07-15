@@ -29,26 +29,25 @@ class GeoDataDocumentPrivate : public GeoDataContainerPrivate
     :  m_documentRole( UnknownDocument )
     {
     }
-
-    GeoDataDocumentPrivate(const GeoDataDocumentPrivate& other)
-      : GeoDataContainerPrivate(other),
-        m_styleHash(other.m_styleHash),
-        m_styleMapHash(other.m_styleMapHash),
-        m_schemaHash(other.m_schemaHash),
-        m_filename(other.m_filename),
-        m_baseUri(other.m_baseUri),
-        m_networkLinkControl(other.m_networkLinkControl),
-        m_property(other.m_property),
-        m_documentRole(other.m_documentRole)
-    {
+    
+    virtual GeoDataFeaturePrivate* copy()
+    { 
+        GeoDataDocumentPrivate* copy = new GeoDataDocumentPrivate;
+        *copy = *this;
+        return copy;
     }
 
-    EnumFeatureId featureId() const override
+    virtual const char* nodeType() const
+    {
+        return GeoDataTypes::GeoDataDocumentType;
+    }
+
+    virtual EnumFeatureId featureId() const
     {
         return GeoDataDocumentId;
     }
 
-    QMap<QString, GeoDataStyle::Ptr> m_styleHash;
+    QMap<QString, GeoDataStyle> m_styleHash;
     QMap<QString, GeoDataStyleMap> m_styleMapHash;
     QMap<QString, GeoDataSchema> m_schemaHash;
     QString m_filename;

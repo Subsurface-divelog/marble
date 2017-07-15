@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2010      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2010      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_BOOKMARKMANAGERDIALOG_H
@@ -20,7 +20,6 @@ namespace Marble
 {
 
 class GeoDataDocument;
-class GeoDataContainer;
 class MarbleModel;
 class BookmarkManagerDialogPrivate;
 
@@ -33,7 +32,7 @@ class MARBLE_EXPORT BookmarkManagerDialog : public QDialog, private Ui::UiBookma
     explicit BookmarkManagerDialog( MarbleModel* model, QWidget *parent = 0 );
 
     /** Destructor */
-    ~BookmarkManagerDialog() override;
+    ~BookmarkManagerDialog();
 
     void setButtonBoxVisible( bool visible );
 
@@ -45,6 +44,8 @@ private Q_SLOTS:
     void importBookmarks();
 
 private:
+    GeoDataDocument* bookmarkDocument();
+
     Q_PRIVATE_SLOT( d, void updateButtonState() )
 
     Q_PRIVATE_SLOT( d, void addNewFolder() )

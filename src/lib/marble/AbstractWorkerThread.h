@@ -39,7 +39,7 @@ class MARBLE_EXPORT AbstractWorkerThread : public QThread
 
  public:
     explicit AbstractWorkerThread( QObject *parent = 0 );
-    ~AbstractWorkerThread() override;
+    virtual ~AbstractWorkerThread();
 
     void ensureRunning();
 
@@ -47,7 +47,7 @@ class MARBLE_EXPORT AbstractWorkerThread : public QThread
     virtual bool workAvailable() = 0;
     virtual void work() = 0;
 
-    void run() override;
+    void run();
 
  private:
     AbstractWorkerThreadPrivate * const d;

@@ -28,7 +28,7 @@ namespace Marble
 class MarblePluginSettingsWidgetPrivate : public Ui::MarblePluginSettingsWidget
 {
  public:
-    explicit MarblePluginSettingsWidgetPrivate( Marble::MarblePluginSettingsWidget *parent ) :
+    MarblePluginSettingsWidgetPrivate( Marble::MarblePluginSettingsWidget *parent ) :
         q( parent ),
         m_itemDelegate( 0 )
     {}
@@ -125,4 +125,4 @@ void MarblePluginSettingsWidget::setModel( RenderPluginModel* pluginModel )
 
 } // namespace Marble
 
-#include "moc_MarblePluginSettingsWidget.cpp"
+#include "MarblePluginSettingsWidget.moc"

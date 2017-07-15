@@ -27,7 +27,7 @@ namespace Marble
 class SunPlugin : public RenderPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.kde.marble.SunPlugin")
+    Q_PLUGIN_METADATA( IID "org.kde.edu.marble.SunPlugin" )
     Q_INTERFACES( Marble::RenderPluginInterface )
     MARBLE_PLUGIN( SunPlugin )
  public:
@@ -35,33 +35,33 @@ class SunPlugin : public RenderPlugin
 
     explicit SunPlugin( const MarbleModel *marbleModel );
 
-    QStringList backendTypes() const override;
+    QStringList backendTypes() const;
 
-    QString renderPolicy() const override;
+    QString renderPolicy() const;
 
-    QStringList renderPosition() const override;
+    QStringList renderPosition() const;
 
-    QString name() const override;
+    QString name() const;
 
-    QString guiString() const override;
+    QString guiString() const;
 
-    QString nameId() const override;
+    QString nameId() const;
 
-    QString version() const override;
+    QString version() const;
 
-    QString description() const override;
+    QString description() const;
 
-    QString copyrightYears() const override;
+    QString copyrightYears() const;
 
-    QVector<PluginAuthor> pluginAuthors() const override;
+    QList<PluginAuthor> pluginAuthors() const;
 
-    QIcon icon () const override;
+    QIcon icon () const;
 
-    void initialize () override;
+    void initialize ();
 
-    bool isInitialized () const override;
+    bool isInitialized () const;
 
-    bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 ) override;
+    bool render( GeoPainter *painter, ViewportParams *viewport, const QString& renderPos, GeoSceneLayer * layer = 0 );
 
 private:
     QPixmap m_pixmap;

@@ -24,8 +24,9 @@
 #include "ui_EclipsesConfigDialog.h"
 #include "ui_EclipsesReminderDialog.h"
 
-#include <QMenu>
 #include <QPushButton>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 namespace Marble
 {
@@ -73,26 +74,24 @@ EclipsesPlugin::~EclipsesPlugin()
         delete m_eclipsesActionGroup;
         delete m_eclipsesListMenu;
         delete m_configDialog;
-        delete m_configWidget;
         delete m_browserDialog;
         delete m_reminderDialog;
-        delete m_reminderWidget;
     }
 }
 
 QStringList EclipsesPlugin::backendTypes() const
 {
-    return QStringList(QStringLiteral("eclipses"));
+    return QStringList( "eclipses" );
 }
 
 QString EclipsesPlugin::renderPolicy() const
 {
-    return QStringLiteral("ALWAYS");
+    return QString( "ALWAYS" );
 }
 
 QStringList EclipsesPlugin::renderPosition() const
 {
-    return QStringList(QStringLiteral("ORBIT"));
+    return QStringList( "ORBIT" );
 }
 
 QString EclipsesPlugin::name() const
@@ -102,7 +101,7 @@ QString EclipsesPlugin::name() const
 
 QString EclipsesPlugin::nameId() const
 {
-    return QStringLiteral("eclipses");
+    return "eclipses";
 }
 
 QString EclipsesPlugin::guiString() const
@@ -112,7 +111,7 @@ QString EclipsesPlugin::guiString() const
 
 QString EclipsesPlugin::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString EclipsesPlugin::description() const
@@ -122,19 +121,19 @@ QString EclipsesPlugin::description() const
 
 QString EclipsesPlugin::copyrightYears() const
 {
-    return QStringLiteral("2013");
+    return "2013";
 }
 
-QVector<PluginAuthor> EclipsesPlugin::pluginAuthors() const
+QList<PluginAuthor> EclipsesPlugin::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Rene Kuettner"), QStringLiteral("rene@bitkanal.net"))
-            << PluginAuthor(QStringLiteral("Gerhard Holtkamp"), QString());
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Rene Kuettner", "rene@bitkanal.net" )
+            << PluginAuthor( "Gerhard Holtkamp", "" );
 }
 
 QIcon EclipsesPlugin::icon() const
 {
-    return QIcon(QStringLiteral(":res/eclipses.png"));
+    return QIcon( ":res/eclipses.png" );
 }
 
 RenderPlugin::RenderType EclipsesPlugin::renderType() const
@@ -161,9 +160,7 @@ void EclipsesPlugin::initialize()
     }
 
     // initialize dialogs
-    delete m_configDialog;
     m_configDialog = new QDialog();
-    delete m_configWidget;
     m_configWidget = new Ui::EclipsesConfigDialog();
     m_configWidget->setupUi( m_configDialog );
 
@@ -179,14 +176,12 @@ void EclipsesPlugin::initialize()
              SIGNAL(clicked()), this, SLOT(updateEclipses()) );
 
     m_browserDialog = new EclipsesBrowserDialog( marbleModel() );
-    connect( m_browserDialog, SIGNAL(buttonShowClicked(int,int)),
+    connect( m_browserDialog, SIGNAL(buttonShowClicked(int, int)),
              this, SLOT(showEclipse(int,int)) );
     connect( m_browserDialog, SIGNAL(buttonSettingsClicked()),
              m_configDialog, SLOT(show()) );
 
-    delete m_reminderDialog;
     m_reminderDialog = new QDialog();
-    delete m_reminderWidget;
     m_reminderWidget = new Ui::EclipsesReminderDialog();
     m_reminderWidget->setupUi( m_reminderDialog );
 
@@ -194,14 +189,14 @@ void EclipsesPlugin::initialize()
     m_eclipsesActionGroup = new QActionGroup( this );
     m_actionGroups.append( m_eclipsesActionGroup );
 
-    m_eclipsesListMenu = new QMenu();
+    m_eclipsesListMenu = new QMenu( "" );
     m_eclipsesActionGroup->addAction( m_eclipsesListMenu->menuAction() );
     connect( m_eclipsesListMenu, SIGNAL(triggered(QAction*)),
              this, SLOT(showEclipseFromMenu(QAction*)) );
 
     m_eclipsesMenuAction = new QAction(
             tr("Browse Ecli&pses..."), m_eclipsesActionGroup );
-    m_eclipsesMenuAction->setIcon(QIcon(QStringLiteral(":res/eclipses.png")));
+    m_eclipsesMenuAction->setIcon( QIcon( ":res/eclipses.png" ) );
     m_eclipsesActionGroup->addAction( m_eclipsesMenuAction );
     connect( m_eclipsesMenuAction, SIGNAL(triggered()),
              m_browserDialog, SLOT(show()) );
@@ -247,8 +242,8 @@ bool EclipsesPlugin::render( GeoPainter *painter,
     Q_UNUSED( renderPos );
     Q_UNUSED( layer );
 
-    if (marbleModel()->planetId() == QLatin1String("earth")) {
-        for( EclipsesItem *item: m_model->items() ) {
+    if( marbleModel()->planetId() == "earth" ) {
+        foreach( EclipsesItem *item, m_model->items() ) {
             if( item->takesPlaceAt( marbleModel()->clock()->dateTime() ) ) {
                 return renderItem( painter, item );
             }
@@ -370,44 +365,44 @@ void EclipsesPlugin::setSettings( const QHash<QString, QVariant> &settings )
 void EclipsesPlugin::readSettings()
 {
     m_configWidget->checkBoxEnableLunarEclipses->setChecked(
-            m_settings.value(QStringLiteral("enableLunarEclipses"), false).toBool());
+            m_settings.value( "enableLunarEclipses", false ).toBool() );
     m_configWidget->checkBoxShowMaximum->setChecked(
-            m_settings.value(QStringLiteral("showMaximum"), true).toBool());
+            m_settings.value( "showMaximum", true ).toBool() );
     m_configWidget->checkBoxShowUmbra->setChecked(
-            m_settings.value(QStringLiteral("showUmbra"), true).toBool());
+            m_settings.value( "showUmbra", true ).toBool() );
     m_configWidget->checkBoxShowSouthernPenumbra->setChecked(
-            m_settings.value(QStringLiteral("showSouthernPenumbra"), true).toBool());
+            m_settings.value( "showSouthernPenumbra", true ).toBool() );
     m_configWidget->checkBoxShowNorthernPenumbra->setChecked(
-            m_settings.value(QStringLiteral("showNorthernPenumbra"), true).toBool());
+            m_settings.value( "showNorthernPenumbra", true ).toBool() );
     m_configWidget->checkBoxShowCentralLine->setChecked(
-            m_settings.value(QStringLiteral("showCentralLine"), true).toBool());
+            m_settings.value( "showCentralLine", true ).toBool() );
     m_configWidget->checkBoxShowFullPenumbra->setChecked(
-            m_settings.value(QStringLiteral("showFullPenumbra"), true).toBool());
+            m_settings.value( "showFullPenumbra", true ).toBool() );
     m_configWidget->checkBoxShow60MagPenumbra->setChecked(
-            m_settings.value(QStringLiteral("show60MagPenumbra"), false).toBool());
+            m_settings.value( "show60MagPenumbra", false ).toBool() );
     m_configWidget->checkBoxShowSunBoundaries->setChecked(
-            m_settings.value(QStringLiteral("showSunBoundaries"), true).toBool());
+            m_settings.value( "showSunBoundaries", true ).toBool() );
 }
 
 void EclipsesPlugin::writeSettings()
 {
-    m_settings.insert(QStringLiteral("enableLunarEclipses"),
+    m_settings.insert( "enableLunarEclipses",
             m_configWidget->checkBoxEnableLunarEclipses->isChecked() );
-    m_settings.insert(QStringLiteral("showMaximum"),
+    m_settings.insert( "showMaximum",
             m_configWidget->checkBoxShowMaximum->isChecked() );
-    m_settings.insert(QStringLiteral("showUmbra"),
+    m_settings.insert( "showUmbra",
             m_configWidget->checkBoxShowUmbra->isChecked() );
-    m_settings.insert(QStringLiteral("showSouthernPenumbra"),
+    m_settings.insert( "showSouthernPenumbra",
             m_configWidget->checkBoxShowSouthernPenumbra->isChecked() );
-    m_settings.insert(QStringLiteral("showNorthernPenumbra"),
+    m_settings.insert( "showNorthernPenumbra",
             m_configWidget->checkBoxShowNorthernPenumbra->isChecked() );
-    m_settings.insert(QStringLiteral("showCentralLine"),
+    m_settings.insert( "showCentralLine",
             m_configWidget->checkBoxShowCentralLine->isChecked() );
-    m_settings.insert(QStringLiteral("showFullPenumbra"),
+    m_settings.insert( "showFullPenumbra",
             m_configWidget->checkBoxShowFullPenumbra->isChecked() );
-    m_settings.insert(QStringLiteral("show60MagPenumbra"),
+    m_settings.insert( "show60MagPenumbra",
             m_configWidget->checkBoxShow60MagPenumbra->isChecked() );
-    m_settings.insert(QStringLiteral("showSunBoundaries"),
+    m_settings.insert( "showSunBoundaries",
             m_configWidget->checkBoxShowSunBoundaries->isChecked() );
 
     emit settingsChanged( nameId() );
@@ -420,23 +415,23 @@ void EclipsesPlugin::updateSettings()
     }
 
     m_browserDialog->setWithLunarEclipses(
-            m_settings.value(QStringLiteral("enableLunarEclipses")).toBool());
+            m_settings.value( "enableLunarEclipses" ).toBool() );
     if( m_model->withLunarEclipses() !=
-            m_settings.value(QStringLiteral("enableLunarEclipses")).toBool()) {
+            m_settings.value( "enableLunarEclipses" ).toBool() ) {
         updateEclipses();
     }
 }
 
 void EclipsesPlugin::updateEclipses()
 {
-    // mDebug() << "Updating eclipses....";
+    mDebug() << "Updating eclipses....";
     const int year = marbleModel()->clock()->dateTime().date().year();
-    const bool lun = m_settings.value(QStringLiteral("enableLunarEclipses")).toBool();
+    const bool lun = m_settings.value( "enableLunarEclipses" ).toBool();
 
     if( ( m_menuYear != year ) || ( m_model->withLunarEclipses() != lun ) ) {
 
         // remove old menus
-        for( QAction *action: m_eclipsesListMenu->actions() ) {
+        foreach( QAction *action, m_eclipsesListMenu->actions() ) {
             m_eclipsesListMenu->removeAction( action );
             delete action;
         }
@@ -454,7 +449,7 @@ void EclipsesPlugin::updateEclipses()
 
         m_eclipsesListMenu->setTitle( tr("Eclipses in %1").arg( year ) );
 
-        for( EclipsesItem *item: m_model->items() ) {
+        foreach( EclipsesItem *item, m_model->items() ) {
             QAction *action = m_eclipsesListMenu->addAction(
                         item->dateMaximum().date().toString() );
             action->setData( QVariant( 1000 * item->dateMaximum().date().year() +  item->index() ) );
@@ -474,7 +469,7 @@ void EclipsesPlugin::updateMenuItemState()
     // eclipses are only supported for earth based obervers at the moment
     // so we disable the menu items for other celestial bodies
 
-    const bool active = (marbleModel()->planetId() == QLatin1String("earth"));
+    bool active = ( marbleModel()->planetId() == "earth" );
 
     m_eclipsesListMenu->setEnabled( active );
     m_eclipsesMenuAction->setEnabled( active );
@@ -506,5 +501,7 @@ void EclipsesPlugin::showEclipseFromMenu( QAction *action )
 
 } // namespace Marble
 
-#include "moc_EclipsesPlugin.cpp"
+Q_EXPORT_PLUGIN2( EclipsesPlugin, Marble::EclipsesPlugin )
+
+#include "EclipsesPlugin.moc"
 

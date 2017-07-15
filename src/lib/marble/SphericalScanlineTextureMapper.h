@@ -41,11 +41,11 @@ class SphericalScanlineTextureMapper : public TextureMapperInterface
  public:
     explicit SphericalScanlineTextureMapper( StackedTileLoader *tileLoader );
 
-    void mapTexture( GeoPainter *painter,
+    virtual void mapTexture( GeoPainter *painter,
                              const ViewportParams *viewport,
                              int tileZoomLevel,
                              const QRect &dirtyRect,
-                             TextureColorizer *texColorizer ) override;
+                             TextureColorizer *texColorizer );
 
  private:
     void mapTexture( const ViewportParams *viewport, int tileZoomLevel, MapQuality mapQuality );

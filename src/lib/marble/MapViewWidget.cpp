@@ -25,8 +25,6 @@
 #include "MapThemeSortFilterProxyModel.h"
 #include "GeoSceneDocument.h"
 #include "GeoSceneHead.h"
-#include "MapViewItemDelegate.h"
-#include "CelestialSortFilterProxyModel.h"
 
 // Qt
 #include <QResizeEvent>
@@ -39,7 +37,9 @@
 #include <QPainter>
 #include <QToolBar>
 #include <QToolButton>
-#include <QDateTime>
+#include <QTextDocument>
+#include <QAbstractTextDocumentLayout>
+#include <QStyledItemDelegate>
 
 using namespace Marble;
 // Ui
@@ -48,7 +48,139 @@ using namespace Marble;
 namespace Marble
 {
 
-class Q_DECL_HIDDEN MapViewWidget::Private {
+class MapViewItemDelegate : public QStyledItemDelegate
+{
+public:
+    MapViewItemDelegate( QListView* view );
+    void paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const;
+    QSize sizeHint( const QStyleOptionViewItem &option, const QModelIndex &index ) const;
+
+private:
+    static QString text( const QModelIndex &index );
+    QListView* m_view;
+    QIcon m_bookmarkIcon;
+};
+
+class CelestialSortFilterProxyModel : public QSortFilterProxyModel
+{
+public:
+    CelestialSortFilterProxyModel()
+    {
+        setupPriorities();
+        setupMoonsList();
+        setupDwarfsList();
+    }
+    ~CelestialSortFilterProxyModel() {}
+
+    // A small trick to change names for dwarfs and moons
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
+    {
+        QVariant var = QSortFilterProxyModel::data(index, role);
+        if (role == Qt::DisplayRole && index.column() == 0) {
+            QString newOne = var.toString();
+            if (newOne == tr("Moon")) {
+                return QString("  " + tr("Moon"));
+            } else if (m_moons.contains(newOne.toLower())) {
+                return QString("  "+newOne+" (" + tr("moon") + ')');
+            } else if (m_dwarfs.contains(newOne.toLower())) {
+                return QString(newOne+ " (" + tr("dwarf planet") + ')');
+            }
+            return newOne;
+        } else {
+            return var;
+        }
+    }
+
+private:
+    // TODO: create priority on the model side (Planet Class) by taking the distance to the "home planet/home star" into account
+    void setupPriorities()
+    {
+        // here we will set m_priority for default order
+        int prefix = 100;
+
+        m_priority["sun"] = prefix;
+        m_priority["mercury"] = prefix--;
+        m_priority["venus"] = prefix--;
+        m_priority["earth"] = prefix--;
+        m_priority["moon"] = prefix--;
+        m_priority["mars"] = prefix--;
+
+        m_priority["jupiter"] = prefix--;
+        // Moons of Jupiter
+        m_priority["io"] = prefix--;
+        m_priority["europa"] = prefix--;
+        m_priority["ganymede"] = prefix--;
+        m_priority["callisto"] = prefix--;
+
+        m_priority["saturn"] = prefix--;
+        // Moons of Saturn
+        m_priority["mimas"] = prefix--;
+        m_priority["enceladus"] = prefix--;
+        m_priority["thetys"] = prefix--;
+        m_priority["dione"] = prefix--;
+        m_priority["rhea"] = prefix--;
+        m_priority["titan"] = prefix--;
+        m_priority["iapetus"] = prefix--;
+
+        m_priority["uranus"] = prefix--;
+        m_priority["neptune"] = prefix--;
+        m_priority["pluto"] = prefix--;
+        m_priority["ceres"] = prefix--;
+    }
+
+    void setupMoonsList()
+    {
+        m_moons.push_back("moon");
+        m_moons.push_back("europa");
+        m_moons.push_back("ganymede");
+        m_moons.push_back("callisto");
+        m_moons.push_back("mimas");
+        m_moons.push_back("enceladus");
+        m_moons.push_back("thetys");
+        m_moons.push_back("dione");
+        m_moons.push_back("rhea");
+        m_moons.push_back("titan");
+        m_moons.push_back("iapetus");
+    }
+
+    void setupDwarfsList()
+    {
+        m_dwarfs.push_back("pluto");
+        m_dwarfs.push_back("ceres");
+    }
+
+protected:
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const {
+        const QString nameLeft = sourceModel()->index(left.row(), 1).data().toString();
+        const QString nameRight = sourceModel()->index(right.row(), 1).data().toString();
+        const QString first = nameLeft.toLower();
+        const QString second = nameRight.toLower();
+
+        // both are in the list
+        if (m_priority.contains(first) && m_priority.contains(second)) {
+            return m_priority[first] > m_priority[second];
+        }
+
+        // only left in the list
+        if (m_priority.contains(first) && !m_priority.contains(second)) {
+            return true;
+        }
+
+        // only right in the list
+        if (!m_priority.contains(first) && m_priority.contains(second)) {
+            return false;
+        }
+
+        return QSortFilterProxyModel::lessThan(left, right);
+    }
+
+private:
+    QMap<QString, int> m_priority;
+    QList<QString> m_moons;
+    QList<QString> m_dwarfs;
+};
+
+class MapViewWidget::Private {
  public:
     Private( MapViewWidget *parent )
         : q( parent ),
@@ -67,16 +199,10 @@ class Q_DECL_HIDDEN MapViewWidget::Private {
           m_lambertAzimuthalViewAction( 0 ),
           m_azimuthalEquidistantViewAction( 0 ),
           m_verticalPerspectiveViewAction( 0 ),
-          m_globeViewAction( 0 ),
-          m_mapViewDelegate(nullptr)
+          m_globeViewAction( 0 )
     {
         m_mapSortProxy.setDynamicSortFilter( true );
         m_celestialListProxy.setDynamicSortFilter( true );
-    }
-
-    ~Private()
-    {
-        delete m_mapViewDelegate;
     }
 
     void applyExtendedLayout()
@@ -113,63 +239,63 @@ class Q_DECL_HIDDEN MapViewWidget::Private {
         m_toolBar = new QToolBar;
 
         m_globeViewButton = new QToolButton;
-        m_globeViewButton->setIcon(QIcon(QStringLiteral(":/icons/map-globe.png")));
+        m_globeViewButton->setIcon( QIcon(":/icons/map-globe.png") );
         m_globeViewButton->setToolTip( tr("Globe View") );
         m_globeViewButton->setCheckable(true);
         m_globeViewButton->setChecked(false);
 
-        m_globeViewAction = new QAction(QIcon(QStringLiteral(":/icons/map-globe.png")),
+        m_globeViewAction = new QAction( QIcon(":/icons/map-globe.png"),
                                              tr( "Spherical view" ),
                                              m_globeViewButton );
         m_globeViewAction->setCheckable( true );
         m_globeViewAction->setChecked( false );
 
         m_mercatorViewButton = new QToolButton;
-        m_mercatorViewButton->setIcon(QIcon(QStringLiteral(":/icons/map-mercator.png")));
+        m_mercatorViewButton->setIcon( QIcon(":/icons/map-mercator.png") );
         m_mercatorViewButton->setToolTip( tr("Mercator View") );
         m_mercatorViewButton->setCheckable(true);
         m_mercatorViewButton->setChecked(false);
         m_mercatorViewButton->setPopupMode(QToolButton::MenuButtonPopup);
 
-        m_popupMenuFlat = new QMenu(q);
+        m_popupMenuFlat = new QMenu;
 
-        m_mercatorViewAction = new QAction(QIcon(QStringLiteral(":/icons/map-mercator.png")),
+        m_mercatorViewAction = new QAction( QIcon(":/icons/map-mercator.png"),
                                               tr("Mercator View"),
                                               m_popupMenuFlat );
         m_mercatorViewAction->setCheckable(true);
         m_mercatorViewAction->setChecked(false);
 
-        m_flatViewAction = new QAction( QIcon(QStringLiteral(":/icons/map-flat.png")),
+        m_flatViewAction = new QAction( QIcon(":/icons/map-flat.png"),
                                         tr("Flat View"),
                                         m_popupMenuFlat );
         m_flatViewAction->setCheckable(true);
         m_flatViewAction->setChecked(false);
 
-        m_gnomonicViewAction = new QAction( QIcon(QStringLiteral(":/icons/map-gnomonic.png")),
+        m_gnomonicViewAction = new QAction( QIcon(":/icons/map-gnomonic.png"),
                                             tr( "Gnomonic view" ),
                                             m_popupMenuFlat);
         m_gnomonicViewAction->setCheckable( true );
         m_gnomonicViewAction->setChecked( false );
 
-        m_stereographicViewAction = new QAction(QIcon(QStringLiteral(":/icons/map-globe.png")),
+        m_stereographicViewAction = new QAction( QIcon(":/icons/map-globe.png"),
                                             tr( "Stereographic view" ),
                                             m_popupMenuFlat);
         m_stereographicViewAction->setCheckable( true );
         m_stereographicViewAction->setChecked( false );
 
-        m_lambertAzimuthalViewAction = new QAction(QIcon(QStringLiteral(":/icons/map-globe.png")),
+        m_lambertAzimuthalViewAction = new QAction( QIcon(":/icons/map-globe.png"),
                                             tr( "Lambert Azimuthal Equal-Area view" ),
                                             m_popupMenuFlat);
         m_lambertAzimuthalViewAction->setCheckable( true );
         m_lambertAzimuthalViewAction->setChecked( false );
 
-        m_azimuthalEquidistantViewAction = new QAction(QIcon(QStringLiteral(":/icons/map-globe.png")),
+        m_azimuthalEquidistantViewAction = new QAction( QIcon(":/icons/map-globe.png"),
                                             tr( "Azimuthal Equidistant view" ),
                                             m_popupMenuFlat);
         m_azimuthalEquidistantViewAction->setCheckable( true );
         m_azimuthalEquidistantViewAction->setChecked( false );
 
-        m_verticalPerspectiveViewAction = new QAction(QIcon(QStringLiteral(":/icons/map-globe.png")),
+        m_verticalPerspectiveViewAction = new QAction( QIcon(":/icons/map-globe.png"),
                                             tr( "Perspective Globe view" ),
                                             m_popupMenuFlat);
         m_verticalPerspectiveViewAction->setCheckable( true );
@@ -238,10 +364,9 @@ class Q_DECL_HIDDEN MapViewWidget::Private {
     void toggleFavorite();
     void toggleIconSize();
 
-    bool isCurrentFavorite() const;
+    bool isCurrentFavorite();
     QString currentThemeName() const;
     QString currentThemePath() const;
-    QString favoriteKey(const QModelIndex &index) const;
 
     MapViewWidget *const q;
 
@@ -265,7 +390,6 @@ class Q_DECL_HIDDEN MapViewWidget::Private {
     QAction *m_azimuthalEquidistantViewAction;
     QAction *m_verticalPerspectiveViewAction;
     QAction *m_globeViewAction;
-    MapViewItemDelegate* m_mapViewDelegate;
 };
 
 MapViewWidget::MapViewWidget( QWidget *parent, Qt::WindowFlags f )
@@ -293,11 +417,9 @@ MapViewWidget::MapViewWidget( QWidget *parent, Qt::WindowFlags f )
     }
     else {
         d->m_mapViewUi.marbleThemeSelectView->setViewMode( QListView::IconMode );
-        QSize const iconSize = d->m_settings.value(QStringLiteral("MapView/iconSize"), QSize(90, 90)).toSize();
+        QSize const iconSize = d->m_settings.value( "MapView/iconSize", QSize( 90, 90 ) ).toSize();
         d->m_mapViewUi.marbleThemeSelectView->setIconSize( iconSize );
-        delete d->m_mapViewDelegate;
-        d->m_mapViewDelegate = new MapViewItemDelegate(d->m_mapViewUi.marbleThemeSelectView);
-        d->m_mapViewUi.marbleThemeSelectView->setItemDelegate(d->m_mapViewDelegate);
+        d->m_mapViewUi.marbleThemeSelectView->setItemDelegate( new MapViewItemDelegate( d->m_mapViewUi.marbleThemeSelectView ) );
         d->m_mapViewUi.marbleThemeSelectView->setAlternatingRowColors( true );
         d->m_mapViewUi.marbleThemeSelectView->setFlow( QListView::LeftToRight );
         d->m_mapViewUi.marbleThemeSelectView->setWrapping( true );
@@ -326,13 +448,13 @@ MapViewWidget::MapViewWidget( QWidget *parent, Qt::WindowFlags f )
     connect( d->m_mapViewUi.celestialBodyComboBox, SIGNAL(activated(int)),
              this,                                 SLOT(celestialBodySelected(int)) );
 
-    d->m_settings.beginGroup(QStringLiteral("Favorites"));
-    if (!d->m_settings.contains(QStringLiteral("initialized"))) {
-        d->m_settings.setValue(QStringLiteral("initialized"), true);
+    d->m_settings.beginGroup( "Favorites" );
+    if( !d->m_settings.contains( "initialized" ) ) {
+        d->m_settings.setValue( "initialized", true );
         QDateTime currentDateTime = QDateTime::currentDateTime();
-        d->m_settings.setValue(QStringLiteral("Atlas"), currentDateTime);
-        d->m_settings.setValue(QStringLiteral("OpenStreetMap"), currentDateTime);
-        d->m_settings.setValue(QStringLiteral("Satellite View"), currentDateTime);
+        d->m_settings.setValue( "Atlas", currentDateTime );
+        d->m_settings.setValue( "OpenStreetMap", currentDateTime );
+        d->m_settings.setValue( "Satellite View", currentDateTime );
     }
     d->m_settings.endGroup();
 }
@@ -390,8 +512,8 @@ void MapViewWidget::setMapThemeId( const QString &themeId )
     if ( themeId == oldThemeId )
         return;
 
-    const QString oldCelestialBodyId = oldThemeId.section(QLatin1Char('/'), 0, 0);
-    const QString celestialBodyId = themeId.section(QLatin1Char('/'), 0, 0);
+    const QString oldCelestialBodyId = oldThemeId.section( '/', 0, 0 );
+    const QString celestialBodyId = themeId.section( '/', 0, 0 );
 
     // select celestialBodyId in GUI
     if ( celestialBodyId != oldCelestialBodyId ) {
@@ -639,11 +761,6 @@ QString MapViewWidget::Private::currentThemePath() const
     return m_mapSortProxy.data( columnIndex, Qt::UserRole + 1 ).toString();
 }
 
-QString MapViewWidget::Private::favoriteKey(const QModelIndex &index) const
-{
-    return QLatin1String("Favorites/") + m_mapSortProxy.data(index).toString();
-}
-
 void MapViewWidget::Private::showContextMenu( const QPoint& pos )
 {
     QMenu menu;
@@ -651,15 +768,14 @@ void MapViewWidget::Private::showContextMenu( const QPoint& pos )
     QAction* iconSizeAction = menu.addAction( tr( "&Show Large Icons" ), q, SLOT(toggleIconSize()) );
     iconSizeAction->setCheckable( true );
     iconSizeAction->setChecked( m_mapViewUi.marbleThemeSelectView->iconSize() == QSize( 96, 96 ) );
-    QAction *favAction = menu.addAction(QIcon(QStringLiteral(":/icons/bookmarks.png")), tr("&Favorite"), q, SLOT(toggleFavorite()));
+    QAction *favAction = menu.addAction( QIcon( ":/icons/bookmarks.png" ), tr( "&Favorite" ), q, SLOT(toggleFavorite()) );
     favAction->setCheckable( true );
     favAction->setChecked( isCurrentFavorite() );
     menu.addSeparator();
 
-    menu.addAction(QIcon(QStringLiteral(":/icons/create-new-map.png")), tr("&Create a New Map..."), q, SIGNAL(showMapWizard()));
-    if (QFileInfo(MarbleDirs::localPath() + QLatin1String("/maps/") + currentThemePath()).exists()) {
+    menu.addAction( QIcon( ":/icons/create-new-map.png" ), tr("&Create a New Map..."), q, SIGNAL(showMapWizard()) );
+    if( QFileInfo( MarbleDirs::localPath() + "/maps/" + currentThemePath() ).exists() )
         menu.addAction( tr( "&Delete Map Theme" ), q, SLOT(deleteMap()) );
-    }
     menu.addAction( tr( "&Upload Map..." ), q, SIGNAL(showUploadDialog()) );
     menu.exec( m_mapViewUi.marbleThemeSelectView->mapToGlobal( pos ) );
 }
@@ -678,17 +794,18 @@ void MapViewWidget::Private::deleteMap()
 
 void MapViewWidget::Private::toggleFavorite()
 {
-    QModelIndex index = m_mapViewUi.marbleThemeSelectView->currentIndex();
+    const QModelIndex index = m_mapViewUi.marbleThemeSelectView->currentIndex();
+    const QModelIndex columnIndex = m_mapSortProxy.index( index.row(), 0 );
+
     if( isCurrentFavorite() ) {
-        m_settings.remove(favoriteKey(index));
-    } else {
-        m_settings.setValue(favoriteKey(index), QDateTime::currentDateTime() );
+        m_settings.beginGroup( "Favorites" );
+        m_settings.remove( m_mapSortProxy.data( columnIndex ).toString() );
     }
-    QStandardItemModel* sourceModel = qobject_cast<QStandardItemModel*>(m_mapSortProxy.sourceModel());
-    const QModelIndex sourceIndex = m_mapSortProxy.mapToSource(index);
-    emit sourceModel->dataChanged( sourceIndex, sourceIndex );
-    index = m_mapViewUi.marbleThemeSelectView->currentIndex();
-    m_mapViewUi.marbleThemeSelectView->scrollTo(index);
+    else {
+        m_settings.beginGroup( "Favorites" );
+        m_settings.setValue( m_mapSortProxy.data( columnIndex ).toString(), QDateTime::currentDateTime() );
+    }
+    m_settings.endGroup();
 }
 
 void MapViewWidget::Private::toggleIconSize()
@@ -696,15 +813,99 @@ void MapViewWidget::Private::toggleIconSize()
     bool const isLarge = m_mapViewUi.marbleThemeSelectView->iconSize() == QSize( 96, 96 );
     int const size = isLarge ? 52 : 96;
     m_mapViewUi.marbleThemeSelectView->setIconSize( QSize( size, size ) );
-    m_settings.setValue(QStringLiteral("MapView/iconSize"), m_mapViewUi.marbleThemeSelectView->iconSize() );
+    m_settings.setValue("MapView/iconSize", m_mapViewUi.marbleThemeSelectView->iconSize() );
 }
 
-bool MapViewWidget::Private::isCurrentFavorite() const
+bool MapViewWidget::Private::isCurrentFavorite()
 {
     const QModelIndex index = m_mapViewUi.marbleThemeSelectView->currentIndex();
-    return m_settings.contains(favoriteKey(index));
+    const QModelIndex nameIndex = m_mapSortProxy.index( index.row(), 0 );
+
+    m_settings.beginGroup( "Favorites" );
+    const bool isFavorite = m_settings.contains( m_mapSortProxy.data( nameIndex ).toString() );
+    m_settings.endGroup();
+
+    return isFavorite;
+}
+
+MapViewItemDelegate::MapViewItemDelegate( QListView *view ) :
+    m_view( view ), m_bookmarkIcon( ":/icons/bookmarks.png" )
+{
+    // nothing to do
+}
+
+void MapViewItemDelegate::paint( QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index ) const
+{
+    QStyleOptionViewItemV4 styleOption = option;
+    initStyleOption( &styleOption, index );
+    styleOption.text = QString();
+    styleOption.icon = QIcon();
+
+    bool const selected = styleOption.state & QStyle::State_Selected;
+    bool const active = styleOption.state & QStyle::State_Active;
+    bool const hover = styleOption.state & QStyle::State_MouseOver;
+    QPalette::ColorGroup const colorGroup = active ? QPalette::Active : QPalette::Inactive;
+    if ( selected || hover ) {
+        styleOption.features &= ~QStyleOptionViewItemV2::Alternate;
+        QPalette::ColorRole colorRole = selected ? QPalette::Highlight : QPalette::Midlight;
+        painter->fillRect( styleOption.rect, styleOption.palette.color( colorGroup, colorRole ) );
+    }
+    QStyle* style = styleOption.widget ? styleOption.widget->style() : QApplication::style();
+    style->drawControl( QStyle::CE_ItemViewItem, &styleOption, painter, styleOption.widget );
+
+    QRect const rect = styleOption.rect;
+    QSize const iconSize = styleOption.decorationSize;
+    QRect const iconRect( rect.topLeft(), iconSize );
+    QIcon const icon = index.data( Qt::DecorationRole ).value<QIcon>();
+    painter->drawPixmap( iconRect, icon.pixmap( iconSize ) );
+
+    int const padding = 5;
+    QString const name = index.data().toString();
+    const bool isFavorite = QSettings().contains( "Favorites/" + name );
+    QSize const bookmarkSize( 16, 16 );
+    QRect bookmarkRect( iconRect.bottomRight(), bookmarkSize );
+    bookmarkRect.translate( QPoint( -bookmarkSize.width() - padding, -bookmarkSize.height() - padding ) );
+    QIcon::Mode mode = isFavorite ? QIcon::Normal : QIcon::Disabled;
+    painter->drawPixmap( bookmarkRect, m_bookmarkIcon.pixmap( bookmarkSize, mode ) );
+
+    QTextDocument document;
+    document.setTextWidth( rect.width() - iconSize.width() - padding );
+    document.setDefaultFont( styleOption.font );
+    document.setHtml( text( index ) );
+
+    QRect textRect = QRect( iconRect.topRight(), QSize( document.textWidth() - padding, rect.height() - padding ) );
+    painter->save();
+    painter->translate( textRect.topLeft() );
+    painter->setClipRect( textRect.translated( -textRect.topLeft() ) );
+    QAbstractTextDocumentLayout::PaintContext paintContext;
+    paintContext.palette = styleOption.palette;
+    QPalette::ColorRole const role = selected && active ? QPalette::HighlightedText : QPalette::Text;
+    paintContext.palette.setColor( QPalette::Text, styleOption.palette.color( colorGroup, role ) );
+    document.documentLayout()->draw( painter, paintContext );
+    painter->restore();
+}
+
+QSize MapViewItemDelegate::sizeHint( const QStyleOptionViewItem &option, const QModelIndex &index ) const
+{
+    if ( index.column() == 0 ) {
+        QSize const iconSize = option.decorationSize;
+        QTextDocument doc;
+        doc.setDefaultFont( option.font );
+        doc.setTextWidth( m_view->width() - iconSize.width() - 10 );
+        doc.setHtml( text( index ) );
+        return QSize( iconSize.width() + doc.size().width(), iconSize.height() );
+    }
+
+    return QSize();
+}
+
+QString MapViewItemDelegate::text( const QModelIndex &index )
+{
+    QString const title = index.data().toString();
+    QString const description = index.data( Qt::UserRole+2 ).toString();
+    return QString("<p><b>%1</b></p>%2").arg( title ).arg( description );
 }
 
 }
 
-#include "moc_MapViewWidget.cpp"
+#include "MapViewWidget.moc"

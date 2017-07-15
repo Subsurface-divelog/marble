@@ -62,7 +62,7 @@ public:
      */
     explicit EclipsesItem( EclSolar *ecl, int index, QObject *parent = 0 );
 
-    ~EclipsesItem() override;
+    ~EclipsesItem();
 
     /**
      * @brief The index of the eclipse event

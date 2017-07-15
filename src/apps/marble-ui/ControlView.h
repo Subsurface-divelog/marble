@@ -19,17 +19,18 @@
 
 
 #include <QWidget>
+#include <QPixmap>
 #include <QPointer>
 
 #include "MarbleWidget.h"
 
+class QSplitter;
 class QPrintDialog;
 class QTextDocument;
 class QMainWindow;
 class QDockWidget;
+class QMenu;
 class QPrinter;
-class QActionGroup;
-class QPixmap;
 
 namespace Marble
 {
@@ -48,7 +49,7 @@ class ControlView : public QWidget
 
  public:
     explicit ControlView( QWidget * = 0 );
-    ~ControlView() override;
+    virtual ~ControlView();
 
     /**
       * Returns the version of the Marble applications (which differs from
@@ -67,7 +68,7 @@ class ControlView : public QWidget
     void moveUp();
     void moveDown();
 
-    void addGeoDataFile( const QString &filename );
+    void addGeoDataFile( QString filename );
 
     QPixmap mapScreenShot() { return m_marbleWidget->mapScreenShot(); }
     
@@ -99,15 +100,12 @@ class ControlView : public QWidget
 
     /**
      * Opens the passed Geo URI
-     * @return true if uri could be parsed and opened
      * @see Marble::GeoUriParser for details
      */
-    bool openGeoUri( const QString& geoUriString );
+    void openGeoUri( const QString& geoUriString );
 
-    static QActionGroup* createViewSizeActionGroup( QObject* parent );
-
- public Q_SLOTS:
-    void printMapScreenShot( const QPointer<QPrintDialog>& dialog );
+ public slots:
+    void printMapScreenShot( QPointer<QPrintDialog> dialog );
     void printPreview();
     void paintPrintPreview( QPrinter * printer );
 
@@ -125,22 +123,10 @@ class ControlView : public QWidget
 
     void openTour( const QString &filename );
 
-Q_SIGNALS:
+signals:
     void showMapWizard();
     void showUploadDialog();
     void mapThemeDeleted();
-
-protected:
-    void closeEvent( QCloseEvent *event ) override;
-    /**
-     * @brief Reimplementation of the dragEnterEvent() function in QWidget.
-     */
-    void dragEnterEvent(QDragEnterEvent *event) override;
-
-    /**
-     * @brief Reimplementation of the dropEvent() function in QWidget.
-     */
-    void dropEvent(QDropEvent *event) override;
 
 private Q_SLOTS:
     void showSearch();
@@ -165,7 +151,6 @@ private Q_SLOTS:
     void printRouteSummary( QTextDocument &document, QString &text );
     void printDrivingInstructions( QTextDocument &document, QString &text );
     static void printDrivingInstructionsAdvice( QTextDocument &document, QString &text );
-    static void addViewSizeAction( QActionGroup* actionGroup, const QString &nameTemplate, int width, int height );
 
     MapThemeManager   *const m_mapThemeManager;
     MarbleWidget      *m_marbleWidget;

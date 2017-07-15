@@ -5,7 +5,7 @@
 // find a copy of this license in LICENSE.txt in the top directory of
 // the source code.
 //
-// Copyright 2012      Dennis Nienhüser <nienhueser@kde.org>
+// Copyright 2012      Dennis Nienhüser <earthwings@gentoo.org>
 //
 
 #ifndef MARBLE_GEOPHOTOGRAPHICSITEM_H
@@ -29,11 +29,9 @@ public:
 
     GeoDataPoint point() const;
 
-    void paint(GeoPainter* painter, const ViewportParams *viewport, const QString &layer, int tileZoomLevel) override;
+    virtual void paint( GeoPainter* painter, const ViewportParams *viewport );
 
-    const GeoDataLatLonAltBox& latLonAltBox() const override;
-
-    bool contains(const QPoint &point, const ViewportParams *viewport) const override;
+    virtual const GeoDataLatLonAltBox& latLonAltBox() const;
 
 protected:
     GeoDataPoint m_point;

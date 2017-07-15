@@ -28,16 +28,8 @@ public:
     {
         // nothing to do
     }
-    GeoDataTourPrivate(const GeoDataTourPrivate &other)
-      : GeoDataFeaturePrivate(other),
-        m_playlist(nullptr)
-    {
-        if (other.m_playlist) {
-            m_playlist = new GeoDataPlaylist(*other.m_playlist);
-        }
-    }
 
-    ~GeoDataTourPrivate() override
+    virtual ~GeoDataTourPrivate()
     {
         delete m_playlist;
     }
@@ -58,6 +50,18 @@ public:
         m_playlist = newPlaylist;
 
         return *this;
+    }
+
+    virtual GeoDataTourPrivate* copy()
+    {
+        GeoDataTourPrivate *copy = new GeoDataTourPrivate;
+        *copy = *this;
+        return copy;
+    }
+
+    virtual const char *nodeType() const
+    {
+        return GeoDataTypes::GeoDataTourType;
     }
 
     GeoDataPlaylist *m_playlist;

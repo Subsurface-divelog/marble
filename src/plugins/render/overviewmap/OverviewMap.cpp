@@ -15,8 +15,10 @@
 #include <QCursor>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPixmap>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QSvgRenderer>
 #include <QColorDialog>
 
 #include "MarbleDirs.h"
@@ -71,7 +73,7 @@ OverviewMap::~OverviewMap()
 
 QStringList OverviewMap::backendTypes() const
 {
-    return QStringList(QStringLiteral("overviewmap"));
+    return QStringList( "overviewmap" );
 }
 
 QString OverviewMap::name() const
@@ -86,12 +88,12 @@ QString OverviewMap::guiString() const
 
 QString OverviewMap::nameId() const
 {
-    return QStringLiteral("overviewmap");
+    return QString( "overviewmap" );
 }
 
 QString OverviewMap::version() const
 {
-    return QStringLiteral("1.0");
+    return "1.0";
 }
 
 QString OverviewMap::description() const
@@ -101,18 +103,18 @@ QString OverviewMap::description() const
 
 QString OverviewMap::copyrightYears() const
 {
-    return QStringLiteral("2008");
+    return "2008";
 }
 
-QVector<PluginAuthor> OverviewMap::pluginAuthors() const
+QList<PluginAuthor> OverviewMap::pluginAuthors() const
 {
-    return QVector<PluginAuthor>()
-            << PluginAuthor(QStringLiteral("Torsten Rahn"), QStringLiteral("tackat@kde.org"));
+    return QList<PluginAuthor>()
+            << PluginAuthor( "Torsten Rahn", "tackat@kde.org" );
 }
 
 QIcon OverviewMap::icon () const
 {
-    return QIcon(QStringLiteral(":/icons/worldmap.png"));
+    return QIcon(":/icons/worldmap.png");
 }
 
 QDialog *OverviewMap::configDialog()
@@ -315,24 +317,23 @@ void OverviewMap::setSettings( const QHash<QString,QVariant> &settings )
 {
     AbstractFloatItem::setSettings( settings );
 
-    m_settings.insert(QStringLiteral("width"), settings.value(QStringLiteral("width"), m_defaultSize.toSize().width()));
-    m_settings.insert(QStringLiteral("height"), settings.value(QStringLiteral("height"), m_defaultSize.toSize().height()));
+    m_settings.insert( "width", settings.value( "width", m_defaultSize.toSize().width() ) );
+    m_settings.insert( "height", settings.value( "height", m_defaultSize.toSize().height() ) );
 
-    for ( const QString& planet: PlanetFactory::planetList() ) {
-        QString mapFile = MarbleDirs::path(QLatin1String("svg/") + planet + QLatin1String("map.svg"));
+    foreach ( const QString& planet, PlanetFactory::planetList() ) {
+        QString mapFile = MarbleDirs::path( QString( "svg/%1map.svg" ).arg( planet ) );
 
-        if (planet == QLatin1String("moon")) {
-            mapFile = MarbleDirs::path(QStringLiteral("svg/lunarmap.svg"));
+        if ( planet == "moon" ) {
+            mapFile = MarbleDirs::path( "svg/lunarmap.svg" );
         }
-        else if (planet == QLatin1String("earth") || mapFile.isEmpty()) {
-            mapFile = MarbleDirs::path(QStringLiteral("svg/worldmap.svg"));
+        else if ( planet == "earth" || mapFile.isEmpty() ) {
+            mapFile = MarbleDirs::path( "svg/worldmap.svg" );
         }
 
-        const QString id = QLatin1String("path_") + planet;
-        m_settings.insert(id, settings.value(id, mapFile));
+        m_settings.insert( "path_" + planet, settings.value( "path_" + planet, mapFile ) );
     }
 
-    m_settings.insert(QStringLiteral("posColor"), settings.value(QStringLiteral("posColor"), QColor(Qt::white).name()));
+    m_settings.insert( "posColor", settings.value( "posColor", QColor( Qt::white ).name() ) );
 
     m_target.clear(); // FIXME: forces execution of changeBackground() in changeViewport()
 
@@ -346,10 +347,10 @@ void OverviewMap::readSettings()
         return;
     }
 
-    ui_configWidget->m_widthBox->setValue( m_settings.value(QStringLiteral("width")).toInt() );
-    ui_configWidget->m_heightBox->setValue( m_settings.value(QStringLiteral("height")).toInt() );
+    ui_configWidget->m_widthBox->setValue( m_settings.value( "width" ).toInt() );
+    ui_configWidget->m_heightBox->setValue( m_settings.value( "height" ).toInt() );
     QPalette palette = ui_configWidget->m_colorChooserButton->palette();
-    palette.setColor(QPalette::Button, QColor(m_settings.value(QStringLiteral("posColor")).toString()));
+    palette.setColor( QPalette::Button, QColor( m_settings.value( "posColor" ).toString() ) );
     ui_configWidget->m_colorChooserButton->setPalette( palette );
 }
 
@@ -359,15 +360,15 @@ void OverviewMap::writeSettings()
         return;
     }
 
-    m_settings.insert(QStringLiteral("width"), contentRect().width());
-    m_settings.insert(QStringLiteral("height"), contentRect().height());
+    m_settings.insert( "width", contentRect().width() );
+    m_settings.insert( "height", contentRect().height() );
 
     QStringList const planets = PlanetFactory::planetList();
-    for( const QString &planet: planets ) {
-        m_settings.insert(QLatin1String("path_") + planet, m_svgPaths[planet]);
+    foreach( const QString &planet, planets ) {
+        m_settings.insert( "path_" + planet, m_svgPaths[planet] );
     }
 
-    m_settings.insert(QStringLiteral("posColor"), m_posColor.name());
+    m_settings.insert( "posColor", m_posColor.name() );
 
     emit settingsChanged( nameId() );
 }
@@ -375,11 +376,11 @@ void OverviewMap::writeSettings()
 void OverviewMap::updateSettings()
 {
     QStringList const planets = PlanetFactory::planetList();
-    for( const QString &planet: planets ) {
-        m_svgPaths.insert(planet, m_settings.value(QLatin1String("path_") + planet, QString()).toString());
+    foreach( const QString &planet, planets ) {
+        m_svgPaths.insert( planet, m_settings.value( "path_" + planet, QString() ).toString() );
     }
 
-    m_posColor = QColor(m_settings.value(QStringLiteral("posColor")).toString());
+    m_posColor = QColor( m_settings.value( "posColor" ).toString() );
     loadPlanetMaps();
 
     if ( !m_configDialog ) {
@@ -402,11 +403,11 @@ bool OverviewMap::eventFilter( QObject *object, QEvent *e )
         return AbstractFloatItem::eventFilter(object,e);
     }
 
+    bool cursorAboveFloatItem(false);
     if ( e->type() == QEvent::MouseButtonDblClick || e->type() == QEvent::MouseMove ) {
         QMouseEvent *event = static_cast<QMouseEvent*>(e);
         QRectF floatItemRect = QRectF( positivePosition(), size() );
 
-        bool cursorAboveFloatItem(false);
         if ( floatItemRect.contains(event->pos()) ) {
             cursorAboveFloatItem = true;
 
@@ -457,7 +458,7 @@ void OverviewMap::setCurrentWidget( QSvgWidget *widget )
 
 void OverviewMap::loadPlanetMaps()
 {
-    for( const QString& planet: m_planetID ) {
+    foreach( const QString& planet, m_planetID ) {
         if ( m_svgWidgets.contains( planet) ) {
             m_svgWidgets[planet]->load( m_svgPaths[planet] );
         } else {
@@ -468,11 +469,11 @@ void OverviewMap::loadPlanetMaps()
 
 void OverviewMap::loadMapSuggestions()
 {
-    QStringList paths = QDir(MarbleDirs::pluginPath(QString())).entryList(QStringList("*.svg"), QDir::Files | QDir::NoDotAndDotDot);
+    QStringList paths = QDir( MarbleDirs::pluginPath( "" ) ).entryList( QStringList( "*.svg" ), QDir::Files | QDir::NoDotAndDotDot );
     for( int i = 0; i < paths.size(); ++i ) {
-        paths[i] = MarbleDirs::pluginPath(QString()) + QLatin1Char('/') + paths[i];
+        paths[i] = MarbleDirs::pluginPath( QString() ) + '/' + paths[i];
     }
-    paths << MarbleDirs::path(QStringLiteral("svg/worldmap.svg")) << MarbleDirs::path(QStringLiteral("svg/lunarmap.svg"));
+    paths << MarbleDirs::path( "svg/worldmap.svg" ) << MarbleDirs::path( "svg/lunarmap.svg" );
     ui_configWidget->m_tableWidget->setRowCount( paths.size() );
     for( int i = 0; i < paths.size(); ++i ) {
         ui_configWidget->m_tableWidget->setCellWidget( i, 0, new QSvgWidget( paths[i] ) );
@@ -537,4 +538,6 @@ void OverviewMap::useMapSuggestion( int index )
 
 }
 
-#include "moc_OverviewMap.cpp"
+Q_EXPORT_PLUGIN2( OverviewMap, Marble::OverviewMap )
+
+#include "OverviewMap.moc"
